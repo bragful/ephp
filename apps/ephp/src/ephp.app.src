@@ -1,0 +1,12 @@
+{application, ephp,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { ephp_app, []}},
+  {env, []}
+ ]}.
