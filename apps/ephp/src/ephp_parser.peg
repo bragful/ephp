@@ -1,0 +1,266 @@
+document <- (!init_tag .)* code document? / (!init_tag .)* `
+    case Node of 
+        [TextLeft, [Type, Code, _EndTag], Chunk] ->
+            Label = case Type of
+                init_tag -> eval;
+                init_tag_value -> print
+            end,
+            case iolist_to_binary(TextLeft) of
+                <<>> -> [];
+                FinalText -> [{print_text, FinalText}]
+            end ++
+            [{Label, Code}|Chunk];
+        [] ->
+            [];
+        Text ->
+            [{print_text, iolist_to_binary(Text)}]
+    end
+`;
+
+code <- init_tag space? statements space? end_tag? / init_value space? expression space? end_tag `
+    [Init,_,Code,_,End] = Node,
+    [Init, Code, End]
+`;
+
+init_tag <- init_value / init_common / init_reduced ~;
+
+init_common  <- '<\?php' `init_tag`;
+init_reduced <- '<\?'    `init_tag`;
+init_value   <- '<\?='   `init_tag_value`;
+
+end_tag      <- '\?>'    `end_tag`;
+
+statements <- statement ( ';' statement )* ';' `
+    [Statement, Statements, _] = Node,
+    [Statement | [ St || [_,St] <- Statements ]]
+`;
+
+statement <- st_if / assign ~;
+
+assign <- space? var space? '=' space? expression space? `
+    [_,Var,_,_Eq,_,Int,_] = Node,
+    {assign, Var, Int}
+`;
+
+code_block <- '{' space? statements space? '}' `
+    [_,_,St,_,_] = Node,
+    St
+`;
+
+conditions_use <- '(' space? conditions space? ')' `
+    [_,_,Cond,_,_] = Node,
+    Cond
+`;
+
+%st_if_elseif <- st_if (space? elseif space? conditions_use space? ( statement / code_block))+
+
+st_if <- st_if_else / st_if_simple ~;
+
+st_if_else <- st_if_simple space? else space? ( statement / code_block ) `
+    [{if_block, Cond, St},_,_Else,_,ElseSt] = Node,
+    {if_block, Cond, St, ElseSt}
+`;
+
+st_if_simple <- if space? conditions_use space? ( statement / code_block ) `
+    [_If,_,Cond,_,St] = Node,
+    {if_block, Cond, St}
+`;
+
+conditions <- condition space? nexo space? conditions / cs:condition `
+    case Node of 
+        [A,_,Type,_,B] -> {operation, Type, A, B};
+        {cs, Param} -> Param
+    end
+`;
+
+condition <- primary_cond space? comparator space? cs:condition / pri:primary_cond `
+    case Node of
+        [A,_,Type,_,{cs,B}] -> {operation, Type, A, B};
+        {pri, Param} -> Param
+    end 
+`;
+
+primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
+    if
+        is_tuple(Node) -> Node;
+        is_list(Node) -> proplists:get_value(cs, Node)
+    end
+`;
+
+ternary <- conditions space? '\?' space? expression (space? ':' space? expression)? `
+    case Node of
+        [Cond,_,_,_,St,[]] -> {if_block, Cond, {return, St}};
+        [Cond,_,_,_,St,[_,_,_,ElseSt]] -> {if_block, Cond, {return, St}, {return, ElseSt}}
+    end
+`;
+
+expression_cond <- additive / number / expr_string / var / array_def ~;
+
+expression <- additive / ternary / conditions / number / expr_string / var / array_def ~;
+
+% reserved words
+if <- #(?i)if# `'if'`;
+else <- #(?i)else# `else`;
+elseif <- #(?i)elseif# `elseif`;
+while <- #(?i)while# `while`;
+for <- #(?i)for# `for`;
+foreach <- #(?i)foreach# `foreach`;
+function <- #(?i)function# `function`;
+break <- #(?i)break# `break`;
+continue <- #(?i)continue# `continue`;
+switch <- #(?i)switch# `switch`;
+case <- #(?i)case# `'case'`;
+default <- #(?i)default# `default`;
+array <- #(?i)array# `array`;
+print <- #(?i)print# `print`;
+do <- #(?i)print# `do`;
+and <- #(?i)and# / '&&' `'and'`;
+or <- #(?i)or# / '||' `'or'`;
+not <- #(?i)not# `'not'`;
+null <- #(?i)null# `null`;
+
+nexo <- and / or ~;
+
+space <- [ \t\n\s\r]* ~;
+
+index <- string / additive ~;
+array_element <- (index space? '=>' space?)? expression `
+    case Node of
+        [[I|_],Expr] -> {array_element, I, Expr};
+        [[],Expr] -> {array_element, auto, Expr}
+    end
+`;
+
+concat <- string (space? '\.' space? (string / var))+ `
+    [Str1,Strings] = Node,
+    {concat, [Str1|[ Element || [_,_,_,Element] <- Strings ]]}
+`;
+
+array_def <- array space? '(' space? array_element tail:( space? ',' space? array_element )* space? ')' `
+    [_Array,_,_,_,ArrayElement,{tail,Tail},_,_] = Node,
+    ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
+         [NewArrayElement|Elements]
+    end, [], Tail),
+    {array, [ArrayElement|ArrayElements]}
+`;
+
+number <- float / integer ~;
+
+float <- '-'? space? [0-9]* '\.' [0-9]+ `
+    [Sign,_,Integer,_Dot,Decimal] = Node,
+    IntegerBin = iolist_to_binary(Integer),
+    DecimalBin = iolist_to_binary(Decimal),
+    FloatStr = binary_to_list(<<IntegerBin/binary, ".", DecimalBin/binary>>),
+    S = case Sign of
+        <<"-">> -> -1;
+        _ -> 1
+    end,
+    {float, list_to_float(FloatStr) * S}
+`;
+
+integer <- '-'? space? [0-9]+ `
+    [Sign,_,Int] = Node,
+    IntBin = iolist_to_binary(Int),
+    IntList = binary_to_list(IntBin),
+    S = case Sign of 
+        <<"-">> -> -1;
+        _ -> 1
+    end,
+    {int, list_to_integer(IntList) * S}
+`;
+
+arith_params <- number / var ~;
+
+additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
+    case Node of 
+        [A,_,Type,_,B] -> {operation, Type, A, B};
+        {mul, Param} -> Param
+    end
+`;
+
+multitive <- primary space? ( "*" / "/" ) space? mul:multitive / pri:primary `
+    case Node of
+        [A,_,Type,_,{mul,B}] -> {operation, Type, A, B};
+        {pri, Param} -> Param
+    end 
+`;
+
+primary <- ("(" space? add:additive space? ")") / arith_params `
+    if
+        is_tuple(Node) -> Node;
+        is_list(Node) -> proplists:get_value(add, Node)
+    end
+`;
+
+expr_string <- concat / string ~;
+
+string <- string_fixed / string_parsed ~;
+
+string_fixed <- "'" (!"'" ("\\\\" / "\\'" / .))* "'" `
+    [_,Text,_] = Node,
+    {text, iolist_to_binary(Text)}
+`;
+
+string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
+    [_,TextRaw,_] = Node,
+    {Text,Total} = lists:foldr(fun
+        ([[], <<L:1/binary>>], {Text,Total}) ->
+            {<<L/binary,Text/binary>>,Total};
+        ([[], Other], {Text,Total}) ->
+            {<<>>, case Text of 
+                <<>> -> [Other|Total];
+                _ -> [Other,Text|Total]
+            end}
+    end, {<<>>,[]}, TextRaw),
+    FinalText = case Text of
+        <<>> -> Total;
+        _ -> [Text|Total]
+    end,
+    case FinalText of
+        [<<_/binary>>=FT] -> {text, FT};
+        _ -> {text_to_process, FinalText}
+    end
+`;
+
+mono_logic_cmp <- not ~;
+bin_logic_cmp <- and / or ~;
+mono_logic <- '~' ~;
+bin_logic <- '&' / '|' / '^' ~;
+mono_aritmetic <- '++' / '--' ~;
+bin_aritmetic <- '+' / '*' / '/' / '-' ~;
+comparator <- eq / xeq / ne / xne / gt / geq / lt / leq ~;
+
+eq <- '==' ~;
+xeq <- '===' ~;
+
+ne <- '!=' / '<>' ~;
+xne <- '!==' / '<=>' ~;
+
+gt <- '>' ~;
+lt <- '<' ~;
+
+geq <- '>=' / '=>' ~;
+leq <- '<=' / '=<' ~;
+
+key <- [a-zA-Z_] [a-zA-Z0-9_]* `
+    [Letter, Rest] = Node,
+    lists:foldr(fun(L,Word) ->
+        <<L/binary, Word/binary>>
+    end, <<>>, [Letter|Rest])
+`;
+
+var <- var_array / var_simple ~;
+
+var_array <- '$' key ('[' index ']')+ `
+    [_Dollar, Key, Indexes] = Node,
+    {var, Key, [ I || [_,I,_] <- Indexes ]}
+`;
+
+var_simple <- '$' key `
+    [_Dollar, Key] = Node,
+    {var, Key}
+`;
+
+`
+-include("ephp.hrl").
+`
