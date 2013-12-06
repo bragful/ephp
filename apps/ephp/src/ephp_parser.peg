@@ -36,7 +36,7 @@ statements <- statement ( space? statement )* `
     [Statement | [ St || [_,St] <- Statements ]]
 `;
 
-statement <- literal_block / st_if / st_while / st_for / st_do_while / assign ~;
+statement <- literal_block / st_if / st_while / st_foreach / st_for / st_do_while / assign ~;
 
 literal_block <- end_tag document? init_tag `
     [_,Document,_] = Node,
@@ -71,6 +71,14 @@ for_assignments <- basic_assign ( space? ',' space? basic_assign )* `
 st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement ) `
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
     {for, Init, Cond, Update, Code}
+`;
+
+st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement ) `
+    [_Foreach,_,_,_,List,_,_As,KeyOpt,_,Element,_,_,_,St] = Node,
+    case KeyOpt of
+        [] -> {foreach,undefined,Element,List,St};
+        [_,Key,_,_] -> {foreach,Key,Element,List,St}
+    end
 `;
 
 st_do_while <- do space? ( code_block / statement ) space? while space? conditions_use space? ';' `
@@ -134,6 +142,7 @@ elseif <- #(?i)elseif# `elseif`;
 while <- #(?i)while# `while`;
 for <- #(?i)for# `for`;
 foreach <- #(?i)foreach# `foreach`;
+as <- #(?i)as# `as`;
 function <- #(?i)function# `function`;
 break <- #(?i)break# `break`;
 continue <- #(?i)continue# `continue`;

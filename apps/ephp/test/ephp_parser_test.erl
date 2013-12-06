@@ -232,3 +232,21 @@ for_statement_test_() -> [
                      {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
         ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>"))
 ].
+
+foreach_statement_test_() -> [
+    ?_assertEqual(
+        [{eval,[{foreach,undefined,
+                 {var,<<"i">>},
+                 {var,<<"data">>},
+                 {assign,{var,<<"b">>},
+                         {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
+        ?PARSE("<?php foreach ($data as $i) $b = $b + $i; ?>")),
+    ?_assertEqual(
+        [{eval,[{foreach,
+                 {var,<<"k">>},
+                 {var,<<"i">>},
+                 {var,<<"data">>},
+                 {assign,{var,<<"b">>},
+                         {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
+        ?PARSE("<?php foreach ($data as $k => $i) $b = $b + $i; ?>"))
+].
