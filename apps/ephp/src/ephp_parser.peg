@@ -129,7 +129,7 @@ case <- #(?i)case# `'case'`;
 default <- #(?i)default# `default`;
 array <- #(?i)array# `array`;
 print <- #(?i)print# `print`;
-do <- #(?i)print# `do`;
+do <- #(?i)do# `do`;
 and <- #(?i)and# / '&&' `'and'`;
 or <- #(?i)or# / '||' `'or'`;
 not <- #(?i)not# `'not'`;
