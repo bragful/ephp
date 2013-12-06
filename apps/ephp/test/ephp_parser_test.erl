@@ -215,3 +215,14 @@ do_while_statement_literalblock_test_() -> [
                     {print_text,<<"! ">>}]]}]}],
         ?PARSE("<?php do { $a = 0; ?> OK <?=$name?>! <? } while ($a > 5); ?>"))
 ].
+
+for_statement_test_() -> [
+    ?_assertEqual(
+        [{eval,[{for,[{assign,{var,<<"i">>},{int,0}}],
+             {operation,<<"<">>,{var,<<"i">>},{int,5}},
+             [{assign,{var,<<"i">>},
+                      {operation,<<"+">>,{var,<<"i">>},{int,1}}}],
+             {assign,{var,<<"b">>},
+                     {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
+        ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>"))
+].

@@ -36,16 +36,21 @@ statements <- statement ( space? statement )* `
     [Statement | [ St || [_,St] <- Statements ]]
 `;
 
-statement <- literal_block / st_if / st_while / st_do_while / assign ~;
+statement <- literal_block / st_if / st_while / st_for / st_do_while / assign ~;
 
 literal_block <- end_tag document? init_tag `
     [_,Document,_] = Node,
     Document
 `;
 
-assign <- space? var space? '=' space? expression space? ';' `
-    [_,Var,_,_Eq,_,Int,_,_] = Node,
-    {assign, Var, Int}
+basic_assign <- var space? '=' space? expression `
+    [Var,_,_Eq,_,Expr] = Node,
+    {assign, Var, Expr}
+`;
+
+assign <- space? basic_assign space? ';' `
+    [_,Assign,_,_] = Node,
+    Assign
 `;
 
 code_block <- '{' space? statements space? '}' `
@@ -58,9 +63,15 @@ conditions_use <- '(' space? conditions space? ')' `
     Cond
 `;
 
-%st_if_elseif <- st_if (space? elseif space? conditions_use space? ( statement / code_block))+
+for_assignments <- basic_assign ( space? ',' space? basic_assign )* `
+    [Assign,Assigns] = Node,
+    [Assign | [ A || [_,_,_,A] <- Assigns ] ]
+`;
 
-st_if <- st_if_else / st_if_simple ~;
+st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement ) `
+    [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
+    {for, Init, Cond, Update, Code}
+`;
 
 st_do_while <- do space? ( code_block / statement ) space? while space? conditions_use space? ';' `
     [_Do,_,St,_,_While,_,Cond,_,_] = Node,
@@ -71,6 +82,8 @@ st_while <- while space? conditions_use space? ( code_block / statement ) `
     [_While,_,Cond,_,St] = Node,
     {pre_while_block, Cond, St}
 `;
+
+st_if <- st_if_else / st_if_simple ~;
 
 st_if_else <- st_if_simple space? else space? ( code_block / statement ) `
     [{if_block, Cond, St},_,_Else,_,ElseSt] = Node,
