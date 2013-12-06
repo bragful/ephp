@@ -250,3 +250,22 @@ foreach_statement_test_() -> [
                          {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
         ?PARSE("<?php foreach ($data as $k => $i) $b = $b + $i; ?>"))
 ].
+
+switch_statement_test_() -> [
+    ?_assertEqual(
+        [{eval,[{switch,{var,<<"a">>},
+                [{switch_case,{text,<<"hola">>},
+                              [{assign,{var,<<"a">>},{int,5}}]}]}]}],
+        ?PARSE("<?php switch ($a) { case 'hola': $a = 5; } ?>")),
+    ?_assertEqual(
+        [{eval,[{switch,{var,<<"a">>},
+                [{switch_case,{text,<<"hola">>},
+                              [{assign,{var,<<"a">>},{int,5}},break]}]}]}],
+        ?PARSE("<?php switch ($a) { case 'hola': $a = 5; break; } ?>")),
+    ?_assertEqual(
+        [{eval,[{switch,{var,<<"a">>},
+                [{switch_case,{text,<<"hola">>},
+                              [{assign,{var,<<"a">>},{int,5}},break]},
+                 {default,[{assign,{var,<<"a">>},{int,0}}]}]}]}],
+        ?PARSE("<?php switch ($a) { case 'hola': $a = 5; break; default: $a = 0; } ?>"))
+].

@@ -36,7 +36,7 @@ statements <- statement ( space? statement )* `
     [Statement | [ St || [_,St] <- Statements ]]
 `;
 
-statement <- literal_block / st_if / st_while / st_foreach / st_for / st_do_while / assign ~;
+statement <- literal_block / st_if / st_while / st_foreach / st_for / st_switch / st_do_while / st_break / st_continue / assign ~;
 
 literal_block <- end_tag document? init_tag `
     [_,Document,_] = Node,
@@ -63,6 +63,14 @@ conditions_use <- '(' space? conditions space? ')' `
     Cond
 `;
 
+st_break <- break space? ';' `
+    break
+`;
+
+st_continue <- continue space? ';' `
+    continue
+`;
+
 for_assignments <- basic_assign ( space? ',' space? basic_assign )* `
     [Assign,Assigns] = Node,
     [Assign | [ A || [_,_,_,A] <- Assigns ] ]
@@ -71,6 +79,20 @@ for_assignments <- basic_assign ( space? ',' space? basic_assign )* `
 st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement ) `
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
     {for, Init, Cond, Update, Code}
+`;
+
+switch_case <- ((case space (number / expr_string)) / default) space? ':' space? statements `
+    case Node of 
+    [[_Case,_,Label],_,_,_,St] -> 
+        {switch_case, Label, St};
+    [_Default,_,_,_,St] ->
+        {default, St}
+    end
+`;
+
+st_switch <- switch space? '(' space? expression_cond space? ')' space? '{' ( space? switch_case space?)+ space? '}' `
+    [_Switch,_,_,_,Cond,_,_,_,_,Cases,_,_] = Node,
+    {switch, Cond, [ Case || [_,Case,_] <- Cases ]}
 `;
 
 st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement ) `
