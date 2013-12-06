@@ -16,22 +16,22 @@ only_text_test_() -> [
 
 different_tags_test_() -> [
     ?_assertEqual(
-        [{eval,[{assign,{var,<<"a">>},{int,5}}]}],
+        [{eval,[{assign,{var,<<"a">>,[]},{int,5}}]}],
         ?PARSE("<? $a = 5; ?>")),
     ?_assertEqual(
         [{print,{int,5}}],
         ?PARSE("<?=5?>")),
     ?_assertEqual(
-        [{eval,[{assign,{var,<<"a">>},{int,5}}]}],
+        [{eval,[{assign,{var,<<"a">>,[]},{int,5}}]}],
         ?PARSE("<?php $a = 5; ?>"))
 ].
 
 php_endtag_optional_test_() -> [
     ?_assertEqual(
-        [{eval,[{assign,{var,<<"a">>},{int,5}}]}],
+        [{eval,[{assign,{var,<<"a">>,[]},{int,5}}]}],
         ?PARSE("<? $a = 5;")),
     ?_assertEqual(
-        [{eval,[{assign,{var,<<"a">>},{int,5}}]}],
+        [{eval,[{assign,{var,<<"a">>,[]},{int,5}}]}],
         ?PARSE("<?php $a = 5;")),
     ?_assertEqual(
         {[],<<"<?=5 ">>,{{line,1},{column,1}}},
@@ -62,13 +62,13 @@ literal_test_() -> [
 concat_test_() -> [
     ?_assertEqual(
         [{print,{concat,[{text,<<"hello ">>},
-                 {var,<<"name">>},
+                 {var,<<"name">>,[]},
                  {text,<<".">>},
-                 {var,<<"surname">>}]}}],
+                 {var,<<"surname">>,[]}]}}],
         ?PARSE("<?=\"hello \" . $name . \".\" . $surname ?>")),
     ?_assertEqual(
         [{print,{concat,[{text,<<"hello ">>},
-                 {var,<<"name">>},
+                 {var,<<"name">>,[]},
                  {text,<<", welcome!">>}]}}],
         ?PARSE("<?='hello ' . $name . ', welcome!'?>")),
     ?_assertEqual(
@@ -90,182 +90,182 @@ arith_test_() -> [
 
 multi_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{assign,{var,<<"a">>},{int,1}},
-        {assign,{var,<<"b">>},{int,2}},
-        {assign,{var,<<"c">>},
+        [{eval,[{assign,{var,<<"a">>,[]},{int,1}},
+        {assign,{var,<<"b">>,[]},{int,2}},
+        {assign,{var,<<"c">>,[]},
                 {operation,<<"+">>,
-                           {var,<<"a">>},
-                           {operation,<<"*">>,{var,<<"b">>},{int,25}}}}]}],
+                           {var,<<"a">>,[]},
+                           {operation,<<"*">>,{var,<<"b">>,[]},{int,25}}}}]}],
         ?PARSE("<?php $a = 1; $b = 2; $c = $a + $b * 25; ?>"))
 ].
 
 if_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  {assign,{var,<<"a">>},{int,0}}}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  {assign,{var,<<"a">>,[]},{int,0}}}]}],
         ?PARSE("<?php if ($a > 5) $a = 0; ?>")),
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  {assign,{var,<<"a">>},{int,0}},
-                  {assign,{var,<<"a">>},{int,5}}}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  {assign,{var,<<"a">>,[]},{int,0}},
+                  {assign,{var,<<"a">>,[]},{int,5}}}]}],
         ?PARSE("<?php if ($a > 5) $a = 0; else $a = 5; ?>")),
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  {assign,{var,<<"a">>},{int,0}},
-                  {if_block,{operation,<<">">>,{var,<<"a">>},{int,3}},
-                    {assign,{var,<<"a">>},{int,5}}}}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  {assign,{var,<<"a">>,[]},{int,0}},
+                  {if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,3}},
+                    {assign,{var,<<"a">>,[]},{int,5}}}}]}],
         ?PARSE("<?php if ($a > 5) $a = 0; elseif ($a > 3) $a = 5; ?>"))
 ].
 
 if_statement_codeblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}}]}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}}]}]}],
         ?PARSE("<?php if ($a > 5) { $a = 0; } ?>")),
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}}],
-                  [{assign,{var,<<"a">>},{int,5}}]}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}}],
+                  [{assign,{var,<<"a">>,[]},{int,5}}]}]}],
         ?PARSE("<?php if ($a > 5) { $a = 0; } else { $a = 5; } ?>"))
 ].
 
 if_statement_literalblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}},
-                   [{print_text,<<" OK ">>}]]}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}},
+                   {print_text,<<" OK ">>}]}]}],
         ?PARSE("<?php if ($a > 5) { $a = 0; ?> OK <? } ?>")),
     ?_assertEqual(
-        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}},
-                   [{print_text,<<" OK ">>},
-                    {print,{var,<<"name">>}},
-                    {print_text,<<"! ">>}]]}]}],
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}},
+                   {print_text,<<" OK ">>},
+                   {print,{var,<<"name">>,[]}},
+                   {print_text,<<"! ">>}]}]}],
         ?PARSE("<?php if ($a > 5) { $a = 0; ?> OK <?=$name?>! <? } ?>"))
 ].
 
 ternary_test_() -> [
     ?_assertEqual(
-        [{eval,[{assign,{var,<<"a">>},
-                {if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                          {return,{int,0}},
-                          {return,{int,5}}}}]}],
+        [{eval,[{assign,{var,<<"a">>,[]},
+                {if_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                          {int,0},
+                          {int,5}}}]}],
         ?PARSE("<?php $a = ($a > 5) ? 0 : 5; ?>"))
 ].
 
 var_indexes_test_() -> [
     ?_assertEqual(
-        [{print,{var,<<"a">>,[{int,25},{var,<<"b">>}]}}],
+        [{print,{var,<<"a">>,[{int,25},{var,<<"b">>,[]}]}}],
         ?PARSE("<?=$a[25][$b]?>")),
     ?_assertEqual(
         [{print,{var,<<"a">>,
-             [{operation,<<"+">>,{int,25},{var,<<"i">>}},
-              {var,<<"b">>}]}}],
+             [{operation,<<"+">>,{int,25},{var,<<"i">>,[]}},
+              {var,<<"b">>,[]}]}}],
         ?PARSE("<?=$a[25+$i][$b]?>"))
 ].
 
 while_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  {assign,{var,<<"a">>},{int,0}}}]}],
+        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  {assign,{var,<<"a">>,[]},{int,0}}}]}],
         ?PARSE("<?php while ($a > 5) $a = 0; ?>"))
 ].
 
 while_statement_codeblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}}]}]}],
+        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}}]}]}],
         ?PARSE("<?php while ($a > 5) { $a = 0; } ?>"))
 ].
 
 while_statement_literalblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}},
-                   [{print_text,<<" OK ">>}]]}]}],
+        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}},
+                   {print_text,<<" OK ">>}]}]}],
         ?PARSE("<?php while ($a > 5) { $a = 0; ?> OK <? } ?>")),
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}},
-                   [{print_text,<<" OK ">>},
-                    {print,{var,<<"name">>}},
-                    {print_text,<<"! ">>}]]}]}],
+        [{eval,[{pre_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}},
+                   {print_text,<<" OK ">>},
+                   {print,{var,<<"name">>,[]}},
+                   {print_text,<<"! ">>}]}]}],
         ?PARSE("<?php while ($a > 5) { $a = 0; ?> OK <?=$name?>! <? } ?>"))
 ].
 
 do_while_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  {assign,{var,<<"a">>},{int,0}}}]}],
+        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  {assign,{var,<<"a">>,[]},{int,0}}}]}],
         ?PARSE("<?php do $a = 0; while ($a > 5); ?>"))
 ].
 
 do_while_statement_codeblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}}]}]}],
+        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}}]}]}],
         ?PARSE("<?php do { $a = 0; } while ($a > 5); ?>"))
 ].
 
 do_while_statement_literalblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}},
-                   [{print_text,<<" OK ">>}]]}]}],
+        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}},
+                   {print_text,<<" OK ">>}]}]}],
         ?PARSE("<?php do { $a = 0; ?> OK <? } while ($a > 5); ?>")),
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
-                  [{assign,{var,<<"a">>},{int,0}},
-                   [{print_text,<<" OK ">>},
-                    {print,{var,<<"name">>}},
-                    {print_text,<<"! ">>}]]}]}],
+        [{eval,[{post_while_block,{operation,<<">">>,{var,<<"a">>,[]},{int,5}},
+                  [{assign,{var,<<"a">>,[]},{int,0}},
+                   {print_text,<<" OK ">>},
+                   {print,{var,<<"name">>,[]}},
+                   {print_text,<<"! ">>}]}]}],
         ?PARSE("<?php do { $a = 0; ?> OK <?=$name?>! <? } while ($a > 5); ?>"))
 ].
 
 for_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{for,[{assign,{var,<<"i">>},{int,0}}],
-             {operation,<<"<">>,{var,<<"i">>},{int,5}},
-             [{assign,{var,<<"i">>},
-                      {operation,<<"+">>,{var,<<"i">>},{int,1}}}],
-             {assign,{var,<<"b">>},
-                     {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
+        [{eval,[{for,[{assign,{var,<<"i">>,[]},{int,0}}],
+             {operation,<<"<">>,{var,<<"i">>,[]},{int,5}},
+             [{assign,{var,<<"i">>,[]},
+                      {operation,<<"+">>,{var,<<"i">>,[]},{int,1}}}],
+             {assign,{var,<<"b">>,[]},
+                     {operation,<<"+">>,{var,<<"b">>,[]},{var,<<"i">>,[]}}}}]}],
         ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>"))
 ].
 
 foreach_statement_test_() -> [
     ?_assertEqual(
         [{eval,[{foreach,undefined,
-                 {var,<<"i">>},
-                 {var,<<"data">>},
-                 {assign,{var,<<"b">>},
-                         {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
+                 {var,<<"i">>,[]},
+                 {var,<<"data">>,[]},
+                 {assign,{var,<<"b">>,[]},
+                         {operation,<<"+">>,{var,<<"b">>,[]},{var,<<"i">>,[]}}}}]}],
         ?PARSE("<?php foreach ($data as $i) $b = $b + $i; ?>")),
     ?_assertEqual(
         [{eval,[{foreach,
-                 {var,<<"k">>},
-                 {var,<<"i">>},
-                 {var,<<"data">>},
-                 {assign,{var,<<"b">>},
-                         {operation,<<"+">>,{var,<<"b">>},{var,<<"i">>}}}}]}],
+                 {var,<<"k">>,[]},
+                 {var,<<"i">>,[]},
+                 {var,<<"data">>,[]},
+                 {assign,{var,<<"b">>,[]},
+                         {operation,<<"+">>,{var,<<"b">>,[]},{var,<<"i">>,[]}}}}]}],
         ?PARSE("<?php foreach ($data as $k => $i) $b = $b + $i; ?>"))
 ].
 
 switch_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{switch,{var,<<"a">>},
+        [{eval,[{switch,{var,<<"a">>,[]},
                 [{switch_case,{text,<<"hola">>},
-                              [{assign,{var,<<"a">>},{int,5}}]}]}]}],
+                              [{assign,{var,<<"a">>,[]},{int,5}}]}]}]}],
         ?PARSE("<?php switch ($a) { case 'hola': $a = 5; } ?>")),
     ?_assertEqual(
-        [{eval,[{switch,{var,<<"a">>},
+        [{eval,[{switch,{var,<<"a">>,[]},
                 [{switch_case,{text,<<"hola">>},
-                              [{assign,{var,<<"a">>},{int,5}},break]}]}]}],
+                              [{assign,{var,<<"a">>,[]},{int,5}},break]}]}]}],
         ?PARSE("<?php switch ($a) { case 'hola': $a = 5; break; } ?>")),
     ?_assertEqual(
-        [{eval,[{switch,{var,<<"a">>},
+        [{eval,[{switch,{var,<<"a">>,[]},
                 [{switch_case,{text,<<"hola">>},
-                              [{assign,{var,<<"a">>},{int,5}},break]},
-                 {default,[{assign,{var,<<"a">>},{int,0}}]}]}]}],
+                              [{assign,{var,<<"a">>,[]},{int,5}},break]},
+                 {default,[{assign,{var,<<"a">>,[]},{int,0}}]}]}]}],
         ?PARSE("<?php switch ($a) { case 'hola': $a = 5; break; default: $a = 0; } ?>"))
 ].
