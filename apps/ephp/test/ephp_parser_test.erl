@@ -108,7 +108,13 @@ if_statement_test_() -> [
         [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
                   {assign,{var,<<"a">>},{int,0}},
                   {assign,{var,<<"a">>},{int,5}}}]}],
-        ?PARSE("<?php if ($a > 5) $a = 0; else $a = 5; ?>"))
+        ?PARSE("<?php if ($a > 5) $a = 0; else $a = 5; ?>")),
+    ?_assertEqual(
+        [{eval,[{if_block,{operation,<<">">>,{var,<<"a">>},{int,5}},
+                  {assign,{var,<<"a">>},{int,0}},
+                  {if_block,{operation,<<">">>,{var,<<"a">>},{int,3}},
+                    {assign,{var,<<"a">>},{int,5}}}}]}],
+        ?PARSE("<?php if ($a > 5) $a = 0; elseif ($a > 3) $a = 5; ?>"))
 ].
 
 if_statement_codeblock_test_() -> [
