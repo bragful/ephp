@@ -182,9 +182,15 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-expression_cond <- arith_mono / additive / number / expr_string / array_def / var ~;
+expression_cond <- arith_mono / additive / number / expr_string / array_def / call_function / var ~;
 
-expression <- arith_mono / ternary / additive / conditions / number / expr_string / var / array_def ~;
+expression <- arith_mono / ternary / additive / conditions / number / expr_string / var / array_def / call_function ~;
+
+call_function <- key space? '(' space? expression (space? ',' space? expression)* space? ')' `
+    [Name,_,_,_,Arg,Args,_,_] = Node,
+    Arguments = [Arg | [ A || [_,_,_,A] <- Args ]],
+    {call, Name, Arguments}
+`;
 
 % reserved words
 if <- #(?i)if# `'if'`;
