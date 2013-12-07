@@ -147,6 +147,23 @@ resolve({if_block,Cond,TrueBlock,FalseBlock}, Vars) ->
 resolve({var,Root,Idx}, Vars) ->
     {resolve_var({var,Root,Idx}, Vars), Vars};
 
+resolve({array,ArrayElements}, Vars) ->
+    {_I,Array,NVars} = lists:foldl(fun
+        ({array_element,auto,Element}, {I,Dict,V}) ->
+            {Value, NewVars} = resolve(Element,V),
+            {I+1,dict:store(I,Value,Dict),NewVars};
+        ({array_element,I,Element}, {INum,Dict,V}) ->
+            {Value, NewVars} = resolve(Element,V),
+            {Idx, ReNewVars} = resolve(I,NewVars),
+            if
+            is_integer(Idx) ->  
+                {Idx+1,dict:store(Idx,Value,Dict),ReNewVars};
+            true ->
+                {INum,dict:store(Idx,Value,Dict),ReNewVars}
+            end
+    end, {0,dict:new(),Vars}, ArrayElements),
+    {Array, NVars};
+
 resolve(_Unknown, _Vars) ->
     throw(eundeftoken).
 
