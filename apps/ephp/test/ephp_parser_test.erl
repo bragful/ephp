@@ -230,7 +230,14 @@ for_statement_test_() -> [
                       {operation,<<"+">>,{var,<<"i">>,[]},{int,1}}}],
              {assign,{var,<<"b">>,[]},
                      {operation,<<"+">>,{var,<<"b">>,[]},{var,<<"i">>,[]}}}}]}],
-        ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>"))
+        ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>")),
+    ?_assertEqual(
+        [{eval,[{for,[{assign,{var,<<"i">>,[]},{int,0}}],
+             {operation,<<"<">>,{var,<<"i">>,[]},{int,5}},
+             [{post_incr,{var,<<"i">>,[]}}],
+             {assign,{var,<<"b">>,[]},
+                     {operation,<<"+">>,{var,<<"b">>,[]},{var,<<"i">>,[]}}}}]}],
+        ?PARSE("<?php for ($i=0;$i<5;$i++) $b = $b + $i;"))
 ].
 
 foreach_statement_test_() -> [
@@ -268,4 +275,72 @@ switch_statement_test_() -> [
                               [{assign,{var,<<"a">>,[]},{int,5}},break]},
                  {default,[{assign,{var,<<"a">>,[]},{int,0}}]}]}]}],
         ?PARSE("<?php switch ($a) { case 'hola': $a = 5; break; default: $a = 0; } ?>"))
+].
+
+post_incr_test_() -> [
+    ?_assertEqual(
+        [{eval,[{post_incr,{var,<<"i">>,[]}}]}],
+        ?PARSE("<? $i++; ")),
+    ?_assertEqual(
+        [{print,{post_incr,{var,<<"i">>,[]}}}],
+        ?PARSE("<?=$i++?>"))
+].
+
+post_decr_test_() -> [
+    ?_assertEqual(
+        [{eval,[{post_decr,{var,<<"i">>,[]}}]}],
+        ?PARSE("<? $i--; ")),
+    ?_assertEqual(
+        [{print,{post_decr,{var,<<"i">>,[]}}}],
+        ?PARSE("<?=$i--?>"))
+].
+
+pre_incr_test_() -> [
+    ?_assertEqual(
+        [{eval,[{pre_incr,{var,<<"i">>,[]}}]}],
+        ?PARSE("<? ++$i; ")),
+    ?_assertEqual(
+        [{print,{pre_incr,{var,<<"i">>,[]}}}],
+        ?PARSE("<?=++$i?>"))
+].
+
+pre_decr_test_() -> [
+    ?_assertEqual(
+        [{eval,[{pre_decr,{var,<<"i">>,[]}}]}],
+        ?PARSE("<? --$i; ")),
+    ?_assertEqual(
+        [{print,{pre_decr,{var,<<"i">>,[]}}}],
+        ?PARSE("<?=--$i?>"))
+].
+
+pre_and_post_incr_and_decr_as_index_test_() -> [
+    ?_assertEqual(
+        [{print,{var,<<"a">>,[{post_incr,{var,<<"i">>,[]}}]}}],
+        ?PARSE("<?=$a[$i++]?>")),
+    ?_assertEqual(
+        [{print,{var,<<"a">>,[{pre_decr,{var,<<"i">>,[]}}]}}],
+        ?PARSE("<?=$a[--$i]?>")),
+    ?_assertEqual(
+        [{print,{var,<<"a">>,[{post_decr,{var,<<"i">>,[]}}]}}],
+        ?PARSE("<?=$a[$i--]?>")),
+    ?_assertEqual(
+        [{print,{var,<<"a">>,[{pre_incr,{var,<<"i">>,[]}}]}}],
+        ?PARSE("<?=$a[++$i]?>"))
+].
+
+not_test_() -> [
+    ?_assertEqual(
+        [{print,{if_block,{'not',{var,<<"a">>,[]}},{int,1}}}],
+        ?PARSE("<?=!$a ? 1?>")),
+    ?_assertEqual(
+        [{eval,[{if_block,{'not',{var,<<"a">>,[]}},
+                  {assign,{var,<<"a">>,[]},{int,5}}}]}],
+        ?PARSE("<? if (!$a) $a = 5; ?>")),
+    ?_assertEqual(
+        [{eval,[{assign,{var,<<"a">>,[]},
+                {'not',{var,<<"a">>,[]}}}]}],
+        ?PARSE("<? $a = !$a; ?>")),
+    ?_assertEqual(
+        [{print,{'not',{var,<<"a">>,[]}}}],
+        ?PARSE("<?=!$a?>"))
 ].

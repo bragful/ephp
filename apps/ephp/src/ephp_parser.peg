@@ -182,9 +182,9 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-expression_cond <- additive / number / expr_string / array_def / var ~;
+expression_cond <- arith_mono / additive / number / expr_string / array_def / var ~;
 
-expression <- ternary / additive / conditions / number / expr_string / var / array_def ~;
+expression <- arith_mono / ternary / additive / conditions / number / expr_string / var / array_def ~;
 
 % reserved words
 if <- #(?i)if# `'if'`;
@@ -212,7 +212,7 @@ nexo <- and / or ~;
 
 space <- [ \t\n\s\r]* ~;
 
-index <- string / additive ~;
+index <- arith_mono / ternary / string / additive ~;
 array_element <- (index space? '=>' space?)? expression `
     case Node of
         [[I|_],Expr] -> {array_element, I, Expr};
