@@ -1,12 +1,10 @@
-{application, ephp,
- [
-  {description, ""},
-  {vsn, "1"},
-  {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
-  {mod, { ephp_app, []}},
-  {env, []}
- ]}.
+{application, ephp, [
+    {description, "Erlang PHP Interpreter"},
+    {vsn, git},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {env, []}
+]}.
