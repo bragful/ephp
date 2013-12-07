@@ -26,19 +26,19 @@ stop(Ctx) ->
     ephp_context:destroy(Ctx). 
 
 set_and_get_test(Ctx) -> [
-    ?_assertEqual(ok, ephp_context:set(Ctx,{var,<<"a">>,[]},10)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{var,<<"b">>,[]},20)),
-    ?_assertEqual(10, ephp_context:get(Ctx,{var,<<"a">>,[]})),
-    ?_assertEqual(20, ephp_context:get(Ctx,{var,<<"b">>,[]}))
+    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[]},10)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"b">>,[]},20)),
+    ?_assertEqual(10, ephp_context:get(Ctx,{variable,<<"a">>,[]})),
+    ?_assertEqual(20, ephp_context:get(Ctx,{variable,<<"b">>,[]}))
 ].
 
 set_and_get_array_test(Ctx) -> [
-    ?_assertEqual(ok, ephp_context:set(Ctx,{var,<<"a">>,[{int,0}]},10)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{var,<<"a">>,[{int,1}]},20)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{var,<<"a">>,[{text,<<"hola">>}]},30)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{var,<<"a">>,[{int,2},{int,0}]},40)),
-    ?_assertEqual(10, ephp_context:get(Ctx,{var,<<"a">>,[{int,0}]})),
-    ?_assertEqual(20, ephp_context:get(Ctx,{var,<<"a">>,[{int,1}]})),
-    ?_assertEqual(30, ephp_context:get(Ctx,{var,<<"a">>,[{text,<<"hola">>}]})),
-    ?_assertEqual(40, ephp_context:get(Ctx,{var,<<"a">>,[{int,2},{int,0}]}))
+    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{int,0}]},10)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{int,1}]},20)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{text,<<"hola">>}]},30)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{int,2},{int,0}]},40)),
+    ?_assertEqual(10, ephp_context:get(Ctx,{variable,<<"a">>,[{int,0}]})),
+    ?_assertEqual(20, ephp_context:get(Ctx,{variable,<<"a">>,[{int,1}]})),
+    ?_assertEqual(30, ephp_context:get(Ctx,{variable,<<"a">>,[{text,<<"hola">>}]})),
+    ?_assertEqual(40, ephp_context:get(Ctx,{variable,<<"a">>,[{int,2},{int,0}]}))
 ].

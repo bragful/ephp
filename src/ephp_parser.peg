@@ -2,18 +2,18 @@ document <- (!init_tag .)* code document? / (!init_tag .)* `
     case Node of 
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
-                init_tag -> eval;
-                init_tag_value -> print
+                init_tag -> #eval{statements=Code};
+                init_tag_value -> #print{expression=Code}
             end,
             case iolist_to_binary(TextLeft) of
                 <<>> -> [];
-                FinalText -> [{print_text, FinalText}]
+                FinalText -> [#print_text{text=FinalText}]
             end ++
-            [{Label, Code}|Chunk];
+            [Label|Chunk];
         [] ->
             [];
         Text ->
-            [{print_text, iolist_to_binary(Text)}]
+            [#print_text{text=iolist_to_binary(Text)}]
     end
 `;
 
@@ -59,12 +59,15 @@ literal_block <- end_tag document? init_tag `
 
 composed_assign <- var space? assign_op space? expression `
     [Var,_,Type,_,Expr] = Node,
-    {assign, Var, {operation, Type, Var, Expr}}
+    #assign{variable=Var, expression = #operation{
+        type=Type, 
+        expression_left=Var, 
+        expression_right=Expr}}
 `;
 
 base_assign <- arith_mono / composed_assign / (var space? '=' space? expression) `
     case Node of
-        [Var,_,_Eq,_,Expr] -> {assign, Var, Expr};
+        [Var,_,_Eq,_,Expr] -> #assign{variable=Var, expression=Expr};
         MonoArith -> MonoArith
     end
 `;
@@ -142,28 +145,28 @@ st_while <- while space? conditions_use space? ( code_block / statement ) `
 st_if <- st_if_else / st_if_simple ~;
 
 st_if_else <- st_if_simple space? else space? ( code_block / statement ) `
-    [{if_block, Cond, St},_,_Else,_,ElseSt] = Node,
-    {if_block, Cond, St, ElseSt}
+    [#if_block{}=IfBlock,_,_Else,_,ElseSt] = Node,
+    IfBlock#if_block{false_block=ElseSt}
 `;
 
 st_if_simple <- if space? conditions_use space? ( code_block / statement ) `
     [_If,_,Cond,_,St] = Node,
-    {if_block, Cond, St}
+    #if_block{conditions=Cond, true_block=St}
 `;
 
 conditions <- condition space? nexo space? conditions / cs:condition `
     case Node of 
-        [A,_,Type,_,B] -> {operation, Type, A, B};
+        [A,_,Type,_,B] -> #operation{type=Type, expression_left=A, expression_right=B};
         {cs, Param} -> Param
     end
 `;
 
 condition <- primary_cond space? comparator space? cs:condition / not? pri:primary_cond `
     case Node of
-        [A,_,Type,_,{cs,B}] -> {operation, Type, A, B};
+        [A,_,Type,_,{cs,B}] -> #operation{type=Type, expression_left=A, expression_right=B};
         [Not, {pri, Param}] -> case Not of
             [] -> Param;
-            'not' -> {'not', Param}
+            'not' -> {operation_not, Param}
         end
     end 
 `;
@@ -177,8 +180,13 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 ternary <- conditions space? '\?' space? expression (space? ':' space? expression)? `
     case Node of
-        [Cond,_,_,_,St,[]] -> {if_block, Cond, St};
-        [Cond,_,_,_,St,[_,_,_,ElseSt]] -> {if_block, Cond, St, ElseSt}
+        [Cond,_,_,_,St,[]] -> #if_block{
+            conditions=Cond, 
+            true_block=St};
+        [Cond,_,_,_,St,[_,_,_,ElseSt]] -> #if_block{
+            conditions=Cond, 
+            true_block=St, 
+            false_block=ElseSt}
     end
 `;
 
@@ -225,8 +233,8 @@ space <- [ \t\n\s\r]* ~;
 index <- arith_mono / ternary / string / additive ~;
 array_element <- (index space? '=>' space?)? expression `
     case Node of
-        [[I|_],Expr] -> {array_element, I, Expr};
-        [[],Expr] -> {array_element, auto, Expr}
+        [[I|_],Expr] -> #array_element{idx=I, element=Expr};
+        [[],Expr] -> #array_element{element=Expr}
     end
 `;
 
@@ -255,7 +263,7 @@ array_def <- array space? '(' space? array_element tail:( space? ',' space? arra
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
          [NewArrayElement|Elements]
     end, [], Tail),
-    {array, [ArrayElement|ArrayElements]}
+    #array{elements=[ArrayElement|ArrayElements]}
 `;
 
 number <- float / integer ~;
@@ -315,9 +323,12 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
                     if 
                         is_integer(Result) -> {int, Result};
                         is_float(Result) -> {float, Result};
-                        undefined -> {operation, Type, A, B}
+                        undefined -> #operation{
+                            type=Type, 
+                            expression_left=A, 
+                            expression_right=B}
                     end; 
-                _ -> {operation, Type, A, B}
+                _ -> #operation{type=Type, expression_left=A, expression_right=B}
             end;
         {mul, Param} -> Param
     end
@@ -338,9 +349,9 @@ multitive <- primary space? ( "*" / "/" ) space? mul:multitive / pri:primary `
                     if 
                         is_integer(Result) -> {int, Result};
                         is_float(Result) -> {float, Result};
-                        undefined -> {operation, Type, A, B}
+                        undefined -> #operation{type=Type, expression_left=A, expression_right=B}
                     end; 
-                _ -> {operation, Type, A, B}
+                _ -> #operation{type=Type, expression_left=A, expression_right=B}
             end;
         {pri, Param} -> Param
     end 
@@ -418,12 +429,12 @@ var <- var_array / var_simple ~;
 
 var_array <- '$' key ('[' space? index space? ']')+ `
     [_Dollar, Key, Indexes] = Node,
-    {var, Key, [ I || [_,_,I,_,_] <- Indexes ]}
+    #variable{name=Key, idx=[ I || [_,_,I,_,_] <- Indexes ]}
 `;
 
 var_simple <- '$' key `
     [_Dollar, Key] = Node,
-    {var, Key, []}
+    #variable{name=Key}
 `;
 
 `

@@ -1,5 +1,9 @@
 -module(ephp_util).
--compile([export_all, warnings_as_errors]).
+-compile([warnings_as_errors]).
+
+-export([to_bin/1]).
+
+-spec to_bin(A :: binary() | string() | integer() | undefined) -> binary().
 
 to_bin(A) when is_binary(A) ->
     A; 

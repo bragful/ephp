@@ -6,6 +6,8 @@
 
 -define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
 
+-include("ephp.hrl").
+
 -record(state, {
     vars = dict:new(),
     funcs = dict:new()
@@ -108,70 +110,70 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-search({var, Root, []}, Vars) ->
+search(#variable{name=Root, idx=[]}, Vars) ->
     case dict:find(Root, Vars) of
         error -> undefined;
         {ok, Value} -> Value
     end;
 
-search({var, Root, [NewRoot|Idx]}, Vars) ->
+search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
     case dict:find(Root, Vars) of
         {ok, NewVars} when ?IS_DICT(NewVars) -> 
-            search({var, NewRoot, Idx}, NewVars);
+            search(#variable{name=NewRoot, idx=Idx}, NewVars);
         _ -> 
             undefined
     end.
 
 
-change({var, Root, []}, Value, Vars) ->
+change(#variable{name=Root, idx=[]}, Value, Vars) ->
     dict:store(Root, Value, Vars);
 
-change({var, Root, [NewRoot|Idx]}, Value, Vars) ->
+change(#variable{name=Root, idx=[NewRoot|Idx]}, Value, Vars) ->
     case dict:find(Root, Vars) of
     {ok, NewVars} when ?IS_DICT(NewVars) -> 
-        dict:store(Root, change({var, NewRoot, Idx}, Value, NewVars), Vars);
+        dict:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
     _ -> 
-        dict:store(Root, change({var, NewRoot, Idx}, Value, dict:new()), Vars)
+        dict:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, dict:new()), Vars)
     end.
 
 
-resolve({assign,Var,Expr}, Vars, Funcs) ->
+resolve(#assign{variable=Var,expression=Expr}, Vars, Funcs) ->
     VarPath = get_var_path(Var, Vars, Funcs),
     {Value, NewVars} = resolve(Expr, Vars, Funcs),
     {Value, change(VarPath, Value, NewVars)};
 
-resolve({operation,_Type,_Op1,_Op2}=Op, Vars, Funcs) ->
+resolve(#operation{}=Op, Vars, Funcs) ->
     {resolve_op(Op, Vars, Funcs), Vars};
 
-resolve({int, Int}, Vars, _Funcs) -> 
+resolve(#int{int=Int}, Vars, _Funcs) -> 
     {Int, Vars};
 
-resolve({float, Float}, Vars, _Funcs) -> 
+resolve(#float{float=Float}, Vars, _Funcs) -> 
     {Float, Vars};
 
-resolve({text, Text}, Vars, _Funcs) -> 
+resolve(#text{text=Text}, Vars, _Funcs) -> 
     {Text, Vars};
 
-resolve({text_to_process, Text}, Vars, Funcs) ->
+resolve(#text_to_process{text=Text}, Vars, Funcs) ->
     {resolve_txt(Text, Vars, Funcs), Vars};
 
-resolve({if_block,Cond,TrueBlock,FalseBlock}, Vars, Funcs) ->
+resolve(#if_block{conditions=Cond}=IfBlock, Vars, Funcs) ->
     case resolve_op(Cond, Vars, Funcs) of
     true ->
-        resolve(TrueBlock, Vars, Funcs);
+        resolve(IfBlock#if_block.true_block, Vars, Funcs);
     false ->
-        resolve(FalseBlock, Vars, Funcs)
+        resolve(IfBlock#if_block.false_block, Vars, Funcs)
     end;
 
-resolve({var,Root,Idx}, Vars, Funcs) ->
-    {resolve_var({var,Root,Idx}, Vars, Funcs), Vars};
+resolve(#variable{}=Var, Vars, Funcs) ->
+    {resolve_var(Var, Vars, Funcs), Vars};
 
-resolve({array,ArrayElements}, Vars, Funcs) ->
+resolve(#array{elements=ArrayElements}, Vars, Funcs) ->
     {_I,Array,NVars} = lists:foldl(fun
-        ({array_element,auto,Element}, {I,Dict,V}) ->
+        (#array_element{idx=auto, element=Element}, {I,Dict,V}) ->
             {Value, NewVars} = resolve(Element,V,Funcs),
             {I+1,dict:store(I,Value,Dict),NewVars};
-        ({array_element,I,Element}, {INum,Dict,V}) ->
+        (#array_element{idx=I, element=Element}, {INum,Dict,V}) ->
             {Value, NewVars} = resolve(Element,V,Funcs),
             {Idx, ReNewVars} = resolve(I,NewVars,Funcs),
             if
@@ -183,7 +185,7 @@ resolve({array,ArrayElements}, Vars, Funcs) ->
     end, {0,dict:new(),Vars}, ArrayElements),
     {Array, NVars};
 
-resolve({call,Fun,RawArgs}, Vars, Funcs) ->
+resolve(#call{name=Fun,args=RawArgs}, Vars, Funcs) ->
     case dict:find(Fun, Funcs) of
         error -> throw(eundefun);
         {ok,{M,F}} -> 
@@ -198,29 +200,29 @@ resolve(_Unknown, _Vars, _Funcs) ->
     throw(eundeftoken).
 
 
-resolve_var({var, Root, []}, Vars, _Funcs) ->
-    search({var,Root,[]}, Vars);
+resolve_var(#variable{idx=[]}=Var, Vars, _Funcs) ->
+    search(Var, Vars);
 
-resolve_var({var, Root, Indexes}, Vars, Funcs) ->
+resolve_var(#variable{idx=Indexes}=Var, Vars, Funcs) ->
     NewIndexes = lists:map(fun(Idx) ->
         {Value, _Vars} = resolve(Idx, Vars, Funcs),
         Value
     end, Indexes),
-    search({var, Root, NewIndexes}, Vars).
+    search(Var#variable{idx=NewIndexes}, Vars).
 
 
-get_var_path({var, Root, []}, _Vars, _Funcs) ->
-    {var,Root,[]};
+get_var_path(#variable{idx=[]}=Var, _Vars, _Funcs) ->
+    Var;
 
-get_var_path({var, Root, Indexes}, Vars, Funcs) ->
+get_var_path(#variable{idx=Indexes}=Var, Vars, Funcs) ->
     NewIndexes = lists:map(fun(Idx) ->
         {Value, _Vars} = resolve(Idx, Vars, Funcs),
         Value
     end, Indexes),
-    {var, Root, NewIndexes}.
+    Var#variable{idx=NewIndexes}.
 
 
-resolve_txt({text_to_process, Texts}, Vars, Funcs) ->
+resolve_txt(#text_to_process{text=Texts}, Vars, Funcs) ->
     lists:foldr(fun(Data, ResultTxt) ->
         {TextRaw,_Vars} = resolve(Data, Vars, Funcs),
         Text = ephp_util:to_bin(TextRaw),
@@ -228,7 +230,7 @@ resolve_txt({text_to_process, Texts}, Vars, Funcs) ->
     end, <<>>, Texts).
 
 
-resolve_op({operation, Type, Op1, Op2}, Vars, Funcs) ->
+resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Vars, Funcs) ->
     {OpRes1, _Vars} = resolve(Op1, Vars, Funcs),
     {OpRes2, _Vars} = resolve(Op2, Vars, Funcs),
     case Type of
