@@ -2,36 +2,42 @@
 -compile([export_all, warnings_as_errors]).
 
 process(_Context, []) ->
-    ok;
+    {ok, <<>>};
 
-process(Context, [Statement|Statements]) ->
-    run(Context, Statement),
-    process(Context, Statements).
+process(Context, Statements) ->
+    {ok, lists:foldl(fun(Statement, Text) ->
+        Result = run(Context, Statement),
+        <<Text/binary, Result/binary>>
+    end, <<>>, Statements)}.
 
 run(_Context, {print_text, Text}) ->
-    io:format("~s", [Text]);
+    Text;
 
 run(Context, {print, Expr}) ->
     Result = ephp_context:solve(Context, Expr),
-    io:format("~s", [ephp_util:to_bin(Result)]);
+    ephp_util:to_bin(Result);
 
 run(Context, {eval, Statements}) ->
-    lists:foreach(fun
-        ({assign,_Var,_Expr}=Assign) ->
-            ephp_context:solve(Context, Assign);
-        ({if_block,Cond,TrueBlock,FalseBlock}) ->
+    lists:foldl(fun
+        ({assign,_Var,_Expr}=Assign, GenText) ->
+            ephp_context:solve(Context, Assign),
+            GenText;
+        ({if_block,Cond,TrueBlock,FalseBlock}, GenText) ->
             case ephp_context:solve(Context, Cond) of
             true ->
-                run(Context, {eval, TrueBlock});
+                Result = run(Context, {eval, TrueBlock}),
+                <<GenText/binary, Result/binary>>;
             false ->
-                run(Context, {eval, FalseBlock})
+                Result = run(Context, {eval, FalseBlock}),
+                <<GenText/binary, Result/binary>>
             end; 
-        ({print_text, Text}) ->
-            io:format("~s", [Text]);
-        ({print, Expr}) ->
+        ({print_text, Text}, GenText) ->
+            <<GenText/binary, Text/binary>>;
+        ({print, Expr}, GenText) ->
             Result = ephp_context:solve(Context, Expr),
-            io:format("~s", [ephp_util:to_bin(Result)]);
-        (Statement) ->
+            ResText = ephp_util:to_bin(Result),
+            <<GenText/binary, ResText/binary>>;
+        (Statement, _GenText) ->
             lager:error("unknown statement: ~p~n", [Statement]),
             throw(eunknownst)
-    end, Statements).
+    end, <<>>, Statements).
