@@ -349,5 +349,8 @@ function_call_test_() -> [
     ?_assertEqual(
         [{eval,[{assign,{var,<<"a">>,[]},
                 {call,<<"myfunc">>,[{int,1},{int,2},{int,3}]}}]}],
-        ?PARSE("<? $a = myfunc( 1, 2, 3 ); "))
+        ?PARSE("<? $a = myfunc( 1, 2, 3 ); ")),
+    ?_assertEqual(
+        [{print,{call,<<"myfunc">>,[]}}],
+        ?PARSE("<?=myfunc()?>"))
 ].

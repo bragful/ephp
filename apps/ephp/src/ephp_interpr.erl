@@ -37,6 +37,10 @@ run(Context, {eval, Statements}) ->
             Result = ephp_context:solve(Context, Expr),
             ResText = ephp_util:to_bin(Result),
             <<GenText/binary, ResText/binary>>;
+        ({call,Fun,Args}, GenText) ->
+            {M,F,A} = ephp_context:call_func(Context, Fun, Args),
+            Result = ephp_util:to_bin(erlang:apply(M,F,A)),
+            <<GenText/binary, Result/binary>>;
         (Statement, _GenText) ->
             lager:error("unknown statement: ~p~n", [Statement]),
             throw(eunknownst)
