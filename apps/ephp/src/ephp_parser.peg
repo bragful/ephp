@@ -57,12 +57,19 @@ literal_block <- end_tag document? init_tag `
     Document
 `;
 
-basic_assign <- var space? '=' space? expression `
-    [Var,_,_Eq,_,Expr] = Node,
-    {assign, Var, Expr}
+composed_assign <- var space? assign_op space? expression `
+    [Var,_,Type,_,Expr] = Node,
+    {assign, Var, {operation, Type, Var, Expr}}
 `;
 
-assign <- space? basic_assign space? ';' `
+base_assign <- arith_mono / composed_assign / (var space? '=' space? expression) `
+    case Node of
+        [Var,_,_Eq,_,Expr] -> {assign, Var, Expr};
+        MonoArith -> MonoArith
+    end
+`;
+
+assign <- space? base_assign space? ';' `
     [_,Assign,_,_] = Node,
     Assign
 `;
@@ -90,7 +97,7 @@ st_continue <- continue space? ';' `
     continue
 `;
 
-for_assignments <- basic_assign ( space? ',' space? basic_assign )* `
+for_assignments <- base_assign ( space? ',' space? base_assign )* `
     [Assign,Assigns] = Node,
     [Assign | [ A || [_,_,_,A] <- Assigns ] ]
 `;
@@ -370,6 +377,13 @@ bin_logic <- '&' / '|' / '^' ~;
 mono_aritmetic <- '++' / '--' ~;
 bin_aritmetic <- '+' / '*' / '/' / '-' ~;
 comparator <- eq / xeq / ne / xne / gt / geq / lt / leq ~;
+
+assign_op <- assign_plus / assign_minus / assign_mul / assign_div ~;
+
+assign_plus <- '+=' `<<"+">>`;
+assign_minus <- '-=' `<<"-">>`;
+assign_mul <- '*=' `<<"*">>`;
+assign_div <- '/=' `<<"/">>`;
 
 eq <- '==' ~;
 xeq <- '===' ~;
