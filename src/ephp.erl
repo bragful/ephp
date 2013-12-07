@@ -1,8 +1,16 @@
 -module(ephp).
+-compile([warnings_as_errors]).
+
+-export([
+    context_new/0,
+    register_var/3,
+    register_fun/4,
+    eval/2
+]).
 
 -include("ephp.hrl").
 
--spec context_new() -> context().
+-spec context_new() -> {ok, context()}.
 
 context_new() ->
     ephp_context:start_link().
@@ -33,3 +41,15 @@ register_fun(Ctx, _PHPName, _Module, _Fun) when not is_pid(Ctx) ->
 
 register_fun(Ctx, PHPName, Module, Fun) ->
     ephp_context:register_func(Ctx, PHPName, Module, Fun).
+
+-spec eval(Context :: context(), PHP :: string() | binary()) -> 
+    {ok, Result :: binary()} | {error, Reason :: reason()} | 
+    {error,{Code::binary(), Line::integer(), Col::integer()}}.
+
+eval(Context, PHP) ->
+    case ephp_parser:parse(PHP) of
+        {_,Code,{{line,Line},{column,Col}}} ->
+            {error, {Code,Line,Col}};
+        Compiled ->
+            ephp_interpr:process(Context, Compiled)
+    end.
