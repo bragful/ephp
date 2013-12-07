@@ -1,4 +1,4 @@
-apps/ephp/.eunit/
-apps/ephp/ebin/
-apps/ephp/src/ephp_parser.erl
+.eunit/
+ebin/
+src/ephp_parser.erl
 deps/
