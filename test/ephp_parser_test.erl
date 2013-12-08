@@ -34,8 +34,11 @@ php_endtag_optional_test_() -> [
         [{eval,[{assign,{variable,<<"a">>,[]},{int,5}}]}],
         ?PARSE("<?php $a = 5;")),
     ?_assertEqual(
-        {[],<<"<?=5 ">>,{{line,1},{column,1}}},
-        ?PARSE("<?=5 "))
+        {fail,{expected,{regexp,"(?i)if"},{{line,1},{column,4}}}},
+        ?PARSE("<?=5 ")),
+    ?_assertEqual(
+        [{print,{int,5}},{print_text,<<" Resultado">>}],
+        ?PARSE("<?=5?> Resultado"))
 ].
 
 literal_test_() -> [

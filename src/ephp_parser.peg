@@ -1,25 +1,31 @@
-document <- (!init_tag .)* code document? / (!init_tag .)* `
+document <- (!init_tag .)* code literal_block? / (!init_tag .)+ `
     case Node of 
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
                 init_tag -> #eval{statements=Code};
-                init_tag_value -> #print{expression=Code}
+                init_tag_value -> Code
             end,
             case iolist_to_binary(TextLeft) of
                 <<>> -> [];
                 FinalText -> [#print_text{text=FinalText}]
             end ++
-            [Label|Chunk];
-        [] ->
-            [];
+            lists:flatten([Label|Chunk]);
         Text ->
             [#print_text{text=iolist_to_binary(Text)}]
     end
 `;
 
-code <- init_tag space? statements space? end_tag? / init_value space? expression space? end_tag `
-    [Init,_,Code,_,End] = Node,
-    [Init, Code, End]
+code <- code_normal / code_expr ~;
+
+code_normal <- init_tag space? statements space? `
+    [Init,_,Code,_] = Node,
+    [Init,Code,end_tag2]
+`;
+
+code_expr <- init_value space? expression space? (literal_block / end_tag)+ `
+    [Init,_,CodeOne,_,End] = Node,
+    Code = [ #print{expression=CodeOne} | End ],
+    [Init,Code,end_tag]
 `;
 
 init_tag <- init_value / init_common / init_reduced ~;
@@ -31,7 +37,7 @@ init_value   <- '<\?='   `init_tag_value`;
 
 end_tag      <- '\?>'    `end_tag`;
 
-statements <- (literal_block / statement) ( space? (literal_block / statement) )* `
+statements <- (statement / literal_block) ( space? (statement / literal_block) )* `
     [Statement, StatementsRaw] = Node,
     St = if
         is_tuple(Statement) -> [Statement];
@@ -52,9 +58,16 @@ statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st
 
 statement <- statement_controlflow / st_break / st_continue / st_arith_mono / assign ~;
 
-literal_block <- end_tag document? init_tag `
-    [_,Document,_] = Node,
-    Document
+literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
+    case Node of
+        end_tag -> [];
+        [_,[],_] -> [];
+        [_,[]] -> [];
+        [_,Document,_] -> 
+            Document;
+        [_,Document] -> 
+            Document
+    end
 `;
 
 composed_assign <- var space? assign_op space? expression `
@@ -243,13 +256,10 @@ concat <- string (space? '\.' space? (string / var))+ `
     ParsedStrings = [Str1 | [ Str || [_,_,_,Str] <- Strings ]],
     Result = lists:foldr(fun
         (String, []) -> 
-            io:format("empty: ~p~n", [String]),
             [String];
         ({text,String}, [{text,PrevStr}|RestStr]) ->
-            io:format("found: ~p prev: ~p rest:~p~n", [String, PrevStr, RestStr]),
             [{text, <<String/binary, PrevStr/binary>>}|RestStr];
         (String, RestStr) ->
-            io:format("default: ~p rest:~p~n", [String, RestStr]),
             [String|RestStr]
     end, [], ParsedStrings),
     case Result of
