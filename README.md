@@ -1,6 +1,8 @@
 ePHP
 ====
 
+[![Build Status](https://api.travis-ci.org/altenwald/ephp.png)](https://travis-ci.org/altenwald/ephp)
+
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
 In the same way, you can use for server PHP pages in an easy way.
