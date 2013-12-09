@@ -3,7 +3,7 @@
 
 -export([
     init/1,
-    time/0
+    time/1
 ]).
 
 -include("ephp.hrl").
@@ -14,8 +14,8 @@ init(Context) ->
     ephp_context:register_func(Context, <<"time">>, ?MODULE, time),
     ok. 
 
--spec time() -> integer().
+-spec time(Context :: context()) -> integer().
 
-time() ->
+time(_Context) ->
     {MS,S,_} = os:timestamp(),
     MS * 1000000 + S.

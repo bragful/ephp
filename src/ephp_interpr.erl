@@ -55,7 +55,7 @@ run(Context, #eval{statements=Statements}) ->
             <<GenText/binary, ResText/binary>>;
         (#call{name=Fun,args=Args}, GenText) ->
             {M,F,A} = ephp_context:call_func(Context, Fun, Args),
-            Result = ephp_util:to_bin(erlang:apply(M,F,A)),
+            Result = ephp_util:to_bin(erlang:apply(M,F,[Context|A])),
             <<GenText/binary, Result/binary>>;
         (_Statement, _GenText) ->
             throw(eunknownst)
