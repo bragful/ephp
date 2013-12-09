@@ -229,15 +229,19 @@ resolve_txt(#text_to_process{text=Texts}, Vars, Funcs) ->
         <<Text/binary, ResultTxt/binary>>
     end, <<>>, Texts).
 
+zero_if_undef(undefined) -> 0;
+zero_if_undef(Value) when ?IS_DICT(Value) -> throw(einvalidop);
+zero_if_undef(Value) when not is_number(Value) -> 0;
+zero_if_undef(Value) -> Value.
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Vars, Funcs) ->
     {OpRes1, _Vars} = resolve(Op1, Vars, Funcs),
     {OpRes2, _Vars} = resolve(Op2, Vars, Funcs),
     case Type of
-        <<"+">> -> OpRes1 + OpRes2;
-        <<"-">> -> OpRes1 - OpRes2;
-        <<"*">> -> OpRes1 * OpRes2;
-        <<"/">> -> OpRes1 / OpRes2;
+        <<"+">> -> zero_if_undef(OpRes1) + zero_if_undef(OpRes2);
+        <<"-">> -> zero_if_undef(OpRes1) - zero_if_undef(OpRes2);
+        <<"*">> -> zero_if_undef(OpRes1) * zero_if_undef(OpRes2);
+        <<"/">> -> zero_if_undef(OpRes1) / zero_if_undef(OpRes2);
         <<"<">> -> OpRes1 < OpRes2;
         <<">">> -> OpRes1 > OpRes2;
         <<">=">> -> OpRes1 >= OpRes2;
