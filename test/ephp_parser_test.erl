@@ -169,26 +169,26 @@ var_indexes_test_() -> [
 
 while_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,pre,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   {assign,{variable,<<"a">>,[]},{int,0}}}]}],
         ?PARSE("<?php while ($a > 5) $a = 0; ?>"))
 ].
 
 while_statement_codeblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,pre,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   [{assign,{variable,<<"a">>,[]},{int,0}}]}]}],
         ?PARSE("<?php while ($a > 5) { $a = 0; } ?>"))
 ].
 
 while_statement_literalblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,pre,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   [{assign,{variable,<<"a">>,[]},{int,0}},
                    {print_text,<<" OK ">>}]}]}],
         ?PARSE("<?php while ($a > 5) { $a = 0; ?> OK <? } ?>")),
     ?_assertEqual(
-        [{eval,[{pre_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,pre,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   [{assign,{variable,<<"a">>,[]},{int,0}},
                    {print_text,<<" OK ">>},
                    {print,{variable,<<"name">>,[]}},
@@ -198,26 +198,26 @@ while_statement_literalblock_test_() -> [
 
 do_while_statement_test_() -> [
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,post,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   {assign,{variable,<<"a">>,[]},{int,0}}}]}],
         ?PARSE("<?php do $a = 0; while ($a > 5); ?>"))
 ].
 
 do_while_statement_codeblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,post,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   [{assign,{variable,<<"a">>,[]},{int,0}}]}]}],
         ?PARSE("<?php do { $a = 0; } while ($a > 5); ?>"))
 ].
 
 do_while_statement_literalblock_test_() -> [
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,post,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   [{assign,{variable,<<"a">>,[]},{int,0}},
                    {print_text,<<" OK ">>}]}]}],
         ?PARSE("<?php do { $a = 0; ?> OK <? } while ($a > 5); ?>")),
     ?_assertEqual(
-        [{eval,[{post_while_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
+        [{eval,[{while,post,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
                   [{assign,{variable,<<"a">>,[]},{int,0}},
                    {print_text,<<" OK ">>},
                    {print,{variable,<<"name">>,[]}},

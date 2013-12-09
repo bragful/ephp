@@ -120,7 +120,7 @@ for_assignments <- base_assign ( space? ',' space? base_assign )* `
 
 st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement ) `
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
-    {for, Init, Cond, Update, Code}
+    #for{init=Init,conditions=Cond,update=Update,loop_block=Code}
 `;
 
 switch_case <- ((case space (number / expr_string)) / default) space? ':' space? statements `
@@ -147,12 +147,12 @@ st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? sp
 
 st_do_while <- do space? ( code_block / statement ) space? while space? conditions_use space? ';' `
     [_Do,_,St,_,_While,_,Cond,_,_] = Node,
-    {post_while_block, Cond, St}
+    #while{type=post, conditions=Cond, loop_block=St}
 `;
 
 st_while <- while space? conditions_use space? ( code_block / statement ) `
     [_While,_,Cond,_,St] = Node,
-    {pre_while_block, Cond, St}
+    #while{type=pre, conditions=Cond, loop_block=St}
 `;
 
 st_if <- st_if_else / st_if_simple ~;

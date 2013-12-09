@@ -31,6 +31,19 @@
     false_block :: [statement()]
 }).
 
+-record(for, {
+    init :: expression(),
+    conditions :: [condition()],
+    update :: expression(),
+    loop_block :: [statement()]
+}).
+
+-record(while, {
+    type :: (pre | post),
+    conditions :: [condition()],
+    loop_block :: [statement()]
+}).
+
 -type if_block() :: #if_block{}.
 
 % data types and operations

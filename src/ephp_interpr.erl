@@ -41,6 +41,12 @@ run(Context, #eval{statements=Statements}) ->
                     #eval{statements=IfBlock#if_block.false_block}),
                 <<GenText/binary, Result/binary>>
             end; 
+        (#for{init=Init,conditions=Cond,
+                update=Update,loop_block=LoopBlock}, GenText) ->
+            run(Context, #eval{statements=Init}),
+            run_loop(pre, Context, Cond, LoopBlock ++ Update, GenText);
+        (#while{type=Type,conditions=Cond,loop_block=LoopBlock}, GenText) ->
+            run_loop(Type, Context, Cond, LoopBlock, GenText);
         (#print_text{text=Text}, GenText) ->
             <<GenText/binary, Text/binary>>;
         (#print{expression=Expr}, GenText) ->
@@ -55,3 +61,27 @@ run(Context, #eval{statements=Statements}) ->
             lager:error("unknown statement: ~p~n", [Statement]),
             throw(eunknownst)
     end, <<>>, Statements).
+
+-spec run_loop(
+    PrePost :: (pre | post),
+    Context :: context(),
+    Cond :: condition(),
+    Statements :: [statement()],
+    GenText :: binary()) -> binary().
+
+run_loop(PrePost, Context, Cond, Statements, GenText) ->
+    case PrePost =:= post orelse ephp_context:solve(Context, Cond) of
+    true -> 
+        NewGenText = lists:foldl(fun(Statement, Text) ->
+            ResText = run(Context, #eval{statements=[Statement]}),
+            <<Text/binary, ResText/binary>> 
+        end, GenText, Statements),
+        case ephp_context:solve(Context, Cond) of
+        true ->
+            run_loop(PrePost, Context, Cond, Statements, NewGenText);
+        false ->
+            NewGenText
+        end;
+    false ->
+        GenText
+    end.
