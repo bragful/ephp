@@ -203,9 +203,9 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-expression_cond <- arith_mono / additive / number / expr_string / array_def / call_function / var ~;
+expression_cond <- array_def / arith_mono / additive / number / expr_string / call_function / var ~;
 
-expression <- arith_mono / ternary / additive / conditions / number / expr_string / var / array_def / call_function ~;
+expression <- array_def / arith_mono / ternary / additive / conditions / number / expr_string / var / call_function ~;
 
 call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {Name, Arguments} = case Node of
