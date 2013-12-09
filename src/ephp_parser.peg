@@ -225,7 +225,6 @@ call_function <- key space? '(' (space? expression (space? ',' space? expression
 % reserved words
 if <- #(?i)if# `'if'`;
 else <- #(?i)else# `else`;
-elseif <- #(?i)elseif# `elseif`;
 while <- #(?i)while# `while`;
 for <- #(?i)for# `for`;
 foreach <- #(?i)foreach# `foreach`;
