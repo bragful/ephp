@@ -78,7 +78,7 @@ composed_assign <- var space? assign_op space? expression `
         expression_right=Expr}}
 `;
 
-base_assign <- arith_mono / composed_assign / (var space? '=' space? expression) `
+base_assign <- arith_mono / composed_assign / (var space? '=' space? (base_assign / expression)) `
     case Node of
         [Var,_,_Eq,_,Expr] -> #assign{variable=Var, expression=Expr};
         MonoArith -> MonoArith
