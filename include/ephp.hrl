@@ -84,7 +84,7 @@
 }).
 
 -record(text_to_process, {
-    text :: [expression()]
+    text :: [expression() | variable() | binary()]
 }).
 
 -record(variable, {
