@@ -154,8 +154,8 @@ resolve(#float{float=Float}, Vars, _Funcs) ->
 resolve(#text{text=Text}, Vars, _Funcs) -> 
     {Text, Vars};
 
-resolve(#text_to_process{text=Text}, Vars, Funcs) ->
-    {resolve_txt(Text, Vars, Funcs), Vars};
+resolve(#text_to_process{text=Texts}, Vars, Funcs) ->
+    {resolve_txt(Texts, Vars, Funcs), Vars};
 
 resolve(#if_block{conditions=Cond}=IfBlock, Vars, Funcs) ->
     case resolve_op(Cond, Vars, Funcs) of
@@ -222,11 +222,14 @@ get_var_path(#variable{idx=Indexes}=Var, Vars, Funcs) ->
     Var#variable{idx=NewIndexes}.
 
 
-resolve_txt(#text_to_process{text=Texts}, Vars, Funcs) ->
-    lists:foldr(fun(Data, ResultTxt) ->
-        {TextRaw,_Vars} = resolve(Data, Vars, Funcs),
-        Text = ephp_util:to_bin(TextRaw),
-        <<Text/binary, ResultTxt/binary>>
+resolve_txt(Texts, Vars, Funcs) ->
+    lists:foldr(fun
+        (Data, ResultTxt) when is_binary(Data) ->
+            <<Data/binary,ResultTxt/binary>>;
+        (Data, ResultTxt) when is_tuple(Data) ->
+            {TextRaw,_Vars} = resolve(Data, Vars, Funcs),
+            Text = ephp_util:to_bin(TextRaw),
+            <<Text/binary, ResultTxt/binary>>
     end, <<>>, Texts).
 
 zero_if_undef(undefined) -> 0;
