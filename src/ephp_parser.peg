@@ -123,9 +123,13 @@ for_assignments <- base_assign ( space? ',' space? base_assign )* `
     [Assign | [ A || [_,_,_,A] <- Assigns ] ]
 `;
 
-st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement ) `
+st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement / ';' ) `
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
-    #for{init=Init,conditions=Cond,update=Update,loop_block=Code}
+    CodeBlock = if
+        Code =:= <<";">> -> undefined;
+        true -> Code
+    end,
+    #for{init=Init,conditions=Cond,update=Update,loop_block=CodeBlock}
 `;
 
 switch_case <- ((case space (number / expr_string)) / default) space? ':' space? statements `
@@ -155,9 +159,13 @@ st_do_while <- do space? ( code_block / statement ) space? while space? conditio
     #while{type=post, conditions=Cond, loop_block=St}
 `;
 
-st_while <- while space? conditions_use space? ( code_block / statement ) `
+st_while <- while space? conditions_use space? ( code_block / statement / ';' ) `
     [_While,_,Cond,_,St] = Node,
-    #while{type=pre, conditions=Cond, loop_block=St}
+    CodeBlock = case St of
+        <<";">> -> undefined;
+        _ -> St
+    end,
+    #while{type=pre, conditions=Cond, loop_block=CodeBlock}
 `;
 
 st_if <- st_if_else / st_if_simple ~;

@@ -42,10 +42,20 @@ run(Context, #eval{statements=Statements}) ->
                 <<GenText/binary, Result/binary>>
             end; 
         (#for{init=Init,conditions=Cond,
-                update=Update,loop_block=LoopBlock}, GenText) ->
+                update=Update,loop_block=LB}, GenText) ->
             run(Context, #eval{statements=Init}),
+            LoopBlock = if
+                is_tuple(LB) -> [LB];
+                is_list(LB) -> LB;
+                LB =:= undefined -> []
+            end,
             run_loop(pre, Context, Cond, LoopBlock ++ Update, GenText);
-        (#while{type=Type,conditions=Cond,loop_block=LoopBlock}, GenText) ->
+        (#while{type=Type,conditions=Cond,loop_block=LB}, GenText) ->
+            LoopBlock = if
+                is_tuple(LB) -> [LB];
+                is_list(LB) -> LB;
+                LB =:= undefined -> []
+            end, 
             run_loop(Type, Context, Cond, LoopBlock, GenText);
         (#print_text{text=Text}, GenText) ->
             <<GenText/binary, Text/binary>>;
