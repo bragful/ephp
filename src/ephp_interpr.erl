@@ -67,6 +67,13 @@ run(Context, #eval{statements=Statements}) ->
             {M,F,A} = ephp_context:call_func(Context, Fun, Args),
             Result = ephp_util:to_bin(erlang:apply(M,F,[Context|A])),
             <<GenText/binary, Result/binary>>;
+        ({Op, _Var}=MonoArith, GenText) when 
+                Op =:= pre_incr orelse 
+                Op =:= pre_decr orelse
+                Op =:= post_incr orelse
+                Op =:= post_decr ->
+            ephp_context:solve(Context, MonoArith),
+            GenText;
         (_Statement, _GenText) ->
             throw(eunknownst)
     end, <<>>, Statements).

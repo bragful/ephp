@@ -157,6 +157,52 @@ resolve(#text{text=Text}, Vars, _Funcs) ->
 resolve(#text_to_process{text=Texts}, Vars, Funcs) ->
     {resolve_txt(Texts, Vars, Funcs), Vars};
 
+resolve({pre_incr, Var}, Vars, Funcs) ->
+    VarPath = get_var_path(Var, Vars, Funcs),
+    case search(VarPath, Vars) of
+        undefined -> 
+            {1, change(VarPath, 1, Vars)};
+        V when is_number(V) -> 
+            {V+1, change(VarPath, V+1, Vars)};
+        % TODO: when is a string, increments the last char
+        V -> 
+            {V, Vars}
+    end;
+
+resolve({pre_decr, Var}, Vars, Funcs) ->
+    VarPath = get_var_path(Var, Vars, Funcs),
+    case search(VarPath, Vars) of
+        undefined -> 
+            {undefined, Vars};
+        V when is_number(V) -> 
+            {V-1, change(VarPath, V-1, Vars)};
+        V -> 
+            {V, Vars}
+    end;
+
+resolve({post_incr, Var}, Vars, Funcs) ->
+    VarPath = get_var_path(Var, Vars, Funcs),
+    case search(VarPath, Vars) of
+        undefined -> 
+            {undefined, change(VarPath, 1, Vars)};
+        V when is_number(V) -> 
+            {V, change(VarPath, V+1, Vars)};
+        % TODO: when is a string, increments the last char
+        V -> 
+            {V, Vars}
+    end;
+
+resolve({post_decr, Var}, Vars, Funcs) ->
+    VarPath = get_var_path(Var, Vars, Funcs),
+    case search(VarPath, Vars) of
+        undefined -> 
+            {undefined, Vars};
+        V when is_number(V) -> 
+            {V, change(VarPath, V-1, Vars)};
+        V -> 
+            {V, Vars}
+    end;
+
 resolve(#if_block{conditions=Cond}=IfBlock, Vars, Funcs) ->
     case resolve_op(Cond, Vars, Funcs) of
     true ->
