@@ -5,7 +5,9 @@
     context_new/0,
     register_var/3,
     register_fun/4,
-    eval/2
+    eval/2,
+
+    main/1   %% for escriptize
 ]).
 
 -include("ephp.hrl").
@@ -53,3 +55,24 @@ eval(Context, PHP) ->
         Compiled ->
             ephp_interpr:process(Context, Compiled)
     end.
+
+-spec main(Args :: [string()]) -> integer().
+
+main([Filename]) ->
+    case file:read_file(Filename) of
+    {ok, Content} ->
+        {ok, Ctx} = context_new(),
+        {ok, Result} = eval(Ctx, Content),
+        io:format("~s", [Result]),
+        0;
+    {error, enoent} ->
+        io:format("File not found: ~s~n", [Filename]),
+        -2; 
+    {error, Reason} ->
+        io:format("Error: ~p~n", [Reason]),
+        -3
+    end;
+
+main(_) ->
+    io:format("Usage: ephp <file.php>~n", []),
+    -1.
