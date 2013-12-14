@@ -173,7 +173,7 @@ resolve({pre_incr, Var}, Vars, Funcs) ->
             {V+1, change(VarPath, V+1, Vars)};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
-                binary_to_list(integer_to_list(V))
+                list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
@@ -202,7 +202,7 @@ resolve({post_incr, Var}, Vars, Funcs) ->
             {V, change(VarPath, V+1, Vars)};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
-                binary_to_list(integer_to_list(V))
+                list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
