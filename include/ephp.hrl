@@ -1,3 +1,4 @@
+-define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
 
 -type context() :: pid().
 

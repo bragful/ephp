@@ -4,8 +4,6 @@
 
 -compile([export_all, warnings_as_errors]).
 
--define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
-
 -include("ephp.hrl").
 
 -record(state, {
@@ -290,19 +288,15 @@ resolve_txt(Texts, Variables, Funcs) ->
             {<<Text/binary, ResultTxt/binary>>,NewVars}
     end, {<<>>,Variables}, Texts).
 
-zero_if_undef(undefined) -> 0;
-zero_if_undef(Value) when ?IS_DICT(Value) -> throw(einvalidop);
-zero_if_undef(Value) when not is_number(Value) -> 0;
-zero_if_undef(Value) -> Value.
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Vars, Funcs) ->
     {OpRes1, _Vars} = resolve(Op1, Vars, Funcs),
     {OpRes2, _Vars} = resolve(Op2, Vars, Funcs),
     case Type of
-        <<"+">> -> zero_if_undef(OpRes1) + zero_if_undef(OpRes2);
-        <<"-">> -> zero_if_undef(OpRes1) - zero_if_undef(OpRes2);
-        <<"*">> -> zero_if_undef(OpRes1) * zero_if_undef(OpRes2);
-        <<"/">> -> zero_if_undef(OpRes1) / zero_if_undef(OpRes2);
+        <<"+">> -> ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
+        <<"-">> -> ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
+        <<"*">> -> ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
+        <<"/">> -> ephp_util:zero_if_undef(OpRes1) / ephp_util:zero_if_undef(OpRes2);
         <<"<">> -> OpRes1 < OpRes2;
         <<">">> -> OpRes1 > OpRes2;
         <<">=">> -> OpRes1 >= OpRes2;
