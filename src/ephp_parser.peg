@@ -1,7 +1,15 @@
+php <- document / '' `
+    case Node of
+        <<>> -> [];
+        _ -> Node
+    end
+`;
+
 document <- (!init_tag .)* code literal_block? / (!init_tag .)+ `
     case Node of 
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
+                init_tag when Code =:= [] -> [];
                 init_tag -> #eval{statements=Code};
                 init_tag_value -> Code
             end,
