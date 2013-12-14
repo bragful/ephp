@@ -155,7 +155,7 @@ resolve(#text{text=Text}, Vars, _Funcs) ->
     {Text, Vars};
 
 resolve(#text_to_process{text=Texts}, Vars, Funcs) ->
-    {resolve_txt(Texts, Vars, Funcs), Vars};
+    resolve_txt(Texts, Vars, Funcs);
 
 resolve({pre_incr, Var}, Vars, Funcs) ->
     VarPath = get_var_path(Var, Vars, Funcs),
@@ -231,6 +231,9 @@ resolve(#array{elements=ArrayElements}, Vars, Funcs) ->
     end, {0,dict:new(),Vars}, ArrayElements),
     {Array, NVars};
 
+resolve({concat, Texts}, Vars, Funcs) ->
+    resolve_txt(Texts, Vars, Funcs);
+
 resolve(#call{name=Fun,args=RawArgs}, Vars, Funcs) ->
     case dict:find(Fun, Funcs) of
         error -> throw(eundefun);
@@ -268,15 +271,15 @@ get_var_path(#variable{idx=Indexes}=Var, Vars, Funcs) ->
     Var#variable{idx=NewIndexes}.
 
 
-resolve_txt(Texts, Vars, Funcs) ->
+resolve_txt(Texts, Variables, Funcs) ->
     lists:foldr(fun
-        (Data, ResultTxt) when is_binary(Data) ->
-            <<Data/binary,ResultTxt/binary>>;
-        (Data, ResultTxt) when is_tuple(Data) ->
-            {TextRaw,_Vars} = resolve(Data, Vars, Funcs),
+        (Data, {ResultTxt,Vars}) when is_binary(Data) ->
+            {<<Data/binary,ResultTxt/binary>>,Vars};
+        (Data, {ResultTxt,Vars}) when is_tuple(Data) ->
+            {TextRaw,NewVars} = resolve(Data, Vars, Funcs),
             Text = ephp_util:to_bin(TextRaw),
-            <<Text/binary, ResultTxt/binary>>
-    end, <<>>, Texts).
+            {<<Text/binary, ResultTxt/binary>>,NewVars}
+    end, {<<>>,Variables}, Texts).
 
 zero_if_undef(undefined) -> 0;
 zero_if_undef(Value) when ?IS_DICT(Value) -> throw(einvalidop);
