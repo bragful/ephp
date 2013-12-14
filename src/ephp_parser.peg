@@ -27,7 +27,7 @@ code <- code_normal / code_expr ~;
 
 code_normal <- init_tag space? statements space? `
     [Init,_,Code,_] = Node,
-    [Init,Code,end_tag2]
+    [Init,Code,end_tag]
 `;
 
 code_expr <- init_value space? expression space? (literal_block / end_tag)+ `
