@@ -4,7 +4,8 @@
 -export([
     to_bin/1,
     increment_code/1,
-    zero_if_undef/1
+    zero_if_undef/1,
+    pad_to_bin/2
 ]).
 
 -include("ephp.hrl").
@@ -73,3 +74,17 @@ zero_if_undef(Value) when ?IS_DICT(Value) -> throw(einvalidop);
 zero_if_undef(Value) when not is_number(Value) -> 0;
 
 zero_if_undef(Value) -> Value.
+
+
+-spec pad_to_bin(Num :: integer(), Pad :: integer()) -> binary().
+
+pad_to_bin(Num, Pad) ->
+    NumBin = to_bin(Num),
+    Padding = if
+        byte_size(NumBin) >= Pad -> 
+            <<>>;
+        true -> 
+            PadSize = Pad - byte_size(NumBin),
+            << <<"0">> || _ <- lists:seq(1, PadSize) >>
+    end,
+    <<Padding/binary, NumBin/binary>>.
