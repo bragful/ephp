@@ -15,7 +15,14 @@
 -spec context_new() -> {ok, context()}.
 
 context_new() ->
-    ephp_context:start_link().
+    Modules = ?MODULES,
+    case ephp_context:start_link() of
+        {ok, Ctx} -> 
+            [ Module:init(Ctx) || Module <- Modules ],
+            {ok, Ctx};
+        Error ->
+            Error
+    end.
 
 -type values() :: integer() | binary() | float().
 

@@ -1,5 +1,10 @@
 -define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
 
+% built-in modules
+-define(MODULES, [
+    ephp_func_date
+]).
+
 -type context() :: pid().
 
 -type statement() :: tuple() | atom().
