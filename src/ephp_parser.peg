@@ -86,9 +86,9 @@ literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (docu
         [_,[],_] -> [];
         [_,[]] -> [];
         [_,Document,_] -> 
-            [ case Doc of {eval,D} -> D; _ -> Doc end || Doc <- Document ];
+            lists:flatten([ case Doc of {eval,D} -> D; _ -> Doc end || Doc <- Document ]);
         [_,Document] -> 
-            [ case Doc of {eval,D} -> D; _ -> Doc end || Doc <- Document ]
+            lists:flatten([ case Doc of {eval,D} -> D; _ -> Doc end || Doc <- Document ])
     end
 `;
 
