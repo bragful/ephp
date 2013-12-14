@@ -240,7 +240,7 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
 
 expression_cond <- array_def / arith_mono / additive / number / expr_string / call_function / var ~;
 
-expression <- array_def / arith_mono / ternary / additive / conditions / number / expr_string / var / call_function ~;
+expression <- boolean / null / array_def / arith_mono / ternary / additive / conditions / number / expr_string / var / call_function ~;
 
 call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {Name, Arguments} = case Node of
@@ -273,6 +273,10 @@ and <- #(?i)and# / '&&' `'and'`;
 or <- #(?i)or# / '||' `'or'`;
 not <- #(?i)not# / '!' `'not'`;
 null <- #(?i)null# `null`;
+true <- #(?i)true# `true`;
+false <- #(?i)false# `false`;
+
+boolean <- true / false ~;
 
 nexo <- and / or ~;
 

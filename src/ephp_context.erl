@@ -137,6 +137,15 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}, Value, Vars) ->
     end.
 
 
+resolve(true, Vars, _Funcs) -> 
+    {true, Vars};
+
+resolve(false, Vars, _Funcs) -> 
+    {false, Vars};
+
+resolve(null, Vars, _Funcs) -> 
+    {undefined, Vars};
+
 resolve(#assign{variable=Var,expression=Expr}, Vars, Funcs) ->
     VarPath = get_var_path(Var, Vars, Funcs),
     {Value, NewVars} = resolve(Expr, Vars, Funcs),

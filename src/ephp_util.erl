@@ -17,4 +17,8 @@ to_bin(A) when is_integer(A) ->
 to_bin(A) when is_float(A) -> 
     to_bin(float_to_list(A));
 
+to_bin(true) -> <<"1">>;
+
+to_bin(false) -> <<>>;
+
 to_bin(undefined) -> <<>>. 
