@@ -261,7 +261,7 @@ resolve(#call{name=Fun,args=RawArgs}, Vars, Funcs) ->
                 {A,NV} = resolve(Arg,V,Funcs),
                 {Args ++ [A], NV}
             end, {[], Vars}, RawArgs),
-            {erlang:apply(M,F,Args), NVars}
+            {erlang:apply(M,F,[self()|Args]), NVars}
     end;
 
 resolve(_Unknown, _Vars, _Funcs) ->

@@ -78,7 +78,7 @@ statements <- (comment / statement / literal_block) ( space? (comment / statemen
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- statement_controlflow / st_break / st_continue / st_arith_mono / assign / st_print ~;
+statement <- statement_controlflow / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function ~;
 
 literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
     case Node of
@@ -120,6 +120,11 @@ code_block <- '{' space? statements space? '}' `
 conditions_use <- '(' space? conditions space? ')' `
     [_,_,Cond,_,_] = Node,
     Cond
+`;
+
+st_call_function <- call_function space? ';' `
+    [Call,_,_] = Node,
+    Call
 `;
 
 st_print <- (print / echo) (space / '(') space? expression space? ')'? space? ';' `
