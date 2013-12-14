@@ -171,7 +171,13 @@ resolve({pre_incr, Var}, Vars, Funcs) ->
             {1, change(VarPath, 1, Vars)};
         V when is_number(V) -> 
             {V+1, change(VarPath, V+1, Vars)};
-        % TODO: when is a string, increments the last char
+        V when is_binary(V) andalso byte_size(V) > 0 ->
+            NewVal = try
+                binary_to_list(integer_to_list(V))
+            catch error:badarg ->
+                ephp_util:increment_code(V)
+            end,
+            {NewVal, change(VarPath, NewVal, Vars)};
         V -> 
             {V, Vars}
     end;
@@ -194,7 +200,13 @@ resolve({post_incr, Var}, Vars, Funcs) ->
             {undefined, change(VarPath, 1, Vars)};
         V when is_number(V) -> 
             {V, change(VarPath, V+1, Vars)};
-        % TODO: when is a string, increments the last char
+        V when is_binary(V) andalso byte_size(V) > 0 ->
+            NewVal = try
+                binary_to_list(integer_to_list(V))
+            catch error:badarg ->
+                ephp_util:increment_code(V)
+            end,
+            {V, change(VarPath, NewVal, Vars)};
         V -> 
             {V, Vars}
     end;
