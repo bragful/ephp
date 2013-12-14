@@ -45,7 +45,21 @@ init_value   <- '<\?='   `init_tag_value`;
 
 end_tag      <- '\?>'    `end_tag`;
 
-statements <- (statement / literal_block) ( space? (statement / literal_block) )* `
+comment_c <- '/*' (!'*/' .)+ '*/' `
+    []
+`;
+
+comment_cpp <- '//' (!('\n' / end_tag) .)+ '\n'? `
+    []
+`;
+
+comment_shell <- '#' (!('\n' / end_tag) .)+ '\n'? `
+    []
+`;
+
+comment <- comment_shell / comment_c / comment_cpp ~;
+
+statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
     [Statement, StatementsRaw] = Node,
     St = if
         is_tuple(Statement) -> [Statement];

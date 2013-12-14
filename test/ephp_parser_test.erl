@@ -357,3 +357,19 @@ function_call_test_() -> [
         [{print,{call,<<"myfunc">>,[]}}],
         ?PARSE("<?=myfunc()?>"))
 ].
+
+comments_test_() -> [
+    ?_assertEqual(
+        [],
+        ?PARSE("<? # comment ?>")),
+    ?_assertEqual(
+        [],
+        ?PARSE("<? // comment ")),
+    ?_assertEqual(
+        [],
+        ?PARSE("<? /* comment */ ")),
+    ?_assertEqual(
+        [{eval,[{print_text,<<"Result = ">>},
+            {print,{variable,<<"i">>,[]}}]}],
+        ?PARSE("<? # comentando ?>Result = <?=$i?><? // another comment more..."))
+].
