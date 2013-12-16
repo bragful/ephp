@@ -7,8 +7,9 @@
 -include("ephp.hrl").
 
 -record(state, {
-    vars = dict:new(),
-    funcs = dict:new()
+    vars = dict:new() :: dict(),
+    funcs = dict:new() :: dict(),
+    timezone = "Europe/Madrid" :: string()
 }).
 
 %% ------------------------------------------------------------------
@@ -21,6 +22,9 @@
     set/3,
     solve/2,
     destroy/1,
+
+    set_tz/2,
+    get_tz/1,
 
     call_func/3,
     register_func/4
@@ -58,6 +62,12 @@ register_func(Context, PHPFunc, Module, Fun) ->
 call_func(Context, PHPFunc, Args) ->
     gen_server:call(Context, {call, PHPFunc, Args}).
 
+get_tz(Context) ->
+    gen_server:call(Context, get_tz).
+
+set_tz(Context, TZ) ->
+    gen_server:cast(Context, {set_tz, TZ}).
+
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
@@ -78,6 +88,9 @@ handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
         {ok, {Module, Fun}} -> {Module, Fun, Args}
     end, State};
 
+handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
+    {reply, TZ, State};
+
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
@@ -91,6 +104,12 @@ handle_cast({set, VarRawPath, Value}, #state{vars=Vars,funcs=Funcs}=State) ->
     VarPath = get_var_path(VarRawPath, Vars, Funcs),
     NewVars = change(VarPath, Value, Vars),
     {noreply, State#state{vars = NewVars}};
+
+handle_cast({set_tz, TZ}, State) ->
+    case ezic_zone_map:find(TZ) of
+        {zone_not_found,_} -> {noreply, State}; 
+        _ -> {noreply, State#state{timezone=TZ}}
+    end;
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
