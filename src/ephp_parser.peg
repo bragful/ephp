@@ -78,7 +78,7 @@ statements <- (comment / statement / literal_block) ( space? (comment / statemen
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- statement_controlflow / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function ~;
+statement <- statement_controlflow / st_return / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function ~;
 
 literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
     case Node of
@@ -142,6 +142,13 @@ st_print_old <- (print / echo) space expression space? ';' `
 st_arith_mono <- arith_mono space? ';' `
     [Arith|_] = Node,
     Arith
+`;
+
+st_return <- return (space? ( '(' space? )? expression ( space? ')' )?)? space? ';' `
+    case Node of
+        [_Return,[_,_,Expr|_]|_] -> {return, Expr};
+        _ -> {return, undefined}
+    end
 `;
 
 st_break <- break space? ';' `
@@ -293,6 +300,7 @@ not <- #(?i)not# / '!' `'not'`;
 null <- #(?i)null# `null`;
 true <- #(?i)true# `true`;
 false <- #(?i)false# `false`;
+return <- #(?i)return# `return`;
 
 boolean <- true / false ~;
 

@@ -96,6 +96,8 @@
 -type post_incr() :: {post_incr, variable()}.
 -type pre_incr() :: {pre_incr, variable()}.
 
+-type return() :: {return, expression()}.
+
 -record(int, {
     int :: integer()
 }).

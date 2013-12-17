@@ -16,7 +16,7 @@ process(Context, Statements) ->
     end, <<>>, Statements)}.
 
 -spec run(Context :: context(), Statements :: main_statement()) ->
-    {break | continue | false, binary()}.
+    {break | continue | return() | false, binary()}.
 
 run(_Context, #print_text{text=Text}) ->
     {false, Text};
@@ -49,24 +49,27 @@ run(Context, #eval{statements=Statements}) ->
             LoopBlock = if
                 is_tuple(LB) -> [LB];
                 is_list(LB) -> LB;
+                is_atom(LB) -> [LB];
                 LB =:= undefined -> []
             end,
-            {false, run_loop(pre, Context, Cond, LoopBlock ++ Update, GenText)};
+            run_loop(pre, Context, Cond, LoopBlock ++ Update, GenText);
         (#foreach{kiter=Key,iter=Var,elements=RawElements,loop_block=LB}, {false, GenText}) ->
             LoopBlock = if
                 is_tuple(LB) -> [LB];
                 is_list(LB) -> LB;
+                is_atom(LB) -> [LB];
                 LB =:= undefined -> []
             end,
             Elements = ephp_context:get(Context, RawElements),
-            {false, run_foreach(Context, Key,Var,Elements,LoopBlock,GenText)};
+            run_foreach(Context, Key,Var,Elements,LoopBlock,GenText);
         (#while{type=Type,conditions=Cond,loop_block=LB}, {false, GenText}) ->
             LoopBlock = if
                 is_tuple(LB) -> [LB];
                 is_list(LB) -> LB;
+                is_atom(LB) -> [LB];
                 LB =:= undefined -> []
             end, 
-            {false, run_loop(Type, Context, Cond, LoopBlock, GenText)};
+            run_loop(Type, Context, Cond, LoopBlock, GenText);
         (#print_text{text=Text}, {false, GenText}) ->
             {false, <<GenText/binary, Text/binary>>};
         (#print{expression=Expr}, {false, GenText}) ->
@@ -89,8 +92,9 @@ run(Context, #eval{statements=Statements}) ->
             {break, GenText};
         (continue, {false, GenText}) ->
             {continue, GenText};
-        (Statement, {false,_GenText}) ->
-            io:format("~p~n", [Statement]),
+        ({return,Value}, {false,GenText}) ->
+            {{return,Value}, GenText};
+        (_Statement, {false,_GenText}) ->
             throw(eunknownst);
         (_Statement, {Break, GenText}) ->
             {Break, GenText}
@@ -101,21 +105,21 @@ run(Context, #eval{statements=Statements}) ->
     Context :: context(),
     Cond :: condition(),
     Statements :: [statement()],
-    GenText :: binary()) -> binary().
+    GenText :: binary()) -> {break | continue | return() | false, binary()}.
 
 run_loop(PrePost, Context, Cond, Statements, GenText) ->
     case PrePost =:= post orelse ephp_context:solve(Context, Cond) of
     true -> 
         {Break, ResText} = run(Context, #eval{statements=Statements}),
         NewGenText = <<GenText/binary, ResText/binary>>,
-        case Break =/= break andalso ephp_context:solve(Context, Cond) of
+        case Break =/= break andalso not is_tuple(Break) andalso ephp_context:solve(Context, Cond) of
         true ->
             run_loop(PrePost, Context, Cond, Statements, NewGenText);
         false ->
-            NewGenText
+            {case Break of {return,Ret} -> {return,Ret}; _ -> false end, NewGenText}
         end;
     false ->
-        GenText
+        {false, GenText}
     end.
 
 -spec run_foreach(
@@ -127,7 +131,7 @@ run_loop(PrePost, Context, Cond, Statements, GenText) ->
     GenText :: binary()) -> binary().
 
 run_foreach(_Context, _Key, _Var, [], _Statements, GenText) ->
-    GenText;
+    {false, GenText};
 
 run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements, GenText) ->
     case Key of 
@@ -138,8 +142,8 @@ run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements, GenText) 
     {Break, NewText} = run(Context, #eval{statements=Statements}),
     NewGenText = <<GenText/binary, NewText/binary>>,
     if 
-        Break =/= break ->
+        Break =/= break andalso not is_tuple(Break) ->
             run_foreach(Context, Key, Var, Elements, Statements, NewGenText);
         true ->
-            NewGenText
+            {case Break of {return,Ret} -> {return,Ret}; _ -> false end, NewGenText}
     end.
