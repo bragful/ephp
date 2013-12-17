@@ -7,7 +7,9 @@
     print_r/2,
     print_r/3,
     isset/2,
-    empty/2
+    empty/2,
+    gettype/2,
+    unset/2
 ]).
 
 -include("ephp.hrl").
@@ -16,7 +18,7 @@
 
 init(Context) ->
     Funcs = [
-        is_bool, print_r, isset, empty
+        is_bool, print_r, isset, empty, gettype, unset
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
@@ -82,6 +84,27 @@ empty(_Context, {_,Value}) ->
         false -> true;
         _ -> false
     end.
+
+-spec gettype(Context :: context(), Value :: var_value()) -> binary().
+
+gettype(_Context, {_,Value}) ->
+    if
+        is_boolean(Value) -> <<"boolean">>;
+        is_integer(Value) -> <<"integer">>;
+        is_float(Value) -> <<"double">>;
+        is_binary(Value) -> <<"string">>;
+        ?IS_DICT(Value) -> <<"array">>;
+        %% TODO: object type
+        %% TODO: resource type
+        Value =:= null -> <<"NULL">>;
+        true -> <<"unknown type">>
+    end.
+
+-spec unset(Context :: context(), Var :: var_value()) -> null.
+
+unset(Context, {Var,_}) ->
+    ephp_context:set(Context, Var, undefined),
+    null. 
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

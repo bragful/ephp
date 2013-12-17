@@ -177,6 +177,9 @@ search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
     end.
 
 
+change(#variable{name=Root, idx=[]}, undefined, Vars) ->
+    ?DICT:erase(Root, Vars);
+
 change(#variable{name=Root, idx=[]}, Value, Vars) ->
     ?DICT:store(Root, Value, Vars);
 
