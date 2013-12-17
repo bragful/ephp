@@ -7,7 +7,9 @@
     date/2,
     date/3,
     gmdate/2,
-    gmdate/3
+    gmdate/3,
+    date_default_timezone_set/2,
+    date_default_timezone_get/1
 ]).
 
 -include("ephp.hrl").
@@ -15,9 +17,15 @@
 -spec init(Context :: context()) -> ok.
 
 init(Context) ->
-    ephp_context:register_func(Context, <<"time">>, ?MODULE, time),
-    ephp_context:register_func(Context, <<"date">>, ?MODULE, date),
-    ephp_context:register_func(Context, <<"gmdate">>, ?MODULE, gmdate),
+    Funcs = [
+        time, date, gmdate,
+        date_default_timezone_get,
+        date_default_timezone_set
+    ],
+    lists:foreach(fun(Func) ->
+        Name = atom_to_binary(Func, utf8),
+        ephp_context:register_func(Context, Name, ?MODULE, Func)  
+    end, Funcs), 
     ok. 
 
 -spec time(Context :: context()) -> integer().
@@ -57,6 +65,17 @@ gmdate(_Context, Format, Timestamp) ->
     TZ = "GMT",
     Date = calendar:now_to_universal_time({M,S,U}),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
+
+-spec date_default_timezone_get(Context :: context()) -> binary().
+
+date_default_timezone_get(Context) ->
+    ephp_util:to_bin(ephp_context:get_tz(Context)).
+
+-spec date_default_timezone_set(Context :: context(), TZ :: binary()) -> binary().
+
+date_default_timezone_set(Context, TZ) ->
+    ephp_context:set_tz(Context, TZ),
+    null.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
