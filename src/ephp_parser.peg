@@ -127,13 +127,20 @@ st_call_function <- call_function space? ';' `
     Call
 `;
 
-st_print <- (print / echo) (space / '(') space? expression space? ')'? space? ';' `
-    [_Print,_,_,Expr,_,_,_,_] = Node,
+st_print <- st_print_fun / st_print_old ~;
+
+st_print_fun <- (print / echo) '(' space? expression space? ')' space? ';' `
+    [_Print,_,_,Expr|_] = Node,
+    #print{expression=Expr}
+`;
+
+st_print_old <- (print / echo) space expression space? ';' `
+    [_Print,_,Expr|_] = Node,
     #print{expression=Expr}
 `;
 
 st_arith_mono <- arith_mono space? ';' `
-    [Arith,_,_] = Node,
+    [Arith|_] = Node,
     Arith
 `;
 
@@ -285,7 +292,7 @@ boolean <- true / false ~;
 
 nexo <- and / or ~;
 
-space <- [ \t\n\s\r]* ~;
+space <- [ \t\n\s\r]+ ~;
 
 index <- arith_mono / ternary / string / additive ~;
 array_element <- (index space? '=>' space?)? expression `
