@@ -11,8 +11,11 @@
     ephp_func_vars
 ]).
 
+
 -type mixed() :: 
     integer() | float() | binary() | boolean() | null.
+
+-type var_value() :: {variable(), mixed()}.
 
 -type context() :: pid().
 

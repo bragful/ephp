@@ -24,57 +24,57 @@ init(Context) ->
     end, Funcs), 
     ok. 
 
--spec is_bool(Context :: context(), Value :: mixed()) -> boolean().
+-spec is_bool(Context :: context(), Value :: var_value()) -> boolean().
 
-is_bool(_Context, Value) when is_boolean(Value) -> 
+is_bool(_Context, {_,Value}) when is_boolean(Value) -> 
     true;
 
 is_bool(_Context, _Value) -> 
     false.
 
 
--spec print_r(Context :: context(), Value :: mixed()) -> boolean().
+-spec print_r(Context :: context(), Value :: var_value()) -> boolean().
 
-print_r(_Context, Value) when not ?IS_DICT(Value) -> 
+print_r(_Context, {_,Value}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
 print_r(Context, Value) ->
-    print_r(Context, Value, false).
+    print_r(Context, Value, {false,false}).
 
 
--spec print_r(Context :: context(), Value :: mixed(), Output :: boolean()) -> null | binary().
+-spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> null | binary().
 
-print_r(_Context, Value, true) when not ?IS_DICT(Value) -> 
+print_r(_Context, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
-print_r(Context, Value, false) when not ?IS_DICT(Value) -> 
+print_r(Context, {_,Value}, {_,false}) when not ?IS_DICT(Value) -> 
     ephp_context:set_output(Context, ephp_util:to_bin(Value)),
     null;
 
-print_r(_Context, Value, true) ->
+print_r(_Context, {_,Value}, {_,true}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, print_r_fmt(Value, <<"    ">>)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, Value, false) ->
+print_r(Context, {_,Value}, {_,false}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, print_r_fmt(Value, <<"    ">>)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     null.
 
--spec isset(Context :: context(), Value :: mixed()) -> boolean().
+-spec isset(Context :: context(), Value :: var_value()) -> boolean().
 
-isset(_Context, Value) ->
+isset(_Context, {_,Value}) ->
     case Value of
         undefined -> false;
         _ -> true
     end.
 
--spec empty(Context :: context(), Value :: mixed()) -> boolean().
+-spec empty(Context :: context(), Value :: var_value()) -> boolean().
 
-empty(_Context, Value) ->
+empty(_Context, {_,Value}) ->
     case Value of
         undefined -> true;
         <<"0">> -> true;

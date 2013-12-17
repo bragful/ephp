@@ -326,7 +326,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
         {ok,{M,F}} -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
-                {Args ++ [A], NewState}
+                {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_link(NState),
             Value = erlang:apply(M,F,[Mirror|Args]),

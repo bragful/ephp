@@ -34,15 +34,18 @@ time(_Context) ->
     {MS,S,_} = os:timestamp(),
     MS * 1000000 + S.
 
--spec date(Context :: context(), Format :: binary()) -> binary().
+-spec date(Context :: context(), Format :: {variable(),binary()}) -> binary().
 
-date(Context, Format) ->
+date(Context, {_,Format}) ->
     {MS,S,US} = os:timestamp(),
     date(Context, Format, (MS * 1000000) + S + (US / 1000000)).
 
--spec date(Context :: context(), Format :: binary(), Timestamp :: integer() | float()) -> binary().
+-spec date(
+    Context :: context(), 
+    Format :: {variable(),binary()}, 
+    Timestamp :: {variable(),(integer() | float())}) -> binary().
 
-date(Context, Format, Timestamp) ->
+date(Context, {_,Format}, {_,Timestamp}) ->
     M = trunc(Timestamp / 1000000),
     S = trunc(Timestamp - (M * 1000000)),
     U = (Timestamp - S) * 1000000,
@@ -50,13 +53,16 @@ date(Context, Format, Timestamp) ->
     Date = ezic:utc_to_local(calendar:now_to_universal_time({M,S,U}), TZ),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
--spec gmdate(Context :: context(), Format :: binary()) -> binary().
+-spec gmdate(Context :: context(), Format :: {variable(),binary()}) -> binary().
 
-gmdate(Context, Format) ->
+gmdate(Context, {_,Format}) ->
     {MS,S,US} = os:timestamp(),
     gmdate(Context, Format, (MS * 1000000) + S + (US / 1000000)).
 
--spec gmdate(Context :: context(), Format :: binary(), Timestamp :: integer() | float()) -> binary().
+-spec gmdate(
+    Context :: context(), 
+    Format :: {variable(),binary()}, 
+    Timestamp :: integer() | float()) -> binary().
 
 gmdate(_Context, Format, Timestamp) ->
     M = trunc(Timestamp / 1000000),
@@ -71,9 +77,11 @@ gmdate(_Context, Format, Timestamp) ->
 date_default_timezone_get(Context) ->
     ephp_util:to_bin(ephp_context:get_tz(Context)).
 
--spec date_default_timezone_set(Context :: context(), TZ :: binary()) -> binary().
+-spec date_default_timezone_set(
+    Context :: context(), 
+    TZ :: {variable(),binary()}) -> binary().
 
-date_default_timezone_set(Context, TZ) ->
+date_default_timezone_set(Context, {_,TZ}) ->
     ephp_context:set_tz(Context, TZ),
     null.
 
