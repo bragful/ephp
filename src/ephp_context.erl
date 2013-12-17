@@ -7,8 +7,8 @@
 -include("ephp.hrl").
 
 -record(state, {
-    vars = dict:new() :: dict(),
-    funcs = dict:new() :: dict(),
+    vars = ?DICT:new() :: dict(),
+    funcs = ?DICT:new() :: dict(),
     timezone = "Europe/Madrid" :: string()
 }).
 
