@@ -278,6 +278,17 @@ resolve({post_decr, Var}, #state{vars=Vars}=State) ->
             {V, State}
     end;
 
+resolve({operation_not, Expr}, State) ->
+    EmptyArray = ?DICT:new(),
+    case resolve(Expr, State) of
+        {false, NewState} -> {true, NewState};
+        {<<>>, NewState} -> {true, NewState};
+        {0, NewState} -> {true, NewState};
+        {<<"0">>, NewState} -> {true, NewState};
+        {EmptyArray, NewState} -> {true, NewState};
+        {_, NewState} -> {false, NewState}
+    end;
+
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->
     case resolve_op(Cond, State) of
     {true,NewState} ->
