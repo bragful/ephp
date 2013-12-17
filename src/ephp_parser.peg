@@ -206,12 +206,18 @@ st_if <- st_if_else / st_if_simple ~;
 
 st_if_else <- st_if_simple space? else space? ( code_block / statement ) `
     [#if_block{}=IfBlock,_,_Else,_,ElseSt] = Node,
-    IfBlock#if_block{false_block=ElseSt}
+    IfBlock#if_block{false_block=if
+        is_list(ElseSt) -> ElseSt;
+        true -> [ElseSt]
+    end}
 `;
 
 st_if_simple <- if space? conditions_use space? ( code_block / statement ) `
     [_If,_,Cond,_,St] = Node,
-    #if_block{conditions=Cond, true_block=St}
+    #if_block{conditions=Cond, true_block=if
+        is_list(St) -> St;
+        true -> [St]
+    end}
 `;
 
 conditions <- condition space? nexo space? conditions / cs:condition `

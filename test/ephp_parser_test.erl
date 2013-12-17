@@ -105,18 +105,18 @@ multi_statement_test_() -> [
 if_statement_test_() -> [
     ?_assertEqual(
         [{eval,[{if_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
-                  {assign,{variable,<<"a">>,[]},{int,0}}, undefined}]}],
+                  [{assign,{variable,<<"a">>,[]},{int,0}}], undefined}]}],
         ?PARSE("<?php if ($a > 5) $a = 0; ?>")),
     ?_assertEqual(
         [{eval,[{if_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
-                  {assign,{variable,<<"a">>,[]},{int,0}},
-                  {assign,{variable,<<"a">>,[]},{int,5}}}]}],
+                  [{assign,{variable,<<"a">>,[]},{int,0}}],
+                  [{assign,{variable,<<"a">>,[]},{int,5}}]}]}],
         ?PARSE("<?php if ($a > 5) $a = 0; else $a = 5; ?>")),
     ?_assertEqual(
         [{eval,[{if_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,5}},
-                  {assign,{variable,<<"a">>,[]},{int,0}},
-                  {if_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,3}},
-                    {assign,{variable,<<"a">>,[]},{int,5}}, undefined}}]}],
+                  [{assign,{variable,<<"a">>,[]},{int,0}}],
+                  [{if_block,{operation,<<">">>,{variable,<<"a">>,[]},{int,3}},
+                      [{assign,{variable,<<"a">>,[]},{int,5}}], undefined}]}]}],
         ?PARSE("<?php if ($a > 5) $a = 0; elseif ($a > 3) $a = 5; ?>"))
 ].
 
@@ -337,7 +337,7 @@ not_test_() -> [
         ?PARSE("<?=!$a ? 1?>")),
     ?_assertEqual(
         [{eval,[{if_block,{operation_not,{variable,<<"a">>,[]}},
-                  {assign,{variable,<<"a">>,[]},{int,5}}, undefined}]}],
+                  [{assign,{variable,<<"a">>,[]},{int,5}}], undefined}]}],
         ?PARSE("<? if (!$a) $a = 5; ?>")),
     ?_assertEqual(
         [{eval,[{assign,{variable,<<"a">>,[]},
