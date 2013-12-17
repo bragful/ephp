@@ -2,8 +2,12 @@
 
 % built-in modules
 -define(MODULES, [
-    ephp_func_date
+    ephp_func_date,
+    ephp_func_vars
 ]).
+
+-type mixed() :: 
+    integer() | float() | binary() | boolean() | null.
 
 -type context() :: pid().
 

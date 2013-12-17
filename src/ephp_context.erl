@@ -23,6 +23,8 @@
     solve/2,
     destroy/1,
 
+    get_state/1,
+
     set_tz/2,
     get_tz/1,
 
@@ -44,6 +46,9 @@
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
+start_link(State) ->
+    gen_server:start_link(?MODULE, [State], []).
+
 get(Context, VarPath) ->
     gen_server:call(Context, {get, VarPath}).
 
@@ -55,6 +60,9 @@ solve(Context, Expression) ->
 
 destroy(Context) ->
     gen_server:cast(Context, stop).
+
+get_state(Context) ->
+    gen_server:call(Context, get_state).
 
 register_func(Context, PHPFunc, Module, Fun) ->
     gen_server:cast(Context, {register, PHPFunc, Module, Fun}).
@@ -72,21 +80,27 @@ set_tz(Context, TZ) ->
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
 
-init(_Args) ->
-    {ok, #state{}}.
+init([]) ->
+    {ok, #state{}};
 
-handle_call({get, VarRawPath}, _From, #state{vars=Vars,funcs=Funcs}=State) ->
-    {reply, resolve_var(VarRawPath, Vars, Funcs), State};
+init([#state{}=State]) ->
+    {ok, State}.
 
-handle_call({resolve, Expression}, _From, #state{vars=Vars,funcs=Funcs}=State) ->
-    {Value, NewVars} = resolve(Expression,Vars,Funcs),
+handle_call({get, VarRawPath}, _From, State) ->
+    {reply, resolve_var(VarRawPath, State), State};
+
+handle_call({resolve, Expression}, _From, State) ->
+    {Value, NewVars} = resolve(Expression,State),
     {reply, Value, State#state{vars = NewVars}};
 
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
-    {reply, case dict:find(PHPFunc, Funcs) of
+    {reply, case ?DICT:find(PHPFunc, Funcs) of
         error -> throw(eundefun);
         {ok, {Module, Fun}} -> {Module, Fun, Args}
     end, State};
+
+handle_call(get_state, _From, State) ->
+    {reply, State, State};
 
 handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
     {reply, TZ, State};
@@ -95,13 +109,13 @@ handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({register, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
-    {noreply, State#state{funcs=dict:store(PHPFunc, {Module, Fun}, Funcs)}};
+    {noreply, State#state{funcs=?DICT:store(PHPFunc, {Module, Fun}, Funcs)}};
 
 handle_cast(stop, State) ->
     {stop, normal, State};
 
-handle_cast({set, VarRawPath, Value}, #state{vars=Vars,funcs=Funcs}=State) ->
-    VarPath = get_var_path(VarRawPath, Vars, Funcs),
+handle_cast({set, VarRawPath, Value}, #state{vars=Vars}=State) ->
+    VarPath = get_var_path(VarRawPath, State),
     NewVars = change(VarPath, Value, Vars),
     {noreply, State#state{vars = NewVars}};
 
@@ -128,13 +142,13 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 
 search(#variable{name=Root, idx=[]}, Vars) ->
-    case dict:find(Root, Vars) of
+    case ?DICT:find(Root, Vars) of
         error -> undefined;
         {ok, Value} -> Value
     end;
 
 search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
-    case dict:find(Root, Vars) of
+    case ?DICT:find(Root, Vars) of
         {ok, NewVars} when ?IS_DICT(NewVars) -> 
             search(#variable{name=NewRoot, idx=Idx}, NewVars);
         _ -> 
@@ -143,48 +157,48 @@ search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
 
 
 change(#variable{name=Root, idx=[]}, Value, Vars) ->
-    dict:store(Root, Value, Vars);
+    ?DICT:store(Root, Value, Vars);
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}, Value, Vars) ->
-    case dict:find(Root, Vars) of
+    case ?DICT:find(Root, Vars) of
     {ok, NewVars} when ?IS_DICT(NewVars) -> 
-        dict:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
+        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
     _ -> 
-        dict:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, dict:new()), Vars)
+        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, ?DICT:new()), Vars)
     end.
 
 
-resolve(true, Vars, _Funcs) -> 
+resolve(true, #state{vars=Vars}) -> 
     {true, Vars};
 
-resolve(false, Vars, _Funcs) -> 
+resolve(false, #state{vars=Vars}) -> 
     {false, Vars};
 
-resolve(null, Vars, _Funcs) -> 
+resolve(null, #state{vars=Vars}) -> 
     {undefined, Vars};
 
-resolve(#assign{variable=Var,expression=Expr}, Vars, Funcs) ->
-    VarPath = get_var_path(Var, Vars, Funcs),
-    {Value, NewVars} = resolve(Expr, Vars, Funcs),
+resolve(#assign{variable=Var,expression=Expr}, State) ->
+    VarPath = get_var_path(Var, State),
+    {Value, NewVars} = resolve(Expr, State),
     {Value, change(VarPath, Value, NewVars)};
 
-resolve(#operation{}=Op, Vars, Funcs) ->
-    {resolve_op(Op, Vars, Funcs), Vars};
+resolve(#operation{}=Op, #state{vars=Vars}=State) ->
+    {resolve_op(Op, State), Vars};
 
-resolve(#int{int=Int}, Vars, _Funcs) -> 
+resolve(#int{int=Int}, #state{vars=Vars}) -> 
     {Int, Vars};
 
-resolve(#float{float=Float}, Vars, _Funcs) -> 
+resolve(#float{float=Float}, #state{vars=Vars}) -> 
     {Float, Vars};
 
-resolve(#text{text=Text}, Vars, _Funcs) -> 
+resolve(#text{text=Text}, #state{vars=Vars}) -> 
     {Text, Vars};
 
-resolve(#text_to_process{text=Texts}, Vars, Funcs) ->
-    resolve_txt(Texts, Vars, Funcs);
+resolve(#text_to_process{text=Texts}, State) ->
+    resolve_txt(Texts, State);
 
-resolve({pre_incr, Var}, Vars, Funcs) ->
-    VarPath = get_var_path(Var, Vars, Funcs),
+resolve({pre_incr, Var}, #state{vars=Vars}=State) ->
+    VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
             {1, change(VarPath, 1, Vars)};
@@ -201,8 +215,8 @@ resolve({pre_incr, Var}, Vars, Funcs) ->
             {V, Vars}
     end;
 
-resolve({pre_decr, Var}, Vars, Funcs) ->
-    VarPath = get_var_path(Var, Vars, Funcs),
+resolve({pre_decr, Var}, #state{vars=Vars}=State) ->
+    VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
             {undefined, Vars};
@@ -212,8 +226,8 @@ resolve({pre_decr, Var}, Vars, Funcs) ->
             {V, Vars}
     end;
 
-resolve({post_incr, Var}, Vars, Funcs) ->
-    VarPath = get_var_path(Var, Vars, Funcs),
+resolve({post_incr, Var}, #state{vars=Vars}=State) ->
+    VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
             {undefined, change(VarPath, 1, Vars)};
@@ -230,8 +244,8 @@ resolve({post_incr, Var}, Vars, Funcs) ->
             {V, Vars}
     end;
 
-resolve({post_decr, Var}, Vars, Funcs) ->
-    VarPath = get_var_path(Var, Vars, Funcs),
+resolve({post_decr, Var}, #state{vars=Vars}=State) ->
+    VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
             {undefined, Vars};
@@ -241,88 +255,93 @@ resolve({post_decr, Var}, Vars, Funcs) ->
             {V, Vars}
     end;
 
-resolve(#if_block{conditions=Cond}=IfBlock, Vars, Funcs) ->
-    case resolve_op(Cond, Vars, Funcs) of
+resolve(#if_block{conditions=Cond}=IfBlock, State) ->
+    case resolve_op(Cond, State) of
     true ->
-        resolve(IfBlock#if_block.true_block, Vars, Funcs);
+        resolve(IfBlock#if_block.true_block, State);
     false ->
-        resolve(IfBlock#if_block.false_block, Vars, Funcs)
+        resolve(IfBlock#if_block.false_block, State)
     end;
 
-resolve(#variable{}=Var, Vars, Funcs) ->
-    {resolve_var(Var, Vars, Funcs), Vars};
+resolve(#variable{}=Var, #state{vars=Vars}=State) ->
+    {resolve_var(Var, State), Vars};
 
-resolve(#array{elements=ArrayElements}, Vars, Funcs) ->
+resolve(#array{elements=ArrayElements}, #state{vars=Vars}=State) ->
     {_I,Array,NVars} = lists:foldl(fun
         (#array_element{idx=auto, element=Element}, {I,Dict,V}) ->
-            {Value, NewVars} = resolve(Element,V,Funcs),
-            {I+1,dict:store(I,Value,Dict),NewVars};
+            {Value, NewVars} = resolve(Element,State#state{vars=V}),
+            {I+1,?DICT:store(I,Value,Dict),NewVars};
         (#array_element{idx=I, element=Element}, {INum,Dict,V}) ->
-            {Value, NewVars} = resolve(Element,V,Funcs),
-            {Idx, ReNewVars} = resolve(I,NewVars,Funcs),
+            {Value, NewVars} = resolve(Element,State#state{vars=V}),
+            {Idx, ReNewVars} = resolve(I,State#state{vars=NewVars}),
             if
             is_integer(Idx) ->  
-                {Idx+1,dict:store(Idx,Value,Dict),ReNewVars};
+                {Idx+1,?DICT:store(Idx,Value,Dict),ReNewVars};
             true ->
-                {INum,dict:store(Idx,Value,Dict),ReNewVars}
+                {INum,?DICT:store(Idx,Value,Dict),ReNewVars}
             end
-    end, {0,dict:new(),Vars}, ArrayElements),
+    end, {0,?DICT:new(),Vars}, ArrayElements),
     {Array, NVars};
 
-resolve({concat, Texts}, Vars, Funcs) ->
-    resolve_txt(Texts, Vars, Funcs);
+resolve({concat, Texts}, State) ->
+    resolve_txt(Texts, State);
 
-resolve(#call{name=Fun,args=RawArgs}, Vars, Funcs) ->
-    case dict:find(Fun, Funcs) of
+resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
+    case ?DICT:find(Fun, Funcs) of
         error -> throw(eundefun);
         {ok,{M,F}} -> 
             {Args, NVars} = lists:foldl(fun(Arg,{Args,V}) ->
-                {A,NV} = resolve(Arg,V,Funcs),
+                {A,NV} = resolve(Arg,State#state{vars=V}),
                 {Args ++ [A], NV}
             end, {[], Vars}, RawArgs),
-            {erlang:apply(M,F,[self()|Args]), NVars}
+            {ok, Mirror} = start_link(State#state{vars=NVars}),
+            Value = erlang:apply(M,F,[Mirror|Args]),
+            MirrorState = get_state(Mirror),
+            destroy(Mirror),
+            {Value, MirrorState#state.vars}
     end;
 
-resolve(_Unknown, _Vars, _Funcs) ->
+resolve(_Unknown, _State) ->
     throw(eundeftoken).
 
 
-resolve_var(#variable{idx=[]}=Var, Vars, _Funcs) ->
+resolve_var(#variable{idx=[]}=Var, #state{vars=Vars}) ->
     search(Var, Vars);
 
-resolve_var(#variable{idx=Indexes}=Var, Vars, Funcs) ->
+resolve_var(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
+    %% TODO: resolve index could be modified the value if it's used ++ or --
     NewIndexes = lists:map(fun(Idx) ->
-        {Value, _Vars} = resolve(Idx, Vars, Funcs),
+        {Value, _Vars} = resolve(Idx, State),
         Value
     end, Indexes),
     search(Var#variable{idx=NewIndexes}, Vars).
 
 
-get_var_path(#variable{idx=[]}=Var, _Vars, _Funcs) ->
+get_var_path(#variable{idx=[]}=Var, _State) ->
     Var;
 
-get_var_path(#variable{idx=Indexes}=Var, Vars, Funcs) ->
+get_var_path(#variable{idx=Indexes}=Var, State) ->
     NewIndexes = lists:map(fun(Idx) ->
-        {Value, _Vars} = resolve(Idx, Vars, Funcs),
+        {Value, _Vars} = resolve(Idx, State),
         Value
     end, Indexes),
     Var#variable{idx=NewIndexes}.
 
 
-resolve_txt(Texts, Variables, Funcs) ->
+resolve_txt(Texts, #state{vars=Variables}=State) ->
     lists:foldr(fun
         (Data, {ResultTxt,Vars}) when is_binary(Data) ->
             {<<Data/binary,ResultTxt/binary>>,Vars};
-        (Data, {ResultTxt,Vars}) when is_tuple(Data) ->
-            {TextRaw,NewVars} = resolve(Data, Vars, Funcs),
+        (Data, {ResultTxt,_Vars}) when is_tuple(Data) ->
+            {TextRaw,NewVars} = resolve(Data, State),
             Text = ephp_util:to_bin(TextRaw),
             {<<Text/binary, ResultTxt/binary>>,NewVars}
     end, {<<>>,Variables}, Texts).
 
 
-resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Vars, Funcs) ->
-    {OpRes1, _Vars} = resolve(Op1, Vars, Funcs),
-    {OpRes2, _Vars} = resolve(Op2, Vars, Funcs),
+resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, State) ->
+    {OpRes1, _Vars} = resolve(Op1, State),
+    {OpRes2, _Vars} = resolve(Op2, State),
     case Type of
         <<"+">> -> ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
         <<"-">> -> ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
