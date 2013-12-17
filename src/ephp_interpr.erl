@@ -110,6 +110,14 @@ run_loop(PrePost, Context, Cond, Statements, GenText) ->
         GenText
     end.
 
+-spec run_foreach(
+    Context :: context(),
+    Key :: variable(),
+    Var :: variable(),
+    Elements :: variable(),
+    Statements :: [statement()],
+    GenText :: binary()) -> binary().
+
 run_foreach(Context, Key, Var, Elements, Statements, GenText) ->
     ?DICT:fold(fun(KeyVal, VarVal, Text) ->
         case Key of 

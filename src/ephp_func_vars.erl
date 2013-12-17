@@ -40,7 +40,7 @@ print_r(Context, Value) ->
     print_r(Context, Value, false).
 
 
--spec print_r(Context :: context(), Value :: mixed(), Output :: boolean()) -> boolean().
+-spec print_r(Context :: context(), Value :: mixed(), Output :: boolean()) -> null | binary().
 
 print_r(_Context, Value, true) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
