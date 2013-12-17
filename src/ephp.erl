@@ -36,7 +36,8 @@ register_var(Ctx, _Var, _Value) when not is_pid(Ctx) ->
 register_var(Ctx, Var, Value) when 
         is_integer(Value) orelse 
         is_float(Value) orelse
-        is_binary(Value) ->
+        is_binary(Value) orelse
+        ?IS_DICT(Value) ->
     ephp_context:set(Ctx, #variable{name=Var}, Value);
 
 register_var(_Ctx, _Var, _Value) ->
