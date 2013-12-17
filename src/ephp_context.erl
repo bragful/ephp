@@ -9,7 +9,8 @@
 -record(state, {
     vars = ?DICT:new() :: dict(),
     funcs = ?DICT:new() :: dict(),
-    timezone = "Europe/Madrid" :: string()
+    timezone = "Europe/Madrid" :: string(),
+    output = <<>> :: binary()
 }).
 
 %% ------------------------------------------------------------------
@@ -27,6 +28,9 @@
 
     set_tz/2,
     get_tz/1,
+
+    get_output/1,
+    set_output/2,
 
     call_func/3,
     register_func/4
@@ -76,6 +80,12 @@ get_tz(Context) ->
 set_tz(Context, TZ) ->
     gen_server:cast(Context, {set_tz, TZ}).
 
+get_output(Context) ->
+    gen_server:call(Context, output).
+
+set_output(Context, Text) ->
+    gen_server:cast(Context, {output, Text}).
+
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
@@ -87,11 +97,12 @@ init([#state{}=State]) ->
     {ok, State}.
 
 handle_call({get, VarRawPath}, _From, State) ->
-    {reply, resolve_var(VarRawPath, State), State};
+    {Value, NewState} = resolve_var(VarRawPath, State),
+    {reply, Value, NewState};
 
 handle_call({resolve, Expression}, _From, State) ->
-    {Value, NewVars} = resolve(Expression,State),
-    {reply, Value, State#state{vars = NewVars}};
+    {Value, NewState} = resolve(Expression,State),
+    {reply, Value, NewState};
 
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
     {reply, case ?DICT:find(PHPFunc, Funcs) of
@@ -104,6 +115,9 @@ handle_call(get_state, _From, State) ->
 
 handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
     {reply, TZ, State};
+
+handle_call(output, _From, #state{output=Output}=State) ->
+    {reply, Output, State#state{output = <<>>}};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -125,6 +139,9 @@ handle_cast({set_tz, TZ}, State) ->
         _ -> {noreply, State#state{timezone=TZ}}
     end;
 
+handle_cast({output, Text}, State) ->
+    {noreply, do_output(State, Text)};
+
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
@@ -140,6 +157,10 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+
+do_output(#state{output=Output}=State, Text) ->
+    State#state{output = <<Output/binary, Text/binary>>}.
+
 
 search(#variable{name=Root, idx=[]}, Vars) ->
     case ?DICT:find(Root, Vars) of
@@ -168,31 +189,33 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}, Value, Vars) ->
     end.
 
 
-resolve(true, #state{vars=Vars}) -> 
-    {true, Vars};
+resolve(true, State) -> 
+    {true, State};
 
-resolve(false, #state{vars=Vars}) -> 
-    {false, Vars};
+resolve(false, State) -> 
+    {false, State};
 
-resolve(null, #state{vars=Vars}) -> 
-    {undefined, Vars};
+resolve(null, State) -> 
+    {undefined, State};
 
 resolve(#assign{variable=Var,expression=Expr}, State) ->
     VarPath = get_var_path(Var, State),
-    {Value, NewVars} = resolve(Expr, State),
-    {Value, change(VarPath, Value, NewVars)};
+    {Value, NState} = resolve(Expr, State),
+    NewVars = change(VarPath, Value, NState#state.vars),
+    NewState = NState#state{vars = NewVars},
+    {Value, NewState};
 
-resolve(#operation{}=Op, #state{vars=Vars}=State) ->
-    {resolve_op(Op, State), Vars};
+resolve(#operation{}=Op, State) ->
+    resolve_op(Op, State);
 
-resolve(#int{int=Int}, #state{vars=Vars}) -> 
-    {Int, Vars};
+resolve(#int{int=Int}, State) -> 
+    {Int, State};
 
-resolve(#float{float=Float}, #state{vars=Vars}) -> 
-    {Float, Vars};
+resolve(#float{float=Float}, State) -> 
+    {Float, State};
 
-resolve(#text{text=Text}, #state{vars=Vars}) -> 
-    {Text, Vars};
+resolve(#text{text=Text}, State) -> 
+    {Text, State};
 
 resolve(#text_to_process{text=Texts}, State) ->
     resolve_txt(Texts, State);
@@ -201,126 +224,128 @@ resolve({pre_incr, Var}, #state{vars=Vars}=State) ->
     VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
-            {1, change(VarPath, 1, Vars)};
+            {1, State#state{vars = change(VarPath, 1, Vars)}};
         V when is_number(V) -> 
-            {V+1, change(VarPath, V+1, Vars)};
+            {V+1, State#state{vars = change(VarPath, V+1, Vars)}};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
                 list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            {NewVal, change(VarPath, NewVal, Vars)};
+            {NewVal, State#state{vars = change(VarPath, NewVal, Vars)}};
         V -> 
-            {V, Vars}
+            {V, State}
     end;
 
 resolve({pre_decr, Var}, #state{vars=Vars}=State) ->
     VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
-            {undefined, Vars};
+            {undefined, State};
         V when is_number(V) -> 
-            {V-1, change(VarPath, V-1, Vars)};
+            {V-1, State#state{vars = change(VarPath, V-1, Vars)}};
         V -> 
-            {V, Vars}
+            {V, State}
     end;
 
 resolve({post_incr, Var}, #state{vars=Vars}=State) ->
     VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
-            {undefined, change(VarPath, 1, Vars)};
+            {undefined, State#state{vars = change(VarPath, 1, Vars)}};
         V when is_number(V) -> 
-            {V, change(VarPath, V+1, Vars)};
+            {V, State#state{vars = change(VarPath, V+1, Vars)}};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
                 list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            {V, change(VarPath, NewVal, Vars)};
+            {V, State#state{vars = change(VarPath, NewVal, Vars)}};
         V -> 
-            {V, Vars}
+            {V, State}
     end;
 
 resolve({post_decr, Var}, #state{vars=Vars}=State) ->
     VarPath = get_var_path(Var, State),
     case search(VarPath, Vars) of
         undefined -> 
-            {undefined, Vars};
+            {undefined, State};
         V when is_number(V) -> 
-            {V, change(VarPath, V-1, Vars)};
+            {V, State#state{vars = change(VarPath, V-1, Vars)}};
         V -> 
-            {V, Vars}
+            {V, State}
     end;
 
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->
     case resolve_op(Cond, State) of
-    true ->
-        resolve(IfBlock#if_block.true_block, State);
-    false ->
-        resolve(IfBlock#if_block.false_block, State)
+    {true,NewState} ->
+        resolve(IfBlock#if_block.true_block, NewState);
+    {false,NewState} ->
+        resolve(IfBlock#if_block.false_block, NewState)
     end;
 
-resolve(#variable{}=Var, #state{vars=Vars}=State) ->
-    {resolve_var(Var, State), Vars};
+resolve(#variable{}=Var, State) ->
+    resolve_var(Var, State);
 
-resolve(#array{elements=ArrayElements}, #state{vars=Vars}=State) ->
-    {_I,Array,NVars} = lists:foldl(fun
-        (#array_element{idx=auto, element=Element}, {I,Dict,V}) ->
-            {Value, NewVars} = resolve(Element,State#state{vars=V}),
-            {I+1,?DICT:store(I,Value,Dict),NewVars};
-        (#array_element{idx=I, element=Element}, {INum,Dict,V}) ->
-            {Value, NewVars} = resolve(Element,State#state{vars=V}),
-            {Idx, ReNewVars} = resolve(I,State#state{vars=NewVars}),
+resolve(#array{elements=ArrayElements}, State) ->
+    {_I,Array,NState} = lists:foldl(fun
+        (#array_element{idx=auto, element=Element}, {I,Dict,NS}) ->
+            {Value, NewState} = resolve(Element,NS),
+            {I+1,?DICT:store(I,Value,Dict),NewState};
+        (#array_element{idx=I, element=Element}, {INum,Dict,NS}) ->
+            {Value, NewState} = resolve(Element,NS),
+            {Idx, ReNewState} = resolve(I,NewState),
             if
             is_integer(Idx) ->  
-                {Idx+1,?DICT:store(Idx,Value,Dict),ReNewVars};
+                {Idx+1,?DICT:store(Idx,Value,Dict),ReNewState};
             true ->
-                {INum,?DICT:store(Idx,Value,Dict),ReNewVars}
+                {INum,?DICT:store(Idx,Value,Dict),ReNewState}
             end
-    end, {0,?DICT:new(),Vars}, ArrayElements),
-    {Array, NVars};
+    end, {0,?DICT:new(),State}, ArrayElements),
+    {Array, NState};
 
 resolve({concat, Texts}, State) ->
     resolve_txt(Texts, State);
 
-resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
+resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
     case ?DICT:find(Fun, Funcs) of
         error -> throw(eundefun);
         {ok,{M,F}} -> 
-            {Args, NVars} = lists:foldl(fun(Arg,{Args,V}) ->
-                {A,NV} = resolve(Arg,State#state{vars=V}),
-                {Args ++ [A], NV}
-            end, {[], Vars}, RawArgs),
-            {ok, Mirror} = start_link(State#state{vars=NVars}),
+            {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+                {A,NewState} = resolve(Arg,S),
+                {Args ++ [A], NewState}
+            end, {[], State}, RawArgs),
+            {ok, Mirror} = start_link(NState),
             Value = erlang:apply(M,F,[Mirror|Args]),
             MirrorState = get_state(Mirror),
             destroy(Mirror),
-            {Value, MirrorState#state.vars}
+            {Value, MirrorState}
     end;
 
-resolve(_Unknown, _State) ->
+resolve(Unknown, #state{}=State) ->
+    io:format("~p - ~p~n", [Unknown,State]),
     throw(eundeftoken).
 
 
-resolve_var(#variable{idx=[]}=Var, #state{vars=Vars}) ->
-    search(Var, Vars);
+resolve_var(#variable{idx=[]}=Var, #state{vars=Vars}=State) ->
+    {search(Var, Vars), State};
 
-resolve_var(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
-    %% TODO: resolve index could be modified the value if it's used ++ or --
-    NewIndexes = lists:map(fun(Idx) ->
-        {Value, _Vars} = resolve(Idx, State),
-        Value
-    end, Indexes),
-    search(Var#variable{idx=NewIndexes}, Vars).
+resolve_var(#variable{idx=Indexes}=Var, State) ->
+    {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
+        {Value, NState} = resolve(Idx, NS),
+        {I ++ [Value], NState}
+    end, {[],State}, Indexes),
+    Value = search(Var#variable{idx=NewIndexes}, NewState#state.vars),
+    {Value, NewState}.
 
 
 get_var_path(#variable{idx=[]}=Var, _State) ->
     Var;
 
 get_var_path(#variable{idx=Indexes}=Var, State) ->
+    %% TODO: resolve index could be modified the value if it's used ++ or --
     NewIndexes = lists:map(fun(Idx) ->
         {Value, _Vars} = resolve(Idx, State),
         Value
@@ -328,21 +353,21 @@ get_var_path(#variable{idx=Indexes}=Var, State) ->
     Var#variable{idx=NewIndexes}.
 
 
-resolve_txt(Texts, #state{vars=Variables}=State) ->
+resolve_txt(Texts, State) ->
     lists:foldr(fun
-        (Data, {ResultTxt,Vars}) when is_binary(Data) ->
-            {<<Data/binary,ResultTxt/binary>>,Vars};
-        (Data, {ResultTxt,_Vars}) when is_tuple(Data) ->
-            {TextRaw,NewVars} = resolve(Data, State),
+        (Data, {ResultTxt,NS}) when is_binary(Data) ->
+            {<<Data/binary,ResultTxt/binary>>,NS};
+        (Data, {ResultTxt,NS}) when is_tuple(Data) ->
+            {TextRaw,NewState} = resolve(Data, NS),
             Text = ephp_util:to_bin(TextRaw),
-            {<<Text/binary, ResultTxt/binary>>,NewVars}
-    end, {<<>>,Variables}, Texts).
+            {<<Text/binary,ResultTxt/binary>>,NewState}
+    end, {<<>>,State}, Texts).
 
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, State) ->
-    {OpRes1, _Vars} = resolve(Op1, State),
-    {OpRes2, _Vars} = resolve(Op2, State),
-    case Type of
+    {OpRes1, State1} = resolve(Op1, State),
+    {OpRes2, State2} = resolve(Op2, State1),
+    {case Type of
         <<"+">> -> ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
         <<"-">> -> ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
         <<"*">> -> ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
@@ -357,4 +382,4 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Sta
         <<"!==">> -> OpRes1 =/= OpRes2;
         'and' -> OpRes1 andalso OpRes2;
         'or' -> OpRes1 orelse OpRes2
-    end.
+    end, State2}.

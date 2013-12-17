@@ -61,11 +61,13 @@ run(Context, #eval{statements=Statements}) ->
             <<GenText/binary, Text/binary>>;
         (#print{expression=Expr}, GenText) ->
             Result = ephp_context:solve(Context, Expr),
+            Output = ephp_context:get_output(Context),
             ResText = ephp_util:to_bin(Result),
-            <<GenText/binary, ResText/binary>>;
+            <<GenText/binary, Output/binary, ResText/binary>>;
         (#call{}=Call, GenText) ->
-            Result = ephp_context:solve(Context, Call), 
-            <<GenText/binary, Result/binary>>;
+            ephp_context:solve(Context, Call), 
+            Output = ephp_context:get_output(Context),
+            <<GenText/binary, Output/binary>>;
         ({Op, _Var}=MonoArith, GenText) when 
                 Op =:= pre_incr orelse 
                 Op =:= pre_decr orelse

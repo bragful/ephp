@@ -4,7 +4,8 @@
 -export([
     init/1,
     is_bool/2,
-    print_r/2
+    print_r/2,
+    print_r/3
 ]).
 
 -include("ephp.hrl").
@@ -29,16 +30,41 @@ is_bool(_Context, Value) when is_boolean(Value) ->
 is_bool(_Context, _Value) -> 
     false.
 
+
 -spec print_r(Context :: context(), Value :: mixed()) -> boolean().
 
 print_r(_Context, Value) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
-print_r(_Context, Value) ->
+print_r(Context, Value) ->
+    print_r(Context, Value, false).
+
+
+-spec print_r(Context :: context(), Value :: mixed(), Output :: boolean()) -> boolean().
+
+print_r(_Context, Value, true) when not ?IS_DICT(Value) -> 
+    ephp_util:to_bin(Value);
+
+print_r(Context, Value, false) when not ?IS_DICT(Value) -> 
+    ephp_context:set_output(Context, ephp_util:to_bin(Value)),
+    null;
+
+print_r(_Context, Value, true) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, print_r_fmt(Value, <<"    ">>)),
-    <<"Array\n(\n", Data/binary, ")\n">>.
+    <<"Array\n(\n", Data/binary, ")\n">>;
+
+print_r(Context, Value, false) ->
+    Data = lists:foldl(fun(Chunk,Total) ->
+        <<Total/binary, Chunk/binary>>
+    end, <<>>, print_r_fmt(Value, <<"    ">>)),
+    ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
+    null.
+
+%% ----------------------------------------------------------------------------
+%% Internal functions
+%% ----------------------------------------------------------------------------
 
 print_r_fmt(Value, _Spaces) when not ?IS_DICT(Value) -> 
     <<(ephp_util:to_bin(Value))/binary, "\n">>;
