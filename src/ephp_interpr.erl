@@ -50,6 +50,13 @@ run(Context, #eval{statements=Statements}) ->
                 LB =:= undefined -> []
             end,
             run_loop(pre, Context, Cond, LoopBlock ++ Update, GenText);
+        (#foreach{kiter=Key,iter=Var,elements=Elements,loop_block=LB}, GenText) ->
+            LoopBlock = if
+                is_tuple(LB) -> [LB];
+                is_list(LB) -> LB;
+                LB =:= undefined -> []
+            end,
+            run_foreach(Context, Key,Var,Elements,LoopBlock,GenText);
         (#while{type=Type,conditions=Cond,loop_block=LB}, GenText) ->
             LoopBlock = if
                 is_tuple(LB) -> [LB];
@@ -102,3 +109,16 @@ run_loop(PrePost, Context, Cond, Statements, GenText) ->
     false ->
         GenText
     end.
+
+run_foreach(Context, Key, Var, Elements, Statements, GenText) ->
+    ?DICT:fold(fun(KeyVal, VarVal, Text) ->
+        case Key of 
+            undefined -> ok;
+            _ -> ephp_context:set(Context, Key, KeyVal)
+        end,
+        ephp_context:set(Context, Var, VarVal),
+        lists:foldl(fun(Statement, AText) ->
+            ResText = run(Context, #eval{statements=[Statement]}),
+            <<AText/binary, ResText/binary>>
+        end, Text, Statements)
+    end, GenText, ephp_context:get(Context, Elements)).

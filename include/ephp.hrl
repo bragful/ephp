@@ -59,6 +59,13 @@
     loop_block :: [statement()]
 }).
 
+-record(foreach, {
+    kiter :: variable(),
+    iter :: variable(),
+    elements :: variable(),
+    loop_block :: [statement()]
+}).
+
 -type if_block() :: #if_block{}.
 
 % data types and operations

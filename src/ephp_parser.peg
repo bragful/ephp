@@ -183,8 +183,8 @@ st_switch <- switch space? '(' space? expression_cond space? ')' space? '{' ( sp
 st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement ) `
     [_Foreach,_,_,_,List,_,_As,KeyOpt,_,Element,_,_,_,St] = Node,
     case KeyOpt of
-        [] -> {foreach,undefined,Element,List,St};
-        [_,Key,_,_] -> {foreach,Key,Element,List,St}
+        [] -> #foreach{iter=Element,elements=List,loop_block=St};
+        [_,Key,_,_] -> #foreach{kiter=Key,iter=Element,elements=List,loop_block=St}
     end
 `;
 
