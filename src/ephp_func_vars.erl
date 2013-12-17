@@ -5,7 +5,9 @@
     init/1,
     is_bool/2,
     print_r/2,
-    print_r/3
+    print_r/3,
+    isset/2,
+    empty/2
 ]).
 
 -include("ephp.hrl").
@@ -14,7 +16,7 @@
 
 init(Context) ->
     Funcs = [
-        is_bool, print_r
+        is_bool, print_r, isset, empty
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
@@ -61,6 +63,25 @@ print_r(Context, Value, false) ->
     end, <<>>, print_r_fmt(Value, <<"    ">>)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     null.
+
+-spec isset(Context :: context(), Value :: mixed()) -> boolean().
+
+isset(_Context, Value) ->
+    case Value of
+        undefined -> false;
+        _ -> true
+    end.
+
+-spec empty(Context :: context(), Value :: mixed()) -> boolean().
+
+empty(_Context, Value) ->
+    case Value of
+        undefined -> true;
+        <<"0">> -> true;
+        <<>> -> true;
+        false -> true;
+        _ -> false
+    end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
