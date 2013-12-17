@@ -5,6 +5,7 @@
     context_new/0,
     register_var/3,
     register_fun/4,
+    register_module/2,
     eval/2,
 
     main/1   %% for escriptize
@@ -18,7 +19,7 @@ context_new() ->
     Modules = ?MODULES,
     case ephp_context:start_link() of
         {ok, Ctx} -> 
-            [ Module:init(Ctx) || Module <- Modules ],
+            [ register_module(Ctx, Module) || Module <- Modules ],
             {ok, Ctx};
         Error ->
             Error
@@ -50,6 +51,11 @@ register_fun(Ctx, _PHPName, _Module, _Fun) when not is_pid(Ctx) ->
 
 register_fun(Ctx, PHPName, Module, Fun) ->
     ephp_context:register_func(Ctx, PHPName, Module, Fun).
+
+-spec register_module(Ctx :: context(), Module :: atom()) -> ok.
+
+register_module(Ctx, Module) ->
+    Module:init(Ctx).
 
 -spec eval(Context :: context(), PHP :: string() | binary()) -> 
     {ok, Result :: binary()} | {error, Reason :: reason()} | 
