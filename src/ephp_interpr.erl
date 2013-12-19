@@ -1,5 +1,10 @@
 -module(ephp_interpr).
--compile([export_all, warnings_as_errors]).
+-compile([warnings_as_errors]).
+
+-export([
+    process/2,
+    run/2
+]).
 
 -include("ephp.hrl").
 
