@@ -78,7 +78,7 @@ statements <- (comment / statement / literal_block) ( space? (comment / statemen
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- statement_controlflow / st_return / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function ~;
+statement <- statement_controlflow / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function / st_global ~;
 
 literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
     case Node of
@@ -120,6 +120,12 @@ code_block <- '{' space? statements space? '}' `
 conditions_use <- '(' space? conditions space? ')' `
     [_,_,Cond,_,_] = Node,
     Cond
+`;
+
+st_global <- global space var (',' space? var)* space? ';' `
+    [_Global,_,Var,Vars|_] = Node,
+    GVars = [ Var | [ V || [_,_,V] <- Vars ] ],
+    {global, GVars}
 `;
 
 st_call_function <- call_function space? ';' `
@@ -227,6 +233,16 @@ st_if_simple <- if space? conditions_use space? ( code_block / statement ) `
     end}
 `;
 
+st_function <- function space key space? '(' space? (var (space? ',' space? var)+ space?)? ')' space? code_block `
+    case Node of
+        [_Func,_,Name,_,_,_,[],_,_,Code] ->
+            {function, Name, [], Code};
+        [_Func,_,Name,_,_,_,[Var,Vars,_],_,_,Code] ->
+            Args = [Var | [ V || [_,_,_,V] <- Vars ]],
+            {function, Name, Args, Code}
+    end
+`;
+
 conditions <- condition space? nexo space? conditions / cs:condition `
     case Node of 
         [A,_,Type,_,B] -> #operation{type=Type, expression_left=A, expression_right=B};
@@ -301,6 +317,7 @@ null <- #(?i)null# `null`;
 true <- #(?i)true# `true`;
 false <- #(?i)false# `false`;
 return <- #(?i)return# `return`;
+global <- #(?i)global# `global`;
 
 boolean <- true / false ~;
 
