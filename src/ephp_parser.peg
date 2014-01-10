@@ -420,7 +420,7 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
                     if 
                         is_integer(Result) -> {int, Result};
                         is_float(Result) -> {float, Result};
-                        undefined -> #operation{
+                        true -> #operation{
                             type=Type, 
                             expression_left=A, 
                             expression_right=B}
@@ -446,7 +446,7 @@ multitive <- primary space? ( "*" / "/" ) space? mul:multitive / pri:primary `
                     if 
                         is_integer(Result) -> {int, Result};
                         is_float(Result) -> {float, Result};
-                        undefined -> #operation{type=Type, expression_left=A, expression_right=B}
+                        true -> #operation{type=Type, expression_left=A, expression_right=B}
                     end; 
                 _ -> #operation{type=Type, expression_left=A, expression_right=B}
             end;
