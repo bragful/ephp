@@ -326,13 +326,23 @@ resolve({concat, Texts}, State) ->
 resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
     case ?DICT:find(Fun, Funcs) of
         error -> throw(eundefun);
-        {ok,{M,F}} -> 
+        {ok,{M,F}} when is_atom(M) andalso is_atom(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_link(NState),
             Value = erlang:apply(M,F,[Mirror|Args]),
+            MirrorState = get_state(Mirror),
+            destroy(Mirror),
+            {Value, MirrorState};
+        {ok,F} when is_function(F) -> 
+            {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+                {A,NewState} = resolve(Arg,S),
+                {Args ++ [{Arg,A}], NewState}
+            end, {[], State}, RawArgs),
+            {ok, Mirror} = start_link(NState),
+            Value = F([Mirror,Args]),
             MirrorState = get_state(Mirror),
             destroy(Mirror),
             {Value, MirrorState}
