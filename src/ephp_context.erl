@@ -292,6 +292,15 @@ resolve({operation_not, Expr}, State) ->
         {_, NewState} -> {false, NewState}
     end;
 
+resolve({operation_bnot, Expr}, State) ->
+    case resolve(Expr, State) of
+        {Number, NewState} when is_integer(Number) -> {bnot(Number), NewState};
+        {Number, NewState} when is_float(Number) -> {bnot(Number), NewState};
+        {Binary, NewState} when is_binary(Binary) -> 
+            {<< <<bnot(B)/integer>> || <<B:8/integer>> <= Binary >>, NewState};
+        _ -> throw(ebadbnot)
+    end;
+
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->
     case resolve_op(Cond, State) of
     {true,NewState} ->

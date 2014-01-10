@@ -383,7 +383,12 @@ integer <- '-'? space? [0-9]+ `
     {int, list_to_integer(IntList) * S}
 `;
 
-arith_params <- number / var / arith_mono / call_function ~;
+arith_params <- number / var / logic_mono / arith_mono / call_function ~;
+
+logic_mono <- mono_logic space? expression `
+    [_Op, _, Expr] = Node,
+    {operation_bnot, Expr}
+`;
 
 arith_mono <- pre:(mono_aritmetic space? var) / post:(var space? mono_aritmetic) `
     case Node of
