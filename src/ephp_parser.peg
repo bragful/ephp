@@ -61,19 +61,19 @@ comment <- comment_shell / comment_c / comment_cpp ~;
 
 statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
     [Statement, StatementsRaw] = Node,
-    St = if
+    NewStatement = if
         is_tuple(Statement) -> [Statement];
         is_atom(Statement) -> [Statement];
         true -> Statement
-    end, 
+    end,
     Statements = [ S || [_,S] <- StatementsRaw ],
-    lists:flatmap(fun(St) -> 
+    lists:flatmap(fun(S) -> 
         if 
-            is_tuple(St) -> [St]; 
-            is_atom(St) -> [St];
-            true -> St 
+            is_tuple(S) -> [S]; 
+            is_atom(S) -> [S];
+            true -> S 
         end
-    end, [St] ++ Statements)
+    end, [NewStatement] ++ Statements)
 `;
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
@@ -284,13 +284,13 @@ expression_cond <- array_def / arith_mono / additive / number / expr_string / ca
 expression <- boolean / null / array_def / arith_mono / ternary / additive / conditions / number / expr_string / var / call_function ~;
 
 call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
-    {Name, Arguments} = case Node of
+    {FuncName, Arguments} = case Node of
         [Name,_,_,[_,Arg,Args],_,_] ->
             {Name, [Arg | [ A || [_,_,_,A] <- Args ]]};
         [Name,_,_,[],_,_] ->
             {Name, []}
     end,
-    {call, Name, Arguments}
+    {call, FuncName, Arguments}
 `;
 
 % reserved words
@@ -486,12 +486,9 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
     end
 `;
 
-mono_logic_cmp <- not ~;
-bin_logic_cmp <- and / or ~;
 mono_logic <- '~' ~;
 bin_logic <- '&' / '|' / '^' ~;
 mono_aritmetic <- '++' / '--' ~;
-bin_aritmetic <- '+' / '*' / '/' / '-' ~;
 comparator <- eq / xeq / ne / xne / gt / geq / lt / leq ~;
 
 assign_op <- assign_plus / assign_minus / assign_mul / assign_div ~;
