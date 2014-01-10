@@ -369,7 +369,7 @@ float <- '-'? space? [0-9]* '\.' [0-9]+ `
         <<"-">> -> -1;
         _ -> 1
     end,
-    {float, list_to_float(FloatStr) * S}
+    #float{float=list_to_float(FloatStr) * S}
 `;
 
 integer <- '-'? space? [0-9]+ `
@@ -380,7 +380,7 @@ integer <- '-'? space? [0-9]+ `
         <<"-">> -> -1;
         _ -> 1
     end,
-    {int, list_to_integer(IntList) * S}
+    #int{int=list_to_integer(IntList) * S}
 `;
 
 arith_params <- number / var / logic_mono / arith_mono / call_function ~;
@@ -418,8 +418,8 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
                         _ -> undefined
                     end,
                     if 
-                        is_integer(Result) -> {int, Result};
-                        is_float(Result) -> {float, Result};
+                        is_integer(Result) -> #int{int=Result};
+                        is_float(Result) -> #float{float=Result};
                         true -> #operation{
                             type=Type, 
                             expression_left=A, 
@@ -444,8 +444,8 @@ multitive <- primary space? ( "*" / "/" ) space? mul:multitive / pri:primary `
                         _ -> undefined
                     end,
                     if 
-                        is_integer(Result) -> {int, Result};
-                        is_float(Result) -> {float, Result};
+                        is_integer(Result) -> #int{int=Result};
+                        is_float(Result) -> #float{float=Result};
                         true -> #operation{type=Type, expression_left=A, expression_right=B}
                     end; 
                 _ -> #operation{type=Type, expression_left=A, expression_right=B}
