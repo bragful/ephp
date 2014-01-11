@@ -32,6 +32,9 @@ run(Context, #print{expression=Expr}) ->
 
 run(Context, #eval{statements=Statements}) ->
     lists:foldl(fun
+        (#eval{}=Eval, {false, GenText}) ->
+            {Break, ResultText} = run(Context, Eval),
+            {Break, <<GenText/binary, ResultText/binary>>};
         (#assign{}=Assign, {false, GenText}) ->
             ephp_context:solve(Context, Assign),
             {false, GenText};
