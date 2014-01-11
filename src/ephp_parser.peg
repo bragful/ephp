@@ -514,7 +514,6 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
 `;
 
 mono_logic <- '~' ~;
-bin_logic <- '&' / '|' / '^' ~;
 mono_aritmetic <- '++' / '--' ~;
 comparator <- eq / xeq / ne / xne / gt / geq / lt / leq ~;
 
