@@ -10,7 +10,9 @@
     vars = ?DICT:new() :: dict(),
     funcs = ?DICT:new() :: dict(),
     timezone = "Europe/Madrid" :: string(),
-    output = <<>> :: binary()
+    output = <<>> :: binary(),
+    global = undefined :: undefined | pid(),
+    global_vars = ?SETS:new() :: set()
 }).
 
 %% ------------------------------------------------------------------
@@ -33,7 +35,9 @@
     set_output/2,
 
     call_func/3,
-    register_func/4
+    register_func/4,
+
+    set_global/2
 ]).
 
 %% ------------------------------------------------------------------
@@ -86,6 +90,9 @@ get_output(Context) ->
 set_output(Context, Text) ->
     gen_server:cast(Context, {output, Text}).
 
+set_global(Context, GlobalContext) ->
+    gen_server:cast(Context, {global, GlobalContext}).
+
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
@@ -128,9 +135,9 @@ handle_cast({register, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
 handle_cast(stop, State) ->
     {stop, normal, State};
 
-handle_cast({set, VarRawPath, Value}, #state{vars=Vars}=State) ->
+handle_cast({set, VarRawPath, Value}, State) ->
     VarPath = get_var_path(VarRawPath, State),
-    NewVars = change(VarPath, Value, Vars),
+    NewVars = change(VarPath, Value, State),
     {noreply, State#state{vars = NewVars}};
 
 handle_cast({set_tz, TZ}, State) ->
@@ -141,6 +148,9 @@ handle_cast({set_tz, TZ}, State) ->
 
 handle_cast({output, Text}, State) ->
     {noreply, do_output(State, Text)};
+
+handle_cast({global, GlobalContext}, State) ->
+    {noreply, State#state{global = GlobalContext}};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -162,33 +172,56 @@ do_output(#state{output=Output}=State, Text) ->
     State#state{output = <<Output/binary, Text/binary>>}.
 
 
-search(#variable{name=Root, idx=[]}, Vars) ->
+search(#variable{name=Name}=Var, #state{
+        vars=Vars,
+        global=GlobalContext,
+        global_vars=GlobalVars}) ->
+    case ?SETS:is_element(Name, GlobalVars) of
+        true -> get(GlobalContext, Var);
+        false -> search_local(Var, Vars)
+    end.
+
+
+search_local(#variable{name=Root, idx=[]}, Vars) ->
     case ?DICT:find(Root, Vars) of
         error -> undefined;
         {ok, Value} -> Value
     end;
 
-search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
+search_local(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
     case ?DICT:find(Root, Vars) of
         {ok, NewVars} when ?IS_DICT(NewVars) -> 
-            search(#variable{name=NewRoot, idx=Idx}, NewVars);
+            search_local(#variable{name=NewRoot, idx=Idx}, NewVars);
         _ -> 
             undefined
     end.
 
 
-change(#variable{name=Root, idx=[]}, undefined, Vars) ->
+change(#variable{name=Name}=Var, Value, #state{
+        global=GlobalContext,
+        global_vars=GlobalVars,
+        vars=Vars}) ->
+    case ?SETS:is_element(Name, GlobalVars) of
+        true -> 
+            ephp_context:set(GlobalContext, Var, Value),
+            Vars;
+        false -> 
+            change_local(Var, Value, Vars)
+    end.
+
+
+change_local(#variable{name=Root, idx=[]}, undefined, Vars) ->
     ?DICT:erase(Root, Vars);
 
-change(#variable{name=Root, idx=[]}, Value, Vars) ->
+change_local(#variable{name=Root, idx=[]}, Value, Vars) ->
     ?DICT:store(Root, Value, Vars);
 
-change(#variable{name=Root, idx=[NewRoot|Idx]}, Value, Vars) ->
+change_local(#variable{name=Root, idx=[NewRoot|Idx]}, Value, Vars) ->
     case ?DICT:find(Root, Vars) of
     {ok, NewVars} when ?IS_DICT(NewVars) -> 
-        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
+        ?DICT:store(Root, change_local(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
     _ -> 
-        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, ?DICT:new()), Vars)
+        ?DICT:store(Root, change_local(#variable{name=NewRoot, idx=Idx}, Value, ?DICT:new()), Vars)
     end.
 
 
@@ -204,7 +237,7 @@ resolve(null, State) ->
 resolve(#assign{variable=Var,expression=Expr}, State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),
-    NewVars = change(VarPath, Value, NState#state.vars),
+    NewVars = change(VarPath, Value, NState),
     NewState = NState#state{vars = NewVars},
     {Value, NewState};
 
@@ -223,60 +256,60 @@ resolve(#text{text=Text}, State) ->
 resolve(#text_to_process{text=Texts}, State) ->
     resolve_txt(Texts, State);
 
-resolve({pre_incr, Var}, #state{vars=Vars}=State) ->
+resolve({pre_incr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, Vars) of
+    case search(VarPath, State) of
         undefined -> 
-            {1, State#state{vars = change(VarPath, 1, Vars)}};
+            {1, State#state{vars = change(VarPath, 1, State)}};
         V when is_number(V) -> 
-            {V+1, State#state{vars = change(VarPath, V+1, Vars)}};
+            {V+1, State#state{vars = change(VarPath, V+1, State)}};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
                 list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            {NewVal, State#state{vars = change(VarPath, NewVal, Vars)}};
+            {NewVal, State#state{vars = change(VarPath, NewVal, State)}};
         V -> 
             {V, State}
     end;
 
-resolve({pre_decr, Var}, #state{vars=Vars}=State) ->
+resolve({pre_decr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, Vars) of
+    case search(VarPath, State) of
         undefined -> 
             {undefined, State};
         V when is_number(V) -> 
-            {V-1, State#state{vars = change(VarPath, V-1, Vars)}};
+            {V-1, State#state{vars = change(VarPath, V-1, State)}};
         V -> 
             {V, State}
     end;
 
-resolve({post_incr, Var}, #state{vars=Vars}=State) ->
+resolve({post_incr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, Vars) of
+    case search(VarPath, State) of
         undefined -> 
-            {undefined, State#state{vars = change(VarPath, 1, Vars)}};
+            {undefined, State#state{vars = change(VarPath, 1, State)}};
         V when is_number(V) -> 
-            {V, State#state{vars = change(VarPath, V+1, Vars)}};
+            {V, State#state{vars = change(VarPath, V+1, State)}};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
                 list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            {V, State#state{vars = change(VarPath, NewVal, Vars)}};
+            {V, State#state{vars = change(VarPath, NewVal, State)}};
         V -> 
             {V, State}
     end;
 
-resolve({post_decr, Var}, #state{vars=Vars}=State) ->
+resolve({post_decr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, Vars) of
+    case search(VarPath, State) of
         undefined -> 
             {undefined, State};
         V when is_number(V) -> 
-            {V, State#state{vars = change(VarPath, V-1, Vars)}};
+            {V, State#state{vars = change(VarPath, V-1, State)}};
         V -> 
             {V, State}
     end;
@@ -357,20 +390,27 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
             {Value, MirrorState}
     end;
 
+resolve({global, _Var}, #state{global=undefined}=State) ->
+    {null, State};
+
+resolve({global, #variable{name=Name}}, #state{global_vars=GlobalVars}=State) ->
+    NewGlobalVars = sets:add_element(Name, GlobalVars),
+    {null, State#state{global_vars = NewGlobalVars}};
+
 resolve(Unknown, #state{}=State) ->
     io:format("~p - ~p~n", [Unknown,State]),
     throw(eundeftoken).
 
 
-resolve_var(#variable{idx=[]}=Var, #state{vars=Vars}=State) ->
-    {search(Var, Vars), State};
+resolve_var(#variable{idx=[]}=Var, State) ->
+    {search(Var, State), State};
 
 resolve_var(#variable{idx=Indexes}=Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
         {Value, NState} = resolve(Idx, NS),
         {I ++ [Value], NState}
     end, {[],State}, Indexes),
-    Value = search(Var#variable{idx=NewIndexes}, NewState#state.vars),
+    Value = search(Var#variable{idx=NewIndexes}, NewState),
     {Value, NewState}.
 
 

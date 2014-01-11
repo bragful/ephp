@@ -3,6 +3,7 @@
 %-define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
 
 -define(DICT, orddict).
+-define(SETS, sets).
 -define(IS_DICT(D), (is_list(D))).
 
 % built-in modules

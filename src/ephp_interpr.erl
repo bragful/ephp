@@ -35,9 +35,12 @@ run(Context, #eval{statements=Statements}) ->
         (#eval{}=Eval, {false, GenText}) ->
             {Break, ResultText} = run(Context, Eval),
             {Break, <<GenText/binary, ResultText/binary>>};
-        (#assign{}=Assign, {false, GenText}) ->
+        ({global, GlobalVar}, Return) ->
+            ephp_context:solve(Context, {global, GlobalVar}),
+            Return;  
+        (#assign{}=Assign, Return) ->
             ephp_context:solve(Context, Assign),
-            {false, GenText};
+            Return;
         (#if_block{conditions=Cond}=IfBlock, {false, GenText}) ->
             case ephp_context:solve(Context, Cond) of
             true ->
