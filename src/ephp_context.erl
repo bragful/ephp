@@ -420,5 +420,8 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Sta
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
         'and' -> OpRes1 andalso OpRes2;
-        'or' -> OpRes1 orelse OpRes2
+        'or' -> OpRes1 orelse OpRes2;
+        <<"^">> -> OpRes1 bxor OpRes2;
+        <<"|">> -> OpRes1 bor OpRes2;
+        <<"&">> -> OpRes1 band OpRes2
     end, State2}.

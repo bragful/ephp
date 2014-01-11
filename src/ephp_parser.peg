@@ -431,7 +431,7 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
     end
 `;
 
-multitive <- primary space? ( "*" / "/" ) space? mul:multitive / pri:primary `
+multitive <- logical space? ( "*" / "/" ) space? mul:multitive / log:logical `
     case Node of
         [A,_,Type,_,{mul,B}] -> 
             case {Type, A, B} of
@@ -450,8 +450,30 @@ multitive <- primary space? ( "*" / "/" ) space? mul:multitive / pri:primary `
                     end; 
                 _ -> #operation{type=Type, expression_left=A, expression_right=B}
             end;
-        {pri, Param} -> Param
+        {log, Param} -> Param
     end 
+`;
+
+logical <- primary space? ( "^" / "|" / "&" ) space? log:logical / pri:primary `
+    case Node of
+        [A,_,Type,_,{log,B}] ->
+            case {Type, A, B} of
+                {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) ->
+                    Result = case Op of
+                        <<"^">> -> trunc(An) bxor trunc(Bn);
+                        <<"|">> -> trunc(An) bor trunc(Bn);
+                        <<"&">> -> trunc(An) band trunc(Bn);
+                        _ -> undefined
+                    end,
+                    if
+                        is_number(Result) -> #int{int=Result};
+                        true -> #operation{type=Type, expression_left=A, expression_right=B}
+                    end;
+                _ ->
+                    #operation{type=Type, expression_left=A, expression_right=B}
+            end;
+        {pri, Param} -> Param
+    end
 `;
 
 primary <- ("(" space? add:additive space? ")") / arith_params `
