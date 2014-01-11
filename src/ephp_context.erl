@@ -404,7 +404,13 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Sta
         <<"+">> -> ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
         <<"-">> -> ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
         <<"*">> -> ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
-        <<"/">> -> ephp_util:zero_if_undef(OpRes1) / ephp_util:zero_if_undef(OpRes2);
+        <<"/">> -> 
+            A = ephp_util:zero_if_undef(OpRes1),
+            B = ephp_util:zero_if_undef(OpRes2),
+            if 
+                B == 0 -> throw(edivzero);
+                true -> A / B
+            end;
         <<"<">> -> OpRes1 < OpRes2;
         <<">">> -> OpRes1 > OpRes2;
         <<">=">> -> OpRes1 >= OpRes2;
