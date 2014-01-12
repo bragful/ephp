@@ -279,9 +279,9 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-expression_cond <- array_def / arith_mono / additive / number / expr_string / call_function / var ~;
+expression_cond <- array_def / expr_string / arith_mono / additive / number / var ~;
 
-expression <- boolean / null / array_def / arith_mono / ternary / additive / conditions / number / expr_string / var / call_function ~;
+expression <- boolean / null / array_def / expr_string / arith_mono / ternary / additive / conditions / number / var ~;
 
 call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {FuncName, Arguments} = case Node of
@@ -333,7 +333,7 @@ array_element <- (index space? '=>' space?)? expression `
     end
 `;
 
-concat <- string (space? '\.' space? (string / var))+ `
+concat <- (string / var / call_function) (space? '\.' space? (string / var / call_function))+ `
     [Str1,Strings] = Node,
     ParsedStrings = [Str1 | [ Str || [_,_,_,Str] <- Strings ]],
     Result = lists:foldr(fun
