@@ -425,6 +425,7 @@ resolve({global, #variable{name=Name}}, #state{global_vars=GlobalVars}=State) ->
     {null, State#state{global_vars = NewGlobalVars}};
 
 resolve(Unknown, #state{}=State) ->
+    %% TODO: better handle of this errors
     io:format("~p - ~p~n", [Unknown,State]),
     throw(eundeftoken).
 
