@@ -7,7 +7,7 @@ PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give
 
 In the same way, you can use for server PHP pages in an easy way.
 
-The port is not 100% complete, please refer to [compatibility table](doc/COMPATIBILITY.md)
+The port is not 100% complete, please refer to [compatibility table](doc/COMPATIBILITY.md).
 
 Getting Started
 ---------------
@@ -26,7 +26,7 @@ PHP = "<? $a = 5 * 23; ?>Result for $a = <?=$a?>",
 {ok, Text} = ephp:eval(Ctx, PHP).
 ```
 
-The result should be:
+The result stored in `Text` should be:
 
 ```
 Result for $a = 115
@@ -35,11 +35,9 @@ Result for $a = 115
 Built-in Libs
 -------------
 
-PHP has a lot of built-in libraries. This interpreter hasn't built-in functions at the moment. I develop only a `ephp_func_date` module to show how to add new functions from Erlang to PHP. 
+PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](doc/COMPATIBILITY.md).
 
-In near future I add more functions from the PHP specification.
-
-You can add the libraries as:
+You can add your own functions specifying the PHP name, and the module and function, as follow:
 
 ```erlang
 ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
