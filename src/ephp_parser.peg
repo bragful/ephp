@@ -233,13 +233,13 @@ st_if_simple <- if space? conditions_use space? ( code_block / statement ) `
     end}
 `;
 
-st_function <- function space key space? '(' space? (var (space? ',' space? var)+ space?)? ')' space? code_block `
+st_function <- function space key space? '(' space? (var (space? ',' space? var)* space?)? ')' space? code_block `
     case Node of
         [_Func,_,Name,_,_,_,[],_,_,Code] ->
-            {function, Name, [], Code};
+            #function{name=Name, code=Code};
         [_Func,_,Name,_,_,_,[Var,Vars,_],_,_,Code] ->
             Args = [Var | [ V || [_,_,_,V] <- Vars ]],
-            {function, Name, Args, Code}
+            #function{name=Name, args=Args, code=Code}
     end
 `;
 
@@ -489,7 +489,12 @@ string <- string_fixed / string_parsed ~;
 
 string_fixed <- "'" (!"'" ("\\\\" / "\\'" / .))* "'" `
     [_,Text,_] = Node,
-    {text, iolist_to_binary(Text)}
+    ParsedText = binary:replace(
+        binary:replace(
+            iolist_to_binary(Text),
+            <<"\\n">>, <<"\n">>),
+        <<"\\t">>, <<"\t">>),
+    {text, ParsedText}
 `;
 
 string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `

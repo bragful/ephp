@@ -28,6 +28,8 @@ to_bin(true) -> <<"1">>;
 
 to_bin(false) -> <<>>;
 
+to_bin(null) -> <<>>;
+
 to_bin(undefined) -> <<>>. 
 
 

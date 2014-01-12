@@ -146,3 +146,9 @@
     name :: binary(),
     args = [] :: [expression()]
 }).
+
+-record(function, {
+    name :: binary(),
+    args = [] :: [variable()],
+    code :: [statement()]
+}).

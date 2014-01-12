@@ -6,6 +6,14 @@
 
 -include("ephp.hrl").
 
+-record(reg_func, {
+    name :: binary(),
+    args :: [variable()],
+    type :: builtin | php,
+    code = [] :: [statement()],
+    builtin :: {Module :: atom(), Func :: atom()} | function()
+}).
+
 -record(state, {
     vars = ?DICT:new() :: dict(),
     funcs = ?DICT:new() :: dict(),
@@ -35,6 +43,7 @@
     set_output/2,
 
     call_func/3,
+    register_func/3,
     register_func/4,
 
     set_global/2,
@@ -73,8 +82,14 @@ destroy(Context) ->
 get_state(Context) ->
     gen_server:call(Context, get_state).
 
-register_func(Context, PHPFunc, Module, Fun) ->
-    gen_server:cast(Context, {register, PHPFunc, Module, Fun}).
+register_func(Context, PHPFunc, Module, Fun) when is_atom(Module) and is_atom(Fun) ->  
+    gen_server:cast(Context, {register, builtin, PHPFunc, Module, Fun});
+
+register_func(Context, PHPFunc, Args, Code) ->
+    gen_server:cast(Context, {register, php, PHPFunc, Args, Code}).
+
+register_func(Context, PHPFunc, Fun) ->
+    gen_server:cast(Context, {register, builtin, PHPFunc, Fun}).
 
 call_func(Context, PHPFunc, Args) ->
     gen_server:call(Context, {call, PHPFunc, Args}).
@@ -118,7 +133,18 @@ handle_call({resolve, Expression}, _From, State) ->
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
     {reply, case ?DICT:find(PHPFunc, Funcs) of
         error -> throw(eundefun);
-        {ok, {Module, Fun}} -> {Module, Fun, Args}
+        {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
+            fun(Ctx) -> 
+                erlang:apply(Module, Fun, [Ctx|Args]) 
+            end;
+        {ok, #reg_func{type=builtin, builtin=Fun}} ->
+            fun(Ctx) -> 
+                erlang:apply(Fun, [Ctx|Args]) 
+            end;
+        {ok, #reg_func{type=php, code=Code}} ->
+            fun(Ctx) ->
+                ephp_interpr:process(Ctx, Code)
+            end
     end, State};
 
 handle_call(get_state, _From, State) ->
@@ -143,8 +169,17 @@ handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 
-handle_cast({register, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
-    {noreply, State#state{funcs=?DICT:store(PHPFunc, {Module, Fun}, Funcs)}};
+handle_cast({register, php, PHPFunc, Args, Code}, #state{funcs=Funcs}=State) ->
+    RegFunc = #reg_func{name=PHPFunc, type=php, args=Args, code=Code},
+    {noreply, State#state{funcs=?DICT:store(PHPFunc, RegFunc, Funcs)}};
+
+handle_cast({register, builtin, PHPFunc, Fun}, #state{funcs=Funcs}=State) ->
+    RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin=Fun},
+    {noreply, State#state{funcs=?DICT:store(PHPFunc, RegFunc, Funcs)}};
+
+handle_cast({register, builtin, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
+    RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin={Module, Fun}},
+    {noreply, State#state{funcs=?DICT:store(PHPFunc, RegFunc, Funcs)}};
 
 handle_cast(stop, State) ->
     {stop, normal, State};
@@ -395,7 +430,7 @@ resolve({concat, Texts}, State) ->
 resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
     case ?DICT:find(Fun, Funcs) of
         error -> throw(eundefun);
-        {ok,{M,F}} when is_atom(M) andalso is_atom(F) -> 
+        {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
@@ -405,13 +440,38 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
             MirrorState = get_state(Mirror),
             destroy(Mirror),
             {Value, MirrorState};
-        {ok,F} when is_function(F) -> 
+        {ok,#reg_func{type=builtin, builtin=F}} when is_function(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_link(NState),
             Value = F([Mirror,Args]),
+            MirrorState = get_state(Mirror),
+            destroy(Mirror),
+            {Value, MirrorState};
+        {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->
+            {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+                {A,NewState} = resolve(Arg,S),
+                {Args ++ [{Arg,A}], NewState}
+            end, {[], State}, RawArgs),
+            {ok, Mirror} = start_link(NState),
+            {ok, SubContext} = start_link(NState#state{
+                vars=?DICT:new(), 
+                global=Mirror, 
+                global_vars=[]}),
+            lists:foldl(fun
+                (FuncArg, [{_,ArgVal}|RestArgs]) ->
+                    ephp_context:set(SubContext, #variable{name=FuncArg}, ArgVal),
+                    RestArgs;
+                (_FuncArg, []) ->
+                    []
+            end, {[], Args}, FuncArgs),
+            {Value, FuncOutput} = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+                {{return, V}, Output} -> {solve(Mirror, V), Output};
+                {_, Output} -> {null, Output}
+            end,
+            set_output(Mirror, FuncOutput), 
             MirrorState = get_state(Mirror),
             destroy(Mirror),
             {Value, MirrorState}

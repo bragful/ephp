@@ -35,9 +35,6 @@ run(Context, #eval{statements=Statements}) ->
         (#eval{}=Eval, {false, GenText}) ->
             {Break, ResultText} = run(Context, Eval),
             {Break, <<GenText/binary, ResultText/binary>>};
-        ({global, GlobalVar}, Return) ->
-            ephp_context:solve(Context, {global, GlobalVar}),
-            Return;  
         (#assign{}=Assign, Return) ->
             ephp_context:solve(Context, Assign),
             Return;
@@ -99,6 +96,12 @@ run(Context, #eval{statements=Statements}) ->
                 Op =:= post_decr ->
             ephp_context:solve(Context, MonoArith),
             {false, GenText};
+        (#function{name=Name, args=Args, code=Code}, Return) ->
+            ephp_context:register_func(Context, Name, Args, Code),
+            Return;
+        ({global, GlobalVar}, Return) ->
+            ephp_context:solve(Context, {global, GlobalVar}),
+            Return;  
         (break, {false, GenText}) ->
             {break, GenText};
         (continue, {false, GenText}) ->
