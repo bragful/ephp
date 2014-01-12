@@ -19,7 +19,8 @@ setup_test_() ->
         fun set_and_get_array_test/1,
         fun resolve_assign/1,
         fun operation_test/1,
-        fun arith_mono_test/1
+        fun arith_mono_test/1,
+        fun global_test/1
     ]}.
 
 start() ->
@@ -78,4 +79,14 @@ arith_mono_test(Ctx) ->
     ?_assertEqual(10, ephp_context:solve(Ctx, {post_incr, Var})),
     ?_assertEqual(11, ephp_context:solve(Ctx, {post_decr, Var})),
     ?_assertEqual(10, ephp_context:get(Ctx,Var))
+].
+
+global_test(Ctx) -> 
+    Var = {variable,<<"a">>,[]},
+    {ok,SubCtx} = ephp_context:generate_subcontext(Ctx), [
+    ?_assertEqual(ok, ephp_context:set(Ctx,Var,<<"hello">>)),
+    ?_assertEqual(null, ephp_context:solve(SubCtx, {global, {variable, <<"a">>, []}})),
+    ?_assertEqual(10, ephp_context:solve(SubCtx, {assign, {variable, <<"a">>, []}, {int, 10}})),
+    ?_assertEqual(10, ephp_context:get(SubCtx, {variable, <<"a">>, []})),
+    ?_assertEqual(10, ephp_context:get(Ctx, {variable, <<"a">>, []}))
 ].

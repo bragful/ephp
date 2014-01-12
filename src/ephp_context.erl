@@ -37,7 +37,8 @@
     call_func/3,
     register_func/4,
 
-    set_global/2
+    set_global/2,
+    generate_subcontext/1
 ]).
 
 %% ------------------------------------------------------------------
@@ -93,6 +94,9 @@ set_output(Context, Text) ->
 set_global(Context, GlobalContext) ->
     gen_server:cast(Context, {global, GlobalContext}).
 
+generate_subcontext(Context) ->
+    gen_server:call(Context, subcontext).
+
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
@@ -120,14 +124,24 @@ handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
 handle_call(get_state, _From, State) ->
     {reply, State, State};
 
-handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
+handle_call(get_tz, _From, #state{global=undefined,timezone=TZ}=State) ->
     {reply, TZ, State};
 
-handle_call(output, _From, #state{output=Output}=State) ->
+handle_call(get_tz, _From, #state{global=GlobalContext}=State) ->
+    {reply, get_tz(GlobalContext), State};
+
+handle_call(output, _From, #state{global=undefined,output=Output}=State) ->
     {reply, Output, State#state{output = <<>>}};
+
+handle_call(output, _From, #state{global=GlobalContext}=State) ->
+    {reply, get_output(GlobalContext), State};
+
+handle_call(subcontext, _From, #state{funcs=Funcs}=State) ->
+    {reply, start_link(#state{funcs=Funcs, global=self()}), State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
+
 
 handle_cast({register, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
     {noreply, State#state{funcs=?DICT:store(PHPFunc, {Module, Fun}, Funcs)}};
@@ -140,14 +154,27 @@ handle_cast({set, VarRawPath, Value}, State) ->
     NewVars = change(VarPath, Value, State),
     {noreply, State#state{vars = NewVars}};
 
-handle_cast({set_tz, TZ}, State) ->
+handle_cast({set_tz, TZ}, #state{global=undefined}=State) ->
     case ezic_zone_map:find(TZ) of
         {zone_not_found,_} -> {noreply, State}; 
         _ -> {noreply, State#state{timezone=TZ}}
     end;
 
-handle_cast({output, Text}, State) ->
+handle_cast({set_tz, TZ}, #state{global=GlobalContext}=State) ->
+    case ezic_zone_map:find(TZ) of
+        {zone_not_found,_} -> 
+            {noreply, State}; 
+        _ -> 
+            set_tz(GlobalContext, TZ),
+            {noreply, State}
+    end;
+
+handle_cast({output, Text}, #state{global=undefined}=State) ->
     {noreply, do_output(State, Text)};
+
+handle_cast({output, Text}, #state{global=GlobalContext}=State) ->
+    set_output(GlobalContext, Text),
+    {noreply, State};
 
 handle_cast({global, GlobalContext}, State) ->
     {noreply, State#state{global = GlobalContext}};
