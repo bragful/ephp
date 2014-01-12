@@ -27,7 +27,7 @@ context_new() ->
             Error
     end.
 
--type values() :: integer() | binary() | float().
+-type values() :: integer() | binary() | float() | dict().
 
 -spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.
