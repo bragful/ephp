@@ -64,7 +64,10 @@ operation_test(Ctx) -> [
     ?_assertEqual(25, ephp_context:solve(Ctx, #operation{type = <<"*">>, expression_left=#int{int=5}, expression_right=#int{int=5}})),
     ?_assertEqual(1.0, ephp_context:solve(Ctx, #operation{type = <<"/">>, expression_left=#int{int=5}, expression_right=#int{int=5}})),
     ?_assertEqual(true, ephp_context:solve(Ctx, #operation{type = <<"<">>, expression_left=#int{int=1}, expression_right=#int{int=5}})),
-    ?_assertEqual(false, ephp_context:solve(Ctx, #operation{type = <<">">>, expression_left=#int{int=1}, expression_right=#int{int=5}}))
+    ?_assertEqual(false, ephp_context:solve(Ctx, #operation{type = <<">">>, expression_left=#int{int=1}, expression_right=#int{int=5}})),
+    ?_assertEqual(7, ephp_context:solve(Ctx, #operation{type = <<"|">>, expression_left=#int{int=5}, expression_right=#int{int=2}})),
+    ?_assertEqual(4, ephp_context:solve(Ctx, #operation{type = <<"^">>, expression_left=#int{int=5}, expression_right=#int{int=1}})),
+    ?_assertEqual(4, ephp_context:solve(Ctx, #operation{type = <<"&">>, expression_left=#int{int=5}, expression_right=#int{int=6}}))
 ].
 
 arith_mono_test(Ctx) ->
