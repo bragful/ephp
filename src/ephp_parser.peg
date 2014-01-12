@@ -325,8 +325,8 @@ nexo <- and / or ~;
 
 space <- [ \t\n\s\r]+ ~;
 
-index <- arith_mono / ternary / string / additive ~;
-array_element <- (index space? '=>' space?)? expression `
+array_index <- arith_mono / ternary / string / additive ~;
+array_element <- (array_index space? '=>' space?)? expression `
     case Node of
         [[I|_],Expr] -> #array_element{idx=I, element=Expr};
         [[],Expr] -> #array_element{element=Expr}
@@ -547,7 +547,7 @@ key <- [a-zA-Z_] [a-zA-Z0-9_]* `
 
 var <- var_array / var_simple ~;
 
-var_array <- '$' key ('[' space? index space? ']')+ `
+var_array <- '$' key ('[' space? array_index space? ']')+ `
     [_Dollar, Key, Indexes] = Node,
     #variable{name=Key, idx=[ I || [_,_,I,_,_] <- Indexes ]}
 `;

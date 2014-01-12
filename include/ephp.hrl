@@ -90,7 +90,7 @@
 
 -type arith_mono() :: pre_incr() | pre_decr() | post_incr() | post_decr().
 
--type index() :: arith_mono() | ternary() | binary() | operation().
+-type array_index() :: arith_mono() | ternary() | binary() | operation().
 
 -type post_decr() :: {post_decr, variable()}.
 -type pre_decr() :: {pre_decr, variable()}.
@@ -117,7 +117,7 @@
 
 -record(variable, {
     name :: binary(),
-    idx = [] :: [index()]
+    idx = [] :: [array_index()]
 }).
 
 -type variable() :: #variable{}.
