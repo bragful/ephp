@@ -42,3 +42,7 @@ You can add your own functions specifying the PHP name, and the module and funct
 ```erlang
 ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 ```
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/altenwald/ephp/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
