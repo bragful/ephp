@@ -13,7 +13,7 @@ PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give
 
 In the same way, you can use for server PHP pages in an easy way.
 
-The port is not 100% complete, please refer to [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
+The port is not 100% complete, please refer to [compatibility table](doc/COMPATIBILITY.md).
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
@@ -41,7 +41,7 @@ Result for $a = 115
 
 ### <a name="Built-in_Libs">Built-in Libs</a> ###
 
-PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
+PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](doc/COMPATIBILITY.md).
 
 You can add your own functions specifying the PHP name, and the module and function, as follow:
 
@@ -55,11 +55,11 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 
 
 <table width="100%" border="0" summary="list of modules">
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp.md" class="module">ephp</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_context.md" class="module">ephp_context</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_date.md" class="module">ephp_func_date</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_vars.md" class="module">ephp_func_vars</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser.md" class="module">ephp_parser</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_util.md" class="module">ephp_util</a></td></tr></table>
+<tr><td><a href="ephp.md" class="module">ephp</a></td></tr>
+<tr><td><a href="ephp_context.md" class="module">ephp_context</a></td></tr>
+<tr><td><a href="ephp_func_date.md" class="module">ephp_func_date</a></td></tr>
+<tr><td><a href="ephp_func_vars.md" class="module">ephp_func_vars</a></td></tr>
+<tr><td><a href="ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
+<tr><td><a href="ephp_parser.md" class="module">ephp_parser</a></td></tr>
+<tr><td><a href="ephp_util.md" class="module">ephp_util</a></td></tr></table>
 

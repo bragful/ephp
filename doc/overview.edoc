@@ -1,0 +1,36 @@
+@author "Manuel Rubio" <manuel@altenwald.com>
+@copyright 2013-2014 Altenwald Solutions, S.L.
+@title ePHP
+
+@doc
+<a href="https://travis-ci.org/altenwald/ephp"><img src="https://api.travis-ci.org/altenwald/ephp.png" alt="Build Status"/></a>
+
+PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
+
+In the same way, you can use for server PHP pages in an easy way.
+
+The port is not 100% complete, please refer to <a href="doc/COMPATIBILITY.md">compatibility table</a>.
+
+== Getting Started ==
+
+A simple way to use, is include in your project <code>rebar.config</code> the following dependency line:
+
+<pre lang="erlang">    {ephp, ".*", {git, "git://github.com/altenwald/ephp.git", master}}</pre>
+
+And use the following code in your project:
+
+<pre lang="erlang">{ok, Ctx} = ephp:context_new(),
+PHP = "&lt;? $a = 5 * 23; ?>Result for $a = &lt;?=$a?>",
+{ok, Text} = ephp:eval(Ctx, PHP).</pre>
+
+The result stored in <code>Text</code> should be:
+
+<pre lang="php">Result for $a = 115</pre>
+
+== Built-in Libs ==
+
+PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the <a href="doc/COMPATIBILITY.md">compatibility table</a>.
+
+You can add your own functions specifying the PHP name, and the module and function, as follow:
+
+<pre lang="erlang">ephp_context:register_func(Ctx, &lt;&lt;"time"&gt;&gt;, ephp_func_date, time).</pre>
