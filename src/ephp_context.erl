@@ -468,7 +468,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
                     []
             end, Args, FuncArgs),
             {Value, FuncOutput} = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {{return, V}, Output} -> {solve(Mirror, V), Output};
+                {{return, V}, Output} -> {solve(SubContext, V), Output};
                 {_, Output} -> {null, Output}
             end,
             set_output(Mirror, FuncOutput), 
