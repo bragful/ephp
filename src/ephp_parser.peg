@@ -489,12 +489,7 @@ string <- string_fixed / string_parsed ~;
 
 string_fixed <- "'" (!"'" ("\\\\" / "\\'" / .))* "'" `
     [_,Text,_] = Node,
-    ParsedText = binary:replace(
-        binary:replace(
-            iolist_to_binary(Text),
-            <<"\\n">>, <<"\n">>),
-        <<"\\t">>, <<"\t">>),
-    {text, ParsedText}
+    {text, parse_string(Text)}
 `;
 
 string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
@@ -505,7 +500,7 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
         ([[], Other], {Text,Total}) ->
             {<<>>, case Text of 
                 <<>> -> [Other|Total];
-                _ -> [Other,Text|Total]
+                _ -> [Other,parse_string(Text)|Total]
             end}
     end, {<<>>,[]}, TextRaw),
     FinalText = case Text of
@@ -559,4 +554,21 @@ var_simple <- '$' key `
 
 `
 -include("ephp.hrl").
+
+parse_string(Text) ->
+    parse_string(iolist_to_binary(Text), <<>>).
+
+parse_string(<<>>, Result) ->
+    Result;
+parse_string(<<"\\\\",Rest/binary>>, Result) ->
+    parse_string(Rest, <<Result/binary, $\\>>);
+parse_string(<<"\\n",Rest/binary>>, Result) ->
+    parse_string(Rest, <<Result/binary, $\n>>);
+parse_string(<<"\\t",Rest/binary>>, Result) ->
+    parse_string(Rest, <<Result/binary, $\t>>);
+parse_string(<<"\\r",Rest/binary>>, Result) ->
+    parse_string(Rest, <<Result/binary, $\r>>);
+parse_string(<<C:1/binary,Rest/binary>>, Result) ->
+    parse_string(Rest, <<Result/binary, C/binary>>).
+
 `
