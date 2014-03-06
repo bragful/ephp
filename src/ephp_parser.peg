@@ -135,8 +135,8 @@ st_call_function <- call_function space? ';' `
 
 st_print <- st_print_fun / st_print_old ~;
 
-st_print_fun <- (print / echo) '(' space? expression space? ')' space? ';' `
-    [_Print,_,_,Expr|_] = Node,
+st_print_fun <- (print / echo) space? '(' space? expression space? ')' space? ';' `
+    [_Print,_,_,_,Expr|_] = Node,
     #print{expression=Expr}
 `;
 
@@ -279,9 +279,9 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-expression_cond <- boolean / null / array_def / call_function / expr_string / arith_mono / additive / number / var ~;
+expression_cond <- boolean / null / array_def / expr_string / call_function / arith_mono / additive / number / var ~;
 
-expression <- boolean / null / array_def / call_function / expr_string / arith_mono / ternary / additive / conditions / number / var ~;
+expression <- boolean / null / array_def / expr_string / call_function / arith_mono / ternary / additive / conditions / number / var ~;
 
 call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {FuncName, Arguments} = case Node of
