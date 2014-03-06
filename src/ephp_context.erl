@@ -459,14 +459,14 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
             {ok, SubContext} = start_link(NState#state{
                 vars=?DICT:new(), 
                 global=Mirror, 
-                global_vars=[]}),
+                global_vars=?SETS:new()}),
             lists:foldl(fun
                 (FuncArg, [{_,ArgVal}|RestArgs]) ->
-                    ephp_context:set(SubContext, #variable{name=FuncArg}, ArgVal),
+                    ephp_context:set(SubContext, FuncArg, ArgVal),
                     RestArgs;
                 (_FuncArg, []) ->
                     []
-            end, {[], Args}, FuncArgs),
+            end, Args, FuncArgs),
             {Value, FuncOutput} = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
                 {{return, V}, Output} -> {solve(Mirror, V), Output};
                 {_, Output} -> {null, Output}
