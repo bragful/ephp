@@ -42,6 +42,11 @@ Features
     - [x] `function` definition
     - [x] call to functions
     - [ ] args by reference
+- [ ] Error handling
+    - [ ] launch errors
+    - [ ] silent warnings/errors (@)
+    - [ ] launch exceptions (throw)
+    - [ ] catch exceptions (try...catch)
 - [ ] OOP
     - [ ] define class
     - [ ] define methods public, private and/or protected
@@ -58,6 +63,7 @@ Functions
    * [empty](http://www.php.net/empty)
    * [gettype](http://www.php.net/gettype)
    * [is_bool](http://www.php.net/is_bool)
+   * [is_integer](http://www.php.net/is_integer)
    * [isset](http://www.php.net/isset)
    * [print_r](http://www.php.net/print_r)
    * [unset](http://www.php.net/unset)
