@@ -4,6 +4,7 @@
 -export([
     init/1,
     is_bool/2,
+    is_integer/2,
     print_r/2,
     print_r/3,
     isset/2,
@@ -18,7 +19,7 @@
 
 init(Context) ->
     Funcs = [
-        is_bool, print_r, isset, empty, gettype, unset
+        is_bool, is_integer, print_r, isset, empty, gettype, unset
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
@@ -34,6 +35,13 @@ is_bool(_Context, {_,Value}) when is_boolean(Value) ->
 is_bool(_Context, _Value) -> 
     false.
 
+-spec is_integer(Context :: context(), Value :: var_value()) -> boolean().
+
+is_integer(_Context, {_,Value}) when is_integer(Value) ->
+    true;
+
+is_integer(_Context, _Value) ->
+    false.
 
 -spec print_r(Context :: context(), Value :: var_value()) -> boolean().
 
