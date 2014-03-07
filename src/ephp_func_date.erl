@@ -85,7 +85,7 @@ date_default_timezone_set(Context, {_,TZ}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
--spec get_timestamp(TS::integer() | decimal()) -> timer:timestamp().
+-spec get_timestamp(TS::integer() | float()) -> timer:timestamp().
 
 get_timestamp(Timestamp) ->
     M = trunc(Timestamp) div 1000000,

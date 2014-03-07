@@ -42,7 +42,7 @@ sleep(_Context, _) ->
     false | integer().
 
 usleep(_Context, {_, MicroSeconds}) when is_number(MicroSeconds) ->
-    timer:sleep(trunc(Seconds) div 1000),
+    timer:sleep(trunc(MicroSeconds) div 1000),
     0;
 
 usleep(_Context, _) ->
