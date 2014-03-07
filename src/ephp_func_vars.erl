@@ -10,7 +10,8 @@
     isset/2,
     empty/2,
     gettype/2,
-    unset/2
+    unset/2,
+    define/3
 ]).
 
 -include("ephp.hrl").
@@ -19,7 +20,7 @@
 
 init(Context) ->
     Funcs = [
-        is_bool, is_integer, print_r, isset, empty, gettype, unset
+        is_bool, is_integer, print_r, isset, empty, gettype, unset, define
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
@@ -113,6 +114,12 @@ gettype(_Context, {_,Value}) ->
 unset(Context, {Var,_}) ->
     ephp_context:set(Context, Var, undefined),
     null. 
+
+-spec define(Context :: context(), Constant :: var_value(), Content :: var_value()) -> null.
+
+define(Context, {#constant{name=Constant},_}, {_UnParsedContent,Content}) ->
+    ephp_context:register_const(Context, Constant, Content),
+    null.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

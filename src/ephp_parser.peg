@@ -298,9 +298,9 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-expression_cond <- boolean / null / array_def / expr_string / call_function / arith_mono / additive / number / var ~;
+expression_cond <- boolean / null / array_def / expr_string / call_function / arith_mono / additive / number / var / constant ~;
 
-expression <- boolean / null / array_def / expr_string / call_function / arith_mono / ternary / additive / conditions / number / var ~;
+expression <- boolean / null / array_def / expr_string / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
 
 call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {FuncName, Arguments} = case Node of
@@ -352,7 +352,7 @@ array_element <- (array_index space? '=>' space?)? expression `
     end
 `;
 
-concat <- (string / var / call_function) (space? '\.' space? (string / var / call_function))+ `
+concat <- (string / var / call_function / constant) (space? '\.' space? (string / var / call_function / constant))+ `
     [Str1,Strings] = Node,
     ParsedStrings = [Str1 | [ Str || [_,_,_,Str] <- Strings ]],
     Result = lists:foldr(fun
@@ -554,6 +554,10 @@ lt <- '<' ~;
 
 geq <- '>=' / '=>' `<<">=">>`;
 leq <- '<=' / '=<' `<<"=<">>`;
+
+constant <- key `
+    #constant{name=Node}
+`;
 
 key <- [a-zA-Z_] [a-zA-Z0-9_]* `
     iolist_to_binary(Node)

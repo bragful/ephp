@@ -115,6 +115,12 @@
     text :: [expression() | variable() | binary()]
 }).
 
+-record(constant, {
+    name :: binary()
+}).
+
+-type constant() :: #constant{}.
+
 -record(variable, {
     name :: binary(),
     idx = [] :: [array_index()]

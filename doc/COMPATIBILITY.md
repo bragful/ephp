@@ -16,9 +16,9 @@ Features
     - [x] Strings
     - [ ] Resources
     - [ ] Objects
-- [ ] Constants
-    - [ ] `define` function to define contants
-    - [ ] text without spaces as constant
+- [x] Constants
+    - [x] `define` function to define contants
+    - [x] text without spaces as constant
 - [x] Arithmetic and Logic
     - [x] Sum, Substract, Multiply, Div and Module.
     - [x] `and` and `or` as operations.

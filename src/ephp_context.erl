@@ -20,7 +20,8 @@
     timezone = "Europe/Madrid" :: string(),
     output = <<>> :: binary(),
     global = undefined :: undefined | pid(),
-    global_vars = ?SETS:new() :: set()
+    global_vars = ?SETS:new() :: set(),
+    const = ?DICT:new() :: dict()
 }).
 
 %% ------------------------------------------------------------------
@@ -45,6 +46,8 @@
     call_func/3,
     register_func/3,
     register_func/4,
+
+    register_const/3,
 
     set_global/2,
     generate_subcontext/1
@@ -90,6 +93,9 @@ register_func(Context, PHPFunc, Args, Code) ->
 
 register_func(Context, PHPFunc, Fun) ->
     gen_server:cast(Context, {register, builtin, PHPFunc, Fun}).
+
+register_const(Context, Name, Value) ->
+    gen_server:cast(Context, {const, Name, Value}).
 
 call_func(Context, PHPFunc, Args) ->
     gen_server:call(Context, {call, PHPFunc, Args}).
@@ -181,6 +187,10 @@ handle_cast({register, builtin, PHPFunc, Fun}, #state{funcs=Funcs}=State) ->
 handle_cast({register, builtin, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
     ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
     {noreply, State};
+
+handle_cast({const, Name, Value}, #state{const=Const}=State) ->
+    NewConst = ?DICT:store(Name, Value, Const),
+    {noreply, State#state{const=NewConst}};
 
 handle_cast(stop, State) ->
     {stop, normal, State};
@@ -484,6 +494,12 @@ resolve({global, _Var}, #state{global=undefined}=State) ->
 resolve({global, #variable{name=Name}}, #state{global_vars=GlobalVars}=State) ->
     NewGlobalVars = sets:add_element(Name, GlobalVars),
     {null, State#state{global_vars = NewGlobalVars}};
+
+resolve(#constant{name=Name}, #state{const=Const}=State) ->
+    case ?DICT:find(Name, Const) of
+        {ok, Value} -> {Value, State};
+        _ -> {Name, State}
+    end;
 
 resolve(Unknown, #state{}=State) ->
     %% TODO: better handle of this errors
