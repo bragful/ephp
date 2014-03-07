@@ -16,7 +16,7 @@
 
 -record(state, {
     vars = ?DICT:new() :: dict(),
-    funcs = ?DICT:new() :: dict(),
+    funcs :: pid(),
     timezone = "Europe/Madrid" :: string(),
     output = <<>> :: binary(),
     global = undefined :: undefined | pid(),
@@ -117,7 +117,8 @@ generate_subcontext(Context) ->
 %% ------------------------------------------------------------------
 
 init([]) ->
-    {ok, #state{}};
+    {ok, Funcs} = ephp_func:start_link(),
+    {ok, #state{funcs = Funcs}};
 
 init([#state{}=State]) ->
     {ok, State}.
@@ -131,7 +132,7 @@ handle_call({resolve, Expression}, _From, State) ->
     {reply, Value, NewState};
 
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
-    {reply, case ?DICT:find(PHPFunc, Funcs) of
+    {reply, case ephp_func:get(Funcs, PHPFunc) of
         error -> throw(eundefun);
         {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
             fun(Ctx) -> 
@@ -170,16 +171,16 @@ handle_call(_Request, _From, State) ->
 
 
 handle_cast({register, php, PHPFunc, Args, Code}, #state{funcs=Funcs}=State) ->
-    RegFunc = #reg_func{name=PHPFunc, type=php, args=Args, code=Code},
-    {noreply, State#state{funcs=?DICT:store(PHPFunc, RegFunc, Funcs)}};
+    ephp_func:register_func(Funcs, PHPFunc, Args, Code),
+    {noreply, State};
 
 handle_cast({register, builtin, PHPFunc, Fun}, #state{funcs=Funcs}=State) ->
-    RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin=Fun},
-    {noreply, State#state{funcs=?DICT:store(PHPFunc, RegFunc, Funcs)}};
+    ephp_func:register_func(Funcs, PHPFunc, Fun),
+    {noreply, State};
 
 handle_cast({register, builtin, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
-    RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin={Module, Fun}},
-    {noreply, State#state{funcs=?DICT:store(PHPFunc, RegFunc, Funcs)}};
+    ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
+    {noreply, State};
 
 handle_cast(stop, State) ->
     {stop, normal, State};
@@ -428,7 +429,7 @@ resolve({concat, Texts}, State) ->
     resolve_txt(Texts, State);
 
 resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
-    case ?DICT:find(Fun, Funcs) of
+    case ephp_func:get(Funcs, Fun) of
         error -> throw(eundefun);
         {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
