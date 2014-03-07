@@ -3,6 +3,7 @@
 
 -export([
     init/1,
+    is_array/2,
     is_bool/2,
     is_integer/2,
     print_r/2,
@@ -10,8 +11,7 @@
     isset/2,
     empty/2,
     gettype/2,
-    unset/2,
-    define/3
+    unset/2
 ]).
 
 -include("ephp.hrl").
@@ -20,13 +20,21 @@
 
 init(Context) ->
     Funcs = [
-        is_bool, is_integer, print_r, isset, empty, gettype, unset, define
+        is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
         ephp_context:register_func(Context, Name, ?MODULE, Func)  
     end, Funcs), 
     ok. 
+
+-spec is_array(Context :: context(), Value :: var_value()) -> boolean().
+
+is_array(_Context, {_,Value}) when ?IS_DICT(Value) -> 
+    true;
+
+is_array(_Context, _Value) -> 
+    false.
 
 -spec is_bool(Context :: context(), Value :: var_value()) -> boolean().
 
@@ -114,12 +122,6 @@ gettype(_Context, {_,Value}) ->
 unset(Context, {Var,_}) ->
     ephp_context:set(Context, Var, undefined),
     null. 
-
--spec define(Context :: context(), Constant :: var_value(), Content :: var_value()) -> boolean().
-
-define(Context, {#constant{name=Constant},_}, {_UnParsedContent,Content}) ->
-    ephp_context:register_const(Context, Constant, Content),
-    true.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

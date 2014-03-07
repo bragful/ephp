@@ -9,7 +9,8 @@
 % built-in modules
 -define(MODULES, [
     ephp_func_date,
-    ephp_func_vars
+    ephp_func_vars,
+    ephp_func_misc
 ]).
 
 
