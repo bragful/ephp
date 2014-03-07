@@ -505,7 +505,7 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
     end, {<<>>,[]}, TextRaw),
     FinalText = case Text of
         <<>> -> Total;
-        _ -> [Text|Total]
+        _ -> [parse_string(Text)|Total]
     end,
     case FinalText of
         [<<_/binary>>=FT] -> {text, FT};
