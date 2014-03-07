@@ -120,6 +120,11 @@
     idx = [] :: [array_index()]
 }).
 
+-record(value, {
+    type = value :: value | ref,
+    content :: any()
+}).
+
 -type variable() :: #variable{}.
 
 -record(array_element, {
