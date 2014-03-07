@@ -19,6 +19,7 @@ Features
 - [x] Constants
     - [x] `define` function to define contants
     - [x] text without spaces as constant
+    - [ ] case insensitive constants (see define function)
 - [x] Arithmetic and Logic
     - [x] Sum, Substract, Multiply, Div and Module.
     - [x] `and` and `or` as operations.
@@ -55,6 +56,7 @@ Features
     - [ ] inheritance
     - [ ] implementations (or interfaces)
     - [ ] namespaces
+    - [ ] traits
 
 Functions
 ---------
