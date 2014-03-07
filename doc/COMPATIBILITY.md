@@ -60,6 +60,7 @@ Functions
 ---------
 
  * Variables related functions:
+   * [define](http://www.php.net/define)
    * [empty](http://www.php.net/empty)
    * [gettype](http://www.php.net/gettype)
    * [is_bool](http://www.php.net/is_bool)

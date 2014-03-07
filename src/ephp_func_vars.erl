@@ -115,11 +115,11 @@ unset(Context, {Var,_}) ->
     ephp_context:set(Context, Var, undefined),
     null. 
 
--spec define(Context :: context(), Constant :: var_value(), Content :: var_value()) -> null.
+-spec define(Context :: context(), Constant :: var_value(), Content :: var_value()) -> boolean().
 
 define(Context, {#constant{name=Constant},_}, {_UnParsedContent,Content}) ->
     ephp_context:register_const(Context, Constant, Content),
-    null.
+    true.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
