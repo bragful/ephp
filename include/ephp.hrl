@@ -9,7 +9,8 @@
 % built-in modules
 -define(MODULES, [
     ephp_func_date,
-    ephp_func_vars
+    ephp_func_vars,
+    ephp_func_misc
 ]).
 
 
@@ -114,6 +115,12 @@
 -record(text_to_process, {
     text :: [expression() | variable() | binary()]
 }).
+
+-record(constant, {
+    name :: binary()
+}).
+
+-type constant() :: #constant{}.
 
 -record(variable, {
     name :: binary(),

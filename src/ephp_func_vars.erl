@@ -3,6 +3,7 @@
 
 -export([
     init/1,
+    is_array/2,
     is_bool/2,
     is_integer/2,
     print_r/2,
@@ -19,13 +20,21 @@
 
 init(Context) ->
     Funcs = [
-        is_bool, is_integer, print_r, isset, empty, gettype, unset
+        is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
         ephp_context:register_func(Context, Name, ?MODULE, Func)  
     end, Funcs), 
     ok. 
+
+-spec is_array(Context :: context(), Value :: var_value()) -> boolean().
+
+is_array(_Context, {_,Value}) when ?IS_DICT(Value) -> 
+    true;
+
+is_array(_Context, _Value) -> 
+    false.
 
 -spec is_bool(Context :: context(), Value :: var_value()) -> boolean().
 

@@ -15,8 +15,11 @@
 to_bin(A) when is_binary(A) ->
     A; 
 
+to_bin(A) when ?IS_DICT(A) ->
+    <<"Array">>;
+
 to_bin(A) when is_list(A) -> 
-    list_to_binary(A);  
+    list_to_binary(A);
 
 to_bin(A) when is_integer(A) -> 
     to_bin(integer_to_list(A)); 

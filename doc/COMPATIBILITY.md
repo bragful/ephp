@@ -16,9 +16,10 @@ Features
     - [x] Strings
     - [ ] Resources
     - [ ] Objects
-- [ ] Constants
-    - [ ] `define` function to define contants
-    - [ ] text without spaces as constant
+- [x] Constants
+    - [x] `define` function to define contants
+    - [x] text without spaces as constant
+    - [ ] case insensitive constants (see define function)
 - [x] Arithmetic and Logic
     - [x] Sum, Substract, Multiply, Div and Module.
     - [x] `and` and `or` as operations.
@@ -47,6 +48,10 @@ Features
     - [ ] silent warnings/errors (@)
     - [ ] launch exceptions (throw)
     - [ ] catch exceptions (try...catch)
+- [ ] Exit functions
+    - [x] return
+    - [ ] die
+    - [ ] exit
 - [ ] OOP
     - [ ] define class
     - [ ] define methods public, private and/or protected
@@ -55,6 +60,7 @@ Features
     - [ ] inheritance
     - [ ] implementations (or interfaces)
     - [ ] namespaces
+    - [ ] traits
 
 Functions
 ---------
@@ -62,6 +68,7 @@ Functions
  * Variables related functions:
    * [empty](http://www.php.net/empty)
    * [gettype](http://www.php.net/gettype)
+   * [is_array](http://www.php.net/is_array)
    * [is_bool](http://www.php.net/is_bool)
    * [is_integer](http://www.php.net/is_integer)
    * [isset](http://www.php.net/isset)
@@ -74,3 +81,8 @@ Functions
    * [date_default_timezone_set](http://www.php.net/date_default_timezone_set)
    * [gmdate](http://www.php.net/gmdate)
    * [time](http://www.php.net/time)
+
+ * Misc functions:
+   * [define](http://www.php.net/define)
+   * [sleep](http://www.php.net/sleep)
+   * [usleep](http://www.php.net/usleep)
