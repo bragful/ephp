@@ -15,11 +15,11 @@
 to_bin(A) when is_binary(A) ->
     A; 
 
+to_bin(A) when ?IS_DICT(A) ->
+    <<"Array">>;
+
 to_bin(A) when is_list(A) -> 
-    case lists:all(fun is_integer/1, A) of
-        true -> list_to_binary(A);
-        false -> <<"Array">>
-    end;
+    list_to_binary(A);
 
 to_bin(A) when is_integer(A) -> 
     to_bin(integer_to_list(A)); 
