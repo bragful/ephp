@@ -46,9 +46,7 @@ date(Context, {_,Format}) ->
     Timestamp :: {variable(),(integer() | float())}) -> binary().
 
 date(Context, {_,Format}, {_,Timestamp}) ->
-    M = trunc(Timestamp / 1000000),
-    S = trunc(Timestamp - (M * 1000000)),
-    U = (Timestamp - S) * 1000000,
+    {M,S,U} = get_timestamp(Timestamp),
     TZ = ephp_context:get_tz(Context),
     Date = ezic:utc_to_local(calendar:now_to_universal_time({M,S,U}), TZ),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
@@ -65,9 +63,7 @@ gmdate(Context, {_,Format}) ->
     Timestamp :: integer() | float()) -> binary().
 
 gmdate(_Context, Format, Timestamp) ->
-    M = trunc(Timestamp / 1000000),
-    S = trunc(Timestamp - (M * 1000000)),
-    U = (Timestamp - S) * 1000000,
+    {M,S,U} = get_timestamp(Timestamp),
     TZ = "GMT",
     Date = calendar:now_to_universal_time({M,S,U}),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
@@ -88,6 +84,14 @@ date_default_timezone_set(Context, {_,TZ}) ->
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+-spec get_timestamp(TS::integer() | decimal()) -> timer:timestamp().
+
+get_timestamp(Timestamp) ->
+    M = trunc(Timestamp) div 1000000,
+    S = trunc(Timestamp) rem 1000000,
+    U = trunc(Timestamp * 1000000) rem 1000000,
+    {M,S,U}.
 
 -spec get_abbr_month(M :: integer()) -> binary().
 
