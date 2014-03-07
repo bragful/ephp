@@ -170,11 +170,12 @@ for_assignments <- base_assign ( space? ',' space? base_assign )* `
     [Assign | [ A || [_,_,_,A] <- Assigns ] ]
 `;
 
-st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement / ';' ) `
+st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement / ';' / error:(.*) ) `
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
-    CodeBlock = if
-        Code =:= <<";">> -> undefined;
-        true -> Code
+    CodeBlock = case Code of
+        {error,Data} -> throw_error(enostatement, Index, Data);
+        <<";">> -> undefined;
+        _ -> Code
     end,
     #for{init=Init,conditions=Cond,update=Update,loop_block=CodeBlock}
 `;
@@ -193,22 +194,32 @@ st_switch <- switch space? '(' space? expression_cond space? ')' space? '{' ( sp
     {switch, Cond, [ Case || [_,Case,_] <- Cases ]}
 `;
 
-st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement ) `
+st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement / ';' / error:(.*) ) `
     [_Foreach,_,_,_,List,_,_As,KeyOpt,_,Element,_,_,_,St] = Node,
+    case St of
+        {error,Data} -> throw_error(enostatement, Index, Data);
+        <<";">> -> undefined;
+        _ -> ok
+    end,
     case KeyOpt of
         [] -> #foreach{iter=Element,elements=List,loop_block=St};
         [_,Key,_,_] -> #foreach{kiter=Key,iter=Element,elements=List,loop_block=St}
     end
 `;
 
-st_do_while <- do space? ( code_block / statement ) space? while space? conditions_use space? ';' `
+st_do_while <- do space? ( code_block / statement / error:(.*) ) space? while space? conditions_use space? ';' `
     [_Do,_,St,_,_While,_,Cond,_,_] = Node,
+    case St of
+        {error,Data} -> throw_error(enostatement, Index, Data);
+        _ -> ok
+    end,
     #while{type=post, conditions=Cond, loop_block=St}
 `;
 
-st_while <- while space? conditions_use space? ( code_block / statement / ';' ) `
+st_while <- while space? conditions_use space? ( code_block / statement / ';' / error:(.*) ) `
     [_While,_,Cond,_,St] = Node,
     CodeBlock = case St of
+        {error,Data} -> throw_error(enostatement, Index, Data);
         <<";">> -> undefined;
         _ -> St
     end,
@@ -217,16 +228,24 @@ st_while <- while space? conditions_use space? ( code_block / statement / ';' ) 
 
 st_if <- st_if_else / st_if_simple ~;
 
-st_if_else <- st_if_simple space? else space? ( code_block / statement ) `
+st_if_else <- st_if_simple space? else space? ( code_block / statement / error:(.*) ) `
     [#if_block{}=IfBlock,_,_Else,_,ElseSt] = Node,
+    case ElseSt of
+        {error,Data} -> throw_error(enostatement, Index, Data);
+        _ -> ok
+    end,
     IfBlock#if_block{false_block=if
         is_list(ElseSt) -> ElseSt;
         true -> [ElseSt]
     end}
 `;
 
-st_if_simple <- if space? conditions_use space? ( code_block / statement ) `
+st_if_simple <- if space? conditions_use space? ( code_block / statement / error:(.*) ) `
     [_If,_,Cond,_,St] = Node,
+    case St of
+        {error,Data} -> throw_error(enostatement, Index, Data);
+        _ -> ok
+    end,
     #if_block{conditions=Cond, true_block=if
         is_list(St) -> St;
         true -> [St]
@@ -554,6 +573,11 @@ var_simple <- '$' key `
 
 `
 -include("ephp.hrl").
+
+throw_error(Error, Index, Data) ->
+    Output = iolist_to_binary(Data),
+    Size = min(byte_size(Output), 20),
+    throw({error, Error, Index, <<Output:Size/binary, "...">>}).
 
 parse_string(Text) ->
     parse_string(iolist_to_binary(Text), <<>>).
