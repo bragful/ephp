@@ -48,6 +48,10 @@ Features
     - [ ] silent warnings/errors (@)
     - [ ] launch exceptions (throw)
     - [ ] catch exceptions (try...catch)
+- [ ] Exit functions
+    - [x] return
+    - [ ] die
+    - [ ] exit
 - [ ] OOP
     - [ ] define class
     - [ ] define methods public, private and/or protected
