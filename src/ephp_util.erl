@@ -22,10 +22,10 @@ to_bin(A) when is_list(A) ->
     list_to_binary(A);
 
 to_bin(A) when is_integer(A) -> 
-    to_bin(integer_to_list(A)); 
+    list_to_binary(integer_to_list(A)); 
 
 to_bin(A) when is_float(A) -> 
-    to_bin(float_to_list(A));
+    list_to_binary(float_to_list(A));
 
 to_bin(true) -> <<"1">>;
 

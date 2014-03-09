@@ -15,44 +15,45 @@ process(_Context, []) ->
     {ok, <<>>};
 
 process(Context, Statements) ->
-    {ok, lists:foldl(fun(Statement, Text) ->
-        {_Break, Result} = run(Context, Statement),
-        <<Text/binary, Result/binary>>
-    end, <<>>, Statements)}.
+    lists:foreach(fun(Statement) ->
+        run(Context, Statement)
+    end, Statements),
+    {ok, ephp_context:get_output(Context)}.
 
 -spec run(Context :: context(), Statements :: main_statement()) ->
-    {break | continue | return() | false, binary()}.
+    break | continue | return() | false.
 
-run(_Context, #print_text{text=Text}) ->
-    {false, Text};
+run(Context, #print_text{text=Text}) ->
+    ephp_context:set_output(Context, Text),
+    false;
 
 run(Context, #print{expression=Expr}) ->
     Result = ephp_context:solve(Context, Expr),
-    {false, ephp_util:to_bin(Result)};
+    ephp_context:set_output(Context, ephp_util:to_bin(Result)),
+    false;
 
 run(Context, #eval{statements=Statements}) ->
     lists:foldl(fun
-        (#eval{}=Eval, {false, GenText}) ->
-            {Break, ResultText} = run(Context, Eval),
-            {Break, <<GenText/binary, ResultText/binary>>};
+        (#eval{}=Eval, false) ->
+            run(Context, Eval);
         (#assign{}=Assign, Return) ->
             ephp_context:solve(Context, Assign),
             Return;
-        (#if_block{conditions=Cond}=IfBlock, {false, GenText}) ->
+        (#if_block{conditions=Cond}=IfBlock, false) ->
             case ephp_context:solve(Context, Cond) of
             true ->
-                {Break, Result} = run(Context, 
+                Break = run(Context, 
                     #eval{statements=IfBlock#if_block.true_block}),
-                {Break, <<GenText/binary, Result/binary>>};
+                Break;
             false when IfBlock#if_block.false_block =/= undefined ->
-                {Break, Result} = run(Context, 
+                Break = run(Context, 
                     #eval{statements=IfBlock#if_block.false_block}),
-                {Break, <<GenText/binary, Result/binary>>};
+                Break;
             _ ->
-                {false, GenText}
-            end; 
+                false
+            end;
         (#for{init=Init,conditions=Cond,
-                update=Update,loop_block=LB}, {false, GenText}) ->
+                update=Update,loop_block=LB}, false) ->
             run(Context, #eval{statements=Init}),
             LoopBlock = if
                 is_tuple(LB) -> [LB];
@@ -60,80 +61,82 @@ run(Context, #eval{statements=Statements}) ->
                 is_atom(LB) -> [LB];
                 LB =:= undefined -> []
             end,
-            run_loop(pre, Context, Cond, LoopBlock ++ Update, GenText);
-        (#foreach{kiter=Key,iter=Var,elements=RawElements,loop_block=LB}, {false, GenText}) ->
+            run_loop(pre, Context, Cond, LoopBlock ++ Update);
+        (#foreach{kiter=Key,iter=Var,elements=RawElements,loop_block=LB}, false) ->
             LoopBlock = if
                 is_tuple(LB) -> [LB];
                 is_list(LB) -> LB;
                 is_atom(LB) -> [LB];
                 LB =:= undefined -> []
             end,
-            Elements = ephp_context:get(Context, RawElements),
-            run_foreach(Context, Key,Var,Elements,LoopBlock,GenText);
-        (#while{type=Type,conditions=Cond,loop_block=LB}, {false, GenText}) ->
+            Elements = ?DICT:to_list(ephp_context:get(Context, RawElements)),
+            run_foreach(Context, Key,Var,Elements,LoopBlock);
+        (#while{type=Type,conditions=Cond,loop_block=LB}, false) ->
             LoopBlock = if
                 is_tuple(LB) -> [LB];
                 is_list(LB) -> LB;
                 is_atom(LB) -> [LB];
                 LB =:= undefined -> []
             end, 
-            run_loop(Type, Context, Cond, LoopBlock, GenText);
-        (#print_text{text=Text}, {false, GenText}) ->
-            {false, <<GenText/binary, Text/binary>>};
-        (#print{expression=Expr}, {false, GenText}) ->
+            run_loop(Type, Context, Cond, LoopBlock);
+        (#print_text{text=Text}, false) ->
+            ephp_context:set_output(Context, Text),
+            false;
+        (#print{expression=Expr}, false) ->
             Result = ephp_context:solve(Context, Expr),
-            Output = ephp_context:get_output(Context),
             ResText = ephp_util:to_bin(Result),
-            {false, <<GenText/binary, Output/binary, ResText/binary>>};
-        (#call{}=Call, {false, GenText}) ->
+            ephp_context:set_output(Context, ResText),
+            false;
+        (#call{}=Call, false) ->
             ephp_context:solve(Context, Call), 
-            Output = ephp_context:get_output(Context),
-            {false, <<GenText/binary, Output/binary>>};
-        ({Op, _Var}=MonoArith, {false, GenText}) when 
+            false;
+        ({Op, _Var}=MonoArith, false) when 
                 Op =:= pre_incr orelse 
                 Op =:= pre_decr orelse
                 Op =:= post_incr orelse
                 Op =:= post_decr ->
             ephp_context:solve(Context, MonoArith),
-            {false, GenText};
+            false;
         (#function{name=Name, args=Args, code=Code}, Return) ->
             ephp_context:register_func(Context, Name, Args, Code),
             Return;
         ({global, GlobalVar}, Return) ->
             ephp_context:solve(Context, {global, GlobalVar}),
             Return;  
-        (break, {false, GenText}) ->
-            {break, GenText};
-        (continue, {false, GenText}) ->
-            {continue, GenText};
-        ({return,Value}, {false,GenText}) ->
-            {{return,Value}, GenText};
-        (_Statement, {false,_GenText}) ->
+        (break, false) ->
+            break;
+        (continue, false) ->
+            continue;
+        ({return,Value}, false) ->
+            {return,Value};
+        (_Statement, false) ->
             throw(eunknownst);
-        (_Statement, {Break, GenText}) ->
-            {Break, GenText}
-    end, {false, <<>>}, Statements).
+        (_Statement, Break) ->
+            Break
+    end, false, Statements).
 
 -spec run_loop(
     PrePost :: (pre | post),
     Context :: context(),
     Cond :: condition(),
-    Statements :: [statement()],
-    GenText :: binary()) -> {break | continue | return() | false, binary()}.
+    Statements :: [statement()]) ->
+        {break | continue | return() | false, binary()}.
 
-run_loop(PrePost, Context, Cond, Statements, GenText) ->
+run_loop(PrePost, Context, Cond, Statements) ->
     case PrePost =:= post orelse ephp_context:solve(Context, Cond) of
     true -> 
-        {Break, ResText} = run(Context, #eval{statements=Statements}),
-        NewGenText = <<GenText/binary, ResText/binary>>,
+        Break = run(Context, #eval{statements=Statements}),
         case Break =/= break andalso not is_tuple(Break) andalso ephp_context:solve(Context, Cond) of
         true ->
-            run_loop(PrePost, Context, Cond, Statements, NewGenText);
+            run_loop(PrePost, Context, Cond, Statements);
         false ->
-            {case Break of {return,Ret} -> {return,Ret}; _ -> false end, NewGenText}
+            case Break of 
+                {return,Ret} -> {return,Ret}; 
+                _ -> false 
+            end
         end;
     false ->
-        {false, GenText}
+        false
     end.
 
 -spec run_foreach(
@@ -141,23 +144,24 @@ run_loop(PrePost, Context, Cond, Statements, GenText) ->
     Key :: variable(),
     Var :: variable(),
     Elements :: mixed(),
-    Statements :: [statement()],
-    GenText :: binary()) -> binary().
+    Statements :: [statement()]) -> binary().
 
-run_foreach(_Context, _Key, _Var, [], _Statements, GenText) ->
-    {false, GenText};
+run_foreach(_Context, _Key, _Var, [], _Statements) ->
+    false;
 
-run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements, GenText) ->
+run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements) ->
     case Key of 
         undefined -> ok;
         _ -> ephp_context:set(Context, Key, KeyVal)
     end,
     ephp_context:set(Context, Var, VarVal),
-    {Break, NewText} = run(Context, #eval{statements=Statements}),
-    NewGenText = <<GenText/binary, NewText/binary>>,
+    Break = run(Context, #eval{statements=Statements}),
     if 
         Break =/= break andalso not is_tuple(Break) ->
-            run_foreach(Context, Key, Var, Elements, Statements, NewGenText);
+            run_foreach(Context, Key, Var, Elements, Statements);
         true ->
-            {case Break of {return,Ret} -> {return,Ret}; _ -> false end, NewGenText}
+            case Break of 
+                {return,Ret} -> {return,Ret}; 
+                _ -> false 
+            end
     end.

@@ -18,8 +18,9 @@
     vars :: pid(),
     funcs :: pid(),
     timezone = "Europe/Madrid" :: string(),
-    output = <<>> :: binary(),
-    const = ?DICT:new() :: dict()
+    output :: pid(),
+    const = ?DICT:new() :: dict(),
+    global :: pid()
 }).
 
 %% ------------------------------------------------------------------
@@ -123,19 +124,21 @@ generate_subcontext(Context) ->
 init([]) ->
     {ok, Funcs} = ephp_func:start_link(),
     {ok, Vars} = ephp_vars:start_link(),
-    {ok, #state{
-        funcs = Funcs,
-        vars = Vars}};
+    {ok, Output} = ephp_output:start_link(),
+    init([#state{
+        output = Output,
+        vars = Vars,
+        funcs = Funcs}]);
 
 init([#state{}=State]) ->
     {ok, State}.
 
-handle_call({get, VarRawPath}, _From, State) ->
-    {Value, NewState} = resolve_var(VarRawPath, State),
-    {reply, Value, NewState};
+handle_call({get, VarRawPath}, _From, #state{vars=Vars}=State) ->
+    Value = ephp_vars:get(Vars, VarRawPath),
+    {reply, Value, State};
 
 handle_call({resolve, Expression}, _From, State) ->
-    {Value, NewState} = resolve(Expression,State),
+    {Value, NewState} = resolve(Expression, State),
     {reply, Value, NewState};
 
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
@@ -158,20 +161,17 @@ handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
 handle_call(get_state, _From, State) ->
     {reply, State, State};
 
-handle_call(get_tz, _From, #state{global=undefined,timezone=TZ}=State) ->
+handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
     {reply, TZ, State};
 
-handle_call(get_tz, _From, #state{global=GlobalContext}=State) ->
-    {reply, get_tz(GlobalContext), State};
+handle_call(output, _From, #state{output=Output}=State) ->
+    {reply, ephp_output:get(Output), State};
 
-handle_call(output, _From, #state{global=undefined,output=Output}=State) ->
-    {reply, Output, State#state{output = <<>>}};
-
-handle_call(output, _From, #state{global=GlobalContext}=State) ->
-    {reply, get_output(GlobalContext), State};
-
-handle_call(subcontext, _From, #state{funcs=Funcs}=State) ->
-    {reply, start_link(#state{funcs=Funcs, global=self()}), State};
+handle_call(subcontext, _From, #state{vars=VarsPID}=State) ->
+    {ok, SubContext} = ephp_vars:start_link(),
+    {reply, start_link(State#state{
+        vars=SubContext,
+        global=VarsPID}), State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -198,33 +198,21 @@ handle_cast(stop, State) ->
 
 handle_cast({set, VarRawPath, Value}, State) ->
     VarPath = get_var_path(VarRawPath, State),
-    NewVars = change(VarPath, Value, State#state.vars),
-    {noreply, State#state{vars = NewVars}};
+    change(VarPath, Value, State#state.vars),
+    {noreply, State};
 
-handle_cast({set_tz, TZ}, #state{global=undefined}=State) ->
+handle_cast({set_tz, TZ}, State) ->
     case ezic_zone_map:find(TZ) of
         {zone_not_found,_} -> {noreply, State}; 
         _ -> {noreply, State#state{timezone=TZ}}
     end;
 
-handle_cast({set_tz, TZ}, #state{global=GlobalContext}=State) ->
-    case ezic_zone_map:find(TZ) of
-        {zone_not_found,_} -> 
-            {noreply, State}; 
-        _ -> 
-            set_tz(GlobalContext, TZ),
-            {noreply, State}
-    end;
-
-handle_cast({output, Text}, #state{global=undefined}=State) ->
-    {noreply, do_output(State, Text)};
-
-handle_cast({output, Text}, #state{global=GlobalContext}=State) ->
-    set_output(GlobalContext, Text),
+handle_cast({output, Text}, #state{output=Output}=State) ->
+    ephp_output:set(Output, Text),
     {noreply, State};
 
-handle_cast({global, GlobalContext}, State) ->
-    {noreply, State#state{global = GlobalContext}};
+handle_cast({global, GlobalVarsPID}, State) ->
+    {noreply, State#state{global = GlobalVarsPID}};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -241,10 +229,6 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
-
-do_output(#state{output=Output}=State, Text) ->
-    State#state{output = <<Output/binary, Text/binary>>}.
-
 
 search(Var, Vars) ->
     ephp_vars:get(Vars, Var).
@@ -266,9 +250,8 @@ resolve(null, State) ->
 resolve(#assign{variable=Var,expression=Expr}, State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),
-    NewVars = change(VarPath, Value, NState#state.vars),
-    NewState = NState#state{vars = NewVars},
-    {Value, NewState};
+    change(VarPath, Value, NState#state.vars),
+    {Value, NState};
 
 resolve(#operation{}=Op, State) ->
     resolve_op(Op, State);
@@ -289,16 +272,19 @@ resolve({pre_incr, Var}, State) ->
     VarPath = get_var_path(Var, State),
     case search(VarPath, State#state.vars) of
         undefined -> 
-            {1, State#state{vars = change(VarPath, 1, State#state.vars)}};
+            change(VarPath, 1, State#state.vars),
+            {1, State};
         V when is_number(V) -> 
-            {V+1, State#state{vars = change(VarPath, V+1, State#state.vars)}};
+            change(VarPath, V+1, State#state.vars),
+            {V+1, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
                 list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            {NewVal, State#state{vars = change(VarPath, NewVal, State#state.vars)}};
+            change(VarPath, NewVal, State#state.vars),
+            {NewVal, State};
         V -> 
             {V, State}
     end;
@@ -309,7 +295,8 @@ resolve({pre_decr, Var}, State) ->
         undefined -> 
             {undefined, State};
         V when is_number(V) -> 
-            {V-1, State#state{vars = change(VarPath, V-1, State#state.vars)}};
+            change(VarPath, V-1, State#state.vars),
+            {V-1, State};
         V -> 
             {V, State}
     end;
@@ -318,16 +305,19 @@ resolve({post_incr, Var}, State) ->
     VarPath = get_var_path(Var, State),
     case search(VarPath, State#state.vars) of
         undefined -> 
-            {undefined, State#state{vars = change(VarPath, 1, State#state.vars)}};
+            change(VarPath, 1, State#state.vars),
+            {undefined, State};
         V when is_number(V) -> 
-            {V, State#state{vars = change(VarPath, V+1, State#state.vars)}};
+            change(VarPath, V+1, State#state.vars),
+            {V, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
                 list_to_integer(binary_to_list(V)) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            {V, State#state{vars = change(VarPath, NewVal, State#state.vars)}};
+            change(VarPath, NewVal, State#state.vars),
+            {V, State};
         V -> 
             {V, State}
     end;
@@ -337,8 +327,9 @@ resolve({post_decr, Var}, State) ->
     case search(VarPath, State#state.vars) of
         undefined -> 
             {undefined, State};
-        V when is_number(V) -> 
-            {V, State#state{vars = change(VarPath, V-1, State#state.vars)}};
+        V when is_number(V) ->
+            change(VarPath, V-1, State#state.vars),
+            {V, State};
         V -> 
             {V, State}
     end;
@@ -394,7 +385,7 @@ resolve(#array{elements=ArrayElements}, State) ->
 resolve({concat, Texts}, State) ->
     resolve_txt(Texts, State);
 
-resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
+resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
     case ephp_func:get(Funcs, Fun) of
         error -> throw(eundefun);
         {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
@@ -422,11 +413,10 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, Mirror} = start_link(NState),
+            {ok, NewVars} = ephp_vars:start_link(),
             {ok, SubContext} = start_link(NState#state{
-                vars=?DICT:new(), 
-                global=Mirror, 
-                global_vars=?SETS:new()}),
+                vars=NewVars,
+                global=Vars}),
             lists:foldl(fun
                 (FuncArg, [{_,ArgVal}|RestArgs]) ->
                     ephp_context:set(SubContext, FuncArg, ArgVal),
@@ -434,22 +424,22 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
                 (_FuncArg, []) ->
                     []
             end, Args, FuncArgs),
-            {Value, FuncOutput} = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {{return, V}, Output} -> {solve(SubContext, V), Output};
-                {_, Output} -> {null, Output}
+            Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+                {return, V} -> solve(SubContext, V);
+                _ -> null
             end,
-            set_output(Mirror, FuncOutput), 
-            MirrorState = get_state(Mirror),
-            destroy(Mirror),
-            {Value, MirrorState}
+            destroy(SubContext),
+            {Value, State}
     end;
 
 resolve({global, _Var}, #state{global=undefined}=State) ->
     {null, State};
 
-resolve({global, #variable{name=Name}}, #state{global_vars=GlobalVars}=State) ->
-    NewGlobalVars = sets:add_element(Name, GlobalVars),
-    {null, State#state{global_vars = NewGlobalVars}};
+resolve({global, GlobalVar}, #state{
+        global=GlobalVars,
+        vars=Vars}=State) ->
+    ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar),
+    {null, State};
 
 resolve(#constant{name=Name}, #state{const=Const}=State) ->
     case ?DICT:find(Name, Const) of

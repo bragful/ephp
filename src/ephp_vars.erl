@@ -18,6 +18,8 @@
     start_link/0,
     get/2,
     set/3,
+    ref/4,
+    del/2,
     destroy/1
 ]).
 
@@ -38,12 +40,16 @@ start_link() ->
 get(Context, VarPath) ->
     gen_server:call(Context, {get, VarPath}).
 
-set(Context, VarPath, Value) when is_record(Value, value) ->
-    gen_server:cast(Context, {set, VarPath, Value});
-
 set(Context, VarPath, Value) ->
-    ValueFormatted = #value{content=Value, type=value},
+    ValueFormatted = Value,
     gen_server:cast(Context, {set, VarPath, ValueFormatted}).
+
+ref(Context, VarPath, VarsPID, RefVarPath) ->
+    ValueFormatted = #var_ref{pid=VarsPID, ref=RefVarPath},
+    gen_server:cast(Context, {set, VarPath, ValueFormatted}).
+
+del(Context, VarPath) ->
+    gen_server:cast(Context, {set, VarPath, undefined}).
 
 destroy(Context) ->
     gen_server:cast(Context, stop).
@@ -55,9 +61,11 @@ destroy(Context) ->
 init([]) ->
     {ok, #state{}}.
 
-handle_call({get, VarPath}, _From, State) ->
-    Value = search(VarPath, State#state.vars),
-    {reply, Value, State};
+handle_call({get, VarPath}, From, State) ->
+    case search(VarPath, From, State#state.vars) of
+        {ok, Value} -> {reply, Value, State};
+        noreply -> {noreply, State}
+    end;
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -69,6 +77,13 @@ handle_cast(stop, State) ->
 handle_cast({set, VarPath, Value}, State) ->
     NewVars = change(VarPath, Value, State#state.vars),
     {noreply, State#state{vars = NewVars}};
+
+handle_cast({get, From, VarPath}, State) ->
+    case search(VarPath, From, State#state.vars) of
+        {ok, Value} -> gen_server:reply(From, Value);
+        noreply -> ok
+    end,
+    {noreply, State};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -86,29 +101,48 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-search(#variable{name=Root, idx=[]}, Vars) ->
+search(#variable{name=Root, idx=[]}, From, Vars) ->
     case ?DICT:find(Root, Vars) of
-        error -> undefined;
-        {ok, Value} -> Value
+        error ->
+            {ok, undefined};
+        {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
+            gen_server:cast(RefVarsPID, {get, From, RefVar}),
+            noreply;
+        {ok, Value} ->
+            {ok, Value}
     end;
 
-search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
+search(#variable{name=Root, idx=[NewRoot|Idx]}, From, Vars) ->
     case ?DICT:find(Root, Vars) of
-        {ok, NewVars} when ?IS_DICT(NewVars) -> 
-            search(#variable{name=NewRoot, idx=Idx}, NewVars);
+        {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+            NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
+            gen_server:cast(RefVarsPID, {get, From, NewRefVar}),
+            noreply;
+        {ok, NewVars} -> 
+            search(#variable{name=NewRoot, idx=Idx}, From, NewVars);
         _ -> 
-            undefined
+            {ok, undefined}
     end.
 
 
-change(#variable{name=Root, idx=[]}, #value{content=undefined}, Vars) ->
+change(#variable{name=Root, idx=[]}=_Var, undefined, Vars) ->
     ?DICT:erase(Root, Vars);
 
-change(#variable{name=Root, idx=[]}, #value{}=Value, Vars) ->
-    ?DICT:store(Root, Value, Vars);
-
-change(#variable{name=Root, idx=[NewRoot|Idx]}, #value{}=Value, Vars) ->
+change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
     case ?DICT:find(Root, Vars) of
+    {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
+        gen_server:cast(RefVarsPID, {set, RefVar, Value}),
+        Vars;
+    _ ->
+        ?DICT:store(Root, Value, Vars)
+    end;
+
+change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
+    case ?DICT:find(Root, Vars) of
+    {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+        NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
+        gen_server:cast(RefVarsPID, {set, NewRefVar, Value}),
+        Vars;
     {ok, NewVars} when ?IS_DICT(NewVars) -> 
         ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
     _ -> 

@@ -1,10 +1,12 @@
 
-%-define(DICT, dict).
-%-define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
+% -define(DICT, dict).
+% -define(IS_DICT(D), (is_tuple(D) andalso element(1,D) =:= dict)).
 
 -define(DICT, orddict).
--define(SETS, sets).
+%% FIXME: do a better way to do this:
 -define(IS_DICT(D), (is_list(D))).
+
+-define(SETS, sets).
 
 % built-in modules
 -define(MODULES, [
@@ -127,11 +129,6 @@
     idx = [] :: [array_index()]
 }).
 
--record(value, {
-    type = value :: value | ref,
-    content :: any()
-}).
-
 -type variable() :: #variable{}.
 
 -record(array_element, {
@@ -163,4 +160,15 @@
     name :: binary(),
     args = [] :: [variable()],
     code :: [statement()]
+}).
+
+% variable values (ephp_vars)
+
+-record(var_value, {
+    content :: any()
+}).
+
+-record(var_ref, {
+    pid :: pid() | undefined,
+    ref :: #variable{} | undefined
 }).
