@@ -397,9 +397,8 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_link(NState),
             Value = erlang:apply(M,F,[Mirror|Args]),
-            MirrorState = get_state(Mirror),
             destroy(Mirror),
-            {Value, MirrorState};
+            {Value, NState};
         {ok,#reg_func{type=builtin, builtin=F}} when is_function(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
@@ -407,9 +406,8 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_link(NState),
             Value = F([Mirror,Args]),
-            MirrorState = get_state(Mirror),
             destroy(Mirror),
-            {Value, MirrorState};
+            {Value, NState};
         {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
