@@ -469,7 +469,6 @@ get_var_path(#variable{idx=[]}=Var, _State) ->
     Var;
 
 get_var_path(#variable{idx=Indexes}=Var, State) ->
-    %% TODO: resolve index could be modified the value if it's used ++ or --
     NewIndexes = lists:map(fun(Idx) ->
         {Value, _Vars} = resolve(Idx, State),
         Value
