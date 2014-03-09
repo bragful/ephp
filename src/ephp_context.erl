@@ -19,7 +19,7 @@
     funcs :: pid(),
     timezone = "Europe/Madrid" :: string(),
     output :: pid(),
-    const = ?DICT:new() :: dict(),
+    const :: pid(),
     global :: pid()
 }).
 
@@ -125,10 +125,12 @@ init([]) ->
     {ok, Funcs} = ephp_func:start_link(),
     {ok, Vars} = ephp_vars:start_link(),
     {ok, Output} = ephp_output:start_link(),
+    {ok, Const} = ephp_const:start_link(),
     init([#state{
         output = Output,
         vars = Vars,
-        funcs = Funcs}]);
+        funcs = Funcs,
+        const = Const}]);
 
 init([#state{}=State]) ->
     {ok, State}.
@@ -190,8 +192,8 @@ handle_cast({register, builtin, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State
     {noreply, State};
 
 handle_cast({const, Name, Value}, #state{const=Const}=State) ->
-    NewConst = ?DICT:store(Name, Value, Const),
-    {noreply, State#state{const=NewConst}};
+    ephp_const:set(Const, Name, Value),
+    {noreply, State};
 
 handle_cast(stop, State) ->
     {stop, normal, State};
@@ -442,10 +444,7 @@ resolve({global, GlobalVar}, #state{
     {null, State};
 
 resolve(#constant{name=Name}, #state{const=Const}=State) ->
-    case ?DICT:find(Name, Const) of
-        {ok, Value} -> {Value, State};
-        _ -> {Name, State}
-    end;
+    {ephp_const:get(Const, Name), State};
 
 resolve(Unknown, #state{}=State) ->
     %% TODO: better handle of this errors
