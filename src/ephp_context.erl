@@ -18,7 +18,7 @@
     vars = ?DICT:new() :: dict(),
     funcs :: pid(),
     timezone = "Europe/Madrid" :: string(),
-    output = <<>> :: binary(),
+    output :: pid(),
     global = undefined :: undefined | pid(),
     global_vars = ?SETS:new() :: set(),
     const = ?DICT:new() :: dict()
@@ -124,7 +124,10 @@ generate_subcontext(Context) ->
 
 init([]) ->
     {ok, Funcs} = ephp_func:start_link(),
-    {ok, #state{funcs = Funcs}};
+    {ok, Output} = ephp_output:start_link(),
+    init([#state{
+        output = Output,
+        funcs = Funcs}]);
 
 init([#state{}=State]) ->
     {ok, State}.
@@ -163,11 +166,8 @@ handle_call(get_tz, _From, #state{global=undefined,timezone=TZ}=State) ->
 handle_call(get_tz, _From, #state{global=GlobalContext}=State) ->
     {reply, get_tz(GlobalContext), State};
 
-handle_call(output, _From, #state{global=undefined,output=Output}=State) ->
-    {reply, Output, State#state{output = <<>>}};
-
-handle_call(output, _From, #state{global=GlobalContext}=State) ->
-    {reply, get_output(GlobalContext), State};
+handle_call(output, _From, #state{output=Output}=State) ->
+    {reply, ephp_output:get(Output), State};
 
 handle_call(subcontext, _From, #state{funcs=Funcs}=State) ->
     {reply, start_link(#state{funcs=Funcs, global=self()}), State};
@@ -215,11 +215,8 @@ handle_cast({set_tz, TZ}, #state{global=GlobalContext}=State) ->
             {noreply, State}
     end;
 
-handle_cast({output, Text}, #state{global=undefined}=State) ->
-    {noreply, do_output(State, Text)};
-
-handle_cast({output, Text}, #state{global=GlobalContext}=State) ->
-    set_output(GlobalContext, Text),
+handle_cast({output, Text}, #state{output=Output}=State) ->
+    ephp_output:set(Output, Text),
     {noreply, State};
 
 handle_cast({global, GlobalContext}, State) ->
@@ -240,10 +237,6 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
-
-do_output(#state{output=Output}=State, Text) ->
-    State#state{output = <<Output/binary, Text/binary>>}.
-
 
 search(#variable{name=Name}=Var, #state{
         vars=Vars,
@@ -478,11 +471,10 @@ resolve(#call{name=Fun,args=RawArgs}, #state{funcs=Funcs}=State) ->
                 (_FuncArg, []) ->
                     []
             end, Args, FuncArgs),
-            {Value, FuncOutput} = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {{return, V}, Output} -> {solve(SubContext, V), Output};
-                {_, Output} -> {null, Output}
+            Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+                {return, V} -> solve(SubContext, V);
+                _ -> null
             end,
-            set_output(Mirror, FuncOutput), 
             MirrorState = get_state(Mirror),
             destroy(Mirror),
             {Value, MirrorState}
