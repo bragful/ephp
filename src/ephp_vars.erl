@@ -101,6 +101,12 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
+search(#variable{name = <<"GLOBALS">>, idx=[]}, _From, Vars) ->
+    {ok, Vars};
+
+search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, From, Vars) ->
+    search(#variable{name=Root, idx=Idx}, From, Vars);
+
 search(#variable{name=Root, idx=[]}, From, Vars) ->
     case ?DICT:find(Root, Vars) of
         error ->
@@ -124,6 +130,13 @@ search(#variable{name=Root, idx=[NewRoot|Idx]}, From, Vars) ->
             {ok, undefined}
     end.
 
+change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars) when ?IS_DICT(Value) ->
+    lists:foldl(fun({Root,Val}, NewVars) ->
+        ?DICT:store(Root, Val, NewVars)
+    end, ?DICT:new(), ?DICT:to_list(Value));
+
+change(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Value, Vars) ->
+    change(#variable{name=Root, idx=Idx}, Value, Vars);
 
 change(#variable{name=Root, idx=[]}=_Var, undefined, Vars) ->
     ?DICT:erase(Root, Vars);

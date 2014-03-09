@@ -20,6 +20,8 @@ Features
     - [x] `define` function to define contants
     - [x] text without spaces as constant
     - [ ] case insensitive constants (see define function)
+- [x] Special variables
+    - [x] $GLOBALS
 - [x] Arithmetic and Logic
     - [x] Sum, Substract, Multiply, Div and Module.
     - [x] `and` and `or` as operations.
