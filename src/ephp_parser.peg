@@ -432,7 +432,12 @@ key <- [a-zA-Z_] [a-zA-Z0-9_]* `
     iolist_to_binary(Node)
 `;
 
-var <- var_array / var_simple ~;
+var <- var_ref / var_array / var_simple ~;
+
+var_ref <- '&' (var_array / var_simple) `
+    [_,Var] = Node,
+    {ref, Var}
+`;
 
 var_array <- '$' key ('[' space? array_index space? ']')+ `
     [_Dollar, Key, Indexes] = Node,

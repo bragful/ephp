@@ -14,6 +14,7 @@ Features
     - [x] Decimals
     - [x] Booleans
     - [x] Strings
+    - [x] References
     - [ ] Resources
     - [ ] Objects
 - [x] Constants
@@ -41,10 +42,10 @@ Features
 - [ ] Spaguetti code
     - [ ] Labels
     - [ ] `goto` statement
-- [ ] Modular code
+- [x] Modular code
     - [x] `function` definition
     - [x] call to functions
-    - [ ] args by reference
+    - [x] args by reference
 - [ ] Error handling
     - [ ] launch errors
     - [ ] silent warnings/errors (@)

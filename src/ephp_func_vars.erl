@@ -70,16 +70,16 @@ print_r(Context, {_,Value}, {_,false}) when not ?IS_DICT(Value) ->
     ephp_context:set_output(Context, ephp_util:to_bin(Value)),
     null;
 
-print_r(_Context, {_,Value}, {_,true}) ->
+print_r(Context, {_,Value}, {_,true}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
-    end, <<>>, print_r_fmt(Value, <<"    ">>)),
+    end, <<>>, print_r_fmt(Context, Value, <<"    ">>)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
 print_r(Context, {_,Value}, {_,false}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
-    end, <<>>, print_r_fmt(Value, <<"    ">>)),
+    end, <<>>, print_r_fmt(Context, Value, <<"    ">>)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     null.
 
@@ -127,13 +127,18 @@ unset(Context, {Var,_}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
-print_r_fmt(Value, _Spaces) when not ?IS_DICT(Value) -> 
+print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
+    %% FIXME add recursion control
+    Var = ephp_vars:get(VarPID, VarRef),
+    print_r_fmt(Context, Var, Spaces);
+
+print_r_fmt(_Context, Value, _Spaces) when not ?IS_DICT(Value) -> 
     <<(ephp_util:to_bin(Value))/binary, "\n">>;
 
-print_r_fmt(Value, Spaces) ->
+print_r_fmt(Context, Value, Spaces) ->
     ?DICT:fold(fun(Key, Val, Res) ->
         KeyBin = ephp_util:to_bin(Key),
-        Res ++ case print_r_fmt(Val, <<Spaces/binary, "    ">>) of
+        Res ++ case print_r_fmt(Context, Val, <<Spaces/binary, "    ">>) of
             V when is_binary(V) -> 
                 [<<Spaces/binary, "[", KeyBin/binary, "] => ", V/binary>>];
             V when is_list(V) ->

@@ -249,6 +249,10 @@ resolve(false, State) ->
 resolve(null, State) -> 
     {undefined, State};
 
+resolve(#assign{variable=Var,expression={ref, RefVar}}, State) ->
+    ephp_vars:ref(State#state.vars, Var, State#state.vars, RefVar),
+    resolve(RefVar, State);
+
 resolve(#assign{variable=Var,expression=Expr}, State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),
@@ -418,8 +422,11 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 vars=NewVars,
                 global=Vars}),
             lists:foldl(fun
+                ({ref,VarRef}, [{VarName,_}|RestArgs]) ->
+                    ephp_vars:ref(NewVars, VarRef, Vars, VarName),
+                    RestArgs;
                 (FuncArg, [{_,ArgVal}|RestArgs]) ->
-                    ephp_context:set(SubContext, FuncArg, ArgVal),
+                    ephp_vars:set(NewVars, FuncArg, ArgVal),
                     RestArgs;
                 (_FuncArg, []) ->
                     []
