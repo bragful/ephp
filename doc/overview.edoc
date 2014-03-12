@@ -25,7 +25,7 @@ PHP = "&lt;? $a = 5 * 23; ?>Result for $a = &lt;?=$a?>",
 
 The result stored in <code>Text</code> should be:
 
-<pre lang="php">Result for $a = 115</pre>
+<pre>Result for $a = 115</pre>
 
 == Built-in Libs ==
 
