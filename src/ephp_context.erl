@@ -41,6 +41,8 @@
 
     get_output/1,
     set_output/2,
+    set_output_handler/2,
+    get_output_handler/1,
 
     call_func/3,
     register_func/3,
@@ -111,6 +113,12 @@ get_output(Context) ->
 set_output(Context, Text) ->
     gen_server:cast(Context, {output, Text}).
 
+set_output_handler(Context, Output) ->
+    gen_server:cast(Context, {output_handler, Output}).
+
+get_output_handler(Context) ->
+    gen_server:call(Context, output_handler).
+
 set_global(Context, GlobalContext) ->
     gen_server:cast(Context, {global, GlobalContext}).
 
@@ -175,6 +183,9 @@ handle_call(subcontext, _From, #state{vars=VarsPID}=State) ->
         vars=SubContext,
         global=VarsPID}), State};
 
+handle_call(output_handler, _From, #state{output=Output}=State) ->
+    {reply, Output, State};
+
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
@@ -212,6 +223,10 @@ handle_cast({set_tz, TZ}, State) ->
 handle_cast({output, Text}, #state{output=Output}=State) ->
     ephp_output:set(Output, Text),
     {noreply, State};
+
+handle_cast({output_handler, Output}, #state{output=OldOutput}=State) ->
+    ephp_output:destroy(OldOutput),
+    {noreply, State#state{output=Output}};
 
 handle_cast({global, GlobalVarsPID}, State) ->
     {noreply, State#state{global = GlobalVarsPID}};
