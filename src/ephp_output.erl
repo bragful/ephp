@@ -25,6 +25,7 @@
     start_link/2,
     get/1,
     set/2,
+    flush/1,
     destroy/1
 ]).
 
@@ -54,6 +55,9 @@ get(Output) ->
 set(Output, Text) ->
     gen_server:cast(Output, {output, Text}).
 
+flush(Output) ->
+    gen_server:cast(Output, flush).
+
 destroy(Output) ->
     gen_server:cast(Output, stop).
 
@@ -76,6 +80,11 @@ handle_call(_Request, _From, State) ->
 
 handle_cast(stop, State) ->
     {stop, normal, State};
+
+handle_cast(flush, #state{flush=false, 
+        output=Output, flush_handler=FH}=State) ->
+    flush_handler(Output, FH),
+    {noreply, State#state{output = <<>>}};
 
 handle_cast({output, Text}, #state{flush=true, flush_handler=FH}=State) ->
     flush_handler(Text, FH),
