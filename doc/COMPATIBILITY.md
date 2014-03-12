@@ -63,6 +63,9 @@ Features
     - [ ] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
+- [ ] Functional
+    - [ ] closures
+
 
 Functions
 ---------
