@@ -131,17 +131,18 @@ generate_subcontext(Context) ->
 
 init([]) ->
     {ok, Funcs} = ephp_func:start_link(),
-    {ok, Vars} = ephp_vars:start_link(),
     {ok, Output} = ephp_output:start_link(),
     {ok, Const} = ephp_const:start_link(),
     init([#state{
         output = Output,
-        vars = Vars,
         funcs = Funcs,
         const = Const}]);
 
 init([#state{}=State]) ->
-    {ok, State}.
+    {ok, Vars} = ephp_vars:start_link(),
+    {ok, State#state{
+        vars = Vars
+    }}.
 
 handle_call({get, VarRawPath}, _From, #state{vars=Vars}=State) ->
     Value = ephp_vars:get(Vars, VarRawPath),
@@ -237,8 +238,11 @@ handle_cast(_Msg, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, _State) ->
-    ok.
+terminate(_Reason, #state{vars=Vars}) ->
+    case is_process_alive(Vars) of
+        true -> ephp_vars:destroy(Vars);
+        false -> ok  
+    end.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -428,9 +432,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, NewVars} = ephp_vars:start_link(),
             {ok, SubContext} = start_link(NState#state{
-                vars=NewVars,
                 global=Vars}),
             lists:foldl(fun
                 (FuncArg, [{_,ArgVal}|RestArgs]) ->
