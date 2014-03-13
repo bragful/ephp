@@ -36,7 +36,7 @@ process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#t
 
 
 <pre><code>
-run(Context::<a href="#type-context">context()</a>, Statements::<a href="#type-main_statement">main_statement()</a>) -&gt; {break | continue | <a href="#type-return">return()</a> | false, binary()}
+run(Context::<a href="#type-context">context()</a>, Statements::<a href="#type-main_statement">main_statement()</a>) -&gt; break | continue | <a href="#type-return">return()</a> | false
 </code></pre>
 
 <br></br>

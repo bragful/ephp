@@ -34,7 +34,7 @@ PHP = "<? $a = 5 * 23; ?>Result for $a = <?=$a?>",
 
 The result stored in `Text` should be:
 
-```php
+```
 Result for $a = 115
 ```
 
@@ -56,12 +56,16 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 
 <table width="100%" border="0" summary="list of modules">
 <tr><td><a href="ephp.md" class="module">ephp</a></td></tr>
+<tr><td><a href="ephp_const.md" class="module">ephp_const</a></td></tr>
 <tr><td><a href="ephp_context.md" class="module">ephp_context</a></td></tr>
 <tr><td><a href="ephp_func.md" class="module">ephp_func</a></td></tr>
 <tr><td><a href="ephp_func_date.md" class="module">ephp_func_date</a></td></tr>
 <tr><td><a href="ephp_func_misc.md" class="module">ephp_func_misc</a></td></tr>
+<tr><td><a href="ephp_func_ob.md" class="module">ephp_func_ob</a></td></tr>
 <tr><td><a href="ephp_func_vars.md" class="module">ephp_func_vars</a></td></tr>
 <tr><td><a href="ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
+<tr><td><a href="ephp_output.md" class="module">ephp_output</a></td></tr>
 <tr><td><a href="ephp_parser.md" class="module">ephp_parser</a></td></tr>
-<tr><td><a href="ephp_util.md" class="module">ephp_util</a></td></tr></table>
+<tr><td><a href="ephp_util.md" class="module">ephp_util</a></td></tr>
+<tr><td><a href="ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
 

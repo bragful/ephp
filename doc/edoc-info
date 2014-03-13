@@ -1,5 +1,5 @@
-%% encoding: UTF-8
 {application,ephp}.
 {packages,[]}.
-{modules,[ephp,ephp_context,ephp_func,ephp_func_date,ephp_func_misc,
-          ephp_func_vars,ephp_interpr,ephp_parser,ephp_util]}.
+{modules,[ephp,ephp_const,ephp_context,ephp_func,ephp_func_date,
+          ephp_func_misc,ephp_func_ob,ephp_func_vars,ephp_interpr,ephp_output,
+          ephp_parser,ephp_util,ephp_vars]}.
