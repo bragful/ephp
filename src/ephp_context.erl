@@ -176,7 +176,7 @@ handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
     {reply, TZ, State};
 
 handle_call(output, _From, #state{output=Output}=State) ->
-    {reply, ephp_output:get(Output), State};
+    {reply, ephp_output:pop(Output), State};
 
 handle_call(subcontext, _From, #state{vars=VarsPID}=State) ->
     {ok, SubContext} = ephp_vars:start_link(),
@@ -222,7 +222,7 @@ handle_cast({set_tz, TZ}, State) ->
     end;
 
 handle_cast({output, Text}, #state{output=Output}=State) ->
-    ephp_output:set(Output, Text),
+    ephp_output:push(Output, Text),
     {noreply, State};
 
 handle_cast({output_handler, Output}, #state{output=OldOutput}=State) ->
