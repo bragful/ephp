@@ -473,10 +473,12 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
 resolve({global, _Var}, #state{global=undefined}=State) ->
     {null, State};
 
-resolve({global, GlobalVar}, #state{
+resolve({global, GVars}, #state{
         global=GlobalVars,
         vars=Vars}=State) ->
-    ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar),
+    lists:foreach(fun(GlobalVar) ->
+        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
+    end, GVars),
     {null, State};
 
 resolve(#constant{name=Name}, #state{const=Const}=State) ->
