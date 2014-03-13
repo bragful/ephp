@@ -20,7 +20,8 @@
     timezone = "Europe/Madrid" :: string(),
     output :: pid(),
     const :: pid(),
-    global :: pid()
+    global :: pid(),
+    destroy = true :: boolean()
 }).
 
 %% ------------------------------------------------------------------
@@ -142,7 +143,10 @@ init([#state{}=State]) ->
     {ok, Vars} = ephp_vars:start_link(),
     {ok, State#state{
         vars = Vars
-    }}.
+    }};
+
+init([#state{}=State, mirror]) ->
+    {ok, State#state{destroy=false}}.
 
 handle_call({get, VarRawPath}, _From, #state{vars=Vars}=State) ->
     Value = ephp_vars:get(Vars, VarRawPath),
@@ -238,11 +242,14 @@ handle_cast(_Msg, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, #state{vars=Vars}) ->
+terminate(_Reason, #state{vars=Vars,destroy=true}) ->
     case is_process_alive(Vars) of
         true -> ephp_vars:destroy(Vars);
         false -> ok  
-    end.
+    end;
+
+terminate(_Reason, _State) ->
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -250,6 +257,10 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+
+start_mirror(State) ->
+    gen_server:start_link(?MODULE, [State, mirror], []).
+
 
 search(Var, Vars) ->
     ephp_vars:get(Vars, Var).
@@ -414,7 +425,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, Mirror} = start_link(NState),
+            {ok, Mirror} = start_mirror(NState),
             Value = erlang:apply(M,F,[Mirror|Args]),
             destroy(Mirror),
             {Value, NState};
@@ -423,7 +434,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, Mirror} = start_link(NState),
+            {ok, Mirror} = start_mirror(NState),
             Value = F([Mirror,Args]),
             destroy(Mirror),
             {Value, NState};
