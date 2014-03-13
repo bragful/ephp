@@ -20,7 +20,8 @@
     timezone = "Europe/Madrid" :: string(),
     output :: pid(),
     const :: pid(),
-    global :: pid()
+    global :: pid(),
+    destroy = true :: boolean()
 }).
 
 %% ------------------------------------------------------------------
@@ -41,6 +42,8 @@
 
     get_output/1,
     set_output/2,
+    set_output_handler/2,
+    get_output_handler/1,
 
     call_func/3,
     register_func/3,
@@ -111,6 +114,12 @@ get_output(Context) ->
 set_output(Context, Text) ->
     gen_server:cast(Context, {output, Text}).
 
+set_output_handler(Context, Output) ->
+    gen_server:cast(Context, {output_handler, Output}).
+
+get_output_handler(Context) ->
+    gen_server:call(Context, output_handler).
+
 set_global(Context, GlobalContext) ->
     gen_server:cast(Context, {global, GlobalContext}).
 
@@ -123,17 +132,21 @@ generate_subcontext(Context) ->
 
 init([]) ->
     {ok, Funcs} = ephp_func:start_link(),
-    {ok, Vars} = ephp_vars:start_link(),
     {ok, Output} = ephp_output:start_link(),
     {ok, Const} = ephp_const:start_link(),
     init([#state{
         output = Output,
-        vars = Vars,
         funcs = Funcs,
         const = Const}]);
 
 init([#state{}=State]) ->
-    {ok, State}.
+    {ok, Vars} = ephp_vars:start_link(),
+    {ok, State#state{
+        vars = Vars
+    }};
+
+init([#state{}=State, mirror]) ->
+    {ok, State#state{destroy=false}}.
 
 handle_call({get, VarRawPath}, _From, #state{vars=Vars}=State) ->
     Value = ephp_vars:get(Vars, VarRawPath),
@@ -167,13 +180,16 @@ handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
     {reply, TZ, State};
 
 handle_call(output, _From, #state{output=Output}=State) ->
-    {reply, ephp_output:get(Output), State};
+    {reply, ephp_output:pop(Output), State};
 
 handle_call(subcontext, _From, #state{vars=VarsPID}=State) ->
     {ok, SubContext} = ephp_vars:start_link(),
     {reply, start_link(State#state{
         vars=SubContext,
         global=VarsPID}), State};
+
+handle_call(output_handler, _From, #state{output=Output}=State) ->
+    {reply, Output, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -210,8 +226,12 @@ handle_cast({set_tz, TZ}, State) ->
     end;
 
 handle_cast({output, Text}, #state{output=Output}=State) ->
-    ephp_output:set(Output, Text),
+    ephp_output:push(Output, Text),
     {noreply, State};
+
+handle_cast({output_handler, Output}, #state{output=OldOutput}=State) ->
+    ephp_output:destroy(OldOutput),
+    {noreply, State#state{output=Output}};
 
 handle_cast({global, GlobalVarsPID}, State) ->
     {noreply, State#state{global = GlobalVarsPID}};
@@ -222,6 +242,12 @@ handle_cast(_Msg, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
+terminate(_Reason, #state{vars=Vars,destroy=true}) ->
+    case is_process_alive(Vars) of
+        true -> ephp_vars:destroy(Vars);
+        false -> ok  
+    end;
+
 terminate(_Reason, _State) ->
     ok.
 
@@ -231,6 +257,10 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+
+start_mirror(State) ->
+    gen_server:start_link(?MODULE, [State, mirror], []).
+
 
 search(Var, Vars) ->
     ephp_vars:get(Vars, Var).
@@ -399,7 +429,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, Mirror} = start_link(NState),
+            {ok, Mirror} = start_mirror(NState),
             Value = erlang:apply(M,F,[Mirror|Args]),
             destroy(Mirror),
             {Value, NState};
@@ -408,7 +438,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, Mirror} = start_link(NState),
+            {ok, Mirror} = start_mirror(NState),
             Value = F([Mirror,Args]),
             destroy(Mirror),
             {Value, NState};
@@ -417,9 +447,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, NewVars} = ephp_vars:start_link(),
             {ok, SubContext} = start_link(NState#state{
-                vars=NewVars,
                 global=Vars}),
             lists:foldl(fun
                 ({ref,VarRef}, [{VarName,_}|RestArgs]) ->

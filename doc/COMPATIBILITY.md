@@ -64,6 +64,9 @@ Features
     - [ ] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
+- [ ] Functional
+    - [ ] closures
+
 
 Functions
 ---------
@@ -79,13 +82,23 @@ Functions
    * [unset](http://www.php.net/unset)
 
  * Date/Time related functions:
-   * [date](http://www.php.net/date)
+   * [date](http://www.php.net/date) (not complete)
    * [date_default_timezone_get](http://www.php.net/date_default_timezone_get)
    * [date_default_timezone_set](http://www.php.net/date_default_timezone_set)
    * [gmdate](http://www.php.net/gmdate)
    * [time](http://www.php.net/time)
 
  * Misc functions:
-   * [define](http://www.php.net/define)
+   * [define](http://www.php.net/define) (not complete)
    * [sleep](http://www.php.net/sleep)
    * [usleep](http://www.php.net/usleep)
+
+ * Output control functions:
+   * [flush](http://www.php.net/flush)
+   * [ob_clean](http://www.php.net/ob_clean)
+   * [ob_end_clean](http://www.php.net/ob_end_clean)
+   * [ob_end_flush](http://www.php.net/ob_end_flush)
+   * [ob_flush](http://www.php.net/ob_flush)
+   * [ob_get_contents](http://www.php.net/ob_get_contents)
+   * [ob_get_length](http://www.php.net/ob_get_length)
+   * [ob_start](http://www.php.net/ob_start)
