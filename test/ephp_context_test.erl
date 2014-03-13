@@ -85,7 +85,7 @@ global_test(Ctx) ->
     Var = {variable,<<"a">>,[]},
     {ok,SubCtx} = ephp_context:generate_subcontext(Ctx), [
     ?_assertEqual(<<"hello">>, ephp_context:solve(Ctx, {assign, Var, {text, <<"hello">>}})),
-    ?_assertEqual(null, ephp_context:solve(SubCtx, {global, Var})),
+    ?_assertEqual(null, ephp_context:solve(SubCtx, {global, [Var]})),
     ?_assertEqual(10, ephp_context:solve(SubCtx, {assign, Var, {int, 10}})),
     ?_assertEqual(10, ephp_context:get(SubCtx, {variable, <<"a">>, []})),
     ?_assertEqual(10, ephp_context:get(Ctx, {variable, <<"a">>, []}))
