@@ -447,7 +447,9 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 {A,NewState} = resolve(Arg,S),
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
-            {ok, SubContext} = start_link(NState#state{
+            {ok, NewVars} = ephp_vars:start_link(),
+            {ok, SubContext} = start_mirror(NState#state{
+                vars=NewVars,
                 global=Vars}),
             lists:foldl(fun
                 ({ref,VarRef}, [{VarName,_}|RestArgs]) ->
@@ -464,6 +466,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 _ -> null
             end,
             destroy(SubContext),
+            ephp_vars:destroy(NewVars), 
             {Value, State}
     end;
 
