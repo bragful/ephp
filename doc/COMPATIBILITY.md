@@ -46,6 +46,7 @@ Features
     - [x] `function` definition
     - [x] call to functions
     - [x] args by reference
+    - [ ] include/require code from other files
 - [ ] Error handling
     - [ ] launch errors
     - [ ] silent warnings/errors (@)
