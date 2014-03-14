@@ -428,14 +428,6 @@ resolve(#array{elements=ArrayElements}, State) ->
 resolve({concat, Texts}, State) ->
     resolve_txt(Texts, State);
 
-resolve(#call{name = <<"die">>,args=[Msg|_]}, #state{output=Output}=State) ->
-    {Text,_} = resolve(Msg, State),
-    ephp_output:push(Output, Text), 
-    throw(die);
-resolve(#call{name = <<"exit">>,args=[Msg|_]}, #state{output=Output}=State) ->
-    {Text,_} = resolve(Msg, State),
-    ephp_output:push(Output, Text), 
-    throw(die);
 resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
     case ephp_func:get(Funcs, Fun) of
         error -> throw(eundefun);

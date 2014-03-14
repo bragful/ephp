@@ -5,7 +5,9 @@
     init/1,
     define/3,
     sleep/2,
-    usleep/2
+    usleep/2,
+    die/2,
+    exit/2
 ]).
 
 -include("ephp.hrl").
@@ -14,7 +16,7 @@
 
 init(Context) ->
     Funcs = [
-        define, sleep, usleep
+        define, sleep, usleep, die, exit
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
@@ -47,6 +49,20 @@ usleep(_Context, {_, MicroSeconds}) when is_number(MicroSeconds) ->
 
 usleep(_Context, _) ->
     false.
+
+-spec die(Context :: context(), Message :: var_value()) ->
+    null.
+
+die(Context, {_, Value}) ->
+    ephp_context:set_output(Context, Value),
+    throw(die).
+
+-spec exit(Context :: context(), Message :: var_value()) ->
+    null.
+
+exit(Context, {_, Value}) ->
+    ephp_context:set_output(Context, Value),
+    throw(die).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

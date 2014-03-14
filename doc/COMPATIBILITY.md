@@ -88,6 +88,8 @@ Functions
 
  * Misc functions:
    * [define](http://www.php.net/define) (not complete)
+   * [die](http://www.php.net/die)
+   * [exit](http://www.php.net/exit)
    * [sleep](http://www.php.net/sleep)
    * [usleep](http://www.php.net/usleep)
 
