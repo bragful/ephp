@@ -62,6 +62,8 @@ Features
     - [ ] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
+    - [ ] launch exceptions (throw)
+    - [ ] catch exceptions (try...catch)
 - [ ] Functional
     - [ ] closures
 
