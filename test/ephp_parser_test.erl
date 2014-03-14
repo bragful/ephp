@@ -19,7 +19,7 @@ different_tags_test_() -> [
         [{eval,[{assign,{variable,<<"a">>,[]},{int,5}}]}],
         ?PARSE("<? $a = 5; ?>")),
     ?_assertEqual(
-        [{print,{int,5}}],
+        [{print_text,<<"5">>}],
         ?PARSE("<?=5?>")),
     ?_assertEqual(
         [{eval,[{assign,{variable,<<"a">>,[]},{int,5}}]}],
@@ -37,28 +37,25 @@ php_endtag_optional_test_() -> [
         {[],<<"<?=5 ">>,{{line,1},{column,1}}},
         ?PARSE("<?=5 ")),
     ?_assertEqual(
-        [{print,{int,5}},{print_text,<<" Resultado">>}],
+        [{print_text,<<"5">>},{print_text,<<" Resultado">>}],
         ?PARSE("<?=5?> Resultado"))
 ].
 
 literal_test_() -> [
     ?_assertEqual(
-        [{print,{int,5}}],
-        ?PARSE("<?=5?>")),
-    ?_assertEqual(
-        [{print,{int,-5}}],
+        [{print_text,<<"-5">>}],
         ?PARSE("<?=-5?>")),
     ?_assertEqual(
-        [{print,{float,5.0}}],
+        [{print_text,<<"5.00000000000000000000e+00">>}],
         ?PARSE("<?=5.0?>")),
     ?_assertEqual(
-        [{print,{float,-5.0}}],
+        [{print_text,<<"-5.00000000000000000000e+00">>}],
         ?PARSE("<?= - 5.0 ?>")),
     ?_assertEqual(
-        [{print,{text,<<"hello world!">>}}],
+        [{print_text,<<"hello world!">>}],
         ?PARSE("<?='hello world!'?>")),
     ?_assertEqual(
-        [{print,{text,<<"hello world!">>}}],
+        [{print_text,<<"hello world!">>}],
         ?PARSE("<?=\"hello world!\"?>"))
 ].
 
@@ -75,19 +72,19 @@ concat_test_() -> [
                  {text,<<", welcome!">>}]}}],
         ?PARSE("<?='hello ' . $name . ', welcome!'?>")),
     ?_assertEqual(
-        [{print,{text,<<"hello world!">>}}],
+        [{print_text,<<"hello world!">>}],
         ?PARSE("<?='hello ' . 'world!'?>"))
 ].
 
 arith_test_() -> [
     ?_assertEqual(
-        [{print,{int,126}}],
+        [{print_text,<<"126">>}],
         ?PARSE("<?= 1 + 25 * 5 ?>")),
     ?_assertEqual(
-        [{print,{int,26}}],
+        [{print_text,<<"26">>}],
         ?PARSE("<?=1+25?>")),
     ?_assertEqual(
-        [{print,{int,130}}],
+        [{print_text,<<"130">>}],
         ?PARSE("<?= (1 + 25) * 5 ?>"))
 ].
 

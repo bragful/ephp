@@ -32,7 +32,7 @@ code_normal <- init_tag space? statements space? `
 
 code_expr <- init_value space? expression space? (literal_block / end_tag)+ `
     [Init,_,CodeOne,_,End] = Node,
-    Code = [ #print{expression=CodeOne} | End ],
+    Code = [ print(CodeOne) | End ],
     [Init,Code,end_tag]
 `;
 
@@ -118,12 +118,12 @@ st_print <- st_print_fun / st_print_old ~;
 
 st_print_fun <- (print / echo) space? '(' space? expression space? ')' space? ';' `
     [_Print,_,_,_,Expr|_] = Node,
-    #print{expression=Expr}
+    print(Expr)
 `;
 
 st_print_old <- (print / echo) space expression space? ';' `
     [_Print,_,Expr|_] = Node,
-    #print{expression=Expr}
+    print(Expr)
 `;
 
 st_arith_mono <- arith_mono space? ';' `
@@ -610,6 +610,14 @@ throw_error(Error, Index, Data) ->
     Output = iolist_to_binary(Data),
     Size = min(byte_size(Output), 20),
     throw({error, Error, Index, <<Output:Size/binary, "...">>}).
+
+print({Type, Value}) when
+        Type =:= int; Type =:= float; Type =:= text ->
+    #print_text{text=ephp_util:to_bin(Value)};
+print(Value) when is_atom(Value) ->
+    #print_text{text=ephp_util:to_bin(Value)};
+print(Expr) ->
+    #print{expression=Expr}.
 
 parse_string(Text) ->
     parse_string(iolist_to_binary(Text), <<>>).
