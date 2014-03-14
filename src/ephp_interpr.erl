@@ -88,8 +88,12 @@ run(Context, #eval{statements=Statements}) ->
             ephp_context:set_output(Context, ResText),
             false;
         (#call{}=Call, false) ->
-            ephp_context:solve(Context, Call), 
-            false;
+            try 
+                ephp_context:solve(Context, Call),
+                false
+            catch
+                throw:die -> {return, null}
+            end;
         ({Op, _Var}=MonoArith, false) when 
                 Op =:= pre_incr orelse 
                 Op =:= pre_decr orelse

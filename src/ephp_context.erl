@@ -79,7 +79,10 @@ set(Context, VarPath, Value) ->
     gen_server:cast(Context, {set, VarPath, Value}).
 
 solve(Context, Expression) ->
-    gen_server:call(Context, {resolve, Expression}). 
+    case gen_server:call(Context, {resolve, Expression}) of
+        die -> throw(die);
+        Result -> Result
+    end.
 
 destroy(Context) ->
     gen_server:cast(Context, stop).
@@ -153,7 +156,11 @@ handle_call({get, VarRawPath}, _From, #state{vars=Vars}=State) ->
     {reply, Value, State};
 
 handle_call({resolve, Expression}, _From, State) ->
-    {Value, NewState} = resolve(Expression, State),
+    {Value, NewState} = try
+        resolve(Expression, State)
+    catch 
+        throw:die -> {die, State}
+    end,
     {reply, Value, NewState};
 
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
@@ -421,6 +428,14 @@ resolve(#array{elements=ArrayElements}, State) ->
 resolve({concat, Texts}, State) ->
     resolve_txt(Texts, State);
 
+resolve(#call{name = <<"die">>,args=[Msg|_]}, #state{output=Output}=State) ->
+    {Text,_} = resolve(Msg, State),
+    ephp_output:push(Output, Text), 
+    throw(die);
+resolve(#call{name = <<"exit">>,args=[Msg|_]}, #state{output=Output}=State) ->
+    {Text,_} = resolve(Msg, State),
+    ephp_output:push(Output, Text), 
+    throw(die);
 resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
     case ephp_func:get(Funcs, Fun) of
         error -> throw(eundefun);
