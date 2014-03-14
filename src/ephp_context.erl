@@ -531,6 +531,24 @@ resolve_txt(Texts, State) ->
     end, {<<>>,State}, Texts).
 
 
+resolve_op(#operation{
+    type=Type, expression_left=Op1, expression_right=Op2}, State) 
+        when Type =:= 'and'; Type =:= 'or'->
+    {RawOpRes1, State1} = resolve(Op1, State),
+    OpRes1 = ephp_util:to_bool(RawOpRes1),
+    case Type of
+        'and' when OpRes1 =:= false -> 
+            {false, State1};
+        'and' ->
+            {OpRes2, State2} = resolve(Op2, State1),
+            {ephp_util:to_bool(OpRes2), State2};
+        'or' when OpRes1 =:= true -> 
+            {true, State1};
+        'or' ->
+            {OpRes2, State2} = resolve(Op2, State1),
+            {ephp_util:to_bool(OpRes2), State2}
+    end;
+
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
@@ -553,8 +571,6 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Sta
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
-        'and' -> OpRes1 andalso OpRes2;
-        'or' -> OpRes1 orelse OpRes2;
         <<"^">> -> OpRes1 bxor OpRes2;
         <<"|">> -> OpRes1 bor OpRes2;
         <<"&">> -> OpRes1 band OpRes2

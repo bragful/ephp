@@ -4,6 +4,7 @@
 -export([
     to_bin/1,
     increment_code/1,
+    to_bool/1,
     zero_if_undef/1,
     pad_to_bin/2
 ]).
@@ -67,6 +68,21 @@ increment_code(Code) when is_binary(Code) ->
         true ->
             <<H/binary, T:8/integer>>
     end.
+
+-spec to_bool(Value :: undefined |
+    dict() | integer() | float() | string() | binary()) -> boolean().
+
+to_bool(undefined) -> false;
+
+to_bool(0) -> false;
+
+to_bool(<<>>) -> false;
+
+to_bool([]) -> false;
+
+to_bool(Array) when ?IS_DICT(Array) -> ?DICT:new() =/= Array;
+
+to_bool(_Other) -> true.
 
 
 -spec zero_if_undef(Value :: undefined | 
