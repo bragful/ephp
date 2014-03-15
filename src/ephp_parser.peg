@@ -25,7 +25,7 @@ document <- (!init_tag .)* code literal_block? / (!init_tag .)+ `
 
 code <- code_normal / code_expr ~;
 
-code_normal <- init_tag space? statements space? `
+code_normal <- init_tag_code space? statements space? `
     [Init,_,Code,_] = Node,
     [Init,Code,end_tag]
 `;
@@ -84,7 +84,7 @@ statements <- (comment / statement / literal_block) ( space? (comment / statemen
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- statement_controlflow / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function / st_global ~;
+statement <- statement_controlflow / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function / st_global / st_conditions ~;
 
 literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
     case Node of
@@ -103,6 +103,11 @@ code_block <- '{' space? statements space? '}' `
     St
 `;
 
+st_conditions <- conditions space? ';' `
+    [Cond,_,_] = Node,
+    Cond
+`;
+
 st_global <- global space var (',' space? var)* space? ';' `
     [_Global,_,Var,Vars|_] = Node,
     GVars = [ Var | [ V || [_,_,V] <- Vars ] ],
@@ -114,14 +119,17 @@ st_call_function <- call_function space? ';' `
     Call
 `;
 
-st_print <- st_print_fun / st_print_old ~;
+st_print <- (st_print_fun / st_print_old) space? ';' `
+    [Print|_] = Node,
+    Print
+`;
 
-st_print_fun <- (print / echo) space? '(' space? expression space? ')' space? ';' `
+st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
     [_Print,_,_,_,Expr|_] = Node,
     print(Expr)
 `;
 
-st_print_old <- (print / echo) space expression space? ';' `
+st_print_old <- (print / echo) space expression `
     [_Print,_,Expr|_] = Node,
     print(Expr)
 `;
@@ -298,7 +306,7 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 %% Expressions
 
-expression_cond <- boolean / null / array_def / expr_string / call_function / arith_mono / additive / number / var / constant ~;
+expression_cond <- boolean / null / array_def / expr_string / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
 
 expression <- boolean / null / array_def / expr_string / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
 

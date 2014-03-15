@@ -491,6 +491,10 @@ resolve({global, GVars}, #state{
 resolve(#constant{name=Name}, #state{const=Const}=State) ->
     {ephp_const:get(Const, Name), State};
 
+resolve(#print_text{text=Text}, #state{output=Output}=State) ->
+    ephp_output:push(Output, Text),
+    {null, State};
+
 resolve(Unknown, #state{}=State) ->
     %% TODO: better handle of this errors
     io:format("~p - ~p~n", [Unknown,State]),

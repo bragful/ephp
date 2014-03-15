@@ -101,12 +101,15 @@ run(Context, #eval{statements=Statements}) ->
                 Op =:= post_decr ->
             ephp_context:solve(Context, MonoArith),
             false;
+        (#operation{}=Op, false) ->
+            ephp_context:solve(Context, Op),
+            false;
         (#function{name=Name, args=Args, code=Code}, Return) ->
             ephp_context:register_func(Context, Name, Args, Code),
             Return;
         ({global, GlobalVar}, Return) ->
             ephp_context:solve(Context, {global, GlobalVar}),
-            Return;  
+            Return;
         (break, false) ->
             break;
         (continue, false) ->
@@ -114,6 +117,8 @@ run(Context, #eval{statements=Statements}) ->
         ({return,Value}, false) ->
             {return,Value};
         (_Statement, false) ->
+            %% TODO: do better error handling
+            io:format("FATAL: ~p~n", [_Statement]),
             throw(eunknownst);
         (_Statement, Break) ->
             Break
