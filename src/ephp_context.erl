@@ -165,7 +165,10 @@ handle_call({resolve, Expression}, _From, State) ->
 
 handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
     {reply, case ephp_func:get(Funcs, PHPFunc) of
-        error -> throw(eundefun);
+        error -> 
+            %% TODO: enhance the error handling!
+            io:format("~p~n", [{PHPFunc, Args}]),
+            throw(eundefun);
         {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
             fun(Ctx) -> 
                 erlang:apply(Module, Fun, [Ctx|Args]) 
@@ -428,9 +431,16 @@ resolve(#array{elements=ArrayElements}, State) ->
 resolve({concat, Texts}, State) ->
     resolve_txt(Texts, State);
 
+resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
+    {Name, NewState} = resolve(Fun, State),
+    resolve(Call#call{name=Name}, NewState);
+
 resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
     case ephp_func:get(Funcs, Fun) of
-        error -> throw(eundefun);
+        error -> 
+            %% TODO: enhance the error handling!
+            io:format("~p~n", [{Fun, RawArgs}]),
+            throw(eundefun);
         {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),

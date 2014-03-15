@@ -324,7 +324,7 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
-call_function <- key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+call_function <- (key / var) space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {FuncName, Arguments} = case Node of
         [Name,_,_,[_,Arg,Args],_,_] ->
             {Name, [Arg | [ A || [_,_,_,A] <- Args ]]};
@@ -460,7 +460,7 @@ var_simple <- '$' key `
 
 %% math operations
 
-arith_params <- number / var / logic_mono / arith_mono / call_function ~;
+arith_params <- number / call_function / var / logic_mono / arith_mono ~;
 
 logic_mono <- mono_logic space? expression `
     [_Op, _, Expr] = Node,
@@ -592,7 +592,7 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
     end
 `;
 
-concat <- (string / var / call_function / constant) (space? '\.' space? (string / var / call_function / constant))+ `
+concat <- (string / call_function / var / constant) (space? '\.' space? (string / call_function / var / constant))+ `
     [Str1,Strings] = Node,
     ParsedStrings = [Str1 | [ Str || [_,_,_,Str] <- Strings ]],
     Result = lists:foldr(fun
