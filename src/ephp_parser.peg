@@ -433,7 +433,13 @@ integer <- '-'? space? [0-9]+ `
 `;
 
 constant <- key `
-    #constant{name=Node}
+    case Node of
+        <<"__LINE__">> -> 
+            {{line,Line},{column,_}} = Index,
+            #int{int=Line};
+        _ -> 
+            #constant{name=Node}
+    end
 `;
 
 key <- [a-zA-Z_] [a-zA-Z0-9_]* `

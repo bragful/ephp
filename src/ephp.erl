@@ -3,6 +3,8 @@
 
 -export([
     context_new/0,
+    context_new/1,
+    context_new/2,
     register_var/3,
     register_fun/4,
     register_module/2,
@@ -15,13 +17,30 @@
 
 -include("ephp.hrl").
 
--spec context_new() -> {ok, context()}.
+-spec context_new() -> 
+    {ok, context()} | {error, Reason::term()}.
 
 context_new() ->
+    {ok, Cwd} = file:get_cwd(),
+    context_new(<<"php shell code">>, list_to_binary(Cwd)).
+
+-spec context_new(Filename :: binary()) -> 
+    {ok, context()} | {error, Reason::term()}.
+
+context_new(Filename) ->
+    context_new(Filename, filename:dirname(Filename)).
+
+-spec context_new(Filename :: binary(), Dirname :: binary()) -> 
+    {ok, context()} | {error, Reason::term()}.
+
+context_new(Filename, Dirname) ->
     Modules = ?MODULES,
     case ephp_context:start_link() of
         {ok, Ctx} -> 
             [ register_module(Ctx, Module) || Module <- Modules ],
+            ephp_context:register_const(Ctx, <<"__FILE__">>, Filename),
+            ephp_context:register_const(Ctx, <<"__DIR__">>, Dirname),
+            ephp_context:register_const(Ctx, <<"__FUNCTION__">>, <<>>), 
             {ok, Ctx};
         Error ->
             Error
@@ -95,7 +114,7 @@ eval(Context, PHP) ->
 main([Filename]) ->
     case file:read_file(Filename) of
     {ok, Content} ->
-        {ok, Ctx} = context_new(),
+        {ok, Ctx} = context_new(list_to_binary(filename:absname(Filename))),
         {ok, Result} = eval(Ctx, Content),
         io:format("~s", [Result]),
         0;

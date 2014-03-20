@@ -21,6 +21,7 @@ Features
     - [x] `define` function to define contants
     - [x] text without spaces as constant
     - [ ] case insensitive constants (see define function)
+    - [x] "magical" constants (`__FILE__`, `__DIR__`, ...)
 - [x] Special variables
     - [x] $GLOBALS
 - [x] Arithmetic and Logic

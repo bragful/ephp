@@ -163,7 +163,7 @@ handle_call({resolve, Expression}, _From, State) ->
     end,
     {reply, Value, NewState};
 
-handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
+handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs, const=Const}=State) ->
     {reply, case ephp_func:get(Funcs, PHPFunc) of
         error -> 
             %% TODO: enhance the error handling!
@@ -179,7 +179,11 @@ handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs}=State) ->
             end;
         {ok, #reg_func{type=php, code=Code}} ->
             fun(Ctx) ->
-                ephp_interpr:process(Ctx, Code)
+                OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
+                ephp_const:set(Const, <<"__FUNCTION__">>, PHPFunc), 
+                Res = ephp_interpr:process(Ctx, Code),
+                ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc),
+                Res
             end
     end, State};
 
@@ -435,7 +439,7 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name=Name}, NewState);
 
-resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
+resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
     case ephp_func:get(Funcs, Fun) of
         error -> 
             %% TODO: enhance the error handling!
@@ -478,12 +482,15 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs}=State) ->
                 (_FuncArg, []) ->
                     []
             end, Args, FuncArgs),
+            OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
+            ephp_const:set(Const, <<"__FUNCTION__">>, Fun), 
             Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
                 {return, V} -> solve(SubContext, V);
                 _ -> null
             end,
             destroy(SubContext),
             ephp_vars:destroy(NewVars), 
+            ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc), 
             {Value, State}
     end;
 
