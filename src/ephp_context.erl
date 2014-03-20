@@ -536,6 +536,12 @@ get_var_path(#variable{idx=Indexes}=Var, State) ->
 
 resolve_txt(Texts, State) ->
     lists:foldr(fun
+        (true, {ResultTxt,NS}) ->
+            {<<"1",ResultTxt/binary>>,NS};
+        (Data, {ResultTxt,NS}) when 
+                Data =:= null orelse 
+                Data =:= false ->
+            {<<ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when is_binary(Data) ->
             {<<Data/binary,ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when is_tuple(Data) ->
