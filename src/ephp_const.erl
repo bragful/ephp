@@ -35,14 +35,14 @@
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
-get(Context, VarPath) ->
-    gen_server:call(Context, {get, VarPath}).
+get(Const, Name) ->
+    gen_server:call(Const, {get, Name}).
 
-set(Context, VarPath, Value) ->
-    gen_server:cast(Context, {set, VarPath, Value}).
+set(Const, Name, Value) ->
+    gen_server:cast(Const, {set, Name, Value}).
 
-destroy(Context) ->
-    gen_server:cast(Context, stop).
+destroy(Const) ->
+    gen_server:cast(Const, stop).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
