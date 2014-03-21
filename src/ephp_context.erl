@@ -21,7 +21,8 @@
     output :: pid(),
     const :: pid(),
     global :: pid(),
-    destroy = true :: boolean()
+    destroy = true :: boolean(),
+    include :: pid()
 }).
 
 %% ------------------------------------------------------------------
@@ -49,7 +50,11 @@
     register_func/3,
     register_func/4,
 
+    get_const/2,
     register_const/3,
+
+    load/2,
+    load_once/2,
 
     set_global/2,
     generate_subcontext/1
@@ -99,6 +104,9 @@ register_func(Context, PHPFunc, Args, Code) ->
 register_func(Context, PHPFunc, Fun) ->
     gen_server:cast(Context, {register, builtin, PHPFunc, Fun}).
 
+get_const(Context, Name) ->
+    gen_server:call(Context, {const, Name}).
+
 register_const(Context, Name, Value) ->
     gen_server:cast(Context, {const, Name, Value}).
 
@@ -123,6 +131,12 @@ set_output_handler(Context, Output) ->
 get_output_handler(Context) ->
     gen_server:call(Context, output_handler).
 
+load(Context, Name) ->
+    gen_server:call(Context, {load, Name}).
+
+load_once(Context, Name) ->
+    gen_server:call(Context, {load_once, Name}). 
+
 set_global(Context, GlobalContext) ->
     gen_server:cast(Context, {global, GlobalContext}).
 
@@ -137,10 +151,12 @@ init([]) ->
     {ok, Funcs} = ephp_func:start_link(),
     {ok, Output} = ephp_output:start_link(),
     {ok, Const} = ephp_const:start_link(),
+    {ok, Inc} = ephp_include:start_link(),
     init([#state{
         output = Output,
         funcs = Funcs,
-        const = Const}]);
+        const = Const,
+        include = Inc}]);
 
 init([#state{}=State]) ->
     {ok, Vars} = ephp_vars:start_link(),
@@ -204,6 +220,15 @@ handle_call(subcontext, _From, #state{vars=VarsPID}=State) ->
 
 handle_call(output_handler, _From, #state{output=Output}=State) ->
     {reply, Output, State};
+
+handle_call({load, File}, _From, #state{include=Inc}=State) ->
+    {reply, ephp_include:load(Inc, File), State};
+
+handle_call({load_once, File}, _From, #state{include=Inc}=State) ->
+    {reply, ephp_include:load_once(Inc, File), State};
+
+handle_call({const, Name}, _From, #state{const=Const}=State) ->
+    {reply, ephp_const:get(Const, Name), State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
