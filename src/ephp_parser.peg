@@ -84,7 +84,7 @@ statements <- (comment / statement / literal_block) ( space? (comment / statemen
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- statement_controlflow / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_print / st_call_function / st_global / st_conditions ~;
+statement <- statement_controlflow / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_include / st_print / st_call_function / st_global / st_conditions ~;
 
 literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
     case Node of
@@ -117,6 +117,11 @@ st_global <- global space var (',' space? var)* space? ';' `
 st_call_function <- call_function space? ';' `
     [Call,_,_] = Node,
     Call
+`;
+
+st_include <- (include_once / include / require_once / require) space expression space? ';' `
+    [Type,_,Expr|_] = Node,
+    {call, Type, [Expr]}
 `;
 
 st_print <- (st_print_fun / st_print_old) space? ';' `
@@ -306,7 +311,7 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 %% Expressions
 
-expression_cond <- array_def / expr_string / boolean / null / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
+expression_cond <- array_def / expr_string / boolean / null / st_include / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
 
 expression <- array_def / expr_string / boolean / null / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
 
@@ -359,6 +364,10 @@ true <- #(?i)true# `true`;
 false <- #(?i)false# `false`;
 return <- #(?i)return# `return`;
 global <- #(?i)global# `global`;
+include <- #(?i)include# `<<"include">>`;
+include_once <- #(?i)include_once# `<<"include_once">>`;
+require <- #(?i)require# `<<"require">>`;
+require_once <- #(?i)require_once# `<<"require_once">>`;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
