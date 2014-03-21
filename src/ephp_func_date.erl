@@ -38,7 +38,7 @@ time(_Context) ->
 
 date(Context, {_,Format}) ->
     {MS,S,US} = os:timestamp(),
-    date(Context, Format, (MS * 1000000) + S + (US / 1000000)).
+    date(Context, {"", Format}, {"", (MS * 1000000) + S + (US / 1000000)}).
 
 -spec date(
     Context :: context(), 
