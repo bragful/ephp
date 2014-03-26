@@ -14,7 +14,8 @@
     ephp_func_vars,
     ephp_func_misc,
     ephp_func_ob,
-    ephp_func_control
+    ephp_func_control,
+    ephp_func_array
 ]).
 
 

@@ -82,6 +82,11 @@ Functions
    * [print_r](http://www.php.net/print_r)
    * [unset](http://www.php.net/unset)
 
+ * Array related functions:
+   * [count](http://www.php.net/count)
+   * [in_array](http://www.php.net/in_array) (not complete)
+   * [sizeof](http://www.php.net/sizeof)
+
  * Date/Time related functions:
    * [date](http://www.php.net/date) (not complete)
    * [date_default_timezone_get](http://www.php.net/date_default_timezone_get)
