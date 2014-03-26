@@ -567,8 +567,10 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
         (auto, LIdx) ->
             NewEntry = Var#variable{idx=LIdx},
             Value = case search(NewEntry, Vars) of
-                undefined -> 0;
-                Array -> dict:fold(fun
+            undefined -> 
+                0;
+            Array -> 
+                ?DICT:fold(fun
                     (K,_V,Max) when is_integer(K) andalso K >= Max -> K+1;
                     (_K,_V,Max) -> Max
                 end, 0, Array)
