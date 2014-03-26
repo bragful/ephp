@@ -607,8 +607,12 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
     end
 `;
 
-% arith_mono / ternary / additive / conditions / 
-concat_types <- boolean / null / array_def / string / call_function / number / var / constant ~;
+concat_special <- '(' space? (arith_mono / ternary / additive / conditions) space? ')' `
+    [_,_,Concat|_] = Node,
+    Concat
+`;
+
+concat_types <- concat_special / boolean / null / array_def / string / call_function / number / var / constant ~;
 
 concat <- concat_types (space? '\.' space? concat_types)+ `
     [Str1,Strings] = Node,
