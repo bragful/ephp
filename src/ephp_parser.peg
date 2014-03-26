@@ -462,9 +462,9 @@ var_ref <- '&' (var_array / var_simple) `
     {ref, Var}
 `;
 
-var_array <- '$' key ('[' space? array_index space? ']')+ `
+var_array <- '$' key ('[' space? (array_index space?)? ']')+ `
     [_Dollar, Key, Indexes] = Node,
-    #variable{name=Key, idx=[ I || [_,_,I,_,_] <- Indexes ]}
+    #variable{name=Key, idx=[ get_index(I) || [_,_,I,_] <- Indexes ]}
 `;
 
 var_simple <- '$' key `
@@ -660,5 +660,8 @@ parse_string(<<"\\r",Rest/binary>>, Result) ->
     parse_string(Rest, <<Result/binary, $\r>>);
 parse_string(<<C:1/binary,Rest/binary>>, Result) ->
     parse_string(Rest, <<Result/binary, C/binary>>).
+
+get_index([I,_]) -> I;
+get_index([]) -> auto.
 
 `

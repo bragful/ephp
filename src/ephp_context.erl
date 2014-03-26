@@ -537,6 +537,10 @@ resolve(#print_text{text=Text}, #state{output=Output}=State) ->
     ephp_output:push(Output, Text),
     {null, State};
 
+resolve(auto, _State) ->
+    % Fatal error: Cannot use [] for reading
+    throw(earrayundef);
+
 resolve(Unknown, #state{}=State) ->
     %% TODO: better handle of this errors
     io:format("~p - ~p~n", [Unknown,State]),
@@ -558,11 +562,22 @@ resolve_var(#variable{idx=Indexes}=Var, State) ->
 get_var_path(#variable{idx=[]}=Var, _State) ->
     Var;
 
-get_var_path(#variable{idx=Indexes}=Var, State) ->
-    NewIndexes = lists:map(fun(Idx) ->
-        {Value, _Vars} = resolve(Idx, State),
-        Value
-    end, Indexes),
+get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
+    NewIndexes = lists:foldl(fun
+        (auto, LIdx) ->
+            NewEntry = Var#variable{idx=LIdx},
+            Value = case search(NewEntry, Vars) of
+                undefined -> 0;
+                Array -> dict:fold(fun
+                    (K,_V,Max) when is_integer(K) andalso K >= Max -> K+1;
+                    (_K,_V,Max) -> Max
+                end, 0, Array)
+            end,
+            LIdx ++ [Value];
+        (Idx, LIdx) ->
+            {Value, _Vars} = resolve(Idx, State),
+            LIdx ++ [Value]
+    end, [], Indexes),
     Var#variable{idx=NewIndexes}.
 
 
