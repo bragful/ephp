@@ -130,7 +130,7 @@
 
 -record(variable, {
     name :: binary(),
-    idx = [] :: [array_index()]
+    idx = [] :: [array_index() | {object, binary()} | {class, binary()}]
 }).
 
 -type variable() :: #variable{}.
@@ -176,3 +176,43 @@
     pid :: pid() | undefined,
     ref :: #variable{} | undefined
 }).
+
+% classes
+
+-record(class_const, {
+    name :: binary(),
+    value :: any()
+}).
+
+-type access_types() :: public | protected | private.
+
+-record(class_attr, {
+    name :: binary(),
+    access = public :: access_types(),
+    type = normal :: normal | static,
+    init_value = null :: any()
+}).
+
+-type class_attr() :: #class_attr{}.
+
+-record(class_method, {
+    name :: binary(),
+    args = [] :: [variable()],
+    code :: [statement()],
+    access = public :: access_types(),
+    type = normal :: normal | static | abstract
+}).
+
+-type class_method() :: #class_method{}.
+
+-record(class, {
+    name :: binary(),
+    type = normal :: normal | static | abstract,
+    extends :: undefined | binary(),
+    implements = [] :: [binary()],
+    constants = ?DICT:new() :: dict(),
+    attrs = [] :: [class_attr()],
+    methods = [] :: [class_method()]
+}).
+
+-type class() :: #class{}.

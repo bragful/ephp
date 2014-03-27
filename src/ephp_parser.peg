@@ -63,7 +63,101 @@ comment_shell <- '#' (!('\n' / end_tag) .)+ '\n'? `
 
 comment <- comment_shell / comment_c / comment_cpp ~;
 
-%% Statements and Blocks
+% Blocks
+
+literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
+    case Node of
+        end_tag -> [];
+        [_,[],_] -> [];
+        [_,[]] -> [];
+        [_,Document,_] -> 
+            lists:flatten(Document);
+        [_,Document] -> 
+            lists:flatten(Document)
+    end
+`;
+
+code_block <- '{' space? statements space? '}' `
+    [_,_,St,_,_] = Node,
+    St
+`;
+
+% Class definition
+st_class <- (abstract space)? class space key (space extends space key)? (space implements space key (',' space? key)*)? space? '{' space? class_block space? '}' `
+    [Abstract,_Class,_,ClassName,Ext,Imp,_,_,_,ClassBlock,_,_] = Node,
+    Type = case Abstract of
+        [] -> normal;
+        _ -> abstract
+    end,
+    Extends = case Ext of
+        [] -> undefined;
+        [_,_E,_,SuperClass] -> SuperClass
+    end,
+    Implements = case Imp of
+        [] -> [];
+        [_,_I,_,ImpH,ImpList] ->
+            [ImpH| [ I || [_,_,I] <- ImpList ] ]
+    end,
+    #class{
+        name=ClassName,
+        type=Type,
+        extends=Extends,
+        implements=Implements,
+        constants=[ C || #class_const{}=C <- ClassBlock ],
+        attrs=[ A || #class_attr{}=A <- ClassBlock ],
+        methods=[ M || #class_method{}=M <- ClassBlock ]}
+`;
+
+class_block <- ( class_constant / class_variable / class_method )* ~;
+
+class_constant <- const space key space? '=' space? expression space? ';' `
+    [_Const,_,ConstName,_,_,_,Expr|_] = Node,
+    #class_const{name=ConstName, value=Expr}
+`;
+
+class_variable <- ((public / protected / private) space)? (static space)? var_simple (space? '=' space? expression)? space? ';' `
+    [Ac,St,Var,Ex|_] = Node,
+    Access = case Ac of
+        [] -> public;
+        [A,_] -> A
+    end,
+    VarName = Var#variable.name,
+    Expr = case Ex of
+        [] -> null;
+        [_,_,_,E] -> E
+    end,
+    Type = case St of
+        [] -> normal;
+        _ -> static
+    end,
+    #class_attr{
+        access = Access,
+        name = VarName,
+        type = Type,
+        init_value = Expr}
+`;
+
+class_method <- (abstract space)? ((public / protected / private) space)? (static space)? st_function `
+    [Abstract,Ac,Static,Fun] = Node,
+    Access = case Ac of
+        [] -> public;
+        [A,_] -> A
+    end,
+    Type = case {Static,Abstract} of
+        {[],[]} -> normal;
+        {_,[]} -> static;
+        {[],_} -> abstract;
+        _ -> throw_error(emethodtypes, Index, Input)
+    end,
+    #class_method{
+        name = Fun#function.name,
+        args = Fun#function.args,
+        code = Fun#function.code,
+        type = Type,
+        access = Access}
+`;
+
+% Statements
 
 statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
     [Statement, StatementsRaw] = Node,
@@ -84,24 +178,7 @@ statements <- (comment / statement / literal_block) ( space? (comment / statemen
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- statement_controlflow / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_include / st_print / st_call_function / st_global / st_conditions ~;
-
-literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
-    case Node of
-        end_tag -> [];
-        [_,[],_] -> [];
-        [_,[]] -> [];
-        [_,Document,_] -> 
-            lists:flatten(Document);
-        [_,Document] -> 
-            lists:flatten(Document)
-    end
-`;
-
-code_block <- '{' space? statements space? '}' `
-    [_,_,St,_,_] = Node,
-    St
-`;
+statement <- statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_call_function / st_global / st_conditions ~;
 
 st_conditions <- conditions space? ';' `
     [Cond,_,_] = Node,
@@ -122,6 +199,16 @@ st_call_function <- call_function space? ';' `
 st_include <- (include_once / include / require_once / require) space expression space? ';' `
     [Type,_,Expr|_] = Node,
     {call, Type, [Expr]}
+`;
+
+st_new <- new_object space? ';' `
+    [New|_] = Node,
+    New
+`;
+
+st_delete <- delete space (var_complex / var_simple) space? ';' `
+    [_Delete,_,Var|_] = Node,
+    {delete, Var}
 `;
 
 st_print <- (st_print_fun / st_print_old) space? ';' `
@@ -311,9 +398,9 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 %% Expressions
 
-expression_cond <- array_def / expr_string / boolean / null / st_include / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
+expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
 
-expression <- array_def / expr_string / boolean / null / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
+expression <- array_def / expr_string / boolean / null / new_object / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
 
 %% Others
 
@@ -329,6 +416,8 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     end
 `;
 
+%% Functions
+
 call_function <- (key / var) space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
     {FuncName, Arguments} = case Node of
         [Name,_,_,[_,Arg,Args],_,_] ->
@@ -337,6 +426,18 @@ call_function <- (key / var) space? '(' (space? expression (space? ',' space? ex
             {Name, []}
     end,
     {call, FuncName, Arguments}
+`;
+
+%% Objects and Classes
+
+new_object <- new space key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+    {ObjName, Arguments} = case Node of
+        [_New,_,Name,_,_,[_,Arg,Args],_,_] ->
+            {Name, [Arg | [ A || [_,_,_,A] <- Args ]]};
+        [_New,_,Name,_,_,[],_,_] ->
+            {Name, []}
+    end,
+    {instance, ObjName, Arguments}
 `;
 
 % reserved words
@@ -368,6 +469,17 @@ include <- #(?i)include# `<<"include">>`;
 include_once <- #(?i)include_once# `<<"include_once">>`;
 require <- #(?i)require# `<<"require">>`;
 require_once <- #(?i)require_once# `<<"require_once">>`;
+class <- #(?i)class# `class`;
+extends <- #(?i)extends# `extends`;
+implements <- #(?i)implements# `implements`;
+public <- #(?i)public# `public`;
+protected <- #(?i)protected# `protected`;
+private <- #(?i)private# `private`;
+static <- #(?i)static# `static`;
+const <- #(?i)const# `const`;
+abstract <- #(?i)abstract# `abstract`;
+new <- #(?i)new# `new`;
+delete <- #(?i)delete# `delete`;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
@@ -465,16 +577,30 @@ key <- [a-zA-Z_] [a-zA-Z0-9_]* `
     iolist_to_binary(Node)
 `;
 
-var <- var_ref / var_array / var_simple ~;
+var <- var_ref / var_complex / var_simple ~;
 
-var_ref <- '&' (var_array / var_simple) `
-    [_,Var] = Node,
+var_ref <- '&' space? (var_complex / var_simple) `
+    [_,_,Var] = Node,
     {ref, Var}
 `;
 
-var_array <- '$' key ('[' space? (array_index space?)? ']')+ `
-    [_Dollar, Key, Indexes] = Node,
-    #variable{name=Key, idx=[ get_index(I) || [_,_,I,_] <- Indexes ]}
+var_access <- var_access_array / var_access_object ~;
+
+var_access_object <- ('->' / '::') space? (array_index / key) `
+    case Node of
+        [<<"->">>,_,Expr] -> {object, Expr};
+        [<<"::">>,_,Expr] -> {class, Expr}
+    end
+`;
+
+var_access_array <- '[' space? (array_index space?)? ']' `
+    [_,_,I,_] = Node,
+    get_index(I)
+`;
+
+var_complex <- var_simple space? var_access+ `
+    [Var,_,Access] = Node,
+    Var#variable{idx=Access}
 `;
 
 var_simple <- '$' key `
