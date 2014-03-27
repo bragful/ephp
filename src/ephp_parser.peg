@@ -408,7 +408,17 @@ array_element <- (array_index space? '=>' space?)? expression `
     end
 `;
 
-array_def <- array space? '(' space? array_element tail:( space? ',' space? array_element )* space? ')' `
+array_def <- array_def_func / array_def_simple ~;
+
+array_def_simple <- '[' space? array_element tail:( space? ',' space? array_element )* space? ']' `
+    [_,_,ArrayElement,{tail,Tail},_,_] = Node,
+    ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
+        [NewArrayElement|Elements]
+    end, [], Tail),
+    #array{elements=[ArrayElement|ArrayElements]}
+`;
+
+array_def_func <- array space? '(' space? array_element tail:( space? ',' space? array_element )* space? ')' `
     [_Array,_,_,_,ArrayElement,{tail,Tail},_,_] = Node,
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
          [NewArrayElement|Elements]
