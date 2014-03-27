@@ -87,6 +87,12 @@ Functions
    * [in_array](http://www.php.net/in_array) (not complete)
    * [sizeof](http://www.php.net/sizeof)
 
+ * String related functions:
+   * [implode](http://www.php.net/implode)
+   * [join](http://www.php.net/join)
+   * [ord](http://www.php.net/ord)
+   * [strlen](http://www.php.net/strlen)
+
  * Date/Time related functions:
    * [date](http://www.php.net/date) (not complete)
    * [date_default_timezone_get](http://www.php.net/date_default_timezone_get)
