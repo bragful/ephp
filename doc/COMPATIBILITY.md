@@ -4,12 +4,12 @@ Compatibility Table
 Features
 --------
 
-- [x] Open and Close tags.
+- Open and Close tags.
     - [x] Open tag standard `<?php`
     - [x] Open tag short `<?`
     - [x] Tag for values `<?=`
     - [x] Close tag optional
-- [ ] Data types
+- Data types
     - [x] Numbers (with longnumbers ;-) )
     - [x] Decimals
     - [x] Booleans
@@ -17,44 +17,44 @@ Features
     - [x] References
     - [ ] Resources
     - [ ] Objects
-- [x] Constants
+- Constants
     - [x] `define` function to define contants
     - [x] text without spaces as constant
     - [ ] case insensitive constants (see define function)
     - [x] "magical" constants (`__FILE__`, `__DIR__`, ...)
-- [x] Special variables
+- Special variables
     - [x] $GLOBALS
-- [x] Arithmetic and Logic
+- Arithmetic and Logic
     - [x] Sum, Substract, Multiply, Div and Module.
     - [x] `and` and `or` as operations.
     - [x] Operators for binary logic: `~`, `|`, `^`, `&`
-- [x] Loops
+- Loops
     - [x] for in C-style
     - [x] foreach
     - [x] while
     - [x] do...while
-- [x] Conditions
+- Conditions
     - [x] if, if...else, if...elseif...else
     - [x] switch
-- [x] Operators for conditions
+- Operators for conditions
     - [x] Greater than, Greater or equals than...
     - [x] Less than, Less or equals than...
     - [x] Equals `==`, Strong equals `===`
-- [ ] Spaguetti code
+- Spaguetti code
     - [ ] Labels
     - [ ] `goto` statement
-- [x] Modular code
+- Modular code
     - [x] `function` definition
     - [x] call to functions
     - [x] args by reference
     - [x] include/require code from other files
-- [ ] Error handling
+- Error handling
     - [ ] launch errors
     - [ ] silent warnings/errors (@)
-- [x] Exit functions
+- Exit functions
     - [x] return
     - [x] die / exit
-- [ ] OOP
+- OOP
     - [ ] define class
     - [ ] define methods public, private and/or protected
     - [ ] define attributes public, private and/or protected
@@ -65,7 +65,7 @@ Features
     - [ ] traits
     - [ ] launch exceptions (throw)
     - [ ] catch exceptions (try...catch)
-- [ ] Functional
+- Functional
     - [ ] closures
 
 
