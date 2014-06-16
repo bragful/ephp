@@ -632,6 +632,9 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Sta
                 B == 0 -> throw(edivzero);
                 true -> A / B
             end;
+        <<"%">> -> 
+            trunc(ephp_util:zero_if_undef(OpRes1)) rem 
+            trunc(ephp_util:zero_if_undef(OpRes2));
         <<"<">> -> OpRes1 < OpRes2;
         <<">">> -> OpRes1 > OpRes2;
         <<">=">> -> OpRes1 >= OpRes2;

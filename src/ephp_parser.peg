@@ -533,7 +533,7 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
     end
 `;
 
-multitive <- logical space? ( "*" / "/" ) space? mul:multitive / log:logical `
+multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logical `
     case Node of
         [A,_,Type,_,{mul,B}] -> 
             case {Type, A, B} of
@@ -543,6 +543,7 @@ multitive <- logical space? ( "*" / "/" ) space? mul:multitive / log:logical `
                         <<"-">> -> An - Bn;
                         <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
                         <<"*">> -> An * Bn;
+                        <<"%">> -> trunc(An) rem trunc(Bn);
                         _ -> undefined
                     end,
                     if 
