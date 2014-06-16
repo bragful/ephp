@@ -533,7 +533,7 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
     end
 `;
 
-multitive <- logical space? ( "*" / "/" ) space? mul:multitive / log:logical `
+multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logical `
     {{line,Line},{column,_}} = Index,
     case Node of
         [A,_,Type,_,{mul,B}] -> {op,Line,Type,A,B};
