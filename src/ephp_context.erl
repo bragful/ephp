@@ -1,8 +1,6 @@
 -module(ephp_context).
--behaviour(gen_server).
--define(SERVER, ?MODULE).
 
--compile([export_all, warnings_as_errors]).
+-compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 
@@ -15,13 +13,13 @@
 }).
 
 -record(state, {
+    ref :: reference(),
     vars :: pid(),
     funcs :: pid(),
     timezone = "Europe/Madrid" :: string(),
     output :: pid(),
     const :: pid(),
     global :: pid(),
-    destroy = true :: boolean(),
     include :: pid()
 }).
 
@@ -61,253 +59,156 @@
 ]).
 
 %% ------------------------------------------------------------------
-%% gen_server Function Exports
-%% ------------------------------------------------------------------
-
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
-
-%% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
 start_link() ->
-    gen_server:start_link(?MODULE, [], []).
-
-start_link(State) ->
-    gen_server:start_link(?MODULE, [State], []).
-
-get(Context, VarPath) ->
-    gen_server:call(Context, {get, VarPath}).
-
-set(Context, VarPath, Value) ->
-    gen_server:cast(Context, {set, VarPath, Value}).
-
-solve(Context, Expression) ->
-    case gen_server:call(Context, {resolve, Expression}) of
-        die -> throw(die);
-        Result -> Result
-    end.
-
-destroy(Context) ->
-    gen_server:cast(Context, stop).
-
-get_state(Context) ->
-    gen_server:call(Context, get_state).
-
-register_func(Context, PHPFunc, Module, Fun) when is_atom(Module) and is_atom(Fun) ->  
-    gen_server:cast(Context, {register, builtin, PHPFunc, Module, Fun});
-
-register_func(Context, PHPFunc, Args, Code) ->
-    gen_server:cast(Context, {register, php, PHPFunc, Args, Code}).
-
-register_func(Context, PHPFunc, Fun) ->
-    gen_server:cast(Context, {register, builtin, PHPFunc, Fun}).
-
-get_const(Context, Name) ->
-    gen_server:call(Context, {const, Name}).
-
-register_const(Context, Name, Value) ->
-    gen_server:cast(Context, {const, Name, Value}).
-
-call_func(Context, PHPFunc, Args) ->
-    gen_server:call(Context, {call, PHPFunc, Args}).
-
-get_tz(Context) ->
-    gen_server:call(Context, get_tz).
-
-set_tz(Context, TZ) ->
-    gen_server:cast(Context, {set_tz, TZ}).
-
-get_output(Context) ->
-    gen_server:call(Context, output).
-
-set_output(Context, Text) ->
-    gen_server:cast(Context, {output, Text}).
-
-set_output_handler(Context, Output) ->
-    gen_server:cast(Context, {output_handler, Output}).
-
-get_output_handler(Context) ->
-    gen_server:call(Context, output_handler).
-
-load(Context, Name) ->
-    gen_server:call(Context, {load, Name}).
-
-load_once(Context, Name) ->
-    gen_server:call(Context, {load_once, Name}). 
-
-set_global(Context, GlobalContext) ->
-    gen_server:cast(Context, {global, GlobalContext}).
-
-generate_subcontext(Context) ->
-    gen_server:call(Context, subcontext).
-
-%% ------------------------------------------------------------------
-%% gen_server Function Definitions
-%% ------------------------------------------------------------------
-
-init([]) ->
+    Ref = make_ref(),
     {ok, Funcs} = ephp_func:start_link(),
     {ok, Output} = ephp_output:start_link(),
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
-    init([#state{
+    start_link(#state{
+        ref = Ref,
         output = Output,
         funcs = Funcs,
         const = Const,
-        include = Inc}]);
+        include = Inc
+    }).
 
-init([#state{}=State]) ->
+start_link(#state{ref=Ref}=State) ->
     {ok, Vars} = ephp_vars:start_link(),
-    {ok, State#state{
+    erlang:put(Ref, State#state{
         vars = Vars
-    }};
+    }),
+    {ok, Ref}.
 
-init([#state{}=State, mirror]) ->
-    {ok, State#state{destroy=false}}.
+start_mirror(#state{}=State) ->
+    Ref = make_ref(),
+    erlang:put(Ref, State#state{ref=Ref}),
+    {ok, Ref}.
 
-handle_call({get, VarRawPath}, _From, #state{vars=Vars}=State) ->
-    Value = ephp_vars:get(Vars, VarRawPath),
-    {reply, Value, State};
+get(Context, VarPath) ->
+    #state{vars=Vars} = erlang:get(Context),
+    ephp_vars:get(Vars, VarPath).
 
-handle_call({resolve, Expression}, _From, State) ->
-    {Value, NewState} = try
-        resolve(Expression, State)
-    catch 
-        throw:die -> {die, State}
-    end,
-    {reply, Value, NewState};
-
-handle_call({call, PHPFunc, Args}, _From, #state{funcs=Funcs, const=Const}=State) ->
-    {reply, case ephp_func:get(Funcs, PHPFunc) of
-        error -> 
-            %% TODO: enhance the error handling!
-            io:format("~p~n", [{PHPFunc, Args}]),
-            throw(eundefun);
-        {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
-            fun(Ctx) -> 
-                erlang:apply(Module, Fun, [Ctx|Args]) 
-            end;
-        {ok, #reg_func{type=builtin, builtin=Fun}} ->
-            fun(Ctx) -> 
-                erlang:apply(Fun, [Ctx|Args]) 
-            end;
-        {ok, #reg_func{type=php, code=Code}} ->
-            fun(Ctx) ->
-                OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
-                ephp_const:set(Const, <<"__FUNCTION__">>, PHPFunc), 
-                Res = ephp_interpr:process(Ctx, Code),
-                ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc),
-                Res
-            end
-    end, State};
-
-handle_call(get_state, _From, State) ->
-    {reply, State, State};
-
-handle_call(get_tz, _From, #state{timezone=TZ}=State) ->
-    {reply, TZ, State};
-
-handle_call(output, _From, #state{output=Output}=State) ->
-    {reply, ephp_output:pop(Output), State};
-
-handle_call(subcontext, _From, #state{vars=VarsPID}=State) ->
-    {ok, SubContext} = ephp_vars:start_link(),
-    {reply, start_link(State#state{
-        vars=SubContext,
-        global=VarsPID}), State};
-
-handle_call(output_handler, _From, #state{output=Output}=State) ->
-    {reply, Output, State};
-
-handle_call({load, File}, _From, #state{include=Inc}=State) ->
-    {reply, ephp_include:load(Inc, File), State};
-
-handle_call({load_once, File}, _From, #state{include=Inc}=State) ->
-    {reply, ephp_include:load_once(Inc, File), State};
-
-handle_call({const, Name}, _From, #state{const=Const}=State) ->
-    {reply, ephp_const:get(Const, Name), State};
-
-handle_call(_Request, _From, State) ->
-    {reply, ok, State}.
-
-
-handle_cast({register, php, PHPFunc, Args, Code}, #state{funcs=Funcs}=State) ->
-    ephp_func:register_func(Funcs, PHPFunc, Args, Code),
-    {noreply, State};
-
-handle_cast({register, builtin, PHPFunc, Fun}, #state{funcs=Funcs}=State) ->
-    ephp_func:register_func(Funcs, PHPFunc, Fun),
-    {noreply, State};
-
-handle_cast({register, builtin, PHPFunc, Module, Fun}, #state{funcs=Funcs}=State) ->
-    ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
-    {noreply, State};
-
-handle_cast({const, Name, Value}, #state{const=Const}=State) ->
-    ephp_const:set(Const, Name, Value),
-    {noreply, State};
-
-handle_cast(stop, State) ->
-    {stop, normal, State};
-
-handle_cast({set, VarRawPath, Value}, State) ->
-    VarPath = get_var_path(VarRawPath, State),
-    change(VarPath, Value, State#state.vars),
-    {noreply, State};
-
-handle_cast({set_tz, TZ}, State) ->
-    case ezic_zone_map:find(TZ) of
-        {zone_not_found,_} -> {noreply, State}; 
-        _ -> {noreply, State#state{timezone=TZ}}
-    end;
-
-handle_cast({output, Text}, #state{output=Output}=State) ->
-    ephp_output:push(Output, Text),
-    {noreply, State};
-
-handle_cast({output_handler, Output}, #state{output=OldOutput}=State) ->
-    ephp_output:destroy(OldOutput),
-    {noreply, State#state{output=Output}};
-
-handle_cast({global, GlobalVarsPID}, State) ->
-    {noreply, State#state{global = GlobalVarsPID}};
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-terminate(_Reason, #state{vars=Vars,destroy=true}) ->
-    case is_process_alive(Vars) of
-        true -> ephp_vars:destroy(Vars);
-        false -> ok  
-    end;
-
-terminate(_Reason, _State) ->
+set(Context, VarPath, Value) ->
+    State = erlang:get(Context),
+    ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value),
     ok.
 
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+solve(Context, Expression) ->
+    State = erlang:get(Context),
+    {Value, NewState} = resolve(Expression, State),
+    erlang:put(Context, NewState),
+    Value.
+
+destroy(Context) ->
+    erlang:erase(Context).
+
+get_state(Context) ->
+    get(Context).
+
+register_func(Context, PHPFunc, Module, Fun) when is_atom(Module) and is_atom(Fun) ->  
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
+    ok;
+
+register_func(Context, PHPFunc, Args, Code) ->
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:register_func(Funcs, PHPFunc, Args, Code),
+    ok.
+
+register_func(Context, PHPFunc, Fun) ->
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:register_func(Funcs, PHPFunc, Fun),
+    ok.
+
+get_const(Context, Name) ->
+    #state{const=Const} = erlang:get(Context),
+    ephp_const:get(Const, Name).
+
+register_const(Context, Name, Value) ->
+    #state{const=Const} = erlang:get(Context),
+    ephp_const:set(Const, Name, Value),
+    ok.
+
+call_func(Context, PHPFunc, Args) ->
+    #state{funcs=Funcs, const=Const} = erlang:get(Context),
+    case ephp_func:get(Funcs, PHPFunc) of
+    error ->
+        %% TODO: enhance the error handling!
+        io:format("~p~n", [{PHPFunc, Args}]),
+        throw(eundefun);
+    {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
+        fun(Ctx) -> 
+            erlang:apply(Module, Fun, [Ctx|Args]) 
+        end;
+    {ok, #reg_func{type=builtin, builtin=Fun}} ->
+        fun(Ctx) -> 
+            erlang:apply(Fun, [Ctx|Args]) 
+        end;
+    {ok, #reg_func{type=php, code=Code}} ->
+        fun(Ctx) ->
+            OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
+            ephp_const:set(Const, <<"__FUNCTION__">>, PHPFunc), 
+            Res = ephp_interpr:process(Ctx, Code),
+            ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc),
+            Res
+        end
+    end.
+
+get_tz(Context) ->
+    #state{timezone=TZ} = erlang:get(Context),
+    TZ.
+
+set_tz(Context, TZ) ->
+    State = erlang:get(Context),
+    erlang:put(Context, State#state{timezone=TZ}),
+    ok.
+
+get_output(Context) ->
+    #state{output=Output} = erlang:get(Context),
+    ephp_output:pop(Output).
+
+set_output(Context, Text) ->
+    #state{output=Output} = erlang:get(Context),
+    ephp_output:push(Output, Text),
+    ok.
+
+set_output_handler(Context, Output) ->
+    State = erlang:get(Context),
+    ephp_output:destroy(State#state.output),
+    erlang:put(Context, State#state{output=Output}),
+    ok.
+
+get_output_handler(Context) ->
+    #state{output=Output} = erlang:get(Context),
+    Output.
+
+load(Context, File) ->
+    #state{include=Inc} = erlang:get(Context),
+    ephp_include:load(Inc, File).
+
+load_once(Context, File) ->
+    #state{include=Inc} = erlang:get(Context),
+    ephp_include:load_once(Inc, File).
+
+set_global(Context, GlobalContext) ->
+    State = erlang:get(Context),
+    erlang:put(Context, State#state{global=GlobalContext}),
+    ok.
+
+generate_subcontext(Context) ->
+    #state{vars=VarsPID} = State = erlang:get(Context),
+    {ok, SubContext} = ephp_vars:start_link(),
+    start_link(State#state{
+        vars=SubContext,
+        global=VarsPID}).
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
-
-start_mirror(State) ->
-    gen_server:start_link(?MODULE, [State, mirror], []).
-
-
-search(Var, Vars) ->
-    ephp_vars:get(Vars, Var).
-
-
-change(Var, Value, Vars) ->
-    ephp_vars:set(Vars, Var, Value).
-
 
 resolve(true, State) -> 
     {true, State};
@@ -325,7 +226,7 @@ resolve(#assign{variable=Var,expression={ref, RefVar}}, State) ->
 resolve(#assign{variable=Var,expression=Expr}, State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),
-    change(VarPath, Value, NState#state.vars),
+    ephp_vars:set(NState#state.vars, VarPath, Value),
     {Value, NState};
 
 resolve(#operation{}=Op, State) ->
@@ -345,12 +246,12 @@ resolve(#text_to_process{text=Texts}, State) ->
 
 resolve({pre_incr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, State#state.vars) of
+    case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
-            change(VarPath, 1, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, 1),
             {1, State};
         V when is_number(V) -> 
-            change(VarPath, V+1, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, V+1),
             {V+1, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
@@ -358,7 +259,7 @@ resolve({pre_incr, Var}, State) ->
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            change(VarPath, NewVal, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, NewVal),
             {NewVal, State};
         V -> 
             {V, State}
@@ -366,11 +267,11 @@ resolve({pre_incr, Var}, State) ->
 
 resolve({pre_decr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, State#state.vars) of
+    case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
             {undefined, State};
         V when is_number(V) -> 
-            change(VarPath, V-1, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, V-1),
             {V-1, State};
         V -> 
             {V, State}
@@ -378,12 +279,12 @@ resolve({pre_decr, Var}, State) ->
 
 resolve({post_incr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, State#state.vars) of
+    case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
-            change(VarPath, 1, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, 1),
             {undefined, State};
         V when is_number(V) -> 
-            change(VarPath, V+1, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, V+1),
             {V, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
@@ -391,7 +292,7 @@ resolve({post_incr, Var}, State) ->
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
-            change(VarPath, NewVal, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, NewVal),
             {V, State};
         V -> 
             {V, State}
@@ -399,11 +300,11 @@ resolve({post_incr, Var}, State) ->
 
 resolve({post_decr, Var}, State) ->
     VarPath = get_var_path(Var, State),
-    case search(VarPath, State#state.vars) of
+    case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
             {undefined, State};
         V when is_number(V) ->
-            change(VarPath, V-1, State#state.vars),
+            ephp_vars:set(State#state.vars, VarPath, V-1),
             {V, State};
         V -> 
             {V, State}
@@ -548,14 +449,14 @@ resolve(Unknown, #state{}=State) ->
 
 
 resolve_var(#variable{idx=[]}=Var, State) ->
-    {search(Var, State#state.vars), State};
+    {ephp_vars:get(State#state.vars, Var), State};
 
 resolve_var(#variable{idx=Indexes}=Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
         {Value, NState} = resolve(Idx, NS),
         {I ++ [Value], NState}
     end, {[],State}, Indexes),
-    Value = search(Var#variable{idx=NewIndexes}, NewState#state.vars),
+    Value = ephp_vars:get(NewState#state.vars, Var#variable{idx=NewIndexes}),
     {Value, NewState}.
 
 
@@ -566,7 +467,7 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
     NewIndexes = lists:foldl(fun
         (auto, LIdx) ->
             NewEntry = Var#variable{idx=LIdx},
-            Value = case search(NewEntry, Vars) of
+            Value = case ephp_vars:get(Vars, NewEntry) of
             undefined -> 
                 0;
             Array -> 

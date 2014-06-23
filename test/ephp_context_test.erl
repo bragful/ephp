@@ -4,15 +4,8 @@
 -include_lib("eunit/include/eunit.hrl").
 -include("ephp.hrl").
 
-create_and_stop_test() ->
-    {ok, Ctx} = ephp_context:start_link(),
-    ?assert(is_process_alive(Ctx)),
-    ephp_context:destroy(Ctx),
-    timer:sleep(500), 
-    ?assertNot(is_process_alive(Ctx)).
-
 setup_test_() ->
-    {foreach,
+    {foreach, local,
         fun start/0,
         fun stop/1, [
         fun set_and_get_test/1,
