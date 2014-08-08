@@ -66,7 +66,7 @@ print_r(Context, Value) ->
     print_r(Context, Value, {false,false}).
 
 
--spec var_dump(Context :: context(), Value :: var_value()) -> binary().
+-spec var_dump(Context :: context(), Value :: var_value()) -> null.
 
 var_dump(Context, {_,Value}) ->
     Elements = var_dump_fmt(Context, Value, <<?SPACES_VD>>),
@@ -74,11 +74,13 @@ var_dump(Context, {_,Value}) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, Elements),
     Size = ephp_util:to_bin(length(Value)),
-    if ?IS_DICT(Value) ->
+    Result = if ?IS_DICT(Value) ->
         <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
     true ->
         Data
-    end.
+    end,
+    ephp_context:set_output(Context, Result), 
+    null.
 
 -spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> null | binary().
 
