@@ -25,9 +25,7 @@
 <pre><code>
 date(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="date-3"></a>
@@ -38,9 +36,7 @@ date(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-var
 <pre><code>
 date(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, (integer() | float())}) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="date_default_timezone_get-1"></a>
@@ -51,9 +47,7 @@ date(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-var
 <pre><code>
 date_default_timezone_get(Context::<a href="#type-context">context()</a>) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="date_default_timezone_set-2"></a>
@@ -64,9 +58,7 @@ date_default_timezone_get(Context::<a href="#type-context">context()</a>) -&gt; 
 <pre><code>
 date_default_timezone_set(Context::<a href="#type-context">context()</a>, TZ::{<a href="#type-variable">variable()</a>, binary()}) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="gmdate-2"></a>
@@ -77,9 +69,7 @@ date_default_timezone_set(Context::<a href="#type-context">context()</a>, TZ::{<
 <pre><code>
 gmdate(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="gmdate-3"></a>
@@ -90,9 +80,7 @@ gmdate(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-v
 <pre><code>
 gmdate(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::integer() | float()) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="init-1"></a>
@@ -103,9 +91,7 @@ gmdate(Context::<a href="#type-context">context()</a>, Format::{<a href="#type-v
 <pre><code>
 init(Context::<a href="#type-context">context()</a>) -&gt; ok
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="time-1"></a>
@@ -116,8 +102,6 @@ init(Context::<a href="#type-context">context()</a>) -&gt; ok
 <pre><code>
 time(Context::<a href="#type-context">context()</a>) -&gt; integer()
 </code></pre>
-
-<br></br>
-
+<br />
 
 

@@ -25,9 +25,7 @@
 <pre><code>
 file(Filename::<a href="file.md#type-name">file:name()</a>) -&gt; any()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="parse-1"></a>
@@ -38,8 +36,6 @@ file(Filename::<a href="file.md#type-name">file:name()</a>) -&gt; any()
 <pre><code>
 parse(List::binary() | list()) -&gt; any()
 </code></pre>
-
-<br></br>
-
+<br />
 
 

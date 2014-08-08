@@ -7,6 +7,7 @@
     is_bool/2,
     is_integer/2,
     print_r/2,
+    var_dump/2,
     print_r/3,
     isset/2,
     empty/2,
@@ -16,11 +17,15 @@
 
 -include("ephp.hrl").
 
+-define(SPACES, "    ").
+-define(SPACES_VD, "  ").
+
 -spec init(Context :: context()) -> ok.
 
 init(Context) ->
     Funcs = [
-        is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset
+        is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset,
+        var_dump
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
@@ -61,6 +66,20 @@ print_r(Context, Value) ->
     print_r(Context, Value, {false,false}).
 
 
+-spec var_dump(Context :: context(), Value :: var_value()) -> binary().
+
+var_dump(Context, {_,Value}) ->
+    Elements = var_dump_fmt(Context, Value, <<?SPACES_VD>>),
+    Data = lists:foldl(fun(Chunk,Total) ->
+        <<Total/binary, Chunk/binary>>
+    end, <<>>, Elements),
+    Size = ephp_util:to_bin(length(Value)),
+    if ?IS_DICT(Value) ->
+        <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
+    true ->
+        Data
+    end.
+
 -spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> null | binary().
 
 print_r(_Context, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
@@ -73,13 +92,13 @@ print_r(Context, {_,Value}, {_,false}) when not ?IS_DICT(Value) ->
 print_r(Context, {_,Value}, {_,true}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
-    end, <<>>, print_r_fmt(Context, Value, <<"    ">>)),
+    end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
 print_r(Context, {_,Value}, {_,false}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
-    end, <<>>, print_r_fmt(Context, Value, <<"    ">>)),
+    end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     null.
 
@@ -124,6 +143,41 @@ unset(Context, {Var,_}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+var_dump_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
+    %% FIXME add recursion control
+    Var = ephp_vars:get(VarPID, VarRef),
+    var_dump_fmt(Context, Var, Spaces);
+
+var_dump_fmt(_Context, Value, _Spaces) when is_integer(Value) -> 
+    <<"int(",(ephp_util:to_bin(Value))/binary, ")\n">>;
+
+var_dump_fmt(_Context, Value, _Spaces) when is_float(Value) -> 
+    <<"double(",(ephp_util:to_bin(Value))/binary, ")\n">>;
+
+var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) -> 
+    Size = ephp_util:to_bin(byte_size(Value)),
+    <<"string(",Size/binary,") \"",(ephp_util:to_bin(Value))/binary, "\"\n">>;
+
+var_dump_fmt(Context, Value, Spaces) ->
+    ?DICT:fold(fun(Key, Val, Res) ->
+        KeyBin = ephp_util:to_bin(Key),
+        Res ++ case var_dump_fmt(Context, Val, <<Spaces/binary, ?SPACES_VD>>) of
+            V when is_binary(V) -> 
+                [
+                    <<Spaces/binary, "[", KeyBin/binary, "] =>\n",
+                        Spaces/binary, V/binary>>
+                ];
+            V when is_list(V) ->
+                Elements = ephp_util:to_bin(length(Val)),
+                [
+                    <<Spaces/binary, "[", KeyBin/binary, "] =>\n">>,
+                    <<Spaces/binary,"array(", Elements/binary, ") {\n">>
+                ] ++ V ++ [
+                    <<Spaces/binary, "}\n">>
+                ]
+        end
+    end, [], Value).
+
 print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     %% FIXME add recursion control
     Var = ephp_vars:get(VarPID, VarRef),
@@ -135,7 +189,7 @@ print_r_fmt(_Context, Value, _Spaces) when not ?IS_DICT(Value) ->
 print_r_fmt(Context, Value, Spaces) ->
     ?DICT:fold(fun(Key, Val, Res) ->
         KeyBin = ephp_util:to_bin(Key),
-        Res ++ case print_r_fmt(Context, Val, <<Spaces/binary, "    ">>) of
+        Res ++ case print_r_fmt(Context, Val, <<Spaces/binary, ?SPACES>>) of
             V when is_binary(V) -> 
                 [<<Spaces/binary, "[", KeyBin/binary, "] => ", V/binary>>];
             V when is_list(V) ->
