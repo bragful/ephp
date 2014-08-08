@@ -23,10 +23,10 @@ to_bin(A) when is_list(A) ->
     list_to_binary(A);
 
 to_bin(A) when is_integer(A) -> 
-    list_to_binary(integer_to_list(A)); 
+    integer_to_binary(A);
 
 to_bin(A) when is_float(A) -> 
-    list_to_binary(float_to_list(A));
+    float_to_binary(A, [{decimals, 100}, compact]);
 
 to_bin(true) -> <<"1">>;
 
@@ -97,15 +97,14 @@ zero_if_undef(Value) when not is_number(Value) -> 0;
 zero_if_undef(Value) -> Value.
 
 
--spec pad_to_bin(Num :: integer(), Pad :: integer()) -> binary().
+-spec pad_to_bin(Num :: integer() | binary(), Pad :: integer()) -> binary().
+
+pad_to_bin(Num, Pad) when Pad =< 0 andalso is_binary(Num) ->
+    Num;
+
+pad_to_bin(Num, Pad) when not is_binary(Num) ->
+    NumBin = to_bin(Num),
+    pad_to_bin(NumBin, Pad - byte_size(NumBin));
 
 pad_to_bin(Num, Pad) ->
-    NumBin = to_bin(Num),
-    Padding = if
-        byte_size(NumBin) >= Pad -> 
-            <<>>;
-        true -> 
-            PadSize = Pad - byte_size(NumBin),
-            << <<"0">> || _ <- lists:seq(1, PadSize) >>
-    end,
-    <<Padding/binary, NumBin/binary>>.
+    pad_to_bin(<<"0",Num/binary>>, Pad-1).

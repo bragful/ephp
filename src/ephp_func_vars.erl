@@ -104,18 +104,15 @@ empty(_Context, {_,Value}) ->
 
 -spec gettype(Context :: context(), Value :: var_value()) -> binary().
 
-gettype(_Context, {_,Value}) ->
-    if
-        is_boolean(Value) -> <<"boolean">>;
-        is_integer(Value) -> <<"integer">>;
-        is_float(Value) -> <<"double">>;
-        is_binary(Value) -> <<"string">>;
-        ?IS_DICT(Value) -> <<"array">>;
-        %% TODO: object type
-        %% TODO: resource type
-        Value =:= null -> <<"NULL">>;
-        true -> <<"unknown type">>
-    end.
+gettype(_Context, {_,Value}) when is_boolean(Value) -> <<"boolean">>;
+gettype(_Context, {_,Value}) when is_integer(Value) -> <<"integer">>;
+gettype(_Context, {_,Value}) when is_float(Value) -> <<"double">>;
+gettype(_Context, {_,Value}) when is_binary(Value) -> <<"string">>;
+gettype(_Context, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
+%% TODO: object type
+%% TODO: resource type
+gettype(_Context, {_,null}) -> <<"NULL">>;
+gettype(_Context, {_,_}) -> <<"unknown type">>.
 
 -spec unset(Context :: context(), Var :: var_value()) -> null.
 
