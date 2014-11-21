@@ -57,7 +57,7 @@ is_integer(_Context, {_,Value}) when is_integer(Value) ->
 is_integer(_Context, _Value) ->
     false.
 
--spec print_r(Context :: context(), Value :: var_value()) -> boolean().
+-spec print_r(Context :: context(), Value :: var_value()) -> boolean() | null | binary().
 
 print_r(_Context, {_,Value}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
