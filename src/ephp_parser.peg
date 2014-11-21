@@ -1,3 +1,5 @@
+%% PHP PEG
+
 php <- document / '' `
     case Node of
         <<>> -> [];
@@ -99,13 +101,11 @@ literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (docu
 `;
 
 code_block <- '{' space? statements space? '}' `
-    [_,_,St,_,_] = Node,
-    St
+    nth(3, Node)
 `;
 
 st_conditions <- conditions space? ';' `
-    [Cond,_,_] = Node,
-    Cond
+    head(Node)
 `;
 
 st_global <- global space var (',' space? var)* space? ';' `
@@ -115,8 +115,7 @@ st_global <- global space var (',' space? var)* space? ';' `
 `;
 
 st_call_function <- call_function space? ';' `
-    [Call,_,_] = Node,
-    Call
+    head(Node)
 `;
 
 st_include <- (include_once / include / require_once / require) space expression space? ';' `
@@ -125,23 +124,19 @@ st_include <- (include_once / include / require_once / require) space expression
 `;
 
 st_print <- (st_print_fun / st_print_old) space? ';' `
-    [Print|_] = Node,
-    Print
+    head(Node)
 `;
 
 st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
-    [_Print,_,_,_,Expr|_] = Node,
-    print(Expr)
+    print(nth(5, Node))
 `;
 
 st_print_old <- (print / echo) space expression `
-    [_Print,_,Expr|_] = Node,
-    print(Expr)
+    print(nth(3, Node))
 `;
 
 st_arith_mono <- arith_mono space? ';' `
-    [Arith|_] = Node,
-    Arith
+    head(Node)
 `;
 
 st_return <- return (space? ( '(' space? )? expression ( space? ')' )?)? space? ';' `
@@ -642,7 +637,7 @@ concat <- concat_types (space? '\.' space? concat_types)+ `
     end
 `;
 
-%% Helps and other code
+%% Helpers and other code
 
 `
 -include("ephp.hrl").
@@ -675,6 +670,12 @@ parse_string(<<"\\r",Rest/binary>>, Result) ->
     parse_string(Rest, <<Result/binary, $\r>>);
 parse_string(<<C:1/binary,Rest/binary>>, Result) ->
     parse_string(Rest, <<Result/binary, C/binary>>).
+
+nth(N, [A|_]) when N =< 1 -> A;
+nth(_, []) -> undefined;
+nth(N, [_|List]) -> nth(N-1, List).
+
+head([H|_]) -> H.
 
 get_index([I,_]) -> I;
 get_index([]) -> auto.
