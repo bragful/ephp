@@ -10,7 +10,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -25,9 +25,7 @@
 <pre><code>
 increment_code(Code::binary()) -&gt; integer() | binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="pad_to_bin-2"></a>
@@ -36,11 +34,9 @@ increment_code(Code::binary()) -&gt; integer() | binary()
 
 
 <pre><code>
-pad_to_bin(Num::integer(), Pad::integer()) -&gt; binary()
+pad_to_bin(Num::integer() | binary(), Pad::integer()) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="to_bin-1"></a>
@@ -51,9 +47,18 @@ pad_to_bin(Num::integer(), Pad::integer()) -&gt; binary()
 <pre><code>
 to_bin(A::binary() | string() | integer() | undefined) -&gt; binary()
 </code></pre>
+<br />
 
-<br></br>
 
+<a name="to_bool-1"></a>
+
+### to_bool/1 ###
+
+
+<pre><code>
+to_bool(Value::undefined | dict() | integer() | float() | string() | binary()) -&gt; boolean()
+</code></pre>
+<br />
 
 
 <a name="zero_if_undef-1"></a>
@@ -64,8 +69,6 @@ to_bin(A::binary() | string() | integer() | undefined) -&gt; binary()
 <pre><code>
 zero_if_undef(Value::undefined | dict() | integer() | float() | string() | binary()) -&gt; integer()
 </code></pre>
-
-<br></br>
-
+<br />
 
 

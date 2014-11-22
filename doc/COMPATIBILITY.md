@@ -81,6 +81,7 @@ Functions
    * [isset](http://www.php.net/isset)
    * [print_r](http://www.php.net/print_r)
    * [unset](http://www.php.net/unset)
+   * [var_dump](http://www.php.net/var_dump) (only accepts 1 param)
 
  * Array related functions:
    * [count](http://www.php.net/count)

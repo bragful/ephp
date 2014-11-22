@@ -2,3 +2,4 @@
 ebin/
 src/ephp_parser.erl
 deps/
+ephp

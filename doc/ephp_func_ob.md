@@ -25,9 +25,7 @@
 <pre><code>
 flush(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="init-1"></a>
@@ -38,9 +36,7 @@ flush(Context::<a href="#type-context">context()</a>) -&gt; null
 <pre><code>
 init(Context::<a href="#type-context">context()</a>) -&gt; ok
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_clean-1"></a>
@@ -51,9 +47,7 @@ init(Context::<a href="#type-context">context()</a>) -&gt; ok
 <pre><code>
 ob_clean(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_end_clean-1"></a>
@@ -64,9 +58,7 @@ ob_clean(Context::<a href="#type-context">context()</a>) -&gt; null
 <pre><code>
 ob_end_clean(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_end_flush-1"></a>
@@ -77,9 +69,7 @@ ob_end_clean(Context::<a href="#type-context">context()</a>) -&gt; null
 <pre><code>
 ob_end_flush(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_flush-1"></a>
@@ -90,9 +80,7 @@ ob_end_flush(Context::<a href="#type-context">context()</a>) -&gt; null
 <pre><code>
 ob_flush(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_get_contents-1"></a>
@@ -103,9 +91,7 @@ ob_flush(Context::<a href="#type-context">context()</a>) -&gt; null
 <pre><code>
 ob_get_contents(Context::<a href="#type-context">context()</a>) -&gt; binary()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_get_length-1"></a>
@@ -116,9 +102,7 @@ ob_get_contents(Context::<a href="#type-context">context()</a>) -&gt; binary()
 <pre><code>
 ob_get_length(Context::<a href="#type-context">context()</a>) -&gt; integer()
 </code></pre>
-
-<br></br>
-
+<br />
 
 
 <a name="ob_start-1"></a>
@@ -129,8 +113,6 @@ ob_get_length(Context::<a href="#type-context">context()</a>) -&gt; integer()
 <pre><code>
 ob_start(Context::<a href="#type-context">context()</a>) -&gt; boolean()
 </code></pre>
-
-<br></br>
-
+<br />
 
 

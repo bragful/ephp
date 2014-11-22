@@ -46,10 +46,10 @@ literal_test_() -> [
         [{print_text,<<"-5">>}],
         ?PARSE("<?=-5?>")),
     ?_assertEqual(
-        [{print_text,<<"5.00000000000000000000e+00">>}],
+        [{print_text,<<"5.0">>}],
         ?PARSE("<?=5.0?>")),
     ?_assertEqual(
-        [{print_text,<<"-5.00000000000000000000e+00">>}],
+        [{print_text,<<"-5.0">>}],
         ?PARSE("<?= - 5.0 ?>")),
     ?_assertEqual(
         [{print_text,<<"hello world!">>}],
