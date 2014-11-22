@@ -109,7 +109,9 @@ st_class <- (abstract space)? class space key (space extends space key)? (space 
         methods=[ M || #class_method{}=M <- ClassBlock ]}
 `;
 
-class_block <- ( class_constant / class_variable / class_method )* ~;
+class_block <- (space? (class_constant / class_variable / class_method) space?)* `
+    [ C || [_,C,_] <- Node ]
+`;
 
 class_constant <- const space key space? '=' space? expression space? ';' `
     [_Const,_,ConstName,_,_,_,Expr|_] = Node,
