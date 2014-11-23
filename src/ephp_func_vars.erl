@@ -69,15 +69,19 @@ print_r(Context, Value) ->
 -spec var_dump(Context :: context(), Value :: var_value()) -> null.
 
 var_dump(Context, {_,Value}) ->
-    Elements = var_dump_fmt(Context, Value, <<?SPACES_VD>>),
-    Data = lists:foldl(fun(Chunk,Total) ->
-        <<Total/binary, Chunk/binary>>
-    end, <<>>, Elements),
-    Size = ephp_util:to_bin(length(Value)),
-    Result = if ?IS_DICT(Value) ->
-        <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-    true ->
-        Data
+    Result = case var_dump_fmt(Context, Value, <<?SPACES_VD>>) of
+    Elements when is_list(Elements) ->
+        Data = lists:foldl(fun(Chunk,Total) ->
+            <<Total/binary, Chunk/binary>>
+        end, <<>>, Elements),
+        Size = ephp_util:to_bin(length(Value)),
+        if ?IS_DICT(Value) ->
+            <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
+        true ->
+            Data
+        end;
+    Element ->
+        Element
     end,
     ephp_context:set_output(Context, Result), 
     null.
@@ -149,6 +153,12 @@ var_dump_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     %% FIXME add recursion control
     Var = ephp_vars:get(VarPID, VarRef),
     var_dump_fmt(Context, Var, Spaces);
+
+var_dump_fmt(_Context, true, _Spaces) ->
+    <<"bool(true)\n">>;
+
+var_dump_fmt(_Context, false, _Spaces) ->
+    <<"bool(false)\n">>;
 
 var_dump_fmt(_Context, Value, _Spaces) when is_integer(Value) -> 
     <<"int(",(ephp_util:to_bin(Value))/binary, ")\n">>;
