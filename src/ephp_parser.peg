@@ -29,7 +29,7 @@ document <- (!init_tag .)* code literal_block? / (!init_tag .)+ / space? documen
     end
 `;
 
-code <- code_normal / code_expr ~;
+code <- code_expr / code_normal ~;
 
 code_normal <- init_tag_code space? statements space? `
     [Init,_,Code,_] = Node,
