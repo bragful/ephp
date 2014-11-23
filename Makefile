@@ -12,7 +12,7 @@ deps:
 compile: deps
 	./rebar compile skip_deps=true
 
-test: deps
+tests: deps
 	./rebar eunit skip_deps=true
 
 ephp: compile
