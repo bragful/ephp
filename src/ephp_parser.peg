@@ -7,7 +7,11 @@ php <- document / '' `
     end
 `;
 
-document <- (!init_tag .)* code literal_block? / (!init_tag .)+ `
+document_parse_error <- .+ `
+    throw({eparse, Index})
+`;
+
+document <- (!init_tag .)* code literal_block? / (!init_tag .)+ / space? document_parse_error `
     case Node of 
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
@@ -67,13 +71,12 @@ comment <- comment_shell / comment_c / comment_cpp ~;
 
 %% Statements and Blocks
 
-statements <- (comment / statement / literal_block / error:(.*)) ( space? (comment / statement / literal_block) )* `
+statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
     [Statement, StatementsRaw] = Node,
-    NewStatement = case Statement of
-        {error, _} -> throw({eparse, Index});
-        Statement when is_tuple(Statement) -> [Statement];
-        Statement when is_atom(Statement) -> [Statement];
-        _ -> Statement
+    NewStatement = if
+        is_tuple(Statement) -> [Statement];
+        is_atom(Statement) -> [Statement];
+        true -> Statement
     end,
     Statements = [ S || [_,S] <- StatementsRaw ],
     lists:flatmap(fun(S) -> 
@@ -101,8 +104,16 @@ literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (docu
     end
 `;
 
-code_block <- '{' space? statements space? '}' `
-    nth(3, Node)
+code_parse_error <- !'}' .* `
+    throw({eparse, Index})
+`;
+
+code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
+    [_,_,Statement|_] = Node,
+    case Statement of
+        {error,_} -> throw({eparse, Index});
+        [St,_,_] -> St
+    end
 `;
 
 st_conditions <- conditions space? ';' `
@@ -513,7 +524,7 @@ additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
     case Node of 
     [A,_,Type,_,B] ->
         case {Type, A, B} of
-        {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) -> 
+        {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) -> 
             Result = case Op of
                 <<"+">> -> An + Bn;
                 <<"-">> -> An - Bn;
@@ -542,7 +553,7 @@ multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logic
     case Node of
     [A,_,Type,_,{mul,B}] -> 
         case {Type, A, B} of
-        {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) -> 
+        {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) -> 
             Result = case Op of
                 <<"+">> -> An + Bn;
                 <<"-">> -> An - Bn;
@@ -572,7 +583,7 @@ logical <- primary space? ( "^" / "|" / "&" ) space? log:logical / pri:primary `
     case Node of
     [A,_,Type,_,{log,B}] ->
         case {Type, A, B} of
-        {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) ->
+        {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) ->
             Result = case Op of
                 <<"^">> -> trunc(An) bxor trunc(Bn);
                 <<"|">> -> trunc(An) bor trunc(Bn);
@@ -666,7 +677,7 @@ throw_error(Error, Index, Data) ->
     Size = min(byte_size(Output), 20),
     throw({error, Error, Index, <<Output:Size/binary, "...">>}).
 
-get_print({Type, Value}, Index) when
+get_print({Type, Value, _}, Index) when
         Type =:= int; Type =:= float; Type =:= text ->
     #print_text{text=ephp_util:to_bin(Value), line=Index};
 get_print(Value, Index) when is_atom(Value) ->
