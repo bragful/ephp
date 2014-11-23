@@ -11,6 +11,7 @@
     compile/1,
     run/2,
     eval/2,
+    eval/3,
 
     main/1   %% for escriptize
 ]).
@@ -102,9 +103,20 @@ run(Context, Compiled) ->
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
 
 eval(Context, PHP) ->
-    case ephp_parser:parse(PHP) of
-        {_,Code,{{line,Line},{column,Col}}} ->
-            {error, {Code,Line,Col}};
+    eval(<<"-">>, Context, PHP).
+
+-spec eval(Filename :: binary(), Context :: context(),
+        PHP :: string() | binary()) -> 
+    {ok, Result :: binary()} | {error, Reason :: reason()} | 
+    {error,{Code::binary(), Line::integer(), Col::integer()}}.
+
+eval(Filename, Context, PHP) ->
+    case catch ephp_parser:parse(PHP) of
+        {eparse, Line} ->
+            ErrorText = io_lib:format("~nParse Error: parse error in ~s "
+                "on line ~p~n",
+                [Filename, ephp_util:get_line(Line)]),
+            {ok, ErrorText};
         Compiled ->
             ephp_interpr:process(Context, Compiled)
     end.
@@ -116,8 +128,9 @@ main([Filename]) ->
     {ok, Content} ->
         % eprof:start(),
         % eprof:start_profiling([self()]),
-        {ok, Ctx} = context_new(list_to_binary(filename:absname(Filename))),
-        {ok, Result} = eval(Ctx, Content),
+        AbsFilename = list_to_binary(filename:absname(Filename)),
+        {ok, Ctx} = context_new(AbsFilename),
+        {ok, Result} = eval(AbsFilename, Ctx, Content),
         io:format("~s", [Result]),
         % eprof:stop_profiling(),
         % eprof:analyze(total),

@@ -67,12 +67,13 @@ comment <- comment_shell / comment_c / comment_cpp ~;
 
 %% Statements and Blocks
 
-statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
+statements <- (comment / statement / literal_block / error:(.*)) ( space? (comment / statement / literal_block) )* `
     [Statement, StatementsRaw] = Node,
-    NewStatement = if
-        is_tuple(Statement) -> [Statement];
-        is_atom(Statement) -> [Statement];
-        true -> Statement
+    NewStatement = case Statement of
+        {error, _} -> throw({eparse, Index});
+        Statement when is_tuple(Statement) -> [Statement];
+        Statement when is_atom(Statement) -> [Statement];
+        _ -> Statement
     end,
     Statements = [ S || [_,S] <- StatementsRaw ],
     lists:flatmap(fun(S) -> 
