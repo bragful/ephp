@@ -12,16 +12,16 @@ document <- (!init_tag .)* code literal_block? / (!init_tag .)+ `
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
                 init_tag when Code =:= [] -> [];
-                init_tag -> #eval{statements=Code};
+                init_tag -> #eval{statements=Code, line=Index};
                 init_tag_value -> Code
             end,
             case iolist_to_binary(TextLeft) of
                 <<>> -> [];
-                FinalText -> [#print_text{text=FinalText}]
+                FinalText -> [#print_text{text=FinalText, line=Index}]
             end ++
             lists:flatten([Label|Chunk]);
         Text ->
-            [#print_text{text=iolist_to_binary(Text)}]
+            [#print_text{text=iolist_to_binary(Text), line=Index}]
     end
 `;
 
@@ -34,7 +34,7 @@ code_normal <- init_tag_code space? statements space? `
 
 code_expr <- init_value space? expression space? (literal_block / end_tag)+ `
     [Init,_,CodeOne,_,End] = Node,
-    Code = [ print(CodeOne) | End ],
+    Code = [ get_print(CodeOne, Index) | End ],
     [Init,Code,end_tag]
 `;
 
@@ -111,7 +111,7 @@ st_conditions <- conditions space? ';' `
 st_global <- global space var (',' space? var)* space? ';' `
     [_Global,_,Var,Vars|_] = Node,
     GVars = [ Var | [ V || [_,_,V] <- Vars ] ],
-    {global, GVars}
+    {global, GVars, Index}
 `;
 
 st_call_function <- call_function space? ';' `
@@ -120,7 +120,7 @@ st_call_function <- call_function space? ';' `
 
 st_include <- (include_once / include / require_once / require) space expression space? ';' `
     [Type,_,Expr|_] = Node,
-    {call, Type, [Expr]}
+    #call{name=Type, args=[Expr], line=Index}
 `;
 
 st_print <- (st_print_fun / st_print_old) space? ';' `
@@ -128,11 +128,11 @@ st_print <- (st_print_fun / st_print_old) space? ';' `
 `;
 
 st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
-    print(nth(5, Node))
+    get_print(nth(5, Node), Index)
 `;
 
 st_print_old <- (print / echo) space expression `
-    print(nth(3, Node))
+    get_print(nth(3, Node), Index)
 `;
 
 st_arith_mono <- arith_mono space? ';' `
@@ -141,8 +141,8 @@ st_arith_mono <- arith_mono space? ';' `
 
 st_return <- return (space? ( '(' space? )? expression ( space? ')' )?)? space? ';' `
     case Node of
-        [_Return,[_,_,Expr|_]|_] -> {return, Expr};
-        _ -> {return, undefined}
+        [_Return,[_,_,Expr|_]|_] -> {return, Expr, Index};
+        _ -> {return, undefined, Index}
     end
 `;
 
@@ -166,21 +166,24 @@ st_for <- for space? '(' space? for_assignments space? ';' space? conditions spa
         <<";">> -> undefined;
         _ -> Code
     end,
-    #for{init=Init,conditions=Cond,update=Update,loop_block=CodeBlock}
+    #for{init=Init,conditions=Cond,update=Update,loop_block=CodeBlock, line=Index}
 `;
 
 switch_case <- ((case space (number / expr_string)) / default) space? ':' space? statements `
     case Node of 
     [[_Case,_,Label],_,_,_,St] -> 
-        {switch_case, Label, St};
+        #switch_case{label=Label, code_block=St, line=Index};
     [_Default,_,_,_,St] ->
-        {default, St}
+        #switch_case{label=default, code_block=St, line=Index}
     end
 `;
 
 st_switch <- switch space? '(' space? expression_cond space? ')' space? '{' ( space? switch_case space?)+ space? '}' `
     [_Switch,_,_,_,Cond,_,_,_,_,Cases,_,_] = Node,
-    {switch, Cond, [ Case || [_,Case,_] <- Cases ]}
+    #switch{
+        condition=Cond,
+        cases=[ Case || [_,Case,_] <- Cases ],
+        line=Index}
 `;
 
 st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement / ';' / error:(.*) ) `
@@ -191,8 +194,8 @@ st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? sp
         _ -> ok
     end,
     case KeyOpt of
-        [] -> #foreach{iter=Element,elements=List,loop_block=St};
-        [_,Key,_,_] -> #foreach{kiter=Key,iter=Element,elements=List,loop_block=St}
+        [] -> #foreach{iter=Element,elements=List,loop_block=St, line=Index};
+        [_,Key,_,_] -> #foreach{kiter=Key,iter=Element,elements=List,loop_block=St, line=Index}
     end
 `;
 
@@ -202,7 +205,7 @@ st_do_while <- do space? ( code_block / statement / error:(.*) ) space? while sp
         {error,Data} -> throw_error(enostatement, Index, Data);
         _ -> ok
     end,
-    #while{type=post, conditions=Cond, loop_block=St}
+    #while{type=post, conditions=Cond, loop_block=St, line=Index}
 `;
 
 st_while <- while space? conditions_use space? ( code_block / statement / ';' / error:(.*) ) `
@@ -212,7 +215,7 @@ st_while <- while space? conditions_use space? ( code_block / statement / ';' / 
         <<";">> -> undefined;
         _ -> St
     end,
-    #while{type=pre, conditions=Cond, loop_block=CodeBlock}
+    #while{type=pre, conditions=Cond, loop_block=CodeBlock, line=Index}
 `;
 
 st_if <- st_if_else / st_if_simple ~;
@@ -226,7 +229,7 @@ st_if_else <- st_if_simple space? else space? ( code_block / statement / error:(
     IfBlock#if_block{false_block=if
         is_list(ElseSt) -> ElseSt;
         true -> [ElseSt]
-    end}
+    end, line=Index}
 `;
 
 st_if_simple <- if space? conditions_use space? ( code_block / statement / error:(.*) ) `
@@ -238,16 +241,16 @@ st_if_simple <- if space? conditions_use space? ( code_block / statement / error
     #if_block{conditions=Cond, true_block=if
         is_list(St) -> St;
         true -> [St]
-    end}
+    end, line=Index}
 `;
 
 st_function <- function space key space? '(' space? (var (space? ',' space? var)* space?)? ')' space? code_block `
     case Node of
         [_Func,_,Name,_,_,_,[],_,_,Code] ->
-            #function{name=Name, code=Code};
+            #function{name=Name, code=Code, line=Index};
         [_Func,_,Name,_,_,_,[Var,Vars,_],_,_,Code] ->
             Args = [Var | [ V || [_,_,_,V] <- Vars ]],
-            #function{name=Name, args=Args, code=Code}
+            #function{name=Name, args=Args, code=Code, line=Index}
     end
 `;
 
@@ -258,12 +261,13 @@ composed_assign <- var space? assign_op space? expression `
     #assign{variable=Var, expression = #operation{
         type=Type, 
         expression_left=Var, 
-        expression_right=Expr}}
+        expression_right=Expr,
+        line=Index}, line=Index}
 `;
 
 base_assign <- arith_mono / composed_assign / (var space? '=' space? (base_assign / expression)) `
     case Node of
-        [Var,_,_Eq,_,Expr] -> #assign{variable=Var, expression=Expr};
+        [Var,_,_Eq,_,Expr] -> #assign{variable=Var, expression=Expr, line=Index};
         MonoArith -> MonoArith
     end
 `;
@@ -282,7 +286,7 @@ conditions_use <- '(' space? conditions space? ')' `
 
 conditions <- condition space? nexo space? conditions / cs:condition `
     case Node of 
-        [A,_,Type,_,B] -> #operation{type=Type, expression_left=A, expression_right=B};
+        [A,_,Type,_,B] -> #operation{type=Type, expression_left=A, expression_right=B, line=Index};
         {cs, Param} -> Param
     end
 `;
@@ -292,7 +296,7 @@ condition <- primary_cond space? comparator space? cs:condition / not? pri:prima
         [A,_,Type,_,{cs,B}] -> #operation{type=Type, expression_left=A, expression_right=B};
         [Not, {pri, Param}] -> case Not of
             [] -> Param;
-            'not' -> {operation_not, Param}
+            'not' -> {operation_not, Param, Index}
         end
     end 
 `;
@@ -316,11 +320,13 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
     case Node of
         [Cond,_,_,_,St,[]] -> #if_block{
             conditions=Cond, 
-            true_block=St};
+            true_block=St,
+            line=Index};
         [Cond,_,_,_,St,[_,_,_,ElseSt]] -> #if_block{
             conditions=Cond, 
             true_block=St, 
-            false_block=ElseSt}
+            false_block=ElseSt,
+            line=Index}
     end
 `;
 
@@ -331,7 +337,7 @@ call_function <- (key / var) space? '(' (space? expression (space? ',' space? ex
         [Name,_,_,[],_,_] ->
             {Name, []}
     end,
-    {call, FuncName, Arguments}
+    #call{name=FuncName, args=Arguments, line=Index}
 `;
 
 % reserved words
@@ -398,8 +404,8 @@ space <- [ \t\n\s\r]+ ~;
 array_index <- arith_mono / ternary / string / additive ~;
 array_element <- (array_index space? '=>' space?)? expression `
     case Node of
-        [[I|_],Expr] -> #array_element{idx=I, element=Expr};
-        [[],Expr] -> #array_element{element=Expr}
+        [[I|_],Expr] -> #array_element{idx=I, element=Expr, line=Index};
+        [[],Expr] -> #array_element{element=Expr, line=Index}
     end
 `;
 
@@ -410,7 +416,7 @@ array_def_simple <- '[' space? array_element tail:( space? ',' space? array_elem
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
         [NewArrayElement|Elements]
     end, [], Tail),
-    #array{elements=[ArrayElement|ArrayElements]}
+    #array{elements=[ArrayElement|ArrayElements], line=Index}
 `;
 
 array_def_func <- array space? '(' space? array_element tail:( space? ',' space? array_element )* space? ')' `
@@ -418,7 +424,7 @@ array_def_func <- array space? '(' space? array_element tail:( space? ',' space?
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
          [NewArrayElement|Elements]
     end, [], Tail),
-    #array{elements=[ArrayElement|ArrayElements]}
+    #array{elements=[ArrayElement|ArrayElements], line=Index}
 `;
 
 number <- float / integer ~;
@@ -432,7 +438,7 @@ float <- '-'? space? [0-9]* '\.' [0-9]+ `
         <<"-">> -> -1;
         _ -> 1
     end,
-    #float{float=list_to_float(FloatStr) * S}
+    #float{float=list_to_float(FloatStr) * S, line=Index}
 `;
 
 integer <- '-'? space? [0-9]+ `
@@ -443,16 +449,16 @@ integer <- '-'? space? [0-9]+ `
         <<"-">> -> -1;
         _ -> 1
     end,
-    #int{int=list_to_integer(IntList) * S}
+    #int{int=list_to_integer(IntList) * S, line=Index}
 `;
 
 constant <- key `
     case Node of
         <<"__LINE__">> -> 
             {{line,Line},{column,_}} = Index,
-            #int{int=Line};
+            #int{int=Line, line=Index};
         _ -> 
-            #constant{name=Node}
+            #constant{name=Node, line=Index}
     end
 `;
 
@@ -464,17 +470,17 @@ var <- var_ref / var_array / var_simple ~;
 
 var_ref <- '&' (var_array / var_simple) `
     [_,Var] = Node,
-    {ref, Var}
+    #ref{var=Var, line=Index}
 `;
 
 var_array <- '$' key ('[' space? (array_index space?)? ']')+ `
     [_Dollar, Key, Indexes] = Node,
-    #variable{name=Key, idx=[ get_index(I) || [_,_,I,_] <- Indexes ]}
+    #variable{name=Key, idx=[ get_index(I) || [_,_,I,_] <- Indexes ], line=Index}
 `;
 
 var_simple <- '$' key `
     [_Dollar, Key] = Node,
-    #variable{name=Key}
+    #variable{name=Key, line=Index}
 `;
 
 
@@ -484,93 +490,105 @@ arith_params <- number / call_function / var / logic_mono / arith_mono ~;
 
 logic_mono <- mono_logic space? expression `
     [_Op, _, Expr] = Node,
-    {operation_bnot, Expr}
+    {operation_bnot, Expr, Index}
 `;
 
 arith_mono <- pre:(mono_aritmetic space? var) / post:(var space? mono_aritmetic) `
     case Node of
         {pre, [Type,_,Var]} -> 
             case Type of
-                <<"++">> -> {pre_incr, Var};
-                <<"--">> -> {pre_decr, Var}
+                <<"++">> -> {pre_incr, Var, Index};
+                <<"--">> -> {pre_decr, Var, Index}
             end;
         {post, [Var,_,Type]} ->
             case Type of
-                <<"++">> -> {post_incr, Var};
-                <<"--">> -> {post_decr, Var}
+                <<"++">> -> {post_incr, Var, Index};
+                <<"--">> -> {post_decr, Var, Index}
             end
     end
 `;
 
 additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
     case Node of 
-        [A,_,Type,_,B] ->
-            case {Type, A, B} of
-                {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) -> 
-                    Result = case Op of
-                        <<"+">> -> An + Bn;
-                        <<"-">> -> An - Bn;
-                        <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
-                        <<"*">> -> An * Bn;
-                        _ -> undefined
-                    end,
-                    if 
-                        is_integer(Result) -> #int{int=Result};
-                        is_float(Result) -> #float{float=Result};
-                        true -> #operation{
-                            type=Type, 
-                            expression_left=A, 
-                            expression_right=B}
-                    end; 
-                _ -> #operation{type=Type, expression_left=A, expression_right=B}
-            end;
-        {mul, Param} -> Param
+    [A,_,Type,_,B] ->
+        case {Type, A, B} of
+        {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) -> 
+            Result = case Op of
+                <<"+">> -> An + Bn;
+                <<"-">> -> An - Bn;
+                <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
+                <<"*">> -> An * Bn;
+                _ -> undefined
+            end,
+            if 
+                is_integer(Result) -> #int{int=Result, line=Index};
+                is_float(Result) -> #float{float=Result, line=Index};
+                true -> #operation{
+                    type=Type, 
+                    expression_left=A, 
+                    expression_right=B,
+                    line=Index}
+            end; 
+        _ ->
+            #operation{type=Type, expression_left=A, expression_right=B,
+                line=Index}
+        end;
+    {mul, Param} -> Param
     end
 `;
 
 multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logical `
     case Node of
-        [A,_,Type,_,{mul,B}] -> 
-            case {Type, A, B} of
-                {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) -> 
-                    Result = case Op of
-                        <<"+">> -> An + Bn;
-                        <<"-">> -> An - Bn;
-                        <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
-                        <<"*">> -> An * Bn;
-                        <<"%">> -> trunc(An) rem trunc(Bn);
-                        _ -> undefined
-                    end,
-                    if 
-                        is_integer(Result) -> #int{int=Result};
-                        is_float(Result) -> #float{float=Result};
-                        true -> #operation{type=Type, expression_left=A, expression_right=B}
-                    end; 
-                _ -> #operation{type=Type, expression_left=A, expression_right=B}
-            end;
-        {log, Param} -> Param
+    [A,_,Type,_,{mul,B}] -> 
+        case {Type, A, B} of
+        {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) -> 
+            Result = case Op of
+                <<"+">> -> An + Bn;
+                <<"-">> -> An - Bn;
+                <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
+                <<"*">> -> An * Bn;
+                <<"%">> -> trunc(An) rem trunc(Bn);
+                _ -> undefined
+            end,
+            if 
+                is_integer(Result) ->
+                    #int{int=Result, line=Index};
+                is_float(Result) ->
+                    #float{float=Result, line=Index};
+                true ->
+                    #operation{type=Type, expression_left=A,
+                        expression_right=B, line=Index}
+            end; 
+        _ ->
+            #operation{type=Type, expression_left=A, expression_right=B,
+                line=Index}
+        end;
+    {log, Param} -> Param
     end 
 `;
 
 logical <- primary space? ( "^" / "|" / "&" ) space? log:logical / pri:primary `
     case Node of
-        [A,_,Type,_,{log,B}] ->
-            case {Type, A, B} of
-                {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) ->
-                    Result = case Op of
-                        <<"^">> -> trunc(An) bxor trunc(Bn);
-                        <<"|">> -> trunc(An) bor trunc(Bn);
-                        <<"&">> -> trunc(An) band trunc(Bn);
-                        _ -> undefined
-                    end,
-                    if
-                        is_number(Result) -> #int{int=Result};
-                        true -> #operation{type=Type, expression_left=A, expression_right=B}
-                    end;
-                _ ->
-                    #operation{type=Type, expression_left=A, expression_right=B}
+    [A,_,Type,_,{log,B}] ->
+        case {Type, A, B} of
+        {Op, {_,An}, {_,Bn}} when is_number(An) andalso is_number(Bn) ->
+            Result = case Op of
+                <<"^">> -> trunc(An) bxor trunc(Bn);
+                <<"|">> -> trunc(An) bor trunc(Bn);
+                <<"&">> -> trunc(An) band trunc(Bn);
+                _ -> undefined
+            end,
+            if
+                is_number(Result) -> #int{int=Result, line=Index};
+                true -> #operation{type=Type, expression_left=A,
+                    expression_right=B, line=Index}
             end;
-        {pri, Param} -> Param
+        _ ->
+            #operation{type=Type, expression_left=A, expression_right=B,
+                line=Index}
+        end;
+    {pri, Param} ->
+        Param
     end
 `;
 
@@ -589,7 +607,7 @@ string <- string_fixed / string_parsed ~;
 
 string_fixed <- "'" (!"'" ("\\\\" / "\\'" / .))* "'" `
     [_,Text,_] = Node,
-    {text, parse_string(Text)}
+    #text{text=parse_string(Text), line=Index}
 `;
 
 string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
@@ -608,8 +626,8 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
         _ -> [parse_string(Text)|Total]
     end,
     case FinalText of
-        [<<_/binary>>=FT] -> {text, FT};
-        _ -> {text_to_process, FinalText}
+        [<<_/binary>>=FT] -> #text{text=FT, line=Index};
+        _ -> #text_to_process{text=FinalText, line=Index}
     end
 `;
 
@@ -626,14 +644,14 @@ concat <- concat_types (space? '\.' space? concat_types)+ `
     Result = lists:foldr(fun
         (String, []) -> 
             [String];
-        ({text,String}, [{text,PrevStr}|RestStr]) ->
-            [{text, <<String/binary, PrevStr/binary>>}|RestStr];
+        (#text{text=String}, [#text{text=PrevStr}|RestStr]) ->
+            [#text{text = <<String/binary, PrevStr/binary>>}|RestStr];
         (String, RestStr) ->
             [String|RestStr]
     end, [], ParsedStrings),
     case Result of
-        [{text, Str}] when is_binary(Str) -> {text, Str};
-        _ -> {concat, Result}
+        [#text{text=Str}=Text] when is_binary(Str) -> Text#text{line=Index};
+        _ -> #concat{texts=Result, line=Index}
     end
 `;
 
@@ -647,13 +665,13 @@ throw_error(Error, Index, Data) ->
     Size = min(byte_size(Output), 20),
     throw({error, Error, Index, <<Output:Size/binary, "...">>}).
 
-print({Type, Value}) when
+get_print({Type, Value}, Index) when
         Type =:= int; Type =:= float; Type =:= text ->
-    #print_text{text=ephp_util:to_bin(Value)};
-print(Value) when is_atom(Value) ->
-    #print_text{text=ephp_util:to_bin(Value)};
-print(Expr) ->
-    #print{expression=Expr}.
+    #print_text{text=ephp_util:to_bin(Value), line=Index};
+get_print(Value, Index) when is_atom(Value) ->
+    #print_text{text=ephp_util:to_bin(Value), line=Index};
+get_print(Expr, Index) ->
+    #print{expression=Expr, line=Index}.
 
 parse_string(Text) ->
     parse_string(iolist_to_binary(Text), <<>>).

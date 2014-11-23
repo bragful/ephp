@@ -25,26 +25,32 @@
 
 -type var_value() :: {variable(), mixed()}.
 
--type context() :: pid().
+-type context() :: reference().
 
 -type statement() :: tuple() | atom().
+-type statements() :: [statement()].
 
 -type expression() :: operation().
 
 -type reason() :: atom() | string().
 
+-type line() :: {{line, non_neg_integer()}, {column, non_neg_integer()}}.
+
 % main statements
 
 -record(eval, {
-    statements :: [statement()]
+    statements :: statements(),
+    line :: line()
 }).
 
 -record(print, {
-    expression :: expression()
+    expression :: expression(),
+    line :: line()
 }).
 
 -record(print_text, {
-    text :: binary()
+    text :: binary(),
+    line :: line()
 }).
 
 -type main_statement() :: #eval{} | #print{} | #print_text{}.
@@ -52,29 +58,48 @@
 % blocks
 
 -record(if_block, {
-    conditions :: [condition()],
-    true_block :: [statement()],
-    false_block :: [statement()]
+    conditions :: conditions(),
+    true_block :: statements(),
+    false_block :: statements(),
+    line :: line()
 }).
 
 -record(for, {
     init :: expression(),
-    conditions :: [condition()],
+    conditions :: conditions(),
     update :: expression(),
-    loop_block :: [statement()]
+    loop_block :: statements(),
+    line :: line()
 }).
 
 -record(while, {
     type :: (pre | post),
-    conditions :: [condition()],
-    loop_block :: [statement()]
+    conditions :: conditions(),
+    loop_block :: statements(),
+    line :: line()
 }).
 
 -record(foreach, {
     kiter :: variable(),
     iter :: variable(),
     elements :: variable(),
-    loop_block :: [statement()]
+    loop_block :: statements(),
+    line :: line()
+}).
+
+-record(switch_case, {
+    label :: default | mixed(),
+    code_block :: statements(),
+    line :: line()
+}).
+
+-type switch_case() :: #switch_case{}.
+-type switch_cases() :: [switch_case()].
+
+-record(switch, {
+    condition :: condition(),
+    cases :: switch_cases(),
+    line :: line()
 }).
 
 -type if_block() :: #if_block{}.
@@ -86,12 +111,14 @@
 -record(operation, {
     type :: binary() | atom(),
     expression_left :: variable(),
-    expression_right :: expression()
+    expression_right :: expression(),
+    line :: line()
 }).
 
 -type operation_not() :: {operation_not, condition()}.
 
 -type condition() :: expression() | operation().
+-type conditions() :: [condition()].
 
 -type operation() :: #operation{}.
 
@@ -99,51 +126,59 @@
 
 -type array_index() :: arith_mono() | ternary() | binary() | operation().
 
--type post_decr() :: {post_decr, variable()}.
--type pre_decr() :: {pre_decr, variable()}.
--type post_incr() :: {post_incr, variable()}.
--type pre_incr() :: {pre_incr, variable()}.
+-type post_decr() :: {post_decr, variable(), line()}.
+-type pre_decr() :: {pre_decr, variable(), line()}.
+-type post_incr() :: {post_incr, variable(), line()}.
+-type pre_incr() :: {pre_incr, variable(), line()}.
 
--type return() :: {return, expression()}.
+-type return() :: {return, expression(), line()}.
 
 -record(int, {
-    int :: integer()
+    int :: integer(),
+    line :: line()
 }).
 
 -record(float, {
-    float :: float()
+    float :: float(),
+    line :: line()
 }).
 
 -record(text, {
-    text :: binary()
+    text :: binary(),
+    line :: line()
 }).
 
 -record(text_to_process, {
-    text :: [expression() | variable() | binary()]
+    text :: [expression() | variable() | binary()],
+    line :: line()
 }).
 
 -record(constant, {
-    name :: binary()
+    name :: binary(),
+    line :: line()
 }).
 
 -type constant() :: #constant{}.
 
 -record(variable, {
     name :: binary(),
-    idx = [] :: [array_index()]
+    idx = [] :: [array_index()],
+    line :: line()
 }).
 
 -type variable() :: #variable{}.
 
 -record(array_element, {
     idx = auto :: auto | expression(),
-    element :: expression()
+    element :: expression(),
+    line :: line()
 }).
 
 -type array_element() :: #array_element{}.
 
 -record(array, {
-    elements = [] :: [array_element()]
+    elements = [] :: [array_element()],
+    line :: line()
 }).
 
 -type php_array() :: #array{}.
@@ -152,18 +187,31 @@
 
 -record(assign, {
     variable :: variable(),
-    expression :: expression()
+    expression :: expression(),
+    line :: line()
 }).
 
 -record(call, {
     name :: binary(),
-    args = [] :: [expression()]
+    args = [] :: [expression()],
+    line :: line()
 }).
 
 -record(function, {
     name :: binary(),
     args = [] :: [variable()],
-    code :: [statement()]
+    code :: statements(),
+    line :: line()
+}).
+
+-record(ref, {
+    var :: variable(),
+    line :: line()
+}).
+
+-record(concat, {
+    texts :: [any()],
+    line :: line()
 }).
 
 % variable values (ephp_vars)
@@ -173,6 +221,6 @@
 }).
 
 -record(var_ref, {
-    pid :: pid() | undefined,
+    pid :: reference() | undefined,
     ref :: #variable{} | undefined
 }).

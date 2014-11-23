@@ -6,7 +6,8 @@
     increment_code/1,
     to_bool/1,
     zero_if_undef/1,
-    pad_to_bin/2
+    pad_to_bin/2,
+    get_line/1
 ]).
 
 -include("ephp.hrl").
@@ -108,3 +109,8 @@ pad_to_bin(Num, Pad) when not is_binary(Num) ->
 
 pad_to_bin(Num, Pad) ->
     pad_to_bin(<<"0",Num/binary>>, Pad-1).
+
+-spec get_line(line()) -> non_neg_integer().
+
+get_line({{line, Line}, {column, _Column}}) ->
+    Line.

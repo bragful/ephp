@@ -219,7 +219,7 @@ resolve(false, State) ->
 resolve(null, State) -> 
     {undefined, State};
 
-resolve(#assign{variable=Var,expression={ref, RefVar}}, State) ->
+resolve(#assign{variable=Var,expression=#ref{var=RefVar}}, State) ->
     ephp_vars:ref(State#state.vars, Var, State#state.vars, RefVar),
     resolve(RefVar, State);
 
@@ -244,7 +244,7 @@ resolve(#text{text=Text}, State) ->
 resolve(#text_to_process{text=Texts}, State) ->
     resolve_txt(Texts, State);
 
-resolve({pre_incr, Var}, State) ->
+resolve({pre_incr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
@@ -265,7 +265,7 @@ resolve({pre_incr, Var}, State) ->
             {V, State}
     end;
 
-resolve({pre_decr, Var}, State) ->
+resolve({pre_decr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
@@ -277,7 +277,7 @@ resolve({pre_decr, Var}, State) ->
             {V, State}
     end;
 
-resolve({post_incr, Var}, State) ->
+resolve({post_incr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
@@ -298,7 +298,7 @@ resolve({post_incr, Var}, State) ->
             {V, State}
     end;
 
-resolve({post_decr, Var}, State) ->
+resolve({post_decr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath) of
         undefined -> 
@@ -310,7 +310,7 @@ resolve({post_decr, Var}, State) ->
             {V, State}
     end;
 
-resolve({operation_not, Expr}, State) ->
+resolve({operation_not, Expr, _Line}, State) ->
     EmptyArray = ?DICT:new(),
     case resolve(Expr, State) of
         {false, NewState} -> {true, NewState};
@@ -321,7 +321,7 @@ resolve({operation_not, Expr}, State) ->
         {_, NewState} -> {false, NewState}
     end;
 
-resolve({operation_bnot, Expr}, State) ->
+resolve({operation_bnot, Expr, _Line}, State) ->
     case resolve(Expr, State) of
         {Number, NewState} when is_integer(Number) -> {bnot(Number), NewState};
         {Number, NewState} when is_float(Number) -> {bnot(Number), NewState};
@@ -358,7 +358,7 @@ resolve(#array{elements=ArrayElements}, State) ->
     end, {0,?DICT:new(),State}, ArrayElements),
     {Array, NState};
 
-resolve({concat, Texts}, State) ->
+resolve(#concat{texts=Texts}, State) ->
     resolve_txt(Texts, State);
 
 resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
@@ -368,9 +368,7 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
 resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
     case ephp_func:get(Funcs, Fun) of
         error -> 
-            %% TODO: enhance the error handling!
-            io:format("~p~n", [{Fun, RawArgs}]),
-            throw(eundefun);
+            throw({eundefun, Fun});
         {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
@@ -399,7 +397,7 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs,const=Const}=
                 vars=NewVars,
                 global=Vars}),
             lists:foldl(fun
-                ({ref,VarRef}, [{VarName,_}|RestArgs]) ->
+                (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
                     ephp_vars:ref(NewVars, VarRef, Vars, VarName),
                     RestArgs;
                 (FuncArg, [{_,ArgVal}|RestArgs]) ->
@@ -409,9 +407,9 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs,const=Const}=
                     []
             end, Args, FuncArgs),
             OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
-            ephp_const:set(Const, <<"__FUNCTION__">>, Fun), 
+            ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
             Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {return, V} -> solve(SubContext, V);
+                {return, V, _Line} -> solve(SubContext, V);
                 _ -> null
             end,
             destroy(SubContext),
@@ -420,10 +418,10 @@ resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs,const=Const}=
             {Value, State}
     end;
 
-resolve({global, _Var}, #state{global=undefined}=State) ->
+resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
     {null, State};
 
-resolve({global, GVars}, #state{
+resolve({global, GVars,_Line}, #state{
         global=GlobalVars,
         vars=Vars}=State) ->
     lists:foreach(fun(GlobalVar) ->

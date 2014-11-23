@@ -87,14 +87,24 @@ run(Context, #eval{statements=Statements}) ->
             ResText = ephp_util:to_bin(Result),
             ephp_context:set_output(Context, ResText),
             false;
-        (#call{}=Call, false) ->
+        (#call{line=Line}=Call, false) ->
             try 
                 ephp_context:solve(Context, Call),
                 false
             catch
-                throw:die -> {return, null}
+                throw:die ->
+                    {return, null, Line};
+                throw:{eundefun, Fun} ->
+                    %% TODO: format better the output errors
+                    File = ephp_context:get_const(Context, <<"__FILE__">>),
+                    Error = io_lib:format(
+                        "~nFatal error: Call to undefined function ~s()"
+                        " in ~s on line ~p~n",
+                        [Fun, File, ephp_util:get_line(Line)]),
+                    ephp_context:set_output(Context, Error),
+                    {return, null, Line}
             end;
-        ({Op, _Var}=MonoArith, false) when 
+        ({Op, _Var, _Line}=MonoArith, false) when 
                 Op =:= pre_incr orelse 
                 Op =:= pre_decr orelse
                 Op =:= post_incr orelse
@@ -107,15 +117,15 @@ run(Context, #eval{statements=Statements}) ->
         (#function{name=Name, args=Args, code=Code}, Return) ->
             ephp_context:register_func(Context, Name, Args, Code),
             Return;
-        ({global, GlobalVar}, Return) ->
-            ephp_context:solve(Context, {global, GlobalVar}),
+        ({global, GlobalVar, Line}, Return) ->
+            ephp_context:solve(Context, {global, GlobalVar, Line}),
             Return;
         (break, false) ->
             break;
         (continue, false) ->
             continue;
-        ({return,Value}, false) ->
-            {return,Value};
+        ({return,Value,Line}, false) ->
+            {return,Value,Line};
         (_Statement, false) ->
             %% TODO: do better error handling
             io:format("FATAL: ~p~n", [_Statement]),
@@ -140,7 +150,7 @@ run_loop(PrePost, Context, Cond, Statements) ->
             run_loop(PrePost, Context, Cond, Statements);
         false ->
             case Break of 
-                {return,Ret} -> {return,Ret}; 
+                {return,Ret,Line} -> {return,Ret,Line};
                 _ -> false 
             end
         end;
@@ -170,7 +180,7 @@ run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements) ->
             run_foreach(Context, Key, Var, Elements, Statements);
         true ->
             case Break of 
-                {return,Ret} -> {return,Ret}; 
+                {return,Ret,Line} -> {return,Ret,Line};
                 _ -> false 
             end
     end.
