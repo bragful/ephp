@@ -11,7 +11,7 @@ document_parse_error <- .+ `
     throw({eparse, Index})
 `;
 
-document <- (!init_tag .)* code literal_block? / (!init_tag .)+ / init_tag document_parse_error `
+document <- (!init_tag .)* code literal_block? / (!init_tag .)+ / init_tag space? document_parse_error `
     case Node of 
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
