@@ -34,9 +34,8 @@ php_endtag_optional_test_() -> [
     ?_assertMatch(
         [#eval{statements=[#assign{variable=#variable{name = <<"a">>}, expression=#int{int=5}}]}],
         ?PARSE("<?php $a = 5;")),
-    % FIXME: it should be column=3 ... but it's very complex to fix it :-(
     ?_assertMatch(
-        {eparse,{{line,1},{column,1}}},
+        {eparse,{{line,1},{column,4}}},
         catch ?PARSE("<?=5 ")),
     ?_assertMatch(
         [#print_text{text = <<"5">>},#print_text{text = <<" Resultado">>}],
