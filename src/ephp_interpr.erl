@@ -94,7 +94,7 @@ run(Context, #eval{statements=Statements}) ->
             catch
                 throw:die ->
                     {return, null, Line};
-                throw:{eundefun, Fun} ->
+                throw:{error, eundefun, _, Fun} ->
                     %% TODO: format better the output errors
                     File = ephp_context:get_const(Context, <<"__FILE__">>),
                     Error = io_lib:format(

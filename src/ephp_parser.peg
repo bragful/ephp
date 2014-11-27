@@ -8,7 +8,7 @@ php <- document / '' `
 `;
 
 document_parse_error <- .+ `
-    throw({eparse, Index})
+    throw_error(eparse, Index, Input)
 `;
 
 document <- (!init_tag .)* code literal_block? / (!init_tag .)+ / init_tag space? document_parse_error `
@@ -105,13 +105,13 @@ literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (docu
 `;
 
 code_parse_error <- !'}' .* `
-    throw({eparse, Index})
+    throw_error(eparse, Index, Input)
 `;
 
 code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
     [_,_,Statement|_] = Node,
     case Statement of
-        {error,_} -> throw({eparse, Index});
+        {error, Data} -> throw_error(eparse, Index, Data);
         [St,_,_] -> St
     end
 `;
