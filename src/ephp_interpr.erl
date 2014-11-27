@@ -1,5 +1,4 @@
 -module(ephp_interpr).
--compile([warnings_as_errors]).
 
 -export([
     process/2,
