@@ -4,6 +4,7 @@
 
 @doc
 <a href="https://travis-ci.org/altenwald/ephp"><img src="https://api.travis-ci.org/altenwald/ephp.png?branch=master" alt="Build Status"/></a>
+<a href='https://coveralls.io/r/altenwald/ephp'><img src='https://coveralls.io/repos/altenwald/ephp/badge.png' alt='Coverage Status' /></a>
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 

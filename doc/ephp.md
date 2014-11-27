@@ -19,7 +19,7 @@
 
 
 <pre><code>
-values() = integer() | binary() | float() | dict()
+values() = integer() | binary() | float() | '?DICT_TYPE'
 </code></pre>
 
 
@@ -28,7 +28,7 @@ values() = integer() | binary() | float() | dict()
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#compile-1">compile/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-2">context_new/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td></td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_fun-4">register_fun/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#compile-1">compile/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-2">context_new/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td></td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_fun-4">register_fun/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -86,6 +86,17 @@ context_new(Filename::binary(), Dirname::binary()) -&gt; {ok, <a href="#type-con
 
 <pre><code>
 eval(Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, Reason::<a href="#type-reason">reason()</a>} | {error, {Code::binary(), Line::integer(), Col::integer()}}
+</code></pre>
+<br />
+
+
+<a name="eval-3"></a>
+
+### eval/3 ###
+
+
+<pre><code>
+eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, Reason::<a href="#type-reason">reason()</a>} | {error, {Code::binary(), Line::integer(), Col::integer()}}
 </code></pre>
 <br />
 
