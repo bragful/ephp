@@ -71,7 +71,7 @@ increment_code(Code) when is_binary(Code) ->
     end.
 
 -spec to_bool(Value :: undefined |
-    dict() | integer() | float() | string() | binary()) -> boolean().
+    dict:dict() | integer() | float() | string() | binary()) -> boolean().
 
 to_bool(undefined) -> false;
 
@@ -87,7 +87,7 @@ to_bool(_Other) -> true.
 
 
 -spec zero_if_undef(Value :: undefined | 
-    dict() | integer() | float() | string() | binary()) -> integer().
+    dict:dict() | integer() | float() | string() | binary()) -> integer().
 
 zero_if_undef(undefined) -> 0;
 
