@@ -523,58 +523,15 @@ arith_mono <- pre:(mono_aritmetic space? var) / post:(var space? mono_aritmetic)
 additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
     case Node of 
     [A,_,Type,_,B] ->
-        case {Type, A, B} of
-        {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) -> 
-            Result = case Op of
-                <<"+">> -> An + Bn;
-                <<"-">> -> An - Bn;
-                <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
-                <<"*">> -> An * Bn;
-                _ -> undefined
-            end,
-            if 
-                is_integer(Result) -> #int{int=Result, line=Index};
-                is_float(Result) -> #float{float=Result, line=Index};
-                true -> #operation{
-                    type=Type, 
-                    expression_left=A, 
-                    expression_right=B,
-                    line=Index}
-            end; 
-        _ ->
-            #operation{type=Type, expression_left=A, expression_right=B,
-                line=Index}
-        end;
+        get_op(Type, A, B, Index, Input);
     {mul, Param} -> Param
     end
 `;
 
 multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logical `
     case Node of
-    [A,_,Type,_,{mul,B}] -> 
-        case {Type, A, B} of
-        {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) -> 
-            Result = case Op of
-                <<"+">> -> An + Bn;
-                <<"-">> -> An - Bn;
-                <<"/">> -> if Bn == 0 -> throw(edivzero); true -> An / Bn end;
-                <<"*">> -> An * Bn;
-                <<"%">> -> trunc(An) rem trunc(Bn);
-                _ -> undefined
-            end,
-            if 
-                is_integer(Result) ->
-                    #int{int=Result, line=Index};
-                is_float(Result) ->
-                    #float{float=Result, line=Index};
-                true ->
-                    #operation{type=Type, expression_left=A,
-                        expression_right=B, line=Index}
-            end; 
-        _ ->
-            #operation{type=Type, expression_left=A, expression_right=B,
-                line=Index}
-        end;
+    [A,_,Type,_,{mul,B}] ->
+        get_op(Type, A, B, Index, Input);
     {log, Param} -> Param
     end 
 `;
@@ -582,23 +539,7 @@ multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logic
 logical <- primary space? ( "^" / "|" / "&" ) space? log:logical / pri:primary `
     case Node of
     [A,_,Type,_,{log,B}] ->
-        case {Type, A, B} of
-        {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) ->
-            Result = case Op of
-                <<"^">> -> trunc(An) bxor trunc(Bn);
-                <<"|">> -> trunc(An) bor trunc(Bn);
-                <<"&">> -> trunc(An) band trunc(Bn);
-                _ -> undefined
-            end,
-            if
-                is_number(Result) -> #int{int=Result, line=Index};
-                true -> #operation{type=Type, expression_left=A,
-                    expression_right=B, line=Index}
-            end;
-        _ ->
-            #operation{type=Type, expression_left=A, expression_right=B,
-                line=Index}
-        end;
+        get_op(Type, A, B, Index, Input);
     {pri, Param} ->
         Param
     end
@@ -684,6 +625,34 @@ get_print(Value, Index) when is_atom(Value) ->
     #print_text{text=ephp_util:to_bin(Value), line=Index};
 get_print(Expr, Index) ->
     #print{expression=Expr, line=Index}.
+
+get_op(Type, A, B, Index, Data) ->
+    case {Type, A, B} of
+    {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) -> 
+        Result = case Op of
+            <<"+">> -> An + Bn;
+            <<"-">> -> An - Bn;
+            <<"/">> -> if Bn == 0 -> throw_error(edivzero, Index, Data); true -> An / Bn end;
+            <<"*">> -> An * Bn;
+            <<"%">> -> trunc(An) rem trunc(Bn);
+            <<"^">> -> trunc(An) bxor trunc(Bn);
+            <<"|">> -> trunc(An) bor trunc(Bn);
+            <<"&">> -> trunc(An) band trunc(Bn);
+            _ -> undefined
+        end,
+        if 
+            is_integer(Result) ->
+                #int{int=Result, line=Index};
+            is_float(Result) ->
+                #float{float=Result, line=Index};
+            true ->
+                #operation{type=Type, expression_left=A,
+                    expression_right=B, line=Index}
+        end; 
+    _ ->
+        #operation{type=Type, expression_left=A, expression_right=B,
+            line=Index}
+    end.
 
 parse_string(Text) ->
     parse_string(iolist_to_binary(Text), <<>>).
