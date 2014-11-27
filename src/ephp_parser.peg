@@ -495,6 +495,18 @@ var_simple <- '$' key `
     #variable{name=Key, line=Index}
 `;
 
+enclosed_var <- enclosed_var_array / enclosed_var_simple ~;
+
+enclosed_var_array <- '$' '{' key ('[' space? (array_index space?)? ']')+ '}' `
+    [_Dollar,_,Key,Indexes,_] = Node,
+    #variable{name=Key, idx=[ get_index(I) || [_,_,I,_] <- Indexes ], line=Index}
+`;
+
+enclosed_var_simple <- '$' '{' key '}' `
+    [_Dollar,_,Key,_] = Node,
+    #variable{name=Key, line=Index}
+`;
+
 
 %% math operations
 
@@ -563,7 +575,7 @@ string_fixed <- "'" (!"'" ("\\\\" / "\\'" / .))* "'" `
     #text{text=parse_string(Text), line=Index}
 `;
 
-string_parsed <- '"' (!'"' ("\\\\" / '\\"' / var / .))* '"' `
+string_parsed <- '"' (!'"' ("\\\\" / '\\"' / enclosed_var / var / .))* '"' `
     [_,TextRaw,_] = Node,
     {Text,Total} = lists:foldr(fun
         ([[], <<L:1/binary>>], {Text,Total}) ->
