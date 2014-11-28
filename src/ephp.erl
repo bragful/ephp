@@ -52,7 +52,7 @@ context_new(Filename, Dirname) ->
 -spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.
 
-register_var(Ctx, _Var, _Value) when not is_pid(Ctx) ->
+register_var(Ctx, _Var, _Value) when not is_reference(Ctx) ->
     {error, enoctx};
 
 register_var(Ctx, Var, Value) when 
@@ -69,7 +69,7 @@ register_var(_Ctx, _Var, _Value) ->
     Ctx :: context(), PHPName :: binary(), 
     Module :: atom(), Fun :: atom()) -> ok | {error, reason()}.
 
-register_fun(Ctx, _PHPName, _Module, _Fun) when not is_pid(Ctx) ->
+register_fun(Ctx, _PHPName, _Module, _Fun) when not is_reference(Ctx) ->
     {error, enoctx};
 
 register_fun(Ctx, PHPName, Module, Fun) ->
