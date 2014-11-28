@@ -100,7 +100,7 @@ isset(Context::<a href="#type-context">context()</a>, Value::<a href="#type-var_
 
 
 <pre><code>
-print_r(Context::<a href="#type-context">context()</a>, Value::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+print_r(Context::<a href="#type-context">context()</a>, Value::<a href="#type-var_value">var_value()</a>) -&gt; boolean() | null | binary()
 </code></pre>
 <br />
 
@@ -133,7 +133,7 @@ unset(Context::<a href="#type-context">context()</a>, Var::<a href="#type-var_va
 
 
 <pre><code>
-var_dump(Context::<a href="#type-context">context()</a>, Value::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+var_dump(Context::<a href="#type-context">context()</a>, Value::<a href="#type-var_value">var_value()</a>) -&gt; null
 </code></pre>
 <br />
 

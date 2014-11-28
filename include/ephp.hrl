@@ -6,6 +6,12 @@
 %% FIXME: do a better way to do this:
 -define(IS_DICT(D), (is_list(D))).
 
+-ifdef(NEW_DICT_TYPE).
+-define(DICT_TYPE, (dict:dict())).
+-else.
+-define(DICT_TYPE, (dict())).
+-endif.
+
 -define(SETS, sets).
 
 % built-in modules

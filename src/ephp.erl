@@ -47,7 +47,7 @@ context_new(Filename, Dirname) ->
             Error
     end.
 
--type values() :: integer() | binary() | float() | dict().
+-type values() :: integer() | binary() | float() | ?DICT_TYPE.
 
 -spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.

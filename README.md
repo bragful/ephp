@@ -8,6 +8,7 @@ __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.co
 
 
 [![Build Status](https://api.travis-ci.org/altenwald/ephp.png?branch=master)](https://travis-ci.org/altenwald/ephp)
+[![Coverage Status](https://coveralls.io/repos/altenwald/ephp/badge.png)](https://coveralls.io/r/altenwald/ephp)
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
