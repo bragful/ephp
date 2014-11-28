@@ -421,18 +421,26 @@ array_element <- (array_index space? '=>' space?)? expression `
     end
 `;
 
-array_def <- array_def_func / array_def_simple ~;
+array_def <- array_def_func / array_def_func_empty / array_def_simple / array_def_simple_empty ~;
 
-array_def_simple <- '[' space? array_element tail:( space? ',' space? array_element )* space? ']' `
-    [_,_,ArrayElement,{tail,Tail},_,_] = Node,
+array_def_simple_empty <- '[' space? ']' `
+    #array{elements=[], line=Index}
+`;
+
+array_def_simple <- '[' space? array_element tail:( space? ',' space? array_element )* ','? space? ']' `
+    [_,_,ArrayElement,{tail,Tail}|_] = Node,
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
         [NewArrayElement|Elements]
     end, [], Tail),
     #array{elements=[ArrayElement|ArrayElements], line=Index}
 `;
 
-array_def_func <- array space? '(' space? array_element tail:( space? ',' space? array_element )* space? ')' `
-    [_Array,_,_,_,ArrayElement,{tail,Tail},_,_] = Node,
+array_def_func_empty <- array space? '(' space? ')' `
+    #array{elements=[], line=Index}
+`;
+
+array_def_func <- array space? '(' space? array_element tail:( space? ',' space? array_element )* ','? space? ')' `
+    [_Array,_,_,_,ArrayElement,{tail,Tail}|_] = Node,
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
          [NewArrayElement|Elements]
     end, [], Tail),
