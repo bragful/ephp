@@ -365,10 +365,10 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name=Name}, NewState);
 
-resolve(#call{name=Fun,args=RawArgs}, #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
+resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
     case ephp_func:get(Funcs, Fun) of
-        error -> 
-            throw({eundefun, Fun});
+        error ->
+            throw({error, eundefun, ephp_util:get_line(Index), Fun});
         {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
             {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
                 {A,NewState} = resolve(Arg,S),
