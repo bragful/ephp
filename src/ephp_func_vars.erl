@@ -172,7 +172,10 @@ var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) ->
 
 var_dump_fmt(Context, Value, Spaces) ->
     ?DICT:fold(fun(Key, Val, Res) ->
-        KeyBin = ephp_util:to_bin(Key),
+        KeyBin = if
+            not is_binary(Key) -> ephp_util:to_bin(Key);
+            true -> <<"\"", Key/binary, "\"">>
+        end,
         Res ++ case var_dump_fmt(Context, Val, <<Spaces/binary, ?SPACES_VD>>) of
             V when is_binary(V) -> 
                 [
