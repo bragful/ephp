@@ -26,6 +26,8 @@ code_to_test_() ->
     Codes = [
         "empty",
         "array_01",
+        "strings_01",
+        "template_01",
         "text_op"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).
