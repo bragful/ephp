@@ -20,7 +20,7 @@ eval(Filename) ->
 test_code(File) ->
     {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
     {ok, OutFile} = file:read_file(?CODE_PATH ++ File ++ ".out"),
-    ?_assertEqual(OutCode, OutFile).
+    ?_assertEqual(iolist_to_binary(OutCode), OutFile).
 
 code_to_test_() ->
     Codes = [
