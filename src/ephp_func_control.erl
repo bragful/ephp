@@ -32,9 +32,12 @@ include(Context, {_,File}) ->
     Code -> 
         OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
         ephp_context:register_const(Context, <<"__FILE__">>, File),
-        Res = ephp_interpr:process(Context, Code), 
+        {ok, Res} = ephp_interpr:process(Context, Code), 
         ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        Res
+        case Res of
+            {return, Value} -> Value;
+            _ -> null
+        end
     end.
 
 -spec include_once(Context :: context(), File :: var_value()) -> any().
@@ -42,12 +45,17 @@ include(Context, {_,File}) ->
 include_once(Context, {_,File}) ->
     case ephp_context:load_once(Context, File) of
     {error, _} -> null;
+    {return, true} ->
+        true;
     Code -> 
         OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
         ephp_context:register_const(Context, <<"__FILE__">>, File),
-        Res = ephp_interpr:process(Context, Code), 
+        {ok, Res} = ephp_interpr:process(Context, Code), 
         ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        Res
+        case Res of
+            {return, Value} -> Value;
+            _ -> null
+        end
     end.
 
 -spec require(Context :: context(), File :: var_value()) -> any().
@@ -58,9 +66,12 @@ require(Context, {_,File}) ->
     Code -> 
         OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
         ephp_context:register_const(Context, <<"__FILE__">>, File),
-        Res = ephp_interpr:process(Context, Code), 
+        {ok, Res} = ephp_interpr:process(Context, Code), 
         ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        Res
+        case Res of
+            {return, Value} -> Value;
+            _ -> null
+        end
     end.
 
 -spec require_once(Context :: context(), File :: var_value()) -> any().
@@ -68,12 +79,17 @@ require(Context, {_,File}) ->
 require_once(Context, {_,File}) ->
     case ephp_context:load_once(Context, File) of
     {error, _} -> throw(erequired);
+    {return, true} ->
+        true;
     Code -> 
         OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
         ephp_context:register_const(Context, <<"__FILE__">>, File),
-        Res = ephp_interpr:process(Context, Code), 
+        {ok, Res} = ephp_interpr:process(Context, Code), 
         ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        Res
+        case Res of
+            {return, Value} -> Value;
+            _ -> null
+        end
     end.
 
 %% ----------------------------------------------------------------------------

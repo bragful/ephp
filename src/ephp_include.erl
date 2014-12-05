@@ -27,33 +27,25 @@ start_link() ->
 load_once(Ref, Name) ->
     Inc = erlang:get(Ref),
     case ?DICT:find(Name, Inc) of
-    {ok, Value} ->
-        Value;
+    {ok, _Value} ->
+        {return, true};
     error ->
-        try
-            {ok, Content} = file:read_file(Name),
-            Value = ephp_parser:parse(Content),
-            erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
-            Value
-        catch
-            _:Reason -> {error, Reason}
-        end
+        {ok, Content} = file:read_file(Name),
+        Value = ephp_parser:parse(Content),
+        erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
+        Value
     end.
 
 load(Ref, Name) ->
     Inc = erlang:get(Ref),
     case ?DICT:find(Name, Inc) of
-    {ok, _Value} ->
-        {error, duplicated};
+    {ok, Value} ->
+        Value;
     error ->
-        try
-            {ok, Content} = file:read_file(Name),
-            Value = ephp_parser:parse(Content),
-            erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
-            Value
-        catch
-            _:Reason -> {error, Reason}
-        end
+        {ok, Content} = file:read_file(Name),
+        Value = ephp_parser:parse(Content),
+        erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
+        Value
     end.
 
 destroy(Inc) ->

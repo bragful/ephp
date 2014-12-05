@@ -8,16 +8,23 @@
 -include("ephp.hrl").
 
 -spec process(Context :: context(), Statements :: [main_statement()]) -> 
-    {ok, binary()}.
+    {ok, binary(), return() | false}.
 
 process(_Context, []) ->
     {ok, <<>>};
 
 process(Context, Statements) ->
-    lists:foreach(fun(Statement) ->
-        run(Context, Statement)
-    end, Statements),
-    {ok, ephp_context:get_output(Context)}.
+    Value = lists:foldl(fun
+        (Statement, false) ->
+            run(Context, Statement);
+        (_Statement, break) ->
+            throw(enobreak);
+        (_Statement, continue) ->
+            throw(enobreak);
+        (_Statement, {return, Value}) ->
+            {return, Value}
+    end, false, Statements),
+    {ok, Value}.
 
 -spec run(Context :: context(), Statements :: main_statement()) ->
     break | continue | return() | false.
@@ -92,7 +99,7 @@ run(Context, #eval{statements=Statements}) ->
                 false
             catch
                 throw:die ->
-                    {return, null, Line};
+                    {return, null};
                 throw:{error, eundefun, _, Fun} ->
                     %% TODO: format better the output errors
                     File = ephp_context:get_const(Context, <<"__FILE__">>),
@@ -101,7 +108,7 @@ run(Context, #eval{statements=Statements}) ->
                         " in ~s on line ~p~n",
                         [Fun, File, ephp_util:get_line(Line)]),
                     ephp_context:set_output(Context, Error),
-                    {return, null, Line}
+                    {return, null}
             end;
         ({Op, _Var, _Line}=MonoArith, false) when 
                 Op =:= pre_incr orelse 
@@ -123,8 +130,19 @@ run(Context, #eval{statements=Statements}) ->
             break;
         (continue, false) ->
             continue;
-        ({return,Value,Line}, false) ->
-            {return,Value,Line};
+        ({return,Value,_Line}, false) ->
+            {return, ephp_context:solve(Context, Value)};
+        ({return,Value}, false) ->
+            {return, Value};
+        (#int{}, false) ->
+            false;
+        (#float{}, false) ->
+            false;
+        (#text{}, false) ->
+            false;
+        (#text_to_process{}=TP, false) ->
+            ephp_context:solve(Context, TP),
+            false; 
         (_Statement, false) ->
             %% TODO: do better error handling
             io:format("FATAL: ~p~n", [_Statement]),
@@ -149,7 +167,7 @@ run_loop(PrePost, Context, Cond, Statements) ->
             run_loop(PrePost, Context, Cond, Statements);
         false ->
             case Break of 
-                {return,Ret,Line} -> {return,Ret,Line};
+                {return,Ret} -> {return,Ret};
                 _ -> false 
             end
         end;
@@ -179,7 +197,7 @@ run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements) ->
             run_foreach(Context, Key, Var, Elements, Statements);
         true ->
             case Break of 
-                {return,Ret,Line} -> {return,Ret,Line};
+                {return,Ret} -> {return,Ret};
                 _ -> false 
             end
     end.

@@ -12,15 +12,25 @@ eval(Filename) ->
         {ok, Ctx} = ephp:context_new(AbsFilename),
         {ok, Output} = ephp_output:start_link(false),
         ephp_context:set_output_handler(Ctx, Output),
-        ephp:eval(AbsFilename, Ctx, Content);
+        {ok, Ret} = ephp:eval(AbsFilename, Ctx, Content),
+        {ok, ephp_context:get_output(Ctx), Ret};
     Error ->
         Error
     end.
 
 test_code(File) ->
-    {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
-    {ok, OutFile} = file:read_file(?CODE_PATH ++ File ++ ".out"),
-    ?_assertEqual(iolist_to_binary(OutCode), OutFile).
+    ?_assert(begin
+        try
+            {ok, OutCode, _Ret} = eval(?CODE_PATH ++ File ++ ".php"),
+            {ok, OutFile} = file:read_file(?CODE_PATH ++ File ++ ".out"),
+            ?assertEqual(iolist_to_binary(OutCode), OutFile),
+            true
+        catch Type:Reason ->
+            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n",
+                [File, Type, Reason]),
+            false
+        end
+    end).
 
 code_to_test_() ->
     Codes = [

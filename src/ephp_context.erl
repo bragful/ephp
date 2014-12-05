@@ -409,7 +409,7 @@ resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,co
             OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
             ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
             Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {return, V, _Line} -> solve(SubContext, V);
+                {return, V} -> V;
                 _ -> null
             end,
             destroy(SubContext),
@@ -434,6 +434,9 @@ resolve(#constant{name=Name}, #state{const=Const}=State) ->
 
 resolve(#print_text{text=Text}, #state{output=Output}=State) ->
     ephp_output:push(Output, Text),
+    {null, State};
+
+resolve(undefined, State) ->
     {null, State};
 
 resolve(auto, _State) ->
