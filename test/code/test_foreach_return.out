@@ -1,4 +1,3 @@
-
 <html>
 <head>
     <title>My Web Example</title>
@@ -9,8 +8,7 @@
         <th>Name</th>
         <th>Surname</th>
     </tr>
-    
-    <tr>
+        <tr>
         <td>Manuel</td>
         <td>Rubio</td>
     </tr>

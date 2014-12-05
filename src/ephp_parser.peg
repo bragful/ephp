@@ -51,7 +51,7 @@ init_common  <- '<\?php' `init_tag`;
 init_reduced <- '<\?'    `init_tag`;
 init_value   <- '<\?='   `init_tag_value`;
 
-end_tag      <- '\?>'    `end_tag`;
+end_tag      <- '\?>' [\n]?   `end_tag`;
 
 %% Comments
 

@@ -4,15 +4,12 @@
 </head>
 <body>
     <table>
-    
-    <tr>
+        <tr>
         <td>0</td>
     </tr>
-    
-    <tr>
+        <tr>
         <td>1</td>
     </tr>
-    
-</body>
+    </body>
 </html>
 
