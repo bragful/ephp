@@ -384,7 +384,7 @@ resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,co
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_mirror(NState),
-            Value = F([Mirror,Args]),
+            Value = F([Mirror|Args]),
             destroy(Mirror),
             {Value, NState};
         {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->
