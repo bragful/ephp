@@ -57,6 +57,14 @@ code_to_test_() ->
         "test_print_true",
         "test_include",
         "test_return_values",
-        "test_include_value"
+        "test_include_value",
+        "test_logic_bnot",
+        "test_logic",
+        "test_magic_constants",
+        "test_minus",
+        "test_nested",
+        "test_or_die",
+        "test_print_r",
+        "test_unset"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).

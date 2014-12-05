@@ -1,0 +1,17 @@
+<html>
+<head>
+    <title>My Web Example</title>
+</head>
+<body>
+    <pre>Array
+(
+    [0] => Array
+    (
+            [name] => Manuel
+            [surname] => Rubio
+    )
+)
+</pre>
+</body>
+</html>
+
