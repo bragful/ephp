@@ -127,15 +127,13 @@ eval(Filename, Context, PHP) ->
 main([Filename]) ->
     case file:read_file(Filename) of
     {ok, Content} ->
-        % eprof:start(),
-        % eprof:start_profiling([self()]),
+        start_profiling(),
         AbsFilename = list_to_binary(filename:absname(Filename)),
         {ok, Ctx} = context_new(AbsFilename),
         {ok, _Return} = eval(AbsFilename, Ctx, Content),
         Result = ephp_context:get_output(Ctx),
         io:format("~s", [Result]),
-        % eprof:stop_profiling(),
-        % eprof:analyze(total),
+        stop_profiling(),
         0;
     {error, enoent} ->
         io:format("File not found: ~s~n", [Filename]),
@@ -148,3 +146,24 @@ main([Filename]) ->
 main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
     -1.
+
+
+-ifdef(PROFILING).
+
+start_profiling() ->
+    eprof:start(),
+    eprof:start_profiling([self()]).
+
+stop_profiling() ->
+    eprof:stop_profiling(),
+    eprof:analyze(total).
+
+-else.
+
+start_profiling() ->
+    ok.
+
+stop_profiling() ->
+    ok.
+
+-endif.
