@@ -116,7 +116,8 @@ eval(Filename, Context, PHP) ->
             ErrorText = io_lib:format("~nParse Error: parse error in ~s "
                 "on line ~p~n",
                 [Filename, ephp_util:get_line(Line)]),
-            {ok, ErrorText};
+            ephp_context:set_output(Context, ErrorText), 
+            {ok, null};
         Compiled ->
             ephp_interpr:process(Context, Compiled)
     end.
