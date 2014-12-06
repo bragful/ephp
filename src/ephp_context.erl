@@ -235,6 +235,15 @@ resolve(#operation{}=Op, State) ->
 resolve(#int{int=Int}, State) -> 
     {Int, State};
 
+resolve(N, State) when is_number(N) ->
+    {N, State};
+
+resolve(S, State) when is_binary(S) ->
+    {S, State};
+
+resolve(A, State) when ?IS_DICT(A) ->
+    {A, State}; 
+
 resolve(#float{float=Float}, State) -> 
     {Float, State};
 

@@ -58,6 +58,31 @@ run(Context, #eval{statements=Statements}) ->
             _ ->
                 false
             end;
+        (#switch{condition=Cond, cases=Cases}, false) ->
+            lists:foldl(fun
+                (#switch_case{label=default, code_block=Code}, Flow)
+                        when Flow =/= false ->
+                    run(Context, #eval{statements=Code}),
+                    break;
+                (#switch_case{label=LabelValue}=Case, Flow)
+                        when Flow =/= false ->
+                    MatchValue = ephp_context:solve(Context, Cond),
+                    Op = #operation{
+                        type = <<"==">>,
+                        expression_left=MatchValue,
+                        expression_right=LabelValue},
+                    case ephp_context:solve(Context, Op) orelse Flow =/= match of
+                    true ->
+                        Break = run(Context, 
+                            #eval{statements=Case#switch_case.code_block}),
+                        Break =/= break;
+                    false ->
+                        match
+                    end;
+                (_SwitchCase, false) ->
+                    false
+            end, match, Cases),
+            false;
         (#for{init=Init,conditions=Cond,
                 update=Update,loop_block=LB}, false) ->
             run(Context, #eval{statements=Init}),
