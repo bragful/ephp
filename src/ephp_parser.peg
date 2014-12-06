@@ -130,9 +130,13 @@ st_call_function <- call_function space? ';' `
     head(Node)
 `;
 
-st_include <- (include_once / include / require_once / require) space expression space? ';' `
+include_call <- (include_once / include / require_once / require) space expression `
     [Type,_,Expr|_] = Node,
     #call{name=Type, args=[Expr], line=Index}
+`;
+
+st_include <- include_call space? ';' `
+    head(Node)
 `;
 
 st_print <- (st_print_fun / st_print_old) space? ';' `
@@ -324,7 +328,7 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 expression_cond <- array_def / expr_string / boolean / null / st_include / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
 
-expression <- array_def / expr_string / boolean / null / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
+expression <- array_def / expr_string / boolean / null / include_call / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
 
 %% Others
 
