@@ -30,10 +30,14 @@ load_once(Ref, Name) ->
     {ok, _Value} ->
         {return, true};
     error ->
-        {ok, Content} = file:read_file(Name),
-        Value = ephp_parser:parse(Content),
-        erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
-        Value
+        case file:read_file(Name) of
+        {error, enoent} ->
+            {error, enoent};
+        {ok, Content} -> 
+            Value = ephp_parser:parse(Content),
+            erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
+            Value
+        end
     end.
 
 load(Ref, Name) ->
@@ -42,10 +46,14 @@ load(Ref, Name) ->
     {ok, Value} ->
         Value;
     error ->
-        {ok, Content} = file:read_file(Name),
-        Value = ephp_parser:parse(Content),
-        erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
-        Value
+        case file:read_file(Name) of
+        {error, enoent} ->
+            {error, enoent};
+        {ok, Content} -> 
+            Value = ephp_parser:parse(Content),
+            erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
+            Value
+        end
     end.
 
 destroy(Inc) ->

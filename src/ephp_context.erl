@@ -375,7 +375,12 @@ resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,co
                 {Args ++ [{Arg,A}], NewState}
             end, {[], State}, RawArgs),
             {ok, Mirror} = start_mirror(NState),
-            Value = erlang:apply(M,F,[Mirror|Args]),
+            Value = try
+                erlang:apply(M,F,[Mirror|Args])
+            catch
+                throw:{erequired,File} -> 
+                    throw({error, erequired, ephp_util:get_line(Index), File})
+            end,
             destroy(Mirror),
             {Value, NState};
         {ok,#reg_func{type=builtin, builtin=F}} when is_function(F) -> 

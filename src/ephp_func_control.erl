@@ -62,7 +62,7 @@ include_once(Context, {_,File}) ->
 
 require(Context, {_,File}) ->
     case ephp_context:load(Context, File) of
-    {error, _} -> throw(erequired);
+    {error, _} -> throw({erequired, File});
     Code -> 
         OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
         ephp_context:register_const(Context, <<"__FILE__">>, File),

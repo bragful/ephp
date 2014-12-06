@@ -100,6 +100,14 @@ run(Context, #eval{statements=Statements}) ->
             catch
                 throw:die ->
                     {return, null};
+                throw:{error, erequired, Ln, ReqFile} ->
+                    File = ephp_context:get_const(Context, <<"__FILE__">>),
+                    Error = io_lib:format(
+                        "~nFatal error: require(): Failed opening required '~s'"
+                        " in ~s on line ~p~n",
+                        [ReqFile, File, Ln]),
+                    ephp_context:set_output(Context, Error),
+                    {return, null}; 
                 throw:{error, eundefun, _, Fun} ->
                     %% TODO: format better the output errors
                     File = ephp_context:get_const(Context, <<"__FILE__">>),
