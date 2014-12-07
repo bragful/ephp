@@ -12,6 +12,8 @@
     builtin :: {Module :: atom(), Func :: atom()} | function()
 }).
 
+-callback init(Context :: context()) -> ok.
+
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------

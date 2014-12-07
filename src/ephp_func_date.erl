@@ -1,6 +1,8 @@
 -module(ephp_func_date).
 -compile([warnings_as_errors]).
 
+-behaviour(ephp_func).
+
 -export([
     init/1,
     time/1,

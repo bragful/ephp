@@ -1,6 +1,8 @@
 -module(ephp_func_array).
 -compile([warnings_as_errors]).
 
+-behaviour(ephp_func).
+
 -export([
     init/1,
     in_array/3,

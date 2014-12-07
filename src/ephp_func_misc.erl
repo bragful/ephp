@@ -1,6 +1,8 @@
 -module(ephp_func_misc).
 -compile([warnings_as_errors]).
 
+-behaviour(ephp_func).
+
 -export([
     init/1,
     define/3,
