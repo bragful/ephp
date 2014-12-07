@@ -51,14 +51,12 @@ context_new(Filename, Dirname) ->
 -spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.
 
-register_var(Ctx, _Var, _Value) when not is_reference(Ctx) ->
-    {error, enoctx};
-
-register_var(Ctx, Var, Value) when 
-        is_integer(Value) orelse 
+register_var(Ctx, Var, Value) when
+        is_reference(Ctx) andalso 
+        (is_integer(Value) orelse 
         is_float(Value) orelse
         is_binary(Value) orelse
-        ?IS_DICT(Value) ->
+        ?IS_DICT(Value)) ->
     ephp_context:set(Ctx, #variable{name=Var}, Value);
 
 register_var(_Ctx, _Var, _Value) ->
