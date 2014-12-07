@@ -71,6 +71,7 @@ code_to_test_() ->
         "test_include_noparens",
         "test_switch",
         "test_array",
-        "test_require"
+        "test_require",
+        "test_string"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).
