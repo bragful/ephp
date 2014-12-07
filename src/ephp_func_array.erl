@@ -26,12 +26,6 @@ init(Context) ->
 
 -spec in_array(Context :: context(), Key :: var_value(), Array :: var_value()) -> boolean().
 
-in_array(_Context, {_,Values}, {_,Array}) when ?IS_DICT(Values) ->
-    ?DICT:fold(fun
-        (_K,_V,true) -> true;
-        (_K,V,false) -> member(V,Array)
-    end, false, Values);
-
 in_array(_Context, {_,Value}, {_,Array}) ->
     member(Value, Array).
 

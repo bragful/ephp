@@ -69,6 +69,7 @@ code_to_test_() ->
         "test_print_r",
         "test_unset",
         "test_include_noparens",
-        "test_switch"
+        "test_switch",
+        "test_array"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).
