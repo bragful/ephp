@@ -13,7 +13,9 @@ eval(Filename) ->
         {ok, Output} = ephp_output:start_link(false),
         ephp_context:set_output_handler(Ctx, Output),
         {ok, Ret} = ephp:eval(AbsFilename, Ctx, Content),
-        {ok, ephp_context:get_output(Ctx), Ret};
+        Out = ephp_context:get_output(Ctx),
+        ephp_context:destroy_all(Ctx), 
+        {ok, Out, Ret};
     Error ->
         Error
     end.
