@@ -6,7 +6,7 @@
     context_new/1,
     context_new/2,
     register_var/3,
-    register_fun/4,
+    register_func/4,
     register_module/2,
     run/2,
     eval/2,
@@ -64,14 +64,11 @@ register_var(Ctx, Var, Value) when
 register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
--spec register_fun(
+-spec register_func(
     Ctx :: context(), PHPName :: binary(), 
     Module :: atom(), Fun :: atom()) -> ok | {error, reason()}.
 
-register_fun(Ctx, _PHPName, _Module, _Fun) when not is_reference(Ctx) ->
-    {error, enoctx};
-
-register_fun(Ctx, PHPName, Module, Fun) ->
+register_func(Ctx, PHPName, Module, Fun) ->
     ephp_context:register_func(Ctx, PHPName, Module, Fun).
 
 -spec register_module(Ctx :: context(), Module :: atom()) -> ok.

@@ -25,7 +25,7 @@ init(Context) ->
     ],
     lists:foreach(fun(Func) ->
         Name = atom_to_binary(Func, utf8),
-        ephp_context:register_func(Context, Name, ?MODULE, Func)  
+        ephp:register_func(Context, Name, ?MODULE, Func)  
     end, Funcs), 
     ok. 
 
