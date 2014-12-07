@@ -587,11 +587,13 @@ string_fixed <- "'" (!"'" ("\\\\" / "\\'" / .))* "'" `
     #text{text=parse_fixed_string(Text), line=Index}
 `;
 
-string_parsed <- '"' (!'"' ("\\\\" / '\\"' / enclosed_var / var / .))* '"' `
+string_parsed <- '"' (!'"' ("\\\\" / '\\"' / '\\$' / enclosed_var / var / .))* '"' `
     [_,TextRaw,_] = Node,
     {Text,Total} = lists:foldr(fun
         ([[], <<L:1/binary>>], {Text,Total}) ->
             {<<L/binary,Text/binary>>,Total};
+        ([[], <<"\\$">>], {Text, Total}) ->
+            {<<"$",Text/binary>>, Total};
         ([[], Other], {Text,Total}) ->
             {<<>>, case Text of 
                 <<>> -> [Other|Total];
