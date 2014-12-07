@@ -7,6 +7,7 @@
     init/0,
     strlen/2,
     ord/2,
+    chr/2,
     implode/2,
     implode/3,
     join/2,
@@ -18,7 +19,7 @@
 -spec init() -> [ephp_func:php_function()].
 
 init() -> [
-    strlen, ord, implode, join
+    strlen, ord, chr, implode, join
 ]. 
 
 -spec strlen(Context :: context(), String :: var_value()) -> integer().
@@ -37,6 +38,14 @@ ord(_Context, {_,<<I:8/integer,_/binary>>}) ->
 
 ord(_Context, _Var) ->
     %% TODO: Warning: ord() expects parameter 1 to be string
+    null.
+
+-spec chr(Context :: context(), Integer :: var_value()) -> binary().
+
+chr(_Context, {_,C}) when is_integer(C) ->
+    <<C:8/integer>>;
+
+chr(_Context, _Var) ->
     null.
 
 -spec implode(Context :: context(), Glue :: var_value(), Pieces :: var_value()) -> binary().
