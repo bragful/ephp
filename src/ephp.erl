@@ -8,7 +8,6 @@
     register_var/3,
     register_fun/4,
     register_module/2,
-    compile/1,
     run/2,
     eval/2,
     eval/3,
@@ -79,18 +78,6 @@ register_fun(Ctx, PHPName, Module, Fun) ->
 
 register_module(Ctx, Module) ->
     Module:init(Ctx).
-
--spec compile(PHP :: binary() | string()) -> 
-    {ok, Result :: [statement()]} | {error, Reason :: reason()} | 
-    {error,{Code::binary(), Line::integer(), Col::integer()}}.
-
-compile(PHP) ->
-    case ephp_parser:parse(PHP) of
-        {_,Code,{{line,Line},{column,Col}}} ->
-            {error, {Code,Line,Col}};
-        Compiled ->
-            {ok, Compiled}
-    end.
 
 -spec run(Context :: context(), Compiled :: [statement()]) -> 
     {ok, binary()} | {error, Reason::reason()}.
