@@ -12,7 +12,9 @@
     builtin :: {Module :: atom(), Func :: atom()} | function()
 }).
 
--callback init(Context :: context()) -> ok.
+-type php_function() :: atom().
+
+-callback init() -> [php_function()].
 
 %% ------------------------------------------------------------------
 %% API Function Exports

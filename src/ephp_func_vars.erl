@@ -4,7 +4,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/1,
+    init/0,
     is_array/2,
     is_bool/2,
     is_integer/2,
@@ -22,18 +22,12 @@
 -define(SPACES, "    ").
 -define(SPACES_VD, "  ").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset,
-        var_dump
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset,
+    var_dump
+].
 
 -spec is_array(Context :: context(), Value :: var_value()) -> boolean().
 

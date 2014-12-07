@@ -4,7 +4,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/1,
+    init/0,
     include/2,
     include_once/2,
     require/2,
@@ -13,18 +13,12 @@
 
 -include("ephp.hrl").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        include, include_once,
-        require, require_once
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    include, include_once,
+    require, require_once
+]. 
 
 -spec include(Context :: context(), File :: var_value()) -> any().
 

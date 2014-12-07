@@ -4,7 +4,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/1,
+    init/0,
     in_array/3,
     count/2,
     sizeof/2
@@ -12,17 +12,13 @@
 
 -include("ephp.hrl").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        in_array, count, sizeof
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    in_array,
+    count,
+    sizeof
+]. 
 
 -spec in_array(Context :: context(), Key :: var_value(), Array :: var_value()) -> boolean().
 

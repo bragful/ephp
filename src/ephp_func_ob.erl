@@ -4,7 +4,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/1,
+    init/0,
     flush/1,
     ob_start/1,
     ob_flush/1,
@@ -17,19 +17,13 @@
 
 -include("ephp.hrl").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        flush, ob_start, ob_flush, ob_get_contents,
-        ob_get_length, ob_end_flush, ob_clean,
-        ob_end_clean
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    flush, ob_start, ob_flush, ob_get_contents,
+    ob_get_length, ob_end_flush, ob_clean,
+    ob_end_clean
+]. 
 
 -spec flush(Context :: context()) -> null.
 

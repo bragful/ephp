@@ -4,7 +4,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/1,
+    init/0,
     strlen/2,
     ord/2,
     implode/2,
@@ -15,17 +15,11 @@
 
 -include("ephp.hrl").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        strlen, ord, implode, join
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    strlen, ord, implode, join
+]. 
 
 -spec strlen(Context :: context(), String :: var_value()) -> integer().
 
