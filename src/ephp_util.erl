@@ -70,8 +70,10 @@ increment_code(Code) when is_binary(Code) ->
             <<H/binary, T:8/integer>>
     end.
 
--spec to_bool(Value :: undefined |
+-spec to_bool(Value :: undefined | boolean() |
     ?DICT_TYPE | integer() | float() | string() | binary()) -> boolean().
+
+to_bool(false) -> false;
 
 to_bool(undefined) -> false;
 

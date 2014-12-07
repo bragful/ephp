@@ -1,0 +1,12 @@
+$base => Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [3] => 4
+    [4] => 5
+)
+is 1 in array $base? yes
+is 8 in array $base? no
+how many elementas has $base? 5
+what's the size of $base? 5

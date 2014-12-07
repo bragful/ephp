@@ -571,4 +571,9 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, Sta
         <<"^">> -> OpRes1 bxor OpRes2;
         <<"|">> -> OpRes1 bor OpRes2;
         <<"&">> -> OpRes1 band OpRes2
-    end, State2}.
+    end, State2};
+
+resolve_op(Cond, State) ->
+    {Value, NewState} = resolve(Cond, State),
+    BoolValue = ephp_util:to_bool(Value),
+    {BoolValue, NewState}.
