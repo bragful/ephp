@@ -12,9 +12,11 @@ deps:
 compile: deps
 	./rebar compile skip_deps=true
 
-tests: deps
+test: deps
 	./rebar eunit skip_deps=true
 
 ephp: compile
 	./rebar escriptize skip_deps=true
+
+.PHONY: test compile force-deps all
 
