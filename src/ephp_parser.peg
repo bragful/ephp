@@ -83,8 +83,12 @@ literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (docu
     end
 `;
 
-code_block <- '{' space? statements space? '}' `
-    nth(3, Node)
+code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
+    [_,_,Statement|_] = Node,
+    case Statement of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        [St,_,_] -> St
+    end
 `;
 
 % Class definition
@@ -189,14 +193,6 @@ statement <- statement_controlflow / st_class / st_function / st_return / st_bre
 
 code_parse_error <- !'}' .* `
     throw_error(eparse, Index, Input)
-`;
-
-code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
-    [_,_,Statement|_] = Node,
-    case Statement of
-        {error, Data} -> throw_error(eparse, Index, Data);
-        [St,_,_] -> St
-    end
 `;
 
 st_conditions <- conditions space? ';' `
