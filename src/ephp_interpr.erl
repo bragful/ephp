@@ -1,5 +1,4 @@
 -module(ephp_interpr).
--compile([warnings_as_errors]).
 
 -export([
     process/2,
@@ -9,16 +8,23 @@
 -include("ephp.hrl").
 
 -spec process(Context :: context(), Statements :: [main_statement()]) -> 
-    {ok, binary()}.
+    {ok, binary(), return() | false}.
 
 process(_Context, []) ->
     {ok, <<>>};
 
 process(Context, Statements) ->
-    lists:foreach(fun(Statement) ->
-        run(Context, Statement)
-    end, Statements),
-    {ok, ephp_context:get_output(Context)}.
+    Value = lists:foldl(fun
+        (Statement, false) ->
+            run(Context, Statement);
+        (_Statement, break) ->
+            throw(enobreak);
+        (_Statement, continue) ->
+            throw(enobreak);
+        (_Statement, {return, Value}) ->
+            {return, Value}
+    end, false, Statements),
+    {ok, Value}.
 
 -spec run(Context :: context(), Statements :: main_statement()) ->
     break | continue | return() | false.
@@ -52,6 +58,31 @@ run(Context, #eval{statements=Statements}) ->
             _ ->
                 false
             end;
+        (#switch{condition=Cond, cases=Cases}, false) ->
+            lists:foldl(fun
+                (#switch_case{label=default, code_block=Code}, Flow)
+                        when Flow =/= false ->
+                    run(Context, #eval{statements=Code}),
+                    break;
+                (#switch_case{label=LabelValue}=Case, Flow)
+                        when Flow =/= false ->
+                    MatchValue = ephp_context:solve(Context, Cond),
+                    Op = #operation{
+                        type = <<"==">>,
+                        expression_left=MatchValue,
+                        expression_right=LabelValue},
+                    case ephp_context:solve(Context, Op) orelse Flow =/= match of
+                    true ->
+                        Break = run(Context, 
+                            #eval{statements=Case#switch_case.code_block}),
+                        Break =/= break;
+                    false ->
+                        match
+                    end;
+                (_SwitchCase, false) ->
+                    false
+            end, match, Cases),
+            false;
         (#for{init=Init,conditions=Cond,
                 update=Update,loop_block=LB}, false) ->
             run(Context, #eval{statements=Init}),
@@ -87,14 +118,32 @@ run(Context, #eval{statements=Statements}) ->
             ResText = ephp_util:to_bin(Result),
             ephp_context:set_output(Context, ResText),
             false;
-        (#call{}=Call, false) ->
+        (#call{line=Line}=Call, false) ->
             try 
                 ephp_context:solve(Context, Call),
                 false
             catch
-                throw:die -> {return, null}
+                throw:die ->
+                    {return, null};
+                throw:{error, erequired, Ln, ReqFile} ->
+                    File = ephp_context:get_const(Context, <<"__FILE__">>),
+                    Error = io_lib:format(
+                        "~nFatal error: require(): Failed opening required '~s'"
+                        " in ~s on line ~p~n",
+                        [ReqFile, File, Ln]),
+                    ephp_context:set_output(Context, Error),
+                    {return, null}; 
+                throw:{error, eundefun, _, Fun} ->
+                    %% TODO: format better the output errors
+                    File = ephp_context:get_const(Context, <<"__FILE__">>),
+                    Error = io_lib:format(
+                        "~nFatal error: Call to undefined function ~s()"
+                        " in ~s on line ~p~n",
+                        [Fun, File, ephp_util:get_line(Line)]),
+                    ephp_context:set_output(Context, Error),
+                    {return, null}
             end;
-        ({Op, _Var}=MonoArith, false) when 
+        ({Op, _Var, _Line}=MonoArith, false) when 
                 Op =:= pre_incr orelse 
                 Op =:= pre_decr orelse
                 Op =:= post_incr orelse
@@ -107,15 +156,26 @@ run(Context, #eval{statements=Statements}) ->
         (#function{name=Name, args=Args, code=Code}, Return) ->
             ephp_context:register_func(Context, Name, Args, Code),
             Return;
-        ({global, GlobalVar}, Return) ->
-            ephp_context:solve(Context, {global, GlobalVar}),
+        ({global, GlobalVar, Line}, Return) ->
+            ephp_context:solve(Context, {global, GlobalVar, Line}),
             Return;
         (break, false) ->
             break;
         (continue, false) ->
             continue;
+        ({return,Value,_Line}, false) ->
+            {return, ephp_context:solve(Context, Value)};
         ({return,Value}, false) ->
-            {return,Value};
+            {return, Value};
+        (#int{}, false) ->
+            false;
+        (#float{}, false) ->
+            false;
+        (#text{}, false) ->
+            false;
+        (#text_to_process{}=TP, false) ->
+            ephp_context:solve(Context, TP),
+            false; 
         (_Statement, false) ->
             %% TODO: do better error handling
             io:format("FATAL: ~p~n", [_Statement]),
@@ -140,7 +200,7 @@ run_loop(PrePost, Context, Cond, Statements) ->
             run_loop(PrePost, Context, Cond, Statements);
         false ->
             case Break of 
-                {return,Ret} -> {return,Ret}; 
+                {return,Ret} -> {return,Ret};
                 _ -> false 
             end
         end;
@@ -170,7 +230,7 @@ run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements) ->
             run_foreach(Context, Key, Var, Elements, Statements);
         true ->
             case Break of 
-                {return,Ret} -> {return,Ret}; 
+                {return,Ret} -> {return,Ret};
                 _ -> false 
             end
     end.

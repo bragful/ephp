@@ -12,6 +12,10 @@
     builtin :: {Module :: atom(), Func :: atom()} | function()
 }).
 
+-type php_function() :: atom().
+
+-callback init() -> [php_function()].
+
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------

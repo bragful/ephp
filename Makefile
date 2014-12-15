@@ -18,3 +18,5 @@ test: deps
 ephp: compile
 	./rebar escriptize skip_deps=true
 
+.PHONY: test compile force-deps all
+

@@ -1,0 +1,20 @@
+$base => Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [3] => 4
+    [4] => 5
+    [5] => Array
+    (
+            [0] => 8
+            [1] => 9
+    )
+)
+is 1 in array $base? yes
+is 8 in array $base? no
+is 2 and 3 in array $base? no
+is 5 and 8 in array $base? no
+is 8 and 9 in array $base? yes
+how many elementas has $base? 6
+what's the size of $base? 6

@@ -24,28 +24,28 @@ stop(Ctx) ->
     ephp_context:destroy(Ctx). 
 
 set_and_get_test(Ctx) -> [
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[]},10)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"b">>,[]},20)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"c">>,[]},undefined)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"d">>,[]},true)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"e">>,[]},false)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"a">>},10)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"b">>},20)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"c">>},undefined)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"d">>},true)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"e">>},false)),
 
-    ?_assertEqual(10, ephp_context:get(Ctx,{variable,<<"a">>,[]})),
-    ?_assertEqual(20, ephp_context:get(Ctx,{variable,<<"b">>,[]})),
-    ?_assertEqual(undefined, ephp_context:get(Ctx,{variable,<<"c">>,[]})),
-    ?_assertEqual(true, ephp_context:get(Ctx,{variable,<<"d">>,[]})),
-    ?_assertEqual(false, ephp_context:get(Ctx,{variable,<<"e">>,[]}))
+    ?_assertEqual(10, ephp_context:get(Ctx,#variable{name = <<"a">>})),
+    ?_assertEqual(20, ephp_context:get(Ctx,#variable{name = <<"b">>})),
+    ?_assertEqual(undefined, ephp_context:get(Ctx,#variable{name = <<"c">>})),
+    ?_assertEqual(true, ephp_context:get(Ctx,#variable{name = <<"d">>})),
+    ?_assertEqual(false, ephp_context:get(Ctx,#variable{name = <<"e">>}))
 ].
 
 set_and_get_array_test(Ctx) -> [
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{int,0}]},10)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{int,1}]},20)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{text,<<"hello">>}]},30)),
-    ?_assertEqual(ok, ephp_context:set(Ctx,{variable,<<"a">>,[{int,2},{int,0}]},40)),
-    ?_assertEqual(10, ephp_context:get(Ctx,{variable,<<"a">>,[0]})),
-    ?_assertEqual(20, ephp_context:get(Ctx,{variable,<<"a">>,[1]})),
-    ?_assertEqual(30, ephp_context:get(Ctx,{variable,<<"a">>,[<<"hello">>]})),
-    ?_assertEqual(40, ephp_context:get(Ctx,{variable,<<"a">>,[2,0]}))
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"a">>, idx=[#int{int=0}]},10)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"a">>, idx=[#int{int=1}]},20)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"a">>, idx=[#text{text = <<"hello">>}]},30)),
+    ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"a">>, idx=[#int{int=2},#int{int=0}]},40)),
+    ?_assertEqual(10, ephp_context:get(Ctx,#variable{name = <<"a">>, idx=[0]})),
+    ?_assertEqual(20, ephp_context:get(Ctx,#variable{name = <<"a">>, idx=[1]})),
+    ?_assertEqual(30, ephp_context:get(Ctx,#variable{name = <<"a">>, idx=[<<"hello">>]})),
+    ?_assertEqual(40, ephp_context:get(Ctx,#variable{name = <<"a">>, idx=[2,0]}))
 ].
 
 resolve_assign(Ctx) -> [
@@ -65,21 +65,23 @@ operation_test(Ctx) -> [
 ].
 
 arith_mono_test(Ctx) ->
-    Var = {variable,<<"a">>,[]}, [
+    Line = {{line,1}, {column,1}},
+    Var = #variable{name = <<"a">>}, [
     ?_assertEqual(ok, ephp_context:set(Ctx,Var,10)),
-    ?_assertEqual(11, ephp_context:solve(Ctx, {pre_incr, Var})),
-    ?_assertEqual(10, ephp_context:solve(Ctx, {pre_decr, Var})),
-    ?_assertEqual(10, ephp_context:solve(Ctx, {post_incr, Var})),
-    ?_assertEqual(11, ephp_context:solve(Ctx, {post_decr, Var})),
+    ?_assertEqual(11, ephp_context:solve(Ctx, {pre_incr, Var, Line})),
+    ?_assertEqual(10, ephp_context:solve(Ctx, {pre_decr, Var, Line})),
+    ?_assertEqual(10, ephp_context:solve(Ctx, {post_incr, Var, Line})),
+    ?_assertEqual(11, ephp_context:solve(Ctx, {post_decr, Var, Line})),
     ?_assertEqual(10, ephp_context:get(Ctx,Var))
 ].
 
-global_test(Ctx) -> 
-    Var = {variable,<<"a">>,[]},
+global_test(Ctx) ->
+    Line = {{line, 1}, {column, 1}},
+    Var = #variable{name = <<"a">>},
     {ok,SubCtx} = ephp_context:generate_subcontext(Ctx), [
-    ?_assertEqual(<<"hello">>, ephp_context:solve(Ctx, {assign, Var, {text, <<"hello">>}})),
-    ?_assertEqual(null, ephp_context:solve(SubCtx, {global, [Var]})),
-    ?_assertEqual(10, ephp_context:solve(SubCtx, {assign, Var, {int, 10}})),
-    ?_assertEqual(10, ephp_context:get(SubCtx, {variable, <<"a">>, []})),
-    ?_assertEqual(10, ephp_context:get(Ctx, {variable, <<"a">>, []}))
+    ?_assertEqual(<<"hello">>, ephp_context:solve(Ctx, #assign{variable=Var, expression=#text{text = <<"hello">>}})),
+    ?_assertEqual(null, ephp_context:solve(SubCtx, {global, [Var], Line})),
+    ?_assertEqual(10, ephp_context:solve(SubCtx, #assign{variable=Var, expression=#int{int=10}})),
+    ?_assertEqual(10, ephp_context:get(SubCtx, #variable{name = <<"a">>})),
+    ?_assertEqual(10, ephp_context:get(Ctx, #variable{name = <<"a">>}))
 ].

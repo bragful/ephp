@@ -6,7 +6,8 @@
     increment_code/1,
     to_bool/1,
     zero_if_undef/1,
-    pad_to_bin/2
+    pad_to_bin/2,
+    get_line/1
 ]).
 
 -include("ephp.hrl").
@@ -69,8 +70,10 @@ increment_code(Code) when is_binary(Code) ->
             <<H/binary, T:8/integer>>
     end.
 
--spec to_bool(Value :: undefined |
-    dict() | integer() | float() | string() | binary()) -> boolean().
+-spec to_bool(Value :: undefined | boolean() |
+    ?DICT_TYPE | integer() | float() | string() | binary()) -> boolean().
+
+to_bool(false) -> false;
 
 to_bool(undefined) -> false;
 
@@ -86,7 +89,7 @@ to_bool(_Other) -> true.
 
 
 -spec zero_if_undef(Value :: undefined | 
-    dict() | integer() | float() | string() | binary()) -> integer().
+    ?DICT_TYPE | integer() | float() | string() | binary()) -> integer().
 
 zero_if_undef(undefined) -> 0;
 
@@ -108,3 +111,8 @@ pad_to_bin(Num, Pad) when not is_binary(Num) ->
 
 pad_to_bin(Num, Pad) ->
     pad_to_bin(<<"0",Num/binary>>, Pad-1).
+
+-spec get_line(line()) -> non_neg_integer().
+
+get_line({{line, Line}, {column, _Column}}) ->
+    Line.

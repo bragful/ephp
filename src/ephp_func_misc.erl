@@ -1,8 +1,10 @@
 -module(ephp_func_misc).
 -compile([warnings_as_errors]).
 
+-behaviour(ephp_func).
+
 -export([
-    init/1,
+    init/0,
     define/3,
     sleep/2,
     usleep/2,
@@ -12,17 +14,11 @@
 
 -include("ephp.hrl").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        define, sleep, usleep, die, exit
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp_context:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    define, sleep, usleep, die, exit
+]. 
 
 -spec define(Context :: context(), Constant :: var_value(), 
     Content :: var_value()) -> boolean().

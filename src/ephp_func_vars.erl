@@ -1,8 +1,10 @@
 -module(ephp_func_vars).
 -compile([warnings_as_errors]).
 
+-behaviour(ephp_func).
+
 -export([
-    init/1,
+    init/0,
     is_array/2,
     is_bool/2,
     is_integer/2,
@@ -20,18 +22,12 @@
 -define(SPACES, "    ").
 -define(SPACES_VD, "  ").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset,
-        var_dump
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp_context:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset,
+    var_dump
+].
 
 -spec is_array(Context :: context(), Value :: var_value()) -> boolean().
 
@@ -57,7 +53,7 @@ is_integer(_Context, {_,Value}) when is_integer(Value) ->
 is_integer(_Context, _Value) ->
     false.
 
--spec print_r(Context :: context(), Value :: var_value()) -> boolean() | null | binary().
+-spec print_r(Context :: context(), Value :: var_value()) -> true | binary().
 
 print_r(_Context, {_,Value}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
@@ -69,27 +65,31 @@ print_r(Context, Value) ->
 -spec var_dump(Context :: context(), Value :: var_value()) -> null.
 
 var_dump(Context, {_,Value}) ->
-    Elements = var_dump_fmt(Context, Value, <<?SPACES_VD>>),
-    Data = lists:foldl(fun(Chunk,Total) ->
-        <<Total/binary, Chunk/binary>>
-    end, <<>>, Elements),
-    Size = ephp_util:to_bin(length(Value)),
-    Result = if ?IS_DICT(Value) ->
-        <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-    true ->
-        Data
+    Result = case var_dump_fmt(Context, Value, <<?SPACES_VD>>) of
+    Elements when is_list(Elements) ->
+        Data = lists:foldl(fun(Chunk,Total) ->
+            <<Total/binary, Chunk/binary>>
+        end, <<>>, Elements),
+        Size = ephp_util:to_bin(length(Value)),
+        if ?IS_DICT(Value) ->
+            <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
+        true ->
+            Data
+        end;
+    Element ->
+        Element
     end,
     ephp_context:set_output(Context, Result), 
     null.
 
--spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> null | binary().
+-spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> true | binary().
 
 print_r(_Context, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
 print_r(Context, {_,Value}, {_,false}) when not ?IS_DICT(Value) -> 
     ephp_context:set_output(Context, ephp_util:to_bin(Value)),
-    null;
+    true;
 
 print_r(Context, {_,Value}, {_,true}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
@@ -102,7 +102,7 @@ print_r(Context, {_,Value}, {_,false}) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
-    null.
+    true.
 
 -spec isset(Context :: context(), Value :: var_value()) -> boolean().
 
@@ -150,6 +150,12 @@ var_dump_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     Var = ephp_vars:get(VarPID, VarRef),
     var_dump_fmt(Context, Var, Spaces);
 
+var_dump_fmt(_Context, true, _Spaces) ->
+    <<"bool(true)\n">>;
+
+var_dump_fmt(_Context, false, _Spaces) ->
+    <<"bool(false)\n">>;
+
 var_dump_fmt(_Context, Value, _Spaces) when is_integer(Value) -> 
     <<"int(",(ephp_util:to_bin(Value))/binary, ")\n">>;
 
@@ -162,7 +168,10 @@ var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) ->
 
 var_dump_fmt(Context, Value, Spaces) ->
     ?DICT:fold(fun(Key, Val, Res) ->
-        KeyBin = ephp_util:to_bin(Key),
+        KeyBin = if
+            not is_binary(Key) -> ephp_util:to_bin(Key);
+            true -> <<"\"", Key/binary, "\"">>
+        end,
         Res ++ case var_dump_fmt(Context, Val, <<Spaces/binary, ?SPACES_VD>>) of
             V when is_binary(V) -> 
                 [

@@ -1,0 +1,15 @@
+<html>
+<head>
+    <title>My Web Example</title>
+</head>
+<body>
+    <table>
+    <tr>
+        <th>Name</th>
+        <th>Surname</th>
+    </tr>
+        <tr>
+        <td>Manuel</td>
+        <td>Rubio</td>
+    </tr>
+    

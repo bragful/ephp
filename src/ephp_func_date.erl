@@ -1,8 +1,10 @@
 -module(ephp_func_date).
 -compile([warnings_as_errors]).
 
+-behaviour(ephp_func).
+
 -export([
-    init/1,
+    init/0,
     time/1,
     date/2,
     date/3,
@@ -14,19 +16,13 @@
 
 -include("ephp.hrl").
 
--spec init(Context :: context()) -> ok.
+-spec init() -> [ephp_func:php_function()].
 
-init(Context) ->
-    Funcs = [
-        time, date, gmdate,
-        date_default_timezone_get,
-        date_default_timezone_set
-    ],
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp_context:register_func(Context, Name, ?MODULE, Func)  
-    end, Funcs), 
-    ok. 
+init() -> [
+    time, date, gmdate,
+    date_default_timezone_get,
+    date_default_timezone_set
+]. 
 
 -spec time(Context :: context()) -> integer().
 

@@ -6,11 +6,11 @@
     context_new/1,
     context_new/2,
     register_var/3,
-    register_fun/4,
+    register_func/4,
     register_module/2,
-    compile/1,
     run/2,
     eval/2,
+    eval/3,
 
     main/1   %% for escriptize
 ]).
@@ -46,50 +46,36 @@ context_new(Filename, Dirname) ->
             Error
     end.
 
--type values() :: integer() | binary() | float() | dict().
+-type values() :: integer() | binary() | float() | ?DICT_TYPE.
 
 -spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.
 
-register_var(Ctx, _Var, _Value) when not is_pid(Ctx) ->
-    {error, enoctx};
-
-register_var(Ctx, Var, Value) when 
-        is_integer(Value) orelse 
+register_var(Ctx, Var, Value) when
+        is_reference(Ctx) andalso 
+        (is_integer(Value) orelse 
         is_float(Value) orelse
         is_binary(Value) orelse
-        ?IS_DICT(Value) ->
+        ?IS_DICT(Value)) ->
     ephp_context:set(Ctx, #variable{name=Var}, Value);
 
 register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
--spec register_fun(
+-spec register_func(
     Ctx :: context(), PHPName :: binary(), 
     Module :: atom(), Fun :: atom()) -> ok | {error, reason()}.
 
-register_fun(Ctx, _PHPName, _Module, _Fun) when not is_pid(Ctx) ->
-    {error, enoctx};
-
-register_fun(Ctx, PHPName, Module, Fun) ->
+register_func(Ctx, PHPName, Module, Fun) ->
     ephp_context:register_func(Ctx, PHPName, Module, Fun).
 
 -spec register_module(Ctx :: context(), Module :: atom()) -> ok.
 
 register_module(Ctx, Module) ->
-    Module:init(Ctx).
-
--spec compile(PHP :: binary() | string()) -> 
-    {ok, Result :: [statement()]} | {error, Reason :: reason()} | 
-    {error,{Code::binary(), Line::integer(), Col::integer()}}.
-
-compile(PHP) ->
-    case ephp_parser:parse(PHP) of
-        {_,Code,{{line,Line},{column,Col}}} ->
-            {error, {Code,Line,Col}};
-        Compiled ->
-            {ok, Compiled}
-    end.
+    lists:foreach(fun(Func) ->
+        Name = atom_to_binary(Func, utf8),
+        ephp:register_func(Ctx, Name, Module, Func)
+    end, Module:init()).
 
 -spec run(Context :: context(), Compiled :: [statement()]) -> 
     {ok, binary()} | {error, Reason::reason()}.
@@ -102,9 +88,21 @@ run(Context, Compiled) ->
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
 
 eval(Context, PHP) ->
-    case ephp_parser:parse(PHP) of
-        {_,Code,{{line,Line},{column,Col}}} ->
-            {error, {Code,Line,Col}};
+    eval(<<"-">>, Context, PHP).
+
+-spec eval(Filename :: binary(), Context :: context(),
+        PHP :: string() | binary()) -> 
+    {ok, Result :: binary()} | {error, Reason :: reason()} | 
+    {error,{Code::binary(), Line::integer(), Col::integer()}}.
+
+eval(Filename, Context, PHP) ->
+    case catch ephp_parser:parse(PHP) of
+        {error, eparse, Line, _Text} ->
+            ErrorText = io_lib:format("~nParse Error: parse error in ~s "
+                "on line ~p~n",
+                [Filename, ephp_util:get_line(Line)]),
+            ephp_context:set_output(Context, ErrorText), 
+            {ok, null};
         Compiled ->
             ephp_interpr:process(Context, Compiled)
     end.
@@ -114,13 +112,13 @@ eval(Context, PHP) ->
 main([Filename]) ->
     case file:read_file(Filename) of
     {ok, Content} ->
-        % eprof:start(),
-        % eprof:start_profiling([self()]),
-        {ok, Ctx} = context_new(list_to_binary(filename:absname(Filename))),
-        {ok, Result} = eval(Ctx, Content),
+        start_profiling(),
+        AbsFilename = list_to_binary(filename:absname(Filename)),
+        {ok, Ctx} = context_new(AbsFilename),
+        {ok, _Return} = eval(AbsFilename, Ctx, Content),
+        Result = ephp_context:get_output(Ctx),
         io:format("~s", [Result]),
-        % eprof:stop_profiling(),
-        % eprof:analyze(total),
+        stop_profiling(),
         0;
     {error, enoent} ->
         io:format("File not found: ~s~n", [Filename]),
@@ -133,3 +131,24 @@ main([Filename]) ->
 main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
     -1.
+
+
+-ifdef(PROFILING).
+
+start_profiling() ->
+    eprof:start(),
+    eprof:start_profiling([self()]).
+
+stop_profiling() ->
+    eprof:stop_profiling(),
+    eprof:analyze(total).
+
+-else.
+
+start_profiling() ->
+    ok.
+
+stop_profiling() ->
+    ok.
+
+-endif.
