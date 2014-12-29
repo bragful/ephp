@@ -264,9 +264,24 @@
     type = normal :: normal | static | abstract,
     extends :: undefined | binary(),
     implements = [] :: [binary()],
-    constants = ?DICT:new() :: dict(),
+    constants = ?DICT:new() :: ?DICT_TYPE,
     attrs = [] :: [class_attr()],
-    methods = [] :: [class_method()]
+    methods = [] :: [class_method()],
+    line :: line()
 }).
 
 -type class() :: #class{}.
+
+-record(instance, {
+    name :: binary(),
+    args :: [variable()],
+    line :: line()
+}).
+
+-type instance() :: #instance{}.
+
+-record(reg_instance, {
+    class :: binary(),
+    instance :: instance(),
+    context = ?DICT:new() :: ?DICT_TYPE
+}).

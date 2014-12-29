@@ -14,13 +14,14 @@
 
 -record(state, {
     ref :: reference(),
-    vars :: pid(),
-    funcs :: pid(),
+    vars :: reference(),
+    funcs :: reference(),
+    class :: reference(),
     timezone = "Europe/Madrid" :: string(),
-    output :: pid(),
-    const :: pid(),
-    global :: pid(),
-    include :: pid()
+    output :: reference(),
+    const :: reference(),
+    global :: reference(),
+    include :: reference()
 }).
 
 %% ------------------------------------------------------------------
@@ -55,6 +56,8 @@
     load/2,
     load_once/2,
 
+    register_class/2,
+
     set_global/2,
     generate_subcontext/1
 ]).
@@ -69,10 +72,12 @@ start_link() ->
     {ok, Output} = ephp_output:start_link(),
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
+    {ok, Class} = ephp_class:start_link(),
     start_link(#state{
         ref = Ref,
         output = Output,
         funcs = Funcs,
+        class = Class,
         const = Const,
         include = Inc
     }).
@@ -143,29 +148,8 @@ register_const(Context, Name, Value) ->
     ok.
 
 call_func(Context, PHPFunc, Args) ->
-    #state{funcs=Funcs, const=Const} = erlang:get(Context),
-    case ephp_func:get(Funcs, PHPFunc) of
-    error ->
-        %% TODO: enhance the error handling!
-        io:format("~p~n", [{PHPFunc, Args}]),
-        throw(eundefun);
-    {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
-        fun(Ctx) -> 
-            erlang:apply(Module, Fun, [Ctx|Args]) 
-        end;
-    {ok, #reg_func{type=builtin, builtin=Fun}} ->
-        fun(Ctx) -> 
-            erlang:apply(Fun, [Ctx|Args]) 
-        end;
-    {ok, #reg_func{type=php, code=Code}} ->
-        fun(Ctx) ->
-            OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
-            ephp_const:set(Const, <<"__FUNCTION__">>, PHPFunc), 
-            Res = ephp_interpr:process(Ctx, Code),
-            ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc),
-            Res
-        end
-    end.
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:call(Funcs, PHPFunc, Args).
 
 get_tz(Context) ->
     #state{timezone=TZ} = erlang:get(Context),
@@ -202,6 +186,11 @@ load(Context, File) ->
 load_once(Context, File) ->
     #state{include=Inc} = erlang:get(Context),
     ephp_include:load_once(Inc, File).
+
+register_class(Context, Class) ->
+    #state{class=Classes} = erlang:get(Context),
+    ephp_class:register_class(Classes, Class),
+    ok. 
 
 set_global(Context, GlobalContext) ->
     State = erlang:get(Context),
@@ -385,61 +374,74 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
 
 resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
     case ephp_func:get(Funcs, Fun) of
-        error ->
-            throw({error, eundefun, ephp_util:get_line(Index), Fun});
-        {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
-            {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
-                {A,NewState} = resolve(Arg,S),
-                {Args ++ [{Arg,A}], NewState}
-            end, {[], State}, RawArgs),
-            {ok, Mirror} = start_mirror(NState),
-            Value = try
-                erlang:apply(M,F,[Mirror|Args])
-            catch
-                throw:{erequired,File} -> 
-                    throw({error, erequired, ephp_util:get_line(Index), File})
-            end,
-            destroy(Mirror),
-            {Value, NState};
-        {ok,#reg_func{type=builtin, builtin=F}} when is_function(F) -> 
-            {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
-                {A,NewState} = resolve(Arg,S),
-                {Args ++ [{Arg,A}], NewState}
-            end, {[], State}, RawArgs),
-            {ok, Mirror} = start_mirror(NState),
-            Value = F([Mirror|Args]),
-            destroy(Mirror),
-            {Value, NState};
-        {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->
-            {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
-                {A,NewState} = resolve(Arg,S),
-                {Args ++ [{Arg,A}], NewState}
-            end, {[], State}, RawArgs),
-            {ok, NewVars} = ephp_vars:start_link(),
-            {ok, SubContext} = start_mirror(NState#state{
-                vars=NewVars,
-                global=Vars}),
-            lists:foldl(fun
-                (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
-                    ephp_vars:ref(NewVars, VarRef, Vars, VarName),
-                    RestArgs;
-                (FuncArg, [{_,ArgVal}|RestArgs]) ->
-                    ephp_vars:set(NewVars, FuncArg, ArgVal),
-                    RestArgs;
-                (_FuncArg, []) ->
-                    []
-            end, Args, FuncArgs),
-            OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
-            ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
-            Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {return, V} -> V;
-                _ -> null
-            end,
-            destroy(SubContext),
-            ephp_vars:destroy(NewVars), 
-            ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc), 
-            {Value, State}
+    error ->
+        throw({error, eundefun, ephp_util:get_line(Index), Fun});
+    {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
+        {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+            {A,NewState} = resolve(Arg,S),
+            {Args ++ [{Arg,A}], NewState}
+        end, {[], State}, RawArgs),
+        {ok, Mirror} = start_mirror(NState),
+        Value = try
+            erlang:apply(M,F,[Mirror|Args])
+        catch
+            throw:{erequired,File} -> 
+                throw({error, erequired, ephp_util:get_line(Index), File})
+        end,
+        destroy(Mirror),
+        {Value, NState};
+    {ok,#reg_func{type=builtin, builtin=F}} when is_function(F) -> 
+        {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+            {A,NewState} = resolve(Arg,S),
+            {Args ++ [{Arg,A}], NewState}
+        end, {[], State}, RawArgs),
+        {ok, Mirror} = start_mirror(NState),
+        Value = F([Mirror|Args]),
+        destroy(Mirror),
+        {Value, NState};
+    {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->
+        {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+            {A,NewState} = resolve(Arg,S),
+            {Args ++ [{Arg,A}], NewState}
+        end, {[], State}, RawArgs),
+        {ok, NewVars} = ephp_vars:start_link(),
+        {ok, SubContext} = start_mirror(NState#state{
+            vars=NewVars,
+            global=Vars}),
+        lists:foldl(fun
+            (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
+                ephp_vars:ref(NewVars, VarRef, Vars, VarName),
+                RestArgs;
+            (FuncArg, [{_,ArgVal}|RestArgs]) ->
+                ephp_vars:set(NewVars, FuncArg, ArgVal),
+                RestArgs;
+            (_FuncArg, []) ->
+                []
+        end, Args, FuncArgs),
+        OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
+        ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
+        Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+            {return, V} -> V;
+            _ -> null
+        end,
+        destroy(SubContext),
+        ephp_vars:destroy(NewVars), 
+        ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc), 
+        {Value, State}
     end;
+
+resolve({object,Idx,Line}, State) ->
+    {{object,Idx,Line}, State};
+
+resolve(#instance{name=ClassName, args=RawArgs}=Ins,
+        #state{class=Classes,global=GlobalCtx}=State) ->
+    {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+        {A,NewState} = resolve(Arg,S),
+        {Args ++ [{Arg,A}], NewState}
+    end, {[], State}, RawArgs),
+    Instance = Ins#instance{args=Args},
+    Value = ephp_class:instance(Classes, GlobalCtx, ClassName, Args),
+    {Value#reg_instance{instance=Instance}, NState};
 
 resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
     {null, State};
@@ -474,6 +476,53 @@ resolve(Unknown, #state{}=State) ->
 
 resolve_var(#variable{idx=[]}=Var, State) ->
     {ephp_vars:get(State#state.vars, Var), State};
+
+resolve_var(#variable{idx=[{object,#call{args=RawArgs}=Call,_}]}=Var,
+        #state{const=Const, vars=Vars, class=Classes}=State) ->
+    {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
+        {A,NewState} = resolve(Arg,S),
+        {Args ++ [{Arg,A}], NewState}
+    end, {[], State}, RawArgs),
+    InstanceVar = Var#variable{idx=[]},
+    Instance = ephp_vars:get(NState#state.vars, InstanceVar),
+    ClassName = (Instance#reg_instance.instance)#instance.name,
+    #class_method{name=MethodName, args=MethodArgs, code=Code} =
+        ephp_class:get_method(Classes, ClassName, Call#call.name),
+
+    {ok, NewVars} = ephp_vars:start_link(),
+    {ok, SubContext} = start_mirror(NState#state{
+        vars=NewVars,
+        global=Vars}),
+    ephp_vars:ref(NewVars, #variable{name = <<"this">>}, Vars, InstanceVar), 
+    lists:foldl(fun
+        (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
+            ephp_vars:ref(NewVars, VarRef, Vars, VarName),
+            RestArgs;
+        (FuncArg, [{_,ArgVal}|RestArgs]) ->
+            ephp_vars:set(NewVars, FuncArg, ArgVal),
+            RestArgs;
+        (_FuncArg, []) ->
+            []
+    end, Args, MethodArgs),
+    OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
+    OldClass = ephp_const:get(Const, <<"__CLASSNAME__">>), 
+    ephp_const:set(Const, <<"__FUNCTION__">>, MethodName),
+    ephp_const:set(Const, <<"__CLASSNAME__">>, ClassName),
+    Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+        {return, V} -> V;
+        _ -> null
+    end,
+    destroy(SubContext),
+    ephp_vars:destroy(NewVars), 
+    ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc),
+    ephp_const:set(Const, <<"__CLASSNAME__">>, OldClass),
+    {Value, NState};
+
+resolve_var(#variable{idx=[{object,VarName,_}]}=Var, State)
+        when is_binary(VarName) -> 
+    Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
+    Context = Instance#reg_instance.context,
+    {ephp_context:get(Context, #variable{name=VarName}), State};
 
 resolve_var(#variable{idx=Indexes}=Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->

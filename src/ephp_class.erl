@@ -4,31 +4,6 @@
 
 -include("ephp.hrl").
 
--type access() :: public | private | protected.
-
--record(reg_method, {
-    name :: binary(),
-    args :: [variable()],
-    access :: access()
-}).
-
--type method() :: #reg_method{}.
-
--record(reg_interface, {
-    name :: binary(),
-    methods :: [method()]
-}).
-
--type interface() :: #reg_interface{}.
-
--record(reg_class, {
-    name :: binary(),
-    % this stores attribs, consts and methods:
-    context :: context(),
-    extends :: context(),
-    implements :: [interface()]
-}).
-
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
@@ -38,8 +13,10 @@
     destroy/1,
 
     get/2,
+    get_method/3,
 
-    register_class/3
+    register_class/2,
+    instance/4
 ]).
 
 %% ------------------------------------------------------------------
@@ -58,10 +35,31 @@ get(Ref, ClassName) ->
     Classes = erlang:get(Ref),
     ?DICT:find(ClassName, Classes).
 
-register_class(Ref, GlobalCtx, PHPClass, Extends, Implements) ->
-    {ok, Ctx} = ephp_context:start_link(),
-    ephp_context:set_global(Ctx, GlobalCtx),
+register_class(Ref, #class{name=Name}=PHPClass) ->
     Classes = erlang:get(Ref),
-    RegClass = #reg_class{name=PHPClass, context=Ctx},
-    erlang:put(Ref, ?DICT:store(PHPClass, RegClass, Classes)),
+    erlang:put(Ref, ?DICT:store(Name, PHPClass, Classes)),
     ok.
+
+instance(Ref, GlobalCtx, ClassName, Args) ->
+    case get(Ref, ClassName) of
+    error ->
+        %% TODO: enhance the error handling!
+        io:format("~p~n", [{ClassName, Args}]),
+        throw(eundefclass);
+    {ok, #class{name=ClassName}} ->
+        {ok, Ctx} = ephp_context:start_link(),
+        ephp_context:set_global(Ctx, GlobalCtx),
+        RegClass = #reg_instance{class=ClassName, context=Ctx},
+        %% TODO: initialize vars
+        %% TODO: run __construct
+        RegClass
+    end.
+
+get_method(Ref, ClassName, MethodName) ->
+    {ok, Class} = get(Ref, ClassName),
+    case lists:keyfind(MethodName, 2, Class#class.methods) of
+    false ->
+        throw(eundefmethod);
+    #class_method{}=ClassMethod ->
+        ClassMethod
+    end.

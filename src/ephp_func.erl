@@ -26,6 +26,9 @@
 
     get/2,
 
+    run/2,
+    call/3,
+
     register_func/3,
     register_func/4
 ]).
@@ -63,3 +66,53 @@ register_func(Ref, PHPFunc, Fun) ->
     RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin=Fun},
     erlang:put(Ref, ?DICT:store(PHPFunc, RegFunc, Funcs)),
     ok.
+
+run(Context, #call{line=Line}=Call) ->
+    try 
+        ephp_context:solve(Context, Call),
+        false
+    catch
+        throw:die ->
+            {return, null};
+        throw:{error, erequired, Ln, ReqFile} ->
+            File = ephp_context:get_const(Context, <<"__FILE__">>),
+            Error = io_lib:format(
+                "~nFatal error: require(): Failed opening required '~s'"
+                " in ~s on line ~p~n",
+                [ReqFile, File, Ln]),
+            ephp_context:set_output(Context, Error),
+            {return, null}; 
+        throw:{error, eundefun, _, Fun} ->
+            %% TODO: format better the output errors
+            File = ephp_context:get_const(Context, <<"__FILE__">>),
+            Error = io_lib:format(
+                "~nFatal error: Call to undefined function ~s()"
+                " in ~s on line ~p~n",
+                [Fun, File, ephp_util:get_line(Line)]),
+            ephp_context:set_output(Context, Error),
+            {return, null}
+    end.
+
+call(Funcs, PHPFunc, Args) ->
+    case get(Funcs, PHPFunc) of
+    error ->
+        %% TODO: enhance the error handling!
+        io:format("~p~n", [{PHPFunc, Args}]),
+        throw(eundefun);
+    {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
+        fun(Ctx) -> 
+            erlang:apply(Module, Fun, [Ctx|Args]) 
+        end;
+    {ok, #reg_func{type=builtin, builtin=Fun}} ->
+        fun(Ctx) -> 
+            erlang:apply(Fun, [Ctx|Args]) 
+        end;
+    {ok, #reg_func{type=php, code=Code}} ->
+        fun(Ctx) ->
+            OldFunc = ephp_context:get_const(Ctx, <<"__FUNCTION__">>),
+            ephp_context:register_const(Ctx, <<"__FUNCTION__">>, PHPFunc), 
+            Res = ephp_interpr:process(Ctx, Code),
+            ephp_context:register_const(Ctx, <<"__FUNCTION__">>, OldFunc),
+            Res
+        end
+    end.

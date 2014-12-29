@@ -118,31 +118,8 @@ run(Context, #eval{statements=Statements}) ->
             ResText = ephp_util:to_bin(Result),
             ephp_context:set_output(Context, ResText),
             false;
-        (#call{line=Line}=Call, false) ->
-            try 
-                ephp_context:solve(Context, Call),
-                false
-            catch
-                throw:die ->
-                    {return, null};
-                throw:{error, erequired, Ln, ReqFile} ->
-                    File = ephp_context:get_const(Context, <<"__FILE__">>),
-                    Error = io_lib:format(
-                        "~nFatal error: require(): Failed opening required '~s'"
-                        " in ~s on line ~p~n",
-                        [ReqFile, File, Ln]),
-                    ephp_context:set_output(Context, Error),
-                    {return, null}; 
-                throw:{error, eundefun, _, Fun} ->
-                    %% TODO: format better the output errors
-                    File = ephp_context:get_const(Context, <<"__FILE__">>),
-                    Error = io_lib:format(
-                        "~nFatal error: Call to undefined function ~s()"
-                        " in ~s on line ~p~n",
-                        [Fun, File, ephp_util:get_line(Line)]),
-                    ephp_context:set_output(Context, Error),
-                    {return, null}
-            end;
+        (#call{}=Call, false) ->
+            ephp_func:run(Context, Call);
         ({Op, _Var, _Line}=MonoArith, false) when 
                 Op =:= pre_incr orelse 
                 Op =:= pre_decr orelse
@@ -153,6 +130,9 @@ run(Context, #eval{statements=Statements}) ->
         (#operation{}=Op, false) ->
             ephp_context:solve(Context, Op),
             false;
+        (#class{}=Class, Return) ->
+            ephp_context:register_class(Context, Class),
+            Return;
         (#function{name=Name, args=Args, code=Code}, Return) ->
             ephp_context:register_func(Context, Name, Args, Code),
             Return;

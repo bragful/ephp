@@ -456,7 +456,7 @@ new_object <- new space key space? '(' (space? expression (space? ',' space? exp
         [_New,_,Name,_,_,[],_,_] ->
             {Name, []}
     end,
-    {instance, ObjName, Arguments}
+    #instance{name=ObjName, args=Arguments, line=Index}
 `;
 
 % reserved words
