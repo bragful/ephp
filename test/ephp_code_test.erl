@@ -72,6 +72,7 @@ code_to_test_() ->
         "test_switch",
         "test_array",
         "test_require",
-        "test_string"
+        "test_string",
+        "test_fib"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).
