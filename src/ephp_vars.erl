@@ -55,23 +55,26 @@ search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars) ->
 
 search(#variable{name=Root, idx=[]}, Vars) ->
     case ?DICT:find(Root, Vars) of
-        error ->
-            undefined;
-        {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
-            get(RefVarsPID, RefVar);
-        {ok, Value} ->
-            Value
+    error ->
+        undefined;
+    {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
+        get(RefVarsPID, RefVar);
+    {ok, Value} ->
+        Value
     end;
 
 search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
     case ?DICT:find(Root, Vars) of
-        {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
-            NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-            get(RefVarsPID, NewRefVar);
-        {ok, NewVars} -> 
-            search(#variable{name=NewRoot, idx=Idx}, NewVars);
-        _ -> 
-            undefined
+    {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+        NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
+        get(RefVarsPID, NewRefVar);
+    {ok, #reg_instance{context=Ctx}} ->
+        NewObjVar = #variable{name=NewRoot, idx=Idx},
+        get(Ctx, NewObjVar);
+    {ok, NewVars} -> 
+        search(#variable{name=NewRoot, idx=Idx}, NewVars);
+    _ -> 
+        undefined
     end.
 
 change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars) when ?IS_DICT(Value) ->
@@ -94,11 +97,24 @@ change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
         ?DICT:store(Root, Value, Vars)
     end;
 
+change(#variable{name=Root, idx=[{object,NewRoot}]}=_Var, Value, Vars) ->
+    {ok, #reg_instance{context=Ctx}} = ?DICT:find(Root, Vars),
+    ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
+    Vars;
+
+change(#variable{name=Root, idx=[{object,NewRoot}|Idx]}=_Var, Value, Vars) ->
+    {ok, #reg_instance{context=Ctx}} = ?DICT:find(Root, Vars),
+    ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
+    Vars;
+
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     case ?DICT:find(Root, Vars) of
     {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
         NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
         set(RefVarsPID, NewRefVar, Value),
+        Vars;
+    {ok, #reg_instance{context=Ctx}} ->
+        ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
         Vars;
     {ok, NewVars} when ?IS_DICT(NewVars) -> 
         ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);

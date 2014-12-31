@@ -155,7 +155,9 @@ run(Context, #eval{statements=Statements}) ->
             false;
         (#text_to_process{}=TP, false) ->
             ephp_context:solve(Context, TP),
-            false; 
+            false;
+        (#variable{idx=[{object,#call{},_}]}=Var, false) ->
+            ephp_context:solve(Context, Var);
         (_Statement, false) ->
             %% TODO: do better error handling
             io:format("FATAL: ~p~n", [_Statement]),

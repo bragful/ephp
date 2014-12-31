@@ -13,10 +13,11 @@
     destroy/1,
 
     get/2,
+    get_constructor/2,
     get_method/3,
 
     register_class/2,
-    instance/4
+    instance/3
 ]).
 
 %% ------------------------------------------------------------------
@@ -40,25 +41,41 @@ register_class(Ref, #class{name=Name}=PHPClass) ->
     erlang:put(Ref, ?DICT:store(Name, PHPClass, Classes)),
     ok.
 
-instance(Ref, GlobalCtx, ClassName, Args) ->
+instance(Ref, GlobalCtx, ClassName) ->
     case get(Ref, ClassName) of
     error ->
         %% TODO: enhance the error handling!
-        io:format("~p~n", [{ClassName, Args}]),
+        io:format("~p~n", [ClassName]),
         throw(eundefclass);
-    {ok, #class{name=ClassName}} ->
+    {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
         RegClass = #reg_instance{class=ClassName, context=Ctx},
-        %% TODO: initialize vars
-        %% TODO: run __construct
+        initialize(Ctx, Class),
         RegClass
     end.
 
-get_method(Ref, ClassName, MethodName) ->
-    {ok, Class} = get(Ref, ClassName),
-    case lists:keyfind(MethodName, 2, Class#class.methods) of
+initialize(Ctx, #class{attrs=Attrs}) ->
+    lists:foreach(fun(#class_attr{name=Name, init_value=RawVal}) ->
+        Val = ephp_context:solve(Ctx, RawVal), 
+        ephp_context:set(Ctx, #variable{name=Name}, Val)
+    end, Attrs).
+
+get_constructor(Ref, ClassName) ->
+    MethodName = <<"__construct">>,
+    {ok, #class{methods=Methods}} = get(Ref, ClassName),
+    case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
+        undefined;
+    #class_method{}=ClassMethod ->
+        ClassMethod
+    end.
+
+get_method(Ref, ClassName, MethodName) ->
+    {ok, #class{methods=Methods}} = get(Ref, ClassName),
+    case lists:keyfind(MethodName, #class_method.name, Methods) of
+    false ->
+        %% TODO: search "__call" method
         throw(eundefmethod);
     #class_method{}=ClassMethod ->
         ClassMethod

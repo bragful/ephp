@@ -55,10 +55,14 @@ Features
     - [x] return
     - [x] die / exit
 - OOP
-    - [ ] define class
-    - [ ] define methods public, private and/or protected
-    - [ ] define attributes public, private and/or protected
-    - [ ] define constants
+    - [x] define class
+    - [x] define methods
+    - [x] construct
+    - [ ] destroy (delete)
+    - [ ] check public, private and/or protected for methods
+    - [x] define attributes
+    - [ ] check public, private and/or protected for attributes
+    - [x] define constants
     - [ ] inheritance
     - [ ] implementations (or interfaces)
     - [ ] namespaces

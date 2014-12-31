@@ -433,15 +433,18 @@ resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,co
 resolve({object,Idx,Line}, State) ->
     {{object,Idx,Line}, State};
 
-resolve(#instance{name=ClassName, args=RawArgs}=Ins,
+resolve(#instance{name=ClassName, args=RawArgs}=Instance,
         #state{class=Classes,global=GlobalCtx}=State) ->
-    {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
-        {A,NewState} = resolve(Arg,S),
-        {Args ++ [{Arg,A}], NewState}
-    end, {[], State}, RawArgs),
-    Instance = Ins#instance{args=Args},
-    Value = ephp_class:instance(Classes, GlobalCtx, ClassName, Args),
-    {Value#reg_instance{instance=Instance}, NState};
+    Value = ephp_class:instance(Classes, GlobalCtx, ClassName),
+    Return = Value#reg_instance{instance = Instance},
+    case ephp_class:get_constructor(Classes, ClassName) of
+    undefined ->
+        {Return, State};
+    _ ->
+        Call = #call{name = <<"__construct">>, args=RawArgs},
+        {_, NState} = call_method(Return, ClassName, Call, State),
+        {Return, NState}
+    end;
 
 resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
     {null, State};
@@ -473,19 +476,12 @@ resolve(Unknown, #state{}=State) ->
     io:format("~p - ~p~n", [Unknown,State]),
     throw(eundeftoken).
 
-
-resolve_var(#variable{idx=[]}=Var, State) ->
-    {ephp_vars:get(State#state.vars, Var), State};
-
-resolve_var(#variable{idx=[{object,#call{args=RawArgs}=Call,_}]}=Var,
+call_method(RegInstance, ClassName, #call{args=RawArgs}=Call,
         #state{const=Const, vars=Vars, class=Classes}=State) ->
     {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
         {A,NewState} = resolve(Arg,S),
         {Args ++ [{Arg,A}], NewState}
     end, {[], State}, RawArgs),
-    InstanceVar = Var#variable{idx=[]},
-    Instance = ephp_vars:get(NState#state.vars, InstanceVar),
-    ClassName = (Instance#reg_instance.instance)#instance.name,
     #class_method{name=MethodName, args=MethodArgs, code=Code} =
         ephp_class:get_method(Classes, ClassName, Call#call.name),
 
@@ -493,7 +489,7 @@ resolve_var(#variable{idx=[{object,#call{args=RawArgs}=Call,_}]}=Var,
     {ok, SubContext} = start_mirror(NState#state{
         vars=NewVars,
         global=Vars}),
-    ephp_vars:ref(NewVars, #variable{name = <<"this">>}, Vars, InstanceVar), 
+    ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance), 
     lists:foldl(fun
         (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
             ephp_vars:ref(NewVars, VarRef, Vars, VarName),
@@ -516,7 +512,16 @@ resolve_var(#variable{idx=[{object,#call{args=RawArgs}=Call,_}]}=Var,
     ephp_vars:destroy(NewVars), 
     ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc),
     ephp_const:set(Const, <<"__CLASSNAME__">>, OldClass),
-    {Value, NState};
+    {Value, NState}.
+
+resolve_var(#variable{idx=[]}=Var, State) ->
+    {ephp_vars:get(State#state.vars, Var), State};
+
+resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
+    InstanceVar = Var#variable{idx=[]},
+    Instance = ephp_vars:get(State#state.vars, InstanceVar),
+    ClassName = (Instance#reg_instance.instance)#instance.name,
+    call_method(Instance, ClassName, Call, State);
 
 resolve_var(#variable{idx=[{object,VarName,_}]}=Var, State)
         when is_binary(VarName) -> 
@@ -550,6 +555,8 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
                 end, 0, Array)
             end,
             LIdx ++ [Value];
+        ({object,Name,_Line}, LIdx) when is_binary(Name) ->
+            LIdx ++ [{object,Name}];
         (Idx, LIdx) ->
             {Value, _Vars} = resolve(Idx, State),
             LIdx ++ [Value]
