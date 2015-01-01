@@ -50,7 +50,7 @@ instance(Ref, GlobalCtx, ClassName) ->
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
-        RegClass = #reg_instance{class=ClassName, context=Ctx},
+        RegClass = #reg_instance{class=Class, context=Ctx},
         initialize(Ctx, Class),
         RegClass
     end.

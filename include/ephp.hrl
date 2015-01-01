@@ -281,7 +281,7 @@
 -type instance() :: #instance{}.
 
 -record(reg_instance, {
-    class :: binary(),
+    class :: class(),
     instance :: instance(),
     context = ?DICT:new() :: ?DICT_TYPE
 }).
