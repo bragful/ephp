@@ -75,6 +75,7 @@ code_to_test_() ->
         "test_string",
         "test_fib",
         "test_class_basic",
-        "test_class_hello"
+        "test_class_hello",
+        "test_class_vardump"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).

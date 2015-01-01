@@ -1,0 +1,12 @@
+class User (2) {
+  public $name =>
+  string(4) "John"
+  public $surname =>
+  string(5) "Smith"
+}
+User Object
+(
+    [name] => John
+    [surname] => Smith
+)
+type => object
