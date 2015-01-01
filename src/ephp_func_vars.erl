@@ -55,6 +55,9 @@ is_integer(_Context, _Value) ->
 
 -spec print_r(Context :: context(), Value :: var_value()) -> true | binary().
 
+print_r(Context, {_,#reg_instance{}}=Vars) ->
+    print_r(Context, Vars, {false,false});
+
 print_r(_Context, {_,Value}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
@@ -70,9 +73,19 @@ var_dump(Context, {_,Value}) ->
         Data = lists:foldl(fun(Chunk,Total) ->
             <<Total/binary, Chunk/binary>>
         end, <<>>, Elements),
-        Size = ephp_util:to_bin(length(Value)),
+        Size = case Value of
+        V when is_list(V) ->
+            ephp_util:to_bin(length(Value));
+        #reg_instance{class=#class{attrs=Attrs}} ->
+            ephp_util:to_bin(length(Attrs))
+        end,
         if ?IS_DICT(Value) ->
             <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
+        is_record(Value, reg_instance) ->
+            #reg_instance{class=Class} = Value,
+            %% TODO: add instance number (ID)
+            <<"class ", (Class#class.name)/binary, " (", Size/binary, ") ",
+              "{\n", Data/binary, "}\n">>;
         true ->
             Data
         end;
@@ -83,6 +96,26 @@ var_dump(Context, {_,Value}) ->
     null.
 
 -spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> true | binary().
+
+print_r(_Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,true}) ->
+    Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
+        Value = ephp_context:get(Ctx, #variable{name=Name}), 
+        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
+        <<Output/binary, ?SPACES, "[", Name/binary, "] => ", 
+          ValDumped/binary, "\n">>
+    end, <<>>, Class#class.attrs),
+    <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
+
+print_r(Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,false}) ->
+    Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
+        Value = ephp_context:get(Ctx, #variable{name=Name}), 
+        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
+        <<Output/binary, ?SPACES, "[", Name/binary, "] => ", 
+          ValDumped/binary>>
+    end, <<>>, Class#class.attrs),
+    Out = <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>,
+    ephp_context:set_output(Context, Out),
+    true; 
 
 print_r(_Context, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
@@ -165,6 +198,16 @@ var_dump_fmt(_Context, Value, _Spaces) when is_float(Value) ->
 var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) -> 
     Size = ephp_util:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",(ephp_util:to_bin(Value))/binary, "\"\n">>;
+
+var_dump_fmt(Context, #reg_instance{class=Class, context=Ctx}, Spaces) ->
+    lists:foldl(fun(#class_attr{name=Name,access=Acc}, Output) ->
+        Access = atom_to_binary(Acc, utf8),
+        Value = ephp_context:get(Ctx, #variable{name=Name}), 
+        ValDumped = var_dump_fmt(Context, Value, <<Spaces/binary, ?SPACES_VD>>),
+        Output ++ [<<
+          Spaces/binary, Access/binary, " $", Name/binary, " =>\n",
+          Spaces/binary, ValDumped/binary>>]
+    end, [], Class#class.attrs);
 
 var_dump_fmt(Context, Value, Spaces) ->
     ?DICT:fold(fun(Key, Val, Res) ->
