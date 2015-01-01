@@ -182,7 +182,7 @@ gettype(_Context, {_,Value}) when is_integer(Value) -> <<"integer">>;
 gettype(_Context, {_,Value}) when is_float(Value) -> <<"double">>;
 gettype(_Context, {_,Value}) when is_binary(Value) -> <<"string">>;
 gettype(_Context, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
-%% TODO: object type
+gettype(_Context, {_,Value}) when is_record(Value, reg_instance) -> <<"object">>;
 %% TODO: resource type
 gettype(_Context, {_,null}) -> <<"NULL">>;
 gettype(_Context, {_,_}) -> <<"unknown type">>.
