@@ -190,6 +190,7 @@ gettype(_Context, {_,_}) -> <<"unknown type">>.
 -spec unset(Context :: context(), Var :: var_value()) -> null.
 
 unset(Context, {Var,_}) ->
+    %% TODO: find objects in remove data to run __destruct if it's defined.
     ephp_context:set(Context, Var, undefined),
     null. 
 
