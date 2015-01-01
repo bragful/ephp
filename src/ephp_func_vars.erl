@@ -7,7 +7,17 @@
     init/0,
     is_array/2,
     is_bool/2,
+    is_int/2,
+    is_long/2,
     is_integer/2,
+    is_float/2,
+    is_double/2,
+    is_numeric/2,
+    % FIXME: this function breaks cover... try to change name
+    %        and publish functions with different Erlang name.
+    % is_null/2,
+    is_object/2,
+    is_string/2,
     print_r/2,
     var_dump/2,
     print_r/3,
@@ -30,28 +40,37 @@ init() -> [
 ].
 
 -spec is_array(Context :: context(), Value :: var_value()) -> boolean().
-
-is_array(_Context, {_,Value}) when ?IS_DICT(Value) -> 
-    true;
-
-is_array(_Context, _Value) -> 
-    false.
+is_array(_Context, {_,Value}) -> ?IS_DICT(Value).
 
 -spec is_bool(Context :: context(), Value :: var_value()) -> boolean().
-
-is_bool(_Context, {_,Value}) when is_boolean(Value) -> 
-    true;
-
-is_bool(_Context, _Value) -> 
-    false.
+is_bool(_Context, {_,Value}) -> erlang:is_boolean(Value).
 
 -spec is_integer(Context :: context(), Value :: var_value()) -> boolean().
+is_integer(_Context, {_,Value}) -> erlang:is_integer(Value).
 
-is_integer(_Context, {_,Value}) when is_integer(Value) ->
-    true;
+-spec is_int(Context :: context(), Value :: var_value()) -> boolean().
+is_int(_Context, {_,Value}) -> erlang:is_integer(Value).
 
-is_integer(_Context, _Value) ->
-    false.
+-spec is_long(Context :: context(), Value :: var_value()) -> boolean().
+is_long(_Context, {_,Value}) -> erlang:is_integer(Value).
+
+-spec is_numeric(Context :: context(), Value :: var_value()) -> boolean().
+is_numeric(_Context, {_,Value}) -> erlang:is_number(Value).
+
+-spec is_float(Context :: context(), Value :: var_value()) -> boolean().
+is_float(_Context, {_,Value}) -> erlang:is_float(Value).
+
+-spec is_double(Context :: context(), Value :: var_value()) -> boolean().
+is_double(_Context, {_,Value}) -> erlang:is_float(Value).
+
+% -spec is_null(Context :: context(), Value :: var_value()) -> boolean().
+% is_null(_Context, {_,Value}) -> Value =:= null orelse Value =:= undefined.
+
+-spec is_string(Context :: context(), Value :: var_value()) -> boolean().
+is_string(_Context, {_,Value}) -> erlang:is_binary(Value).
+
+-spec is_object(Context :: context(), Value :: var_value()) -> boolean().
+is_object(_Context, {_,Value}) -> erlang:is_record(Value, reg_instance).
 
 -spec print_r(Context :: context(), Value :: var_value()) -> true | binary().
 
