@@ -100,8 +100,6 @@ run(Context, #call{line=Line}=Call) ->
 call(Funcs, PHPFunc, Args) ->
     case get(Funcs, PHPFunc) of
     error ->
-        %% TODO: enhance the error handling!
-        io:format("~p~n", [{PHPFunc, Args}]),
         throw(eundefun);
     {ok, #reg_func{type=builtin, builtin={Module, Fun}}} ->
         fun(Ctx) -> 
