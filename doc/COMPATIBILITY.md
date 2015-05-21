@@ -45,6 +45,7 @@ Features
     - [ ] `goto` statement
 - Modular code
     - [x] `function` definition
+    - [x] insensitive name of functions
     - [x] call to functions
     - [x] args by reference
     - [x] include/require code from other files

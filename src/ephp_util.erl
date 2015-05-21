@@ -3,6 +3,7 @@
 
 -export([
     to_bin/1,
+    to_lower/1,
     increment_code/1,
     to_bool/1,
     zero_if_undef/1,
@@ -37,6 +38,10 @@ to_bin(null) -> <<>>;
 
 to_bin(undefined) -> <<>>. 
 
+-spec to_lower(binary()) -> binary().
+
+to_lower(Text) ->
+    list_to_binary(string:to_lower(binary_to_list(Text))).
 
 -spec increment_code(Code :: binary()) -> integer() | binary().
 

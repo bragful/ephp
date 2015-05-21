@@ -47,24 +47,28 @@ destroy(Funcs) ->
 
 get(Ref, FuncName) ->
     Funcs = erlang:get(Ref),
-    ?DICT:find(FuncName, Funcs).
+    IFuncName = ephp_util:to_lower(FuncName),
+    ?DICT:find(IFuncName, Funcs).
 
 register_func(Ref, PHPFunc, Module, Fun) when is_atom(Module) and is_atom(Fun) ->  
     Funcs = erlang:get(Ref),
-    RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin={Module, Fun}},
-    erlang:put(Ref, ?DICT:store(PHPFunc, RegFunc, Funcs)),
+    IPHPFunc = ephp_util:to_lower(PHPFunc),
+    RegFunc = #reg_func{name=IPHPFunc, type=builtin, builtin={Module, Fun}},
+    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
     ok;
 
 register_func(Ref, PHPFunc, Args, Code) ->
     Funcs = erlang:get(Ref),
-    RegFunc = #reg_func{name=PHPFunc, type=php, args=Args, code=Code},
-    erlang:put(Ref, ?DICT:store(PHPFunc, RegFunc, Funcs)),
+    IPHPFunc = ephp_util:to_lower(PHPFunc),
+    RegFunc = #reg_func{name=IPHPFunc, type=php, args=Args, code=Code},
+    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
     ok.
 
 register_func(Ref, PHPFunc, Fun) ->
     Funcs = erlang:get(Ref),
-    RegFunc = #reg_func{name=PHPFunc, type=builtin, builtin=Fun},
-    erlang:put(Ref, ?DICT:store(PHPFunc, RegFunc, Funcs)),
+    IPHPFunc = ephp_util:to_lower(PHPFunc),
+    RegFunc = #reg_func{name=IPHPFunc, type=builtin, builtin=Fun},
+    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
     ok.
 
 run(Context, #call{line=Line}=Call) ->
