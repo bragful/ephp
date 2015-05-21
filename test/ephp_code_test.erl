@@ -75,6 +75,7 @@ code_to_test_() ->
         "test_require",
         "test_string",
         "test_fib",
+        "test_filenames",
         "test_class_basic",
         "test_class_hello",
         "test_class_vardump"

@@ -1,0 +1,3 @@
+
+dirname("/home/bombadil/file.txt") -> /home/bombadil 
+basename("/home/bombadil/file.txt") -> file.txt

@@ -122,3 +122,7 @@ Functions
    * [ob_get_contents](http://www.php.net/ob_get_contents)
    * [ob_get_length](http://www.php.net/ob_get_length)
    * [ob_start](http://www.php.net/ob_start)
+
+* File related functions:
+   * [basename](http://www.php.net/basename)
+   * [dirname](http://www.php.net/dirname)

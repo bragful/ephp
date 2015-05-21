@@ -22,7 +22,8 @@
     ephp_func_ob,
     ephp_func_control,
     ephp_func_array,
-    ephp_func_string
+    ephp_func_string,
+    ephp_func_file
 ]).
 
 
