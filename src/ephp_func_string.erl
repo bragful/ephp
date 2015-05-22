@@ -10,8 +10,8 @@
     chr/2,
     implode/2,
     implode/3,
-    join/2,
-    join/3
+    explode/3,
+    explode/4
 ]).
 
 -include("ephp.hrl").
@@ -19,7 +19,11 @@
 -spec init() -> [ephp_func:php_function()].
 
 init() -> [
-    strlen, ord, chr, implode, join
+    strlen, ord, chr,
+    implode,
+    {implode, <<"join">>},
+    explode,
+    {explode, <<"split">>}
 ]. 
 
 -spec strlen(Context :: context(), String :: var_value()) -> integer().
@@ -68,18 +72,45 @@ implode(_Context, {_,RawGlue}, {_,Pieces}) ->
 implode(Context, Pieces) ->
     implode(Context, <<>>, Pieces).
 
--spec join(Context :: context(), Glue :: var_value(), Pieces :: var_value()) -> binary().
+-spec explode(context(), Delimiter :: var_value(), String :: var_value())
+    -> ?DICT_TYPE.
 
-join(Context, Glue, Pieces) ->
-    implode(Context, Glue, Pieces).
+explode(_Context, {_,Delimiter}, {_,String}) ->
+    Pieces = binary:split(String, Delimiter, [global]),
+    {_,Res} = lists:foldl(fun(Piece, {I,Explode}) ->
+        {I+1, ?DICT:store(I, Piece, Explode)}
+    end, {0,?DICT:new()}, Pieces),
+    Res.
 
--spec join(Context :: context(), Pieces :: var_value()) -> binary().
+-spec explode(
+    context(), 
+    Delimiter :: var_value(),
+    String :: var_value(),
+    Limit :: var_value()) -> ?DICT_TYPE.
 
-join(Context, Pieces) ->
-    implode(Context, Pieces).
+explode(_Context, _Delimiter, _String, {_,Limit}) when not is_integer(Limit) ->
+    %% TODO: Warning: explode() expects parameter 3 to be long
+    null;
+
+explode(_Context, _Delimiter, {_,String}, {_,0}) ->
+    String;
+
+explode(_Context, {_,Delimiter}, {_,String}, {_,Limit}) ->
+    split_limit(Delimiter, String, ?DICT:new(), Limit-1, 0).
 
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+split_limit(_Delimiter, String, Parts, Limit, Limit) ->
+    ?DICT:store(Limit, String, Parts);
+
+split_limit(Delimiter, String, Parts, Limit, Index) ->
+    case binary:split(String, Delimiter) of
+        [Part,RestString] ->
+            NewParts = ?DICT:store(Index, Part, Parts),
+            split_limit(Delimiter, RestString, NewParts, Limit, Index+1);
+        [LastPart] ->
+            ?DICT:store(Index, LastPart, Parts)
+    end.

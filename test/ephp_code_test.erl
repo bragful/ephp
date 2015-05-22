@@ -74,6 +74,7 @@ code_to_test_() ->
         "test_array",
         "test_require",
         "test_string",
+        "test_explode",
         "test_fib",
         "test_filenames",
         "test_class_basic",
