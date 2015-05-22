@@ -85,7 +85,7 @@ print_r(Context, Value) ->
     print_r(Context, Value, {false,false}).
 
 
--spec var_dump(Context :: context(), Value :: var_value()) -> null.
+-spec var_dump(context(), var_value()) -> null.
 
 var_dump(Context, {_,Value}) ->
     Result = case var_dump_fmt(Context, Value, <<?SPACES_VD>>) of
@@ -115,7 +115,7 @@ var_dump(Context, {_,Value}) ->
     ephp_context:set_output(Context, Result), 
     null.
 
--spec print_r(Context :: context(), Value :: var_value(), Output :: boolean()) -> true | binary().
+-spec print_r(context(), var_value(), Output :: boolean()) -> true | binary().
 
 print_r(_Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,true}) ->
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
@@ -157,7 +157,7 @@ print_r(Context, {_,Value}, {_,false}) ->
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     true.
 
--spec isset(Context :: context(), Value :: var_value()) -> boolean().
+-spec isset(context(), var_value()) -> boolean().
 
 isset(_Context, {_,Value}) ->
     case Value of
@@ -165,7 +165,7 @@ isset(_Context, {_,Value}) ->
         _ -> true
     end.
 
--spec empty(Context :: context(), Value :: var_value()) -> boolean().
+-spec empty(context(), var_value()) -> boolean().
 
 empty(_Context, {_,Value}) ->
     case Value of
@@ -176,7 +176,7 @@ empty(_Context, {_,Value}) ->
         _ -> false
     end.
 
--spec gettype(Context :: context(), Value :: var_value()) -> binary().
+-spec gettype(context(), var_value()) -> binary().
 
 gettype(_Context, {_,Value}) when is_boolean(Value) -> <<"boolean">>;
 gettype(_Context, {_,Value}) when is_integer(Value) -> <<"integer">>;
@@ -184,11 +184,11 @@ gettype(_Context, {_,Value}) when is_float(Value) -> <<"double">>;
 gettype(_Context, {_,Value}) when is_binary(Value) -> <<"string">>;
 gettype(_Context, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
 gettype(_Context, {_,Value}) when is_record(Value, reg_instance) -> <<"object">>;
-%% TODO: resource type
+gettype(_Context, {_,Value}) when is_pid(Value) -> <<"resource">>;
 gettype(_Context, {_,null}) -> <<"NULL">>;
 gettype(_Context, {_,_}) -> <<"unknown type">>.
 
--spec unset(Context :: context(), Var :: var_value()) -> null.
+-spec unset(context(), var_value()) -> null.
 
 unset(Context, {Var,_}) ->
     %% TODO: find objects in remove data to run __destruct if it's defined.
