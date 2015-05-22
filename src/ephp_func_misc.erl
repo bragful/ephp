@@ -8,7 +8,6 @@
     define/3,
     sleep/2,
     usleep/2,
-    die/2,
     exit/2
 ]).
 
@@ -17,7 +16,11 @@
 -spec init() -> [ephp_func:php_function()].
 
 init() -> [
-    define, sleep, usleep, die, exit
+    define,
+    sleep,
+    usleep,
+    {exit, <<"die">>},
+    exit
 ]. 
 
 -spec define(Context :: context(), Constant :: var_value(), 
@@ -45,13 +48,6 @@ usleep(_Context, {_, MicroSeconds}) when is_number(MicroSeconds) ->
 
 usleep(_Context, _) ->
     false.
-
--spec die(Context :: context(), Message :: var_value()) ->
-    null.
-
-die(Context, {_, Value}) ->
-    ephp_context:set_output(Context, Value),
-    throw(die).
 
 -spec exit(Context :: context(), Message :: var_value()) ->
     null.

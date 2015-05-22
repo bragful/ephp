@@ -72,9 +72,12 @@ register_func(Ctx, PHPName, Module, Fun) ->
 -spec register_module(Ctx :: context(), Module :: atom()) -> ok.
 
 register_module(Ctx, Module) ->
-    lists:foreach(fun(Func) ->
-        Name = atom_to_binary(Func, utf8),
-        ephp:register_func(Ctx, Name, Module, Func)
+    lists:foreach(fun
+        ({Func, Name}) ->
+            ephp:register_func(Ctx, Name, Module, Func);
+        (Func) ->
+            Name = atom_to_binary(Func, utf8),
+            ephp:register_func(Ctx, Name, Module, Func)
     end, Module:init()).
 
 -spec run(Context :: context(), Compiled :: [statement()]) -> 

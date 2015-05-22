@@ -5,19 +5,14 @@
 
 -export([
     init/0,
-    is_array/2,
-    is_bool/2,
-    is_int/2,
-    is_long/2,
-    is_integer/2,
-    is_float/2,
-    is_double/2,
-    is_numeric/2,
-    % FIXME: this function breaks cover... try to change name
-    %        and publish functions with different Erlang name.
-    % is_null/2,
-    is_object/2,
-    is_string/2,
+    php_is_array/2,
+    php_is_bool/2,
+    php_is_integer/2,
+    php_is_float/2,
+    php_is_numeric/2,
+    % php_is_null/2,
+    php_is_object/2,
+    php_is_string/2,
     print_r/2,
     var_dump/2,
     print_r/3,
@@ -35,44 +30,50 @@
 -spec init() -> [ephp_func:php_function()].
 
 init() -> [
-    is_array, is_bool, is_integer, print_r, isset, empty, gettype, unset,
+    {php_is_array, <<"is_array">>},
+    {php_is_bool, <<"is_bool">>},
+    {php_is_integer, <<"is_long">>},
+    {php_is_integer, <<"is_int">>},
+    {php_is_integer, <<"is_integer">>},
+    {php_is_float, <<"is_float">>},
+    {php_is_float, <<"is_double">>},
+    {php_is_numeric, <<"is_numeric">>},
+    % {php_is_null, <<"is_null">>},
+    {php_is_object, <<"is_object">>},
+    {php_is_string, <<"is_string">>},
+    print_r,
+    isset,
+    empty,
+    gettype,
+    unset,
     var_dump
 ].
 
--spec is_array(Context :: context(), Value :: var_value()) -> boolean().
-is_array(_Context, {_,Value}) -> ?IS_DICT(Value).
+-spec php_is_array(context(), var_value()) -> boolean().
+php_is_array(_Context, {_,Value}) -> ?IS_DICT(Value).
 
--spec is_bool(Context :: context(), Value :: var_value()) -> boolean().
-is_bool(_Context, {_,Value}) -> erlang:is_boolean(Value).
+-spec php_is_bool(context(), var_value()) -> boolean().
+php_is_bool(_Context, {_,Value}) -> erlang:is_boolean(Value).
 
--spec is_integer(Context :: context(), Value :: var_value()) -> boolean().
-is_integer(_Context, {_,Value}) -> erlang:is_integer(Value).
+-spec php_is_integer(context(), var_value()) -> boolean().
+php_is_integer(_Context, {_,Value}) -> erlang:is_integer(Value).
 
--spec is_int(Context :: context(), Value :: var_value()) -> boolean().
-is_int(_Context, {_,Value}) -> erlang:is_integer(Value).
+-spec php_is_numeric(context(), var_value()) -> boolean().
+php_is_numeric(_Context, {_,Value}) -> erlang:is_number(Value).
 
--spec is_long(Context :: context(), Value :: var_value()) -> boolean().
-is_long(_Context, {_,Value}) -> erlang:is_integer(Value).
+-spec php_is_float(context(), var_value()) -> boolean().
+php_is_float(_Context, {_,Value}) -> erlang:is_float(Value).
 
--spec is_numeric(Context :: context(), Value :: var_value()) -> boolean().
-is_numeric(_Context, {_,Value}) -> erlang:is_number(Value).
+% -spec php_is_null(context(), var_value()) -> boolean().
+% php_is_null(_Context, {_,Value}) -> Value =:= null orelse Value =:= undefined.
 
--spec is_float(Context :: context(), Value :: var_value()) -> boolean().
-is_float(_Context, {_,Value}) -> erlang:is_float(Value).
+-spec php_is_string(context(), var_value()) -> boolean().
+php_is_string(_Context, {_,Value}) -> erlang:is_binary(Value).
 
--spec is_double(Context :: context(), Value :: var_value()) -> boolean().
-is_double(_Context, {_,Value}) -> erlang:is_float(Value).
+-spec php_is_object(context(), var_value()) -> boolean().
+php_is_object(_Context, {_,Value}) -> erlang:is_record(Value, reg_instance).
 
-% -spec is_null(Context :: context(), Value :: var_value()) -> boolean().
-% is_null(_Context, {_,Value}) -> Value =:= null orelse Value =:= undefined.
-
--spec is_string(Context :: context(), Value :: var_value()) -> boolean().
-is_string(_Context, {_,Value}) -> erlang:is_binary(Value).
-
--spec is_object(Context :: context(), Value :: var_value()) -> boolean().
-is_object(_Context, {_,Value}) -> erlang:is_record(Value, reg_instance).
-
--spec print_r(Context :: context(), Value :: var_value()) -> true | binary().
+-spec print_r(context(), var_value()) -> true | binary().
 
 print_r(Context, {_,#reg_instance{}}=Vars) ->
     print_r(Context, Vars, {false,false});
