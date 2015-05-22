@@ -28,7 +28,7 @@
 
 
 -type mixed() :: 
-    integer() | float() | binary() | boolean() | null.
+    integer() | float() | binary() | boolean() | ?DICT_TYPE | null.
 
 -type var_value() :: {variable(), mixed()}.
 
