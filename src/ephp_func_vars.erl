@@ -10,7 +10,7 @@
     php_is_integer/2,
     php_is_float/2,
     php_is_numeric/2,
-    % php_is_null/2,
+    php_is_null/2,
     php_is_object/2,
     php_is_string/2,
     print_r/2,
@@ -38,7 +38,7 @@ init() -> [
     {php_is_float, <<"is_float">>},
     {php_is_float, <<"is_double">>},
     {php_is_numeric, <<"is_numeric">>},
-    % {php_is_null, <<"is_null">>},
+    {php_is_null, <<"is_null">>},
     {php_is_object, <<"is_object">>},
     {php_is_string, <<"is_string">>},
     print_r,
@@ -64,8 +64,10 @@ php_is_numeric(_Context, {_,Value}) -> erlang:is_number(Value).
 -spec php_is_float(context(), var_value()) -> boolean().
 php_is_float(_Context, {_,Value}) -> erlang:is_float(Value).
 
-% -spec php_is_null(context(), var_value()) -> boolean().
-% php_is_null(_Context, {_,Value}) -> Value =:= null orelse Value =:= undefined.
+-spec php_is_null(context(), var_value()) -> boolean().
+php_is_null(_Context, {_,null}) -> true;
+php_is_null(_Context, {_,undefined}) -> true;
+php_is_null(_Context, _Var) -> false.
 
 -spec php_is_string(context(), var_value()) -> boolean().
 php_is_string(_Context, {_,Value}) -> erlang:is_binary(Value).
