@@ -4,13 +4,13 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
+__Behaviours:__ [`ephp_func`](ephp_func.md).
 <a name="index"></a>
 
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#flush-1">flush/1</a></td><td></td></tr><tr><td valign="top"><a href="#init-1">init/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_clean-1">ob_clean/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_end_clean-1">ob_end_clean/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_end_flush-1">ob_end_flush/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_flush-1">ob_flush/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_contents-1">ob_get_contents/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_length-1">ob_get_length/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_start-1">ob_start/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#flush-1">flush/1</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#ob_clean-1">ob_clean/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_contents-1">ob_get_contents/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_length-1">ob_get_length/1</a></td><td></td></tr><tr><td valign="top"><a href="#ob_start-1">ob_start/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -28,13 +28,13 @@ flush(Context::<a href="#type-context">context()</a>) -&gt; null
 <br />
 
 
-<a name="init-1"></a>
+<a name="init-0"></a>
 
-### init/1 ###
+### init/0 ###
 
 
 <pre><code>
-init(Context::<a href="#type-context">context()</a>) -&gt; ok
+init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
 
@@ -46,39 +46,6 @@ init(Context::<a href="#type-context">context()</a>) -&gt; ok
 
 <pre><code>
 ob_clean(Context::<a href="#type-context">context()</a>) -&gt; null
-</code></pre>
-<br />
-
-
-<a name="ob_end_clean-1"></a>
-
-### ob_end_clean/1 ###
-
-
-<pre><code>
-ob_end_clean(Context::<a href="#type-context">context()</a>) -&gt; null
-</code></pre>
-<br />
-
-
-<a name="ob_end_flush-1"></a>
-
-### ob_end_flush/1 ###
-
-
-<pre><code>
-ob_end_flush(Context::<a href="#type-context">context()</a>) -&gt; null
-</code></pre>
-<br />
-
-
-<a name="ob_flush-1"></a>
-
-### ob_flush/1 ###
-
-
-<pre><code>
-ob_flush(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
 <br />
 

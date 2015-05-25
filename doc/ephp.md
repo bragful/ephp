@@ -28,23 +28,12 @@ values() = integer() | binary() | float() | '?DICT_TYPE'
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#compile-1">compile/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-2">context_new/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td></td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_fun-4">register_fun/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-2">context_new/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td></td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-4">register_func/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
-
-<a name="compile-1"></a>
-
-### compile/1 ###
-
-
-<pre><code>
-compile(PHP::binary() | string()) -&gt; {ok, Result::[<a href="#type-statement">statement()</a>]} | {error, Reason::<a href="#type-reason">reason()</a>} | {error, {Code::binary(), Line::integer(), Col::integer()}}
-</code></pre>
-<br />
-
 
 <a name="context_new-0"></a>
 
@@ -112,13 +101,13 @@ main(Args::[string()]) -&gt; integer()
 <br />
 
 
-<a name="register_fun-4"></a>
+<a name="register_func-4"></a>
 
-### register_fun/4 ###
+### register_func/4 ###
 
 
 <pre><code>
-register_fun(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::atom(), Fun::atom()) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::atom(), Fun::atom()) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 

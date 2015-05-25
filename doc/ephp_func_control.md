@@ -4,13 +4,13 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
+__Behaviours:__ [`ephp_func`](ephp_func.md).
 <a name="index"></a>
 
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#include-2">include/2</a></td><td></td></tr><tr><td valign="top"><a href="#include_once-2">include_once/2</a></td><td></td></tr><tr><td valign="top"><a href="#init-1">init/1</a></td><td></td></tr><tr><td valign="top"><a href="#require-2">require/2</a></td><td></td></tr><tr><td valign="top"><a href="#require_once-2">require_once/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#include-2">include/2</a></td><td></td></tr><tr><td valign="top"><a href="#include_once-2">include_once/2</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#require-2">require/2</a></td><td></td></tr><tr><td valign="top"><a href="#require_once-2">require_once/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -39,13 +39,13 @@ include_once(Context::<a href="#type-context">context()</a>, File::<a href="#typ
 <br />
 
 
-<a name="init-1"></a>
+<a name="init-0"></a>
 
-### init/1 ###
+### init/0 ###
 
 
 <pre><code>
-init(Context::<a href="#type-context">context()</a>) -&gt; ok
+init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
 

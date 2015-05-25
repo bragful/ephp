@@ -23,7 +23,7 @@
 
 
 <pre><code>
-process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>]) -&gt; {ok, binary()}
+process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>]) -&gt; {ok, binary(), <a href="#type-return">return()</a> | false}
 </code></pre>
 <br />
 

@@ -4,13 +4,13 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
+__Behaviours:__ [`ephp_func`](ephp_func.md).
 <a name="index"></a>
 
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#count-2">count/2</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-3">in_array/3</a></td><td></td></tr><tr><td valign="top"><a href="#init-1">init/1</a></td><td></td></tr><tr><td valign="top"><a href="#sizeof-2">sizeof/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#count-2">count/2</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-3">in_array/3</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#sizeof-2">sizeof/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -39,13 +39,13 @@ in_array(Context::<a href="#type-context">context()</a>, Key::<a href="#type-var
 <br />
 
 
-<a name="init-1"></a>
+<a name="init-0"></a>
 
-### init/1 ###
+### init/0 ###
 
 
 <pre><code>
-init(Context::<a href="#type-context">context()</a>) -&gt; ok
+init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
 
