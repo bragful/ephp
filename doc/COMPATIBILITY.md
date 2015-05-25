@@ -16,7 +16,7 @@ Features
     - [x] Strings
     - [x] References
     - [ ] Resources
-    - [ ] Objects
+    - [x] Objects
 - Constants
     - [x] `define` function to define contants
     - [x] text without spaces as constant
@@ -52,6 +52,8 @@ Features
 - Error handling
     - [ ] launch errors
     - [ ] silent warnings/errors (@)
+    - [ ] launch exceptions (throw)
+    - [ ] catch exceptions (try...catch)
 - Exit functions
     - [x] return
     - [x] die / exit
@@ -68,8 +70,6 @@ Features
     - [ ] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
-    - [ ] launch exceptions (throw)
-    - [ ] catch exceptions (try...catch)
 - Functional
     - [ ] closures
 
