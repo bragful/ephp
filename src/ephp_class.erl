@@ -14,6 +14,7 @@
 
     get/2,
     get_constructor/2,
+    get_destructor/2,
     get_method/3,
 
     register_class/2,
@@ -82,6 +83,16 @@ get_constructor(Ref, ClassName) ->
         ClassMethod
     end.
 
+get_destructor(Ref, ClassName) ->
+    MethodName = <<"__destruct">>,
+    {ok, #class{methods=Methods}} = get(Ref, ClassName),
+    case lists:keyfind(MethodName, #class_method.name, Methods) of
+    false ->
+        undefined;
+    #class_method{}=ClassMethod ->
+        ClassMethod
+    end.
+
 get_method(Ref, ClassName, MethodName) ->
     {ok, #class{methods=Methods}} = get(Ref, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
@@ -91,3 +102,7 @@ get_method(Ref, ClassName, MethodName) ->
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
+
+%% ------------------------------------------------------------------
+%% Private functions
+%% ------------------------------------------------------------------
