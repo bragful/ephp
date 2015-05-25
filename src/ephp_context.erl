@@ -467,6 +467,9 @@ resolve(#print_text{text=Text}, #state{output=Output}=State) ->
 resolve(undefined, State) ->
     {null, State};
 
+resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
+    {{var_ref, Vars, Var}, State};
+
 resolve(auto, _State) ->
     % Fatal error: Cannot use [] for reading
     throw(earrayundef);

@@ -204,7 +204,8 @@ unset(Context, {Var,_}) ->
 var_dump_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     %% FIXME add recursion control
     Var = ephp_vars:get(VarPID, VarRef),
-    var_dump_fmt(Context, Var, Spaces);
+    Res = var_dump_fmt(Context, Var, Spaces),
+    <<"&", Res/binary>>;
 
 var_dump_fmt(_Context, true, _Spaces) ->
     <<"bool(true)\n">>;

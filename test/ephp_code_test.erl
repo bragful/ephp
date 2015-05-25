@@ -69,6 +69,7 @@ code_to_test_() ->
         "test_or_die",
         "test_print_r",
         "test_unset",
+        "test_unset_ref",
         "test_include_noparens",
         "test_switch",
         "test_array",
