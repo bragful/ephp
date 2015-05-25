@@ -230,7 +230,10 @@ var_dump_fmt(Context, #reg_instance{class=Class, context=Ctx}, Spaces) ->
           Spaces/binary, ValDumped/binary>>]
     end, [], Class#class.attrs);
 
-var_dump_fmt(Context, Value, Spaces) ->
+var_dump_fmt(_Context, undefined, _Spaces) ->
+    <<"NULL\n">>;
+
+var_dump_fmt(Context, Value, Spaces) when is_list(Value) ->
     ?DICT:fold(fun(Key, Val, Res) ->
         KeyBin = if
             not is_binary(Key) -> ephp_util:to_bin(Key);
