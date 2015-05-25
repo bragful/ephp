@@ -523,20 +523,34 @@ resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     ClassName = (Instance#reg_instance.instance)#instance.name,
     call_method(Instance, ClassName, Call, State);
 
-resolve_var(#variable{idx=[{object,VarName,_}]}=Var, State)
+resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var, State) ->
+    Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
+    Context = Instance#reg_instance.context,
+    {SubVal, State2} = resolve(SubVar, State),
+    {NewVar, State3} =
+        resolve_indexes(#variable{name=SubVal,idx=Idx}, State2),
+    {ephp_context:get(Context, NewVar), State3};
+
+resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
         when is_binary(VarName) -> 
     Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
     Context = Instance#reg_instance.context,
-    {ephp_context:get(Context, #variable{name=VarName}), State};
+    {NewVar, NewState} =
+        resolve_indexes(#variable{name=VarName,idx=Idx}, State),
+    {ephp_context:get(Context, NewVar), NewState};
 
-resolve_var(#variable{idx=Indexes}=Var, State) ->
+resolve_var(Var, State) ->
+    {NewVar, NewState} = resolve_indexes(Var, State),
+    Value = ephp_vars:get(NewState#state.vars, NewVar),
+    {Value, NewState}.
+
+
+resolve_indexes(#variable{idx=Indexes}=Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
         {Value, NState} = resolve(Idx, NS),
         {I ++ [Value], NState}
     end, {[],State}, Indexes),
-    Value = ephp_vars:get(NewState#state.vars, Var#variable{idx=NewIndexes}),
-    {Value, NewState}.
-
+    {Var#variable{idx=NewIndexes}, NewState}.
 
 get_var_path(#variable{idx=[]}=Var, _State) ->
     Var;
@@ -555,8 +569,6 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
                 end, 0, Array)
             end,
             LIdx ++ [Value];
-        ({object,Name,_Line}, LIdx) when is_binary(Name) ->
-            LIdx ++ [{object,Name}];
         (Idx, LIdx) ->
             {Value, _Vars} = resolve(Idx, State),
             LIdx ++ [Value]

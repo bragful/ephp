@@ -97,12 +97,12 @@ change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
         ?DICT:store(Root, Value, Vars)
     end;
 
-change(#variable{name=Root, idx=[{object,NewRoot}]}=_Var, Value, Vars) ->
+change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars) ->
     {ok, #reg_instance{context=Ctx}} = ?DICT:find(Root, Vars),
     ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
     Vars;
 
-change(#variable{name=Root, idx=[{object,NewRoot}|Idx]}=_Var, Value, Vars) ->
+change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var, Value, Vars) ->
     {ok, #reg_instance{context=Ctx}} = ?DICT:find(Root, Vars),
     ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
     Vars;

@@ -1,0 +1,5 @@
+array(1) {
+  ["hi"]=>
+  string(5) "world"
+}
+string(5) "world"
