@@ -1,4 +1,4 @@
-class User (2) {
+object(User)#1 (2) {
   public $name =>
   string(4) "John"
   public $surname =>
