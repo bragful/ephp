@@ -36,6 +36,12 @@ get(Ref, ClassName) ->
     Classes = erlang:get(Ref),
     ?DICT:find(ClassName, Classes).
 
+set(Ref, ClassName, Class) ->
+    Classes = erlang:get(Ref),
+    NC = ?DICT:store(ClassName, Class, Classes),
+    erlang:put(Ref, NC),
+    ok.
+
 register_class(Ref, #class{name=Name}=PHPClass) ->
     Classes = erlang:get(Ref),
     erlang:put(Ref, ?DICT:store(Name, PHPClass, Classes)),
@@ -50,8 +56,13 @@ instance(Ref, GlobalCtx, ClassName) ->
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
-        RegClass = #reg_instance{class=Class, context=Ctx},
+        InsCount = Class#class.instance_counter + 1,
+        RegClass = #reg_instance{
+            id=InsCount,
+            class=Class,
+            context=Ctx},
         initialize(Ctx, Class),
+        set(Ref, ClassName, Class#class{instance_counter=InsCount}),
         RegClass
     end.
 

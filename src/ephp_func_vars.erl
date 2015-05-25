@@ -102,10 +102,10 @@ var_dump(Context, {_,Value}) ->
         if ?IS_DICT(Value) ->
             <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
         is_record(Value, reg_instance) ->
-            #reg_instance{class=Class} = Value,
-            %% TODO: add instance number (ID)
-            <<"class ", (Class#class.name)/binary, " (", Size/binary, ") ",
-              "{\n", Data/binary, "}\n">>;
+            #reg_instance{id=InstanceID,class=Class} = Value,
+            ID = integer_to_binary(InstanceID),
+            <<"object(", (Class#class.name)/binary, ")#", ID/binary,
+              " (", Size/binary, ") {\n", Data/binary, "}\n">>;
         true ->
             Data
         end;

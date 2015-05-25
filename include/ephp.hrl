@@ -268,7 +268,8 @@
     constants = ?DICT:new() :: ?DICT_TYPE,
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
-    line :: line()
+    line :: line(),
+    instance_counter = 0 :: integer()
 }).
 
 -type class() :: #class{}.
@@ -282,6 +283,7 @@
 -type instance() :: #instance{}.
 
 -record(reg_instance, {
+    id :: pos_integer(),
     class :: class(),
     instance :: instance(),
     context = ?DICT:new() :: ?DICT_TYPE
