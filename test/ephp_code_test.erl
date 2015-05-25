@@ -83,6 +83,7 @@ code_to_test_() ->
         "test_class_vardump",
         "test_class_attr_var",
         "test_class_array",
-        "test_class_unset"
+        "test_class_unset",
+        "test_class_destructor"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).

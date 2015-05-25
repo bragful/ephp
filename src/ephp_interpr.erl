@@ -16,7 +16,10 @@ process(_Context, []) ->
 process(Context, Statements) ->
     Value = lists:foldl(fun
         (Statement, false) ->
-            run(Context, Statement);
+            Res = run(Context, Statement),
+            Shutdown = #call{name = <<"__do_shutdown">>},
+            run(Context, #eval{statements=[Shutdown]}),
+            Res;
         (_Statement, break) ->
             throw(enobreak);
         (_Statement, continue) ->

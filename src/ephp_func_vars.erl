@@ -192,8 +192,25 @@ gettype(_Context, {_,_}) -> <<"unknown type">>.
 
 -spec unset(context(), var_value()) -> null.
 
-unset(Context, {Var,_}) ->
-    %% TODO: find objects in remove data to run __destruct if it's defined.
+unset(Context, {#variable{idx=Idx}=Var,_}) ->
+    case ephp_context:get(Context, Var) of
+        Array when ?IS_DICT(Array) ->
+            lists:foreach(fun({K,_V}) ->
+                unset(Context, {Var#variable{idx=Idx ++ [K]},<<>>})
+            end, Array);
+        #reg_instance{class=Class}=Instance ->
+            case ephp_class:get_destructor(Class) of
+            undefined ->
+                ok;
+            _ ->
+                Call = #call{name = <<"__destruct">>},
+                ephp_context:call_method(Context, Instance, Call),
+                % FIXME: add unset for every attribute inside of the instance
+                ok
+            end;
+        _ ->
+            ok
+    end,
     ephp_context:set(Context, Var, undefined),
     null. 
 
@@ -226,7 +243,7 @@ var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) ->
 var_dump_fmt(Context, #reg_instance{class=Class, context=Ctx}, Spaces) ->
     lists:foldl(fun(#class_attr{name=Name,access=Acc}, Output) ->
         Access = atom_to_binary(Acc, utf8),
-        Value = ephp_context:get(Ctx, #variable{name=Name}), 
+        Value = ephp_context:get(Ctx, #variable{name=Name}),
         ValDumped = var_dump_fmt(Context, Value, <<Spaces/binary, ?SPACES_VD>>),
         Output ++ [<<
           Spaces/binary, Access/binary, " $", Name/binary, " =>\n",

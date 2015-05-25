@@ -8,7 +8,8 @@
     define/3,
     sleep/2,
     usleep/2,
-    exit/2
+    exit/2,
+    shutdown/1
 ]).
 
 -include("ephp.hrl").
@@ -20,17 +21,18 @@ init() -> [
     sleep,
     usleep,
     {exit, <<"die">>},
-    exit
+    exit,
+    {shutdown, <<"__do_shutdown">>}
 ]. 
 
--spec define(Context :: context(), Constant :: var_value(), 
+-spec define(context(), Constant :: var_value(), 
     Content :: var_value()) -> boolean().
 
 define(Context, {#constant{name=Constant},_}, {_UnParsedContent,Content}) ->
     ephp_context:register_const(Context, Constant, Content),
     true.
 
--spec sleep(Context :: context(), Seconds :: var_value()) -> false | integer().
+-spec sleep(context(), Seconds :: var_value()) -> false | integer().
 
 sleep(_Context, {_, Seconds}) when is_number(Seconds) ->
     timer:sleep(trunc(Seconds) * 1000),
@@ -39,7 +41,7 @@ sleep(_Context, {_, Seconds}) when is_number(Seconds) ->
 sleep(_Context, _) ->
     false.
 
--spec usleep(Context :: context(), MicroSeconds :: var_value()) -> 
+-spec usleep(context(), MicroSeconds :: var_value()) -> 
     false | integer().
 
 usleep(_Context, {_, MicroSeconds}) when is_number(MicroSeconds) ->
@@ -49,12 +51,21 @@ usleep(_Context, {_, MicroSeconds}) when is_number(MicroSeconds) ->
 usleep(_Context, _) ->
     false.
 
--spec exit(Context :: context(), Message :: var_value()) ->
+-spec exit(context(), Message :: var_value()) ->
     null.
 
 exit(Context, {_, Value}) ->
     ephp_context:set_output(Context, Value),
     throw(die).
+
+-spec shutdown(context()) -> null.
+
+shutdown(Context) ->
+    %% FIXME: add support to 'register_shutdown_function'
+    ?DICT:fold(fun(K,V,Acc) ->
+        ephp_func_vars:unset(Context, {#variable{name=K},V}),
+        Acc
+    end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>})).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

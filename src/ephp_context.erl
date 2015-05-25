@@ -56,6 +56,7 @@
     load/2,
     load_once/2,
 
+    call_method/3,
     register_class/2,
 
     set_global/2,
@@ -150,6 +151,11 @@ register_const(Context, Name, Value) ->
 call_func(Context, PHPFunc, Args) ->
     #state{funcs=Funcs} = erlang:get(Context),
     ephp_func:call(Funcs, PHPFunc, Args).
+
+call_method(Context, Instance, Call) ->
+    {Val, NS} = run_method(Instance, Call, erlang:get(Context)),
+    erlang:put(Context, NS),
+    Val.
 
 get_tz(Context) ->
     #state{timezone=TZ} = erlang:get(Context),
@@ -436,14 +442,15 @@ resolve({object,Idx,Line}, State) ->
 resolve(#instance{name=ClassName, args=RawArgs}=Instance,
         #state{class=Classes,global=GlobalCtx}=State) ->
     Value = ephp_class:instance(Classes, GlobalCtx, ClassName),
-    Return = Value#reg_instance{instance = Instance},
-    case ephp_class:get_constructor(Classes, ClassName) of
+    RetInstance = Value#reg_instance{instance = Instance},
+    #reg_instance{class = Class} = RetInstance,
+    case ephp_class:get_constructor(Class) of
     undefined ->
-        {Return, State};
+        {RetInstance, State};
     _ ->
         Call = #call{name = <<"__construct">>, args=RawArgs},
-        {_, NState} = call_method(Return, ClassName, Call, State),
-        {Return, NState}
+        {_, NState} = run_method(RetInstance, Call, State),
+        {RetInstance, NState}
     end;
 
 resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
@@ -479,14 +486,15 @@ resolve(Unknown, #state{}=State) ->
     io:format("~p - ~p~n", [Unknown,State]),
     throw(eundeftoken).
 
-call_method(RegInstance, ClassName, #call{args=RawArgs}=Call,
-        #state{const=Const, vars=Vars, class=Classes}=State) ->
+run_method(RegInstance, #call{args=RawArgs}=Call,
+        #state{const=Const, vars=Vars}=State) ->
     {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
         {A,NewState} = resolve(Arg,S),
         {Args ++ [{Arg,A}], NewState}
     end, {[], State}, RawArgs),
+    #reg_instance{class=Class} = RegInstance,
     #class_method{name=MethodName, args=MethodArgs, code=Code} =
-        ephp_class:get_method(Classes, ClassName, Call#call.name),
+        ephp_class:get_method(Class, Call#call.name),
 
     {ok, NewVars} = ephp_vars:start_link(),
     {ok, SubContext} = start_mirror(NState#state{
@@ -506,7 +514,7 @@ call_method(RegInstance, ClassName, #call{args=RawArgs}=Call,
     OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
     OldClass = ephp_const:get(Const, <<"__CLASSNAME__">>), 
     ephp_const:set(Const, <<"__FUNCTION__">>, MethodName),
-    ephp_const:set(Const, <<"__CLASSNAME__">>, ClassName),
+    ephp_const:set(Const, <<"__CLASSNAME__">>, Class#class.name),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
         _ -> null
@@ -523,8 +531,7 @@ resolve_var(#variable{idx=[]}=Var, State) ->
 resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     InstanceVar = Var#variable{idx=[]},
     Instance = ephp_vars:get(State#state.vars, InstanceVar),
-    ClassName = (Instance#reg_instance.instance)#instance.name,
-    call_method(Instance, ClassName, Call, State);
+    run_method(Instance, Call, State);
 
 resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var, State) ->
     Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),

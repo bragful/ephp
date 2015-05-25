@@ -13,8 +13,9 @@
     destroy/1,
 
     get/2,
-    get_constructor/2,
-    get_destructor/2,
+    get_constructor/1,
+    get_destructor/1,
+    get_method/2,
     get_method/3,
 
     register_class/2,
@@ -73,9 +74,8 @@ initialize(Ctx, #class{attrs=Attrs}) ->
         ephp_context:set(Ctx, #variable{name=Name}, Val)
     end, Attrs).
 
-get_constructor(Ref, ClassName) ->
+get_constructor(#class{methods=Methods}) ->
     MethodName = <<"__construct">>,
-    {ok, #class{methods=Methods}} = get(Ref, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         undefined;
@@ -83,9 +83,8 @@ get_constructor(Ref, ClassName) ->
         ClassMethod
     end.
 
-get_destructor(Ref, ClassName) ->
+get_destructor(#class{methods=Methods}) ->
     MethodName = <<"__destruct">>,
-    {ok, #class{methods=Methods}} = get(Ref, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         undefined;
@@ -94,7 +93,10 @@ get_destructor(Ref, ClassName) ->
     end.
 
 get_method(Ref, ClassName, MethodName) ->
-    {ok, #class{methods=Methods}} = get(Ref, ClassName),
+    {ok, Class} = get(Ref, ClassName),
+    get_method(Class, MethodName).
+
+get_method(#class{methods=Methods}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
