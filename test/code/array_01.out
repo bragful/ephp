@@ -1,55 +1,55 @@
 array(0) {
 }
 array(3) {
-  [0] =>
+  [0]=>
   int(1)
-  [1] =>
+  [1]=>
   int(2)
-  [2] =>
+  [2]=>
   int(3)
 }
 array(2) {
-  [0] =>
+  [0]=>
   int(1)
-  [1] =>
+  [1]=>
   int(2)
 }
 array(2) {
-  ["a"] =>
-  string(7) "a thing"
-  ["h"] =>
+  ["a"]=>
   string(5) "hello"
+  ["b"]=>
+  string(7) "a thing"
 }
 array(2) {
-  ["a"] =>
-  string(7) "a thing"
-  ["h"] =>
+  ["a"]=>
   string(5) "hello"
+  ["b"]=>
+  string(7) "a thing"
 }
 array(2) {
-  [0] =>
+  [0]=>
   array(3) {
-    [0] =>
+    [0]=>
     int(1)
-    [1] =>
+    [1]=>
     int(2)
-    [2] =>
+    [2]=>
     int(3)
   }
-  [1] =>
+  [1]=>
   array(2) {
-    [0] =>
+    [0]=>
     string(1) "a"
-    [1] =>
+    [1]=>
     string(1) "b"
   }
 }
 array(1) {
-  ["hola"] =>
+  ["hola"]=>
   array(2) {
-    [0] =>
+    [0]=>
     string(1) "1"
-    [1] =>
+    [1]=>
     string(1) "2"
   }
 }

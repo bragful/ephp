@@ -182,7 +182,7 @@ empty(_Context, {_,Value}) ->
 
 gettype(_Context, {_,Value}) when is_boolean(Value) -> <<"boolean">>;
 gettype(_Context, {_,Value}) when is_integer(Value) -> <<"integer">>;
-gettype(_Context, {_,Value}) when is_float(Value) -> <<"double">>;
+gettype(_Context, {_,Value}) when is_float(Value) -> <<"float">>;
 gettype(_Context, {_,Value}) when is_binary(Value) -> <<"string">>;
 gettype(_Context, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
 gettype(_Context, {_,Value}) when is_record(Value, reg_instance) -> <<"object">>;
@@ -216,7 +216,7 @@ var_dump_fmt(_Context, Value, _Spaces) when is_integer(Value) ->
     <<"int(",(ephp_util:to_bin(Value))/binary, ")\n">>;
 
 var_dump_fmt(_Context, Value, _Spaces) when is_float(Value) -> 
-    <<"double(",(ephp_util:to_bin(Value))/binary, ")\n">>;
+    <<"float(",(ephp_util:to_bin(Value))/binary, ")\n">>;
 
 var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) -> 
     Size = ephp_util:to_bin(byte_size(Value)),
@@ -244,13 +244,13 @@ var_dump_fmt(Context, Value, Spaces) when is_list(Value) ->
         Res ++ case var_dump_fmt(Context, Val, <<Spaces/binary, ?SPACES_VD>>) of
             V when is_binary(V) -> 
                 [
-                    <<Spaces/binary, "[", KeyBin/binary, "] =>\n",
+                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
                         Spaces/binary, V/binary>>
                 ];
             V when is_list(V) ->
                 Elements = ephp_util:to_bin(length(Val)),
                 [
-                    <<Spaces/binary, "[", KeyBin/binary, "] =>\n">>,
+                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
                     <<Spaces/binary,"array(", Elements/binary, ") {\n">>
                 ] ++ V ++ [
                     <<Spaces/binary, "}\n">>

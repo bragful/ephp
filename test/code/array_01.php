@@ -9,12 +9,12 @@ var_dump($_MESSAGE);
 $_MESSAGE = array( 0 => 1, 1 => 2 );
 var_dump($_MESSAGE);
 
-$_MESSAGE = array( 'h' => 'hello', 'a' => 'a thing' );
+$_MESSAGE = array( 'a' => 'hello', 'b' => 'a thing' );
 var_dump($_MESSAGE);
 
 $_MESSAGE = array(
-    'h' => 'hello',
-    'a' => 'a thing',
+    'a' => 'hello',
+    'b' => 'a thing',
 );
 var_dump($_MESSAGE);
 
