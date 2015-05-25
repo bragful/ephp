@@ -79,6 +79,7 @@ code_to_test_() ->
         "test_filenames",
         "test_class_basic",
         "test_class_hello",
-        "test_class_vardump"
+        "test_class_vardump",
+        "test_class_unset"
     ],
     lists:map(fun(X) -> test_code(X) end, Codes).
