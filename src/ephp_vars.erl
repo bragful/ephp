@@ -22,6 +22,12 @@
 %% ------------------------------------------------------------------
 
 start_link() ->
+    %% FIXME : PHP use a table for variables for hard reference to the
+    %%         values so, when you use a reference, this creates a link
+    %%         to the data instead of a link to the original variable.
+    %%         The behaviour is, when you 'unset' a variable, you only
+    %%         remove the link to the data and, if the data has 0 links
+    %%         then the data is removed.
     Ref = make_ref(),
     erlang:put(Ref, ?DICT:new()),
     {ok, Ref}.
