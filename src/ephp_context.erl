@@ -4,14 +4,6 @@
 
 -include("ephp.hrl").
 
--record(reg_func, {
-    name :: binary(),
-    args :: [variable()],
-    type :: builtin | php,
-    code = [] :: [statement()],
-    builtin :: {Module :: atom(), Func :: atom()} | function()
-}).
-
 -record(state, {
     ref :: reference(),
     vars :: reference(),

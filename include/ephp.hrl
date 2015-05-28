@@ -282,6 +282,15 @@
 
 -type instance() :: #instance{}.
 
+-record(reg_func, {
+    name :: binary(),
+    args :: [variable()],
+    type :: builtin | php,
+    code = [] :: [statement()],
+    builtin :: {Module :: atom(), Func :: atom()} | function(),
+    pack_args = false :: boolean()
+}).
+
 -record(reg_instance, {
     id :: pos_integer(),
     class :: class(),
