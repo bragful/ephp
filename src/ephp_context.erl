@@ -557,7 +557,7 @@ resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     Instance = ephp_vars:get(State#state.vars, InstanceVar),
     run_method(Instance, Call, State);
 
-resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var, State) ->
+resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
     Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
     Context = Instance#reg_instance.context,
     {SubVal, State2} = resolve(SubVar, State),
@@ -645,13 +645,17 @@ resolve_op(#operation{
             {ephp_util:to_bool(OpRes2), State2}
     end;
 
-resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2}, State) ->
+resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2},
+        State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
     {case Type of
-        <<"+">> -> ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
-        <<"-">> -> ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
-        <<"*">> -> ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
+        <<"+">> ->
+            ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
+        <<"-">> ->
+            ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
+        <<"*">> ->
+            ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
         <<"/">> -> 
             A = ephp_util:zero_if_undef(OpRes1),
             B = ephp_util:zero_if_undef(OpRes2),
