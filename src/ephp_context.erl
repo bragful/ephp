@@ -41,6 +41,9 @@
     call_func/3,
     register_func/3,
     register_func/4,
+    register_func/5,
+    get_functions/1,
+    get_function/2,
 
     get_const/2,
     register_const/3,
@@ -116,7 +119,19 @@ destroy_all(Context) ->
 get_state(Context) ->
     get(Context).
 
-register_func(Context, PHPFunc, Module, Fun) when is_atom(Module) and is_atom(Fun) ->  
+register_func(Context, PHPFunc, Module, Fun, PackArgs)
+        when is_atom(Module) andalso is_atom(Fun) ->
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:register_func(Funcs, PHPFunc, Module, Fun, PackArgs),
+    ok;
+
+register_func(Context, PHPFunc, Args, Code, PackArgs) ->
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:register_func(Funcs, PHPFunc, Args, Code, PackArgs),
+    ok.
+
+register_func(Context, PHPFunc, Module, Fun)
+        when is_atom(Module) andalso is_atom(Fun) ->
     #state{funcs=Funcs} = erlang:get(Context),
     ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
     ok;
@@ -130,6 +145,14 @@ register_func(Context, PHPFunc, Fun) ->
     #state{funcs=Funcs} = erlang:get(Context),
     ephp_func:register_func(Funcs, PHPFunc, Fun),
     ok.
+
+get_functions(Context) ->
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:get_functions(Funcs).
+
+get_function(Context, FuncName) ->
+    #state{funcs=Funcs} = erlang:get(Context),
+    ephp_func:get(Funcs, FuncName).
 
 get_const(Context, Name) ->
     #state{const=Const} = erlang:get(Context),
@@ -370,31 +393,40 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name=Name}, NewState);
 
-resolve(#call{name=Fun,args=RawArgs,line=Index}, #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
+resolve(#call{name=Fun,args=RawArgs,line=Index}, 
+        #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
     case ephp_func:get(Funcs, Fun) of
     error ->
         throw({error, eundefun, ephp_util:get_line(Index), Fun});
-    {ok,#reg_func{type=builtin, builtin={M,F}}} when is_atom(M) andalso is_atom(F) -> 
+    {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F}}}
+            when is_atom(M) andalso is_atom(F) -> 
         {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
             {A,NewState} = resolve(Arg,S),
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
         {ok, Mirror} = start_mirror(NState),
         Value = try
-            erlang:apply(M,F,[Mirror|Args])
+            if
+                PackArgs -> erlang:apply(M,F,[Mirror,Args]);
+                true -> erlang:apply(M,F,[Mirror|Args])
+            end
         catch
             throw:{erequired,File} -> 
                 throw({error, erequired, ephp_util:get_line(Index), File})
         end,
         destroy(Mirror),
         {Value, NState};
-    {ok,#reg_func{type=builtin, builtin=F}} when is_function(F) -> 
+    {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin=F}}
+            when is_function(F) ->
         {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
             {A,NewState} = resolve(Arg,S),
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
         {ok, Mirror} = start_mirror(NState),
-        Value = F([Mirror|Args]),
+        Value = if
+            PackArgs -> F([Mirror,Args]);
+            true -> F([Mirror|Args])
+        end,
         destroy(Mirror),
         {Value, NState};
     {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->

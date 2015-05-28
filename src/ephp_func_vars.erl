@@ -27,7 +27,10 @@
 -define(SPACES, "    ").
 -define(SPACES_VD, "  ").
 
--spec init() -> [ephp_func:php_function()].
+-spec init() -> [
+    ephp_func:php_function() |
+    {ephp_func:php_function(), ephp_func:php_function_alias()}
+].
 
 init() -> [
     {php_is_array, <<"is_array">>},

@@ -6,7 +6,7 @@
     context_new/1,
     context_new/2,
     register_var/3,
-    register_func/4,
+    register_func/5,
     register_module/2,
     run/2,
     eval/2,
@@ -64,20 +64,26 @@ register_var(_Ctx, _Var, _Value) ->
 
 -spec register_func(
     Ctx :: context(), PHPName :: binary(), 
-    Module :: atom(), Fun :: atom()) -> ok | {error, reason()}.
+    Module :: atom(), Fun :: atom(),
+    PackArgs :: boolean()) -> ok | {error, reason()}.
 
-register_func(Ctx, PHPName, Module, Fun) ->
-    ephp_context:register_func(Ctx, PHPName, Module, Fun).
+register_func(Ctx, PHPName, Module, Fun, PackArgs) ->
+    ephp_context:register_func(Ctx, PHPName, Module, Fun, PackArgs).
 
 -spec register_module(Ctx :: context(), Module :: atom()) -> ok.
 
 register_module(Ctx, Module) ->
     lists:foreach(fun
+        ({Func, Name, PackArgs}) ->
+            ephp:register_func(Ctx, Name, Module, Func, PackArgs);
+        ({Func, PackArgs}) when is_boolean(PackArgs) ->
+            Name = atom_to_binary(Func, utf8),
+            ephp:register_func(Ctx, Name, Module, Func, PackArgs);
         ({Func, Name}) ->
-            ephp:register_func(Ctx, Name, Module, Func);
+            ephp:register_func(Ctx, Name, Module, Func, false);
         (Func) ->
             Name = atom_to_binary(Func, utf8),
-            ephp:register_func(Ctx, Name, Module, Func)
+            ephp:register_func(Ctx, Name, Module, Func, false)
     end, Module:init()).
 
 -spec run(Context :: context(), Compiled :: [statement()]) -> 
