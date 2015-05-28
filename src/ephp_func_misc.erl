@@ -61,7 +61,8 @@ exit(Context, {_, Value}) ->
 -spec shutdown(context()) -> null.
 
 shutdown(Context) ->
-    %% FIXME: add support to 'register_shutdown_function'
+    %% FIXME: add support to 'register_shutdown_function' something like:
+    %%        ephp_shutdown:run(Context),
     ?DICT:fold(fun(K,V,Acc) ->
         ephp_func_vars:unset(Context, {#variable{name=K},V}),
         Acc
