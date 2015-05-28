@@ -299,9 +299,9 @@ print_r_fmt(Context, Value, Spaces) ->
                 end, V),
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "] => Array\n">>, 
-                    <<Spaces/binary, "(\n">>
+                    <<Spaces/binary, "    (\n">>
                 ] ++ Content ++ [
-                    <<Spaces/binary, ")\n">>
+                    <<Spaces/binary, "    )\n">>
                 ]
         end
     end, [], Value).
