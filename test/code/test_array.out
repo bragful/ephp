@@ -6,10 +6,10 @@ $base => Array
     [3] => 4
     [4] => 5
     [5] => Array
-    (
+        (
             [0] => 8
             [1] => 9
-    )
+        )
 )
 is 1 in array $base? yes
 is 8 in array $base? no

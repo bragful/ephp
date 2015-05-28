@@ -6,10 +6,10 @@
     <pre>Array
 (
     [0] => Array
-    (
+        (
             [name] => Manuel
             [surname] => Rubio
-    )
+        )
 )
 </pre>
 </body>
