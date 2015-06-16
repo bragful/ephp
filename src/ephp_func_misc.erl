@@ -61,12 +61,21 @@ exit(Context, {_, Value}) ->
 -spec shutdown(context()) -> null.
 
 shutdown(Context) ->
-    %% FIXME: add support to 'register_shutdown_function' something like:
-    %%        ephp_shutdown:run(Context),
-    ?DICT:fold(fun(K,V,Acc) ->
-        ephp_func_vars:unset(Context, {#variable{name=K},V}),
-        Acc
-    end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>})).
+    Result = lists:foldl(fun
+        (FuncName, false) ->
+            Shutdown = #call{name = FuncName},
+            ephp_interpr:run(Context, #eval{statements=[Shutdown]});
+        (_, Break) ->
+            Break
+    end, false, ephp_context:get_shutdown_funcs(Context)),
+    if Result =:= false ->
+        ?DICT:fold(fun(K,V,Acc) ->
+            ephp_func_vars:unset(Context, {#variable{name=K},V}),
+            Acc
+        end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
+    true ->
+        null
+    end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

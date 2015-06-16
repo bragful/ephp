@@ -13,7 +13,8 @@
     output :: reference(),
     const :: reference(),
     global :: reference(),
-    include :: reference()
+    include :: reference(),
+    shutdown :: reference()
 }).
 
 %% ------------------------------------------------------------------
@@ -55,7 +56,11 @@
     register_class/2,
 
     set_global/2,
-    generate_subcontext/1
+    generate_subcontext/1,
+
+    register_shutdown_func/2,
+    unregister_shutdown_func/2,
+    get_shutdown_funcs/1
 ]).
 
 %% ------------------------------------------------------------------
@@ -69,13 +74,15 @@ start_link() ->
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
     {ok, Class} = ephp_class:start_link(),
+    {ok, Shutdown} = ephp_class:start_link(),
     start_link(#state{
         ref = Ref,
         output = Output,
         funcs = Funcs,
         class = Class,
         const = Const,
-        include = Inc
+        include = Inc,
+        shutdown = Shutdown
     }).
 
 start_link(#state{ref=Ref}=State) ->
@@ -224,6 +231,18 @@ generate_subcontext(Context) ->
     start_link(State#state{
         vars=SubContext,
         global=VarsPID}).
+
+register_shutdown_func(Context, FuncName) ->
+    #state{shutdown=Ref} = erlang:get(Context),
+    ephp_shutdown:register_func(Ref, FuncName).
+
+unregister_shutdown_func(Context, FuncName) ->
+    #state{shutdown=Ref} = erlang:get(Context),
+    ephp_shutdown:unregister_func(Ref, FuncName).
+
+get_shutdown_funcs(Context) ->
+    #state{shutdown=Ref} = erlang:get(Context),
+    ephp_shutdown:get_funcs(Ref).
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions

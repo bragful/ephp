@@ -23,8 +23,9 @@ init() -> [
     function_exists
 ].
 
-register_shutdown_function(_Context, [{_,_Callback}|_RawArgs]) ->
-    %% TODO: we need ephp_shutdown first
+register_shutdown_function(Context, [{_,Callback}|_RawArgs]) ->
+    %% TODO: add params to call the functions.
+    ephp_context:register_shutdown_func(Context, Callback),
     ok.
 
 get_defined_functions(Context) ->
