@@ -469,6 +469,8 @@ resolve(#call{name=Fun,args=RawArgs,line=Index},
         end, Args, FuncArgs),
         OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
+        OldNArgs = ephp_const:get(Const, <<"__FUNCT_NUM_ARGS__">>),
+        ephp_const:set(Const, <<"__FUNCT_NUM_ARGS__">>, length(Args)),
         Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
             {return, V} -> V;
             _ -> null
@@ -476,6 +478,7 @@ resolve(#call{name=Fun,args=RawArgs,line=Index},
         destroy(SubContext),
         ephp_vars:destroy(NewVars), 
         ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc), 
+        ephp_const:set(Const, <<"__FUNCT_NUM_ARGS__">>, OldNArgs),
         {Value, State}
     end;
 

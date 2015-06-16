@@ -57,6 +57,7 @@ code_to_test_() ->
         "test_func_var_dump",
         "test_func_icase",
         "test_func_list",
+        "test_func_num_args",
         "test_literal",
         "test_print_true",
         "test_include",

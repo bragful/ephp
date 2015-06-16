@@ -153,9 +153,14 @@ call(Funcs, PHPFunc, Args) ->
     {ok, #reg_func{type=php, code=Code}} ->
         fun(Ctx) ->
             OldFunc = ephp_context:get_const(Ctx, <<"__FUNCTION__">>),
+            OldNArgs = ephp_context:get_const(Ctx, <<"__FUNCT_NUM_ARGS__">>),
             ephp_context:register_const(Ctx, <<"__FUNCTION__">>, PHPFunc),
+            ephp_context:register_const(Ctx, <<"__FUNCT_NUM_ARGS__">>,
+                length(Args)),
             Res = ephp_interpr:process(Ctx, Code),
             ephp_context:register_const(Ctx, <<"__FUNCTION__">>, OldFunc),
+            ephp_context:register_const(Ctx, <<"__FUNCT_NUM_ARGS__">>,
+                OldNArgs),
             Res
         end
     end.

@@ -7,7 +7,8 @@
     init/0,
     register_shutdown_function/2,
     get_defined_functions/1,
-    function_exists/2
+    function_exists/2,
+    func_num_args/1
 ]).
 
 -include("ephp.hrl").
@@ -20,13 +21,17 @@
 init() -> [
     {register_shutdown_function, true},
     get_defined_functions,
-    function_exists
+    function_exists,
+    func_num_args
 ].
 
 register_shutdown_function(Context, [{_,Callback}|_RawArgs]) ->
     %% TODO: add params to call the functions.
     ephp_context:register_shutdown_func(Context, Callback),
     ok.
+
+func_num_args(Context) ->
+    ephp_context:get_const(Context, <<"__FUNCT_NUM_ARGS__">>).
 
 get_defined_functions(Context) ->
     Append = fun(Type, I, Func, Dict) ->
