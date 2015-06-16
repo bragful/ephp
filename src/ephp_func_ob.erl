@@ -36,6 +36,7 @@ flush(Context) ->
 
 -spec ob_start(Context :: context()) -> boolean().
 
+%% TODO: add ob_start/1 to pass the output handle function.
 ob_start(Context) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:set_flush(Output, true),

@@ -1,4 +1,5 @@
 %% PHP PEG
+%% Author: Manuel Rubio <manuel@altenwald.com>
 
 php <- document / '' `
     case Node of

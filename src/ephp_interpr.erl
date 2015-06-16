@@ -180,7 +180,11 @@ run_loop(PrePost, Context, Cond, Statements) ->
     case PrePost =:= post orelse ephp_context:solve(Context, Cond) of
     true -> 
         Break = run(Context, #eval{statements=Statements}),
-        case Break =/= break andalso not is_tuple(Break) andalso ephp_context:solve(Context, Cond) of
+        case 
+            Break =/= break andalso
+            not is_tuple(Break) andalso
+            ephp_context:solve(Context, Cond)
+        of
         true ->
             run_loop(PrePost, Context, Cond, Statements);
         false ->

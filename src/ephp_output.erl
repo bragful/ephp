@@ -97,7 +97,7 @@ flush_handler(Text, stdout) ->
 flush_handler(Text, {io, FH}) ->
     io:fwrite(FH, "~s", [Text]),
     ok;
-
+%% TODO: add possibility to use a PHP function.
 flush_handler(Text, FH) when is_function(FH) ->
     FH(Text),
     ok.
