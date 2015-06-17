@@ -438,14 +438,23 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
 
 %% Functions
 
-call_function <- (key / var) space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+call_function <- (key '::')? (key / var) space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+    {Type,Class} = case hd(Node) of
+        [] -> {normal,undefined};
+        [ClassName,_] -> {class,ClassName}
+    end,
     {FuncName, Arguments} = case Node of
-        [Name,_,_,[_,Arg,Args],_,_] ->
+        [_,Name,_,_,[_,Arg,Args],_,_] ->
             {Name, [Arg | [ A || [_,_,_,A] <- Args ]]};
-        [Name,_,_,[],_,_] ->
+        [_,Name,_,_,[],_,_] ->
             {Name, []}
     end,
-    #call{name=FuncName, args=Arguments, line=Index}
+    #call{
+        type=Type,
+        class=Class,
+        name=FuncName,
+        args=Arguments,
+        line=Index}
 `;
 
 %% Objects and Classes

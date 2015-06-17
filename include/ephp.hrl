@@ -203,6 +203,8 @@
 -type class_name() :: binary().
 
 -record(call, {
+    type = normal :: call_types(),
+    class :: undefined | class_name(),
     name :: binary(),
     args = [] :: [expression()],
     line :: line()
