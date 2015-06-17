@@ -16,9 +16,7 @@ process(_Context, []) ->
 process(Context, Statements) ->
     Value = lists:foldl(fun
         (Statement, false) ->
-            Res = run(Context, Statement),
-            ephp_func_misc:shutdown(Context),
-            Res;
+            run(Context, Statement);
         (_Statement, break) ->
             throw(enobreak);
         (_Statement, continue) ->
@@ -26,6 +24,7 @@ process(Context, Statements) ->
         (_Statement, {return, Value}) ->
             {return, Value}
     end, false, Statements),
+    ephp_func_misc:shutdown(Context),
     {ok, Value}.
 
 -type flow_status() :: break | continue | return() | false.
