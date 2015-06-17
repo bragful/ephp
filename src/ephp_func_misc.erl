@@ -21,8 +21,7 @@ init() -> [
     sleep,
     usleep,
     {exit, <<"die">>},
-    exit,
-    {shutdown, <<"__do_shutdown">>}
+    exit
 ]. 
 
 -spec define(context(), Constant :: var_value(), 

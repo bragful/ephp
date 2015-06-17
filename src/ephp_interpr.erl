@@ -17,8 +17,7 @@ process(Context, Statements) ->
     Value = lists:foldl(fun
         (Statement, false) ->
             Res = run(Context, Statement),
-            Shutdown = #call{name = <<"__do_shutdown">>},
-            run(Context, #eval{statements=[Shutdown]}),
+            ephp_func_misc:shutdown(Context),
             Res;
         (_Statement, break) ->
             throw(enobreak);
