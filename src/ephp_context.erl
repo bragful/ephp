@@ -43,7 +43,6 @@
     set_output_handler/2,
     get_output_handler/1,
 
-    call_func/3,
     register_func/3,
     register_func/4,
     register_func/5,
@@ -189,10 +188,6 @@ register_const(Context, Name, Value) ->
     #state{const=Const} = erlang:get(Context),
     ephp_const:set(Const, Name, Value),
     ok.
-
-call_func(Context, PHPFunc, Args) ->
-    #state{funcs=Funcs} = erlang:get(Context),
-    ephp_func:call(Funcs, PHPFunc, Args).
 
 call_method(Context, Instance, Call) ->
     {Val, NS} = run_method(Instance, Call, erlang:get(Context)),

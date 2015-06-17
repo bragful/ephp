@@ -26,7 +26,6 @@
     get_functions/1,
 
     run/2,
-    call/3,
 
     register_func/3,
     register_func/4,
@@ -128,39 +127,4 @@ run(Context, #call{line=Line}=Call) ->
                 [Fun, File, ephp_util:get_line(Line)]),
             ephp_context:set_output(Context, Error),
             {return, null}
-    end.
-
-call(Funcs, PHPFunc, Args) ->
-    case get(Funcs, PHPFunc) of
-    error ->
-        throw(eundefun);
-    {ok, #reg_func{type=builtin, pack_args=false, builtin={Module, Fun}}} ->
-        fun(Ctx) ->
-            erlang:apply(Module, Fun, [Ctx|Args])
-        end;
-    {ok, #reg_func{type=builtin, pack_args=true, builtin={Module, Fun}}} ->
-        fun(Ctx) ->
-            erlang:apply(Module, Fun, [Ctx|[Args]])
-        end;
-    {ok, #reg_func{type=builtin, pack_args=false, builtin=Fun}} ->
-        fun(Ctx) ->
-            erlang:apply(Fun, [Ctx|Args])
-        end;
-    {ok, #reg_func{type=builtin, pack_args=true, builtin=Fun}} ->
-        fun(Ctx) ->
-            erlang:apply(Fun, [Ctx|[Args]])
-        end;
-    {ok, #reg_func{type=php, code=Code}} ->
-        fun(Ctx) ->
-            OldFunc = ephp_context:get_const(Ctx, <<"__FUNCTION__">>),
-            OldNArgs = ephp_context:get_const(Ctx, <<"__FUNCT_NUM_ARGS__">>),
-            ephp_context:register_const(Ctx, <<"__FUNCTION__">>, PHPFunc),
-            ephp_context:register_const(Ctx, <<"__FUNCT_NUM_ARGS__">>,
-                length(Args)),
-            Res = ephp_interpr:process(Ctx, Code),
-            ephp_context:register_const(Ctx, <<"__FUNCTION__">>, OldFunc),
-            ephp_context:register_const(Ctx, <<"__FUNCT_NUM_ARGS__">>,
-                OldNArgs),
-            Res
-        end
     end.
