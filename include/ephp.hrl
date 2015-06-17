@@ -199,14 +199,19 @@
     line :: line()
 }).
 
+-type call_types() :: normal | class | object.
+-type class_name() :: binary().
+
 -record(call, {
     name :: binary(),
     args = [] :: [expression()],
     line :: line()
 }).
 
+-type function_name() :: binary().
+
 -record(function, {
-    name :: binary(),
+    name :: function_name(),
     args = [] :: [variable()],
     code :: statements(),
     line :: line()
@@ -276,7 +281,7 @@
 -type class() :: #class{}.
 
 -record(instance, {
-    name :: binary(),
+    name :: class_name(),
     args :: [variable()],
     line :: line()
 }).

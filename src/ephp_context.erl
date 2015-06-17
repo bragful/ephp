@@ -14,7 +14,11 @@
     const :: reference(),
     global :: reference(),
     include :: reference(),
-    shutdown :: reference()
+    shutdown :: reference(),
+
+    active_fun = <<>> :: function_name(),
+    active_fun_args = 0 :: non_neg_integer(),
+    active_class = <<>> :: class_name()
 }).
 
 %% ------------------------------------------------------------------
@@ -45,6 +49,10 @@
     register_func/5,
     get_functions/1,
     get_function/2,
+
+    get_current_function/1,
+    get_current_class/1,
+    get_current_function_arity/1,
 
     get_const/2,
     register_const/3,
@@ -160,6 +168,18 @@ get_functions(Context) ->
 get_function(Context, FuncName) ->
     #state{funcs=Funcs} = erlang:get(Context),
     ephp_func:get(Funcs, FuncName).
+
+get_current_function(Context) ->
+    #state{active_fun=ActiveFun} = erlang:get(Context),
+    ActiveFun.
+
+get_current_function_arity(Context) ->
+    #state{active_fun_args=ActiveFunArgs} = erlang:get(Context),
+    ActiveFunArgs.
+
+get_current_class(Context) ->
+    #state{active_class=ActiveClass} = erlang:get(Context),
+    ActiveClass.
 
 get_const(Context, Name) ->
     #state{const=Const} = erlang:get(Context),
@@ -456,7 +476,10 @@ resolve(#call{name=Fun,args=RawArgs,line=Index},
         {ok, NewVars} = ephp_vars:start_link(),
         {ok, SubContext} = start_mirror(NState#state{
             vars=NewVars,
-            global=Vars}),
+            global=Vars,
+            active_fun=Fun,
+            active_class=undefined,
+            active_fun_args=length(Args)}),
         lists:foldl(fun
             (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
                 ephp_vars:ref(NewVars, VarRef, Vars, VarName),
@@ -467,18 +490,14 @@ resolve(#call{name=Fun,args=RawArgs,line=Index},
             (_FuncArg, []) ->
                 []
         end, Args, FuncArgs),
-        OldFunc = ephp_const:get(Const, <<"__FUNCTION__">>),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
-        OldNArgs = ephp_const:get(Const, <<"__FUNCT_NUM_ARGS__">>),
-        ephp_const:set(Const, <<"__FUNCT_NUM_ARGS__">>, length(Args)),
         Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
             {return, V} -> V;
             _ -> null
         end,
         destroy(SubContext),
         ephp_vars:destroy(NewVars), 
-        ephp_const:set(Const, <<"__FUNCTION__">>, OldFunc), 
-        ephp_const:set(Const, <<"__FUNCT_NUM_ARGS__">>, OldNArgs),
+        ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun), 
         {Value, State}
     end;
 

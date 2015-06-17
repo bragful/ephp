@@ -31,7 +31,7 @@ register_shutdown_function(Context, [{_,Callback}|_RawArgs]) ->
     ok.
 
 func_num_args(Context) ->
-    ephp_context:get_const(Context, <<"__FUNCT_NUM_ARGS__">>).
+    ephp_context:get_current_function_arity(Context).
 
 get_defined_functions(Context) ->
     Append = fun(Type, I, Func, Dict) ->
