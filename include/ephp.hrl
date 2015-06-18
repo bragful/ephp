@@ -168,7 +168,11 @@
 
 -type constant() :: #constant{}.
 
+-type variable_types() :: normal | object | class.
+
 -record(variable, {
+    type = normal :: variable_types(),
+    class :: class_name() | undefined,
     name :: binary(),
     idx = [] :: [array_index() | {object, binary()} | {class, binary()}],
     line :: line()
@@ -267,17 +271,19 @@
 }).
 
 -type class_method() :: #class_method{}.
+-type class_type() :: normal | static | abstract.
 
 -record(class, {
-    name :: binary(),
-    type = normal :: normal | static | abstract,
-    extends :: undefined | binary(),
-    implements = [] :: [binary()],
+    name :: class_name(),
+    type = normal :: class_type(),
+    extends :: undefined | class_name(),
+    implements = [] :: [class_name()],
     constants = ?DICT:new() :: ?DICT_TYPE,
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     line :: line(),
-    instance_counter = 0 :: integer()
+    instance_counter = 0 :: integer(),
+    static_context :: context()
 }).
 
 -type class() :: #class{}.

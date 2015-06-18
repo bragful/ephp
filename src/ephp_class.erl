@@ -18,7 +18,7 @@
     get_method/2,
     get_method/3,
 
-    register_class/2,
+    register_class/3,
     instance/3
 ]).
 
@@ -44,9 +44,15 @@ set(Ref, ClassName, Class) ->
     erlang:put(Ref, NC),
     ok.
 
-register_class(Ref, #class{name=Name}=PHPClass) ->
+register_class(Ref, GlobalCtx, #class{name=Name}=PHPClass) ->
     Classes = erlang:get(Ref),
-    erlang:put(Ref, ?DICT:store(Name, PHPClass, Classes)),
+    {ok, Ctx} = ephp_context:start_link(),
+    ephp_context:set_global(Ctx, GlobalCtx),
+    ActivePHPClass = PHPClass#class{
+        static_context = Ctx
+    },
+    initialize_class(ActivePHPClass),
+    erlang:put(Ref, ?DICT:store(Name, ActivePHPClass, Classes)),
     ok.
 
 instance(Ref, GlobalCtx, ClassName) ->
@@ -68,17 +74,34 @@ instance(Ref, GlobalCtx, ClassName) ->
         RegClass
     end.
 
-initialize(Ctx, #class{attrs=Attrs}) ->
-    lists:foreach(fun(#class_attr{name=Name, init_value=RawVal}) ->
-        Val = ephp_context:solve(Ctx, RawVal), 
-        ephp_context:set(Ctx, #variable{name=Name}, Val)
+initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
+    lists:foreach(fun
+        (#class_attr{type=static, name=Name, init_value=RawVal}) ->
+            Val = ephp_context:solve(Ctx, RawVal), 
+            ephp_context:set(Ctx, #variable{name=Name}, Val);
+        (#class_attr{type=normal}) ->
+            ignore
     end, Attrs).
 
-get_constructor(#class{methods=Methods}) ->
+initialize(Ctx, #class{attrs=Attrs}) ->
+    lists:foreach(fun
+        (#class_attr{type=normal, name=Name, init_value=RawVal}) ->
+            Val = ephp_context:solve(Ctx, RawVal), 
+            ephp_context:set(Ctx, #variable{name=Name}, Val);
+        (#class_attr{type=static}) ->
+            ignore
+    end, Attrs).
+
+get_constructor(#class{name=Name, methods=Methods}) ->
     MethodName = <<"__construct">>,
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
-        undefined;
+        case lists:keyfind(Name, #class_method.name, Methods) of
+        false ->
+            undefined;
+        #class_method{}=ClassMethod ->
+            ClassMethod
+        end;
     #class_method{}=ClassMethod ->
         ClassMethod
     end.

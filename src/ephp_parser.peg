@@ -640,9 +640,13 @@ var_complex <- var_simple space? var_access+ `
     Var#variable{idx=Access, line=Index}
 `;
 
-var_simple <- '$' key `
-    [_Dollar, Key] = Node,
-    #variable{name=Key, line=Index}
+var_simple <- (key '::')? '$' key `
+    [RawType,_Dollar, Key] = Node,
+    {Type,Class} = case RawType of
+        [] -> {normal, undefined};
+        [C,_] -> {class, C}
+    end,
+    #variable{type=Type, class=Class, name=Key, line=Index}
 `;
 
 enclosed_var <- enclosed_var_array / enclosed_var_simple ~;
