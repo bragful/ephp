@@ -119,11 +119,11 @@ get_method(Ref, ClassName, MethodName) ->
     {ok, Class} = get(Ref, ClassName),
     get_method(Class, MethodName).
 
-get_method(#class{methods=Methods}, MethodName) ->
+get_method(#class{methods=Methods,line=Index}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        throw(eundefmethod);
+        throw({error, eundefmethod, ephp_util:get_line(Index), MethodName});
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
