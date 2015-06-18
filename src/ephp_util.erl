@@ -117,7 +117,10 @@ pad_to_bin(Num, Pad) when not is_binary(Num) ->
 pad_to_bin(Num, Pad) ->
     pad_to_bin(<<"0",Num/binary>>, Pad-1).
 
--spec get_line(line()) -> non_neg_integer().
+-spec get_line(line() | undefined) -> non_neg_integer() | undefined.
+
+get_line(undefined) ->
+    undefined;
 
 get_line({{line, Line}, {column, _Column}}) ->
     Line.
