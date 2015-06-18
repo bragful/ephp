@@ -542,8 +542,8 @@ resolve(#instance{name=ClassName, args=RawArgs}=Instance,
     case ephp_class:get_constructor(Class) of
     undefined ->
         {RetInstance, State};
-    _ ->
-        Call = #call{name = <<"__construct">>, args=RawArgs},
+    #class_method{name = ConstructorName} ->
+        Call = #call{type = object, name = ConstructorName, args=RawArgs},
         {_, NState} = run_method(RetInstance, Call, State),
         {RetInstance, NState}
     end;
