@@ -1,7 +1,7 @@
 object(User)#1 (2) {
-  public $name =>
+  ["name"]=>
   string(4) "John"
-  public $surname =>
+  ["surname"]=>
   string(5) "Smith"
 }
 User Object
