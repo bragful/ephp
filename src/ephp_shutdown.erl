@@ -1,6 +1,5 @@
 -module(ephp_shutdown).
--author("Manuel Rubio <manuel@altenwald.com>").
-
+-author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -include("ephp.hrl").

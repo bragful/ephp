@@ -1,5 +1,6 @@
 -module(ephp_parser_test).
--compile(export_all).
+-author('manuel@altenwald.com').
+-compile([warnings_as_errors,export_all]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("ephp.hrl").

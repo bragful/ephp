@@ -1,5 +1,5 @@
 -module(ephp_func).
-
+-author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -include("ephp.hrl").

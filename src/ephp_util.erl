@@ -1,4 +1,5 @@
 -module(ephp_util).
+-author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -export([

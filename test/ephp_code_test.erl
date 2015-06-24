@@ -1,5 +1,6 @@
 -module(ephp_code_test).
--compile(export_all).
+-author('manuel@altenwald.com').
+-compile([warnings_as_errors, export_all]).
 
 -define(CODE_PATH, "../test/code/").
 
