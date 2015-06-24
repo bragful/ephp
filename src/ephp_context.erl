@@ -343,7 +343,7 @@ resolve({pre_incr, Var, _Line}, State) ->
             {V+1, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
-                list_to_integer(binary_to_list(V)) + 1
+                binary_to_integer(V) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,
@@ -376,7 +376,7 @@ resolve({post_incr, Var, _Line}, State) ->
             {V, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
-                list_to_integer(binary_to_list(V)) + 1
+                binary_to_integer(V) + 1
             catch error:badarg ->
                 ephp_util:increment_code(V)
             end,

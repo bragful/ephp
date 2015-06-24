@@ -800,7 +800,11 @@ get_op(Type, A, B, Index, Data) ->
         Result = case Op of
             <<"+">> -> An + Bn;
             <<"-">> -> An - Bn;
-            <<"/">> -> if Bn == 0 -> throw_error(edivzero, Index, Data); true -> An / Bn end;
+            <<"/">> ->
+                if
+                    Bn == 0 -> throw_error(edivzero, Index, Data);
+                    true -> An / Bn
+                end;
             <<"*">> -> An * Bn;
             <<"%">> -> trunc(An) rem trunc(Bn);
             <<"^">> -> trunc(An) bxor trunc(Bn);

@@ -32,6 +32,7 @@ load_once(Ref, Name) ->
     error ->
         case file:read_file(Name) of
         {error, enoent} ->
+            %% TODO: use include_path to search the file
             {error, enoent};
         {ok, Content} -> 
             Value = ephp_parser:parse(Content),
@@ -48,6 +49,7 @@ load(Ref, Name) ->
     error ->
         case file:read_file(Name) of
         {error, enoent} ->
+            %% TODO: use include_path to search the file
             {error, enoent};
         {ok, Content} -> 
             Value = ephp_parser:parse(Content),

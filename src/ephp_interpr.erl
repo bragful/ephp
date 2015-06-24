@@ -31,8 +31,7 @@ process(Context, Statements) ->
 
 -type flow_status() :: break | continue | return() | false.
 
--spec run(Context :: context(), Statements :: main_statement()) ->
-    flow_status().
+-spec run(context(), main_statement()) -> flow_status().
 
 run(Context, #print_text{text=Text}) ->
     ephp_context:set_output(Context, Text),
@@ -62,13 +61,11 @@ run_depth(Context, #assign{}=Assign, Return) ->
 run_depth(Context, #if_block{conditions=Cond}=IfBlock, false) ->
     case ephp_context:solve(Context, Cond) of
     true ->
-        Break = run(Context, 
-            #eval{statements=IfBlock#if_block.true_block}),
-        Break;
+        run(Context, 
+            #eval{statements=IfBlock#if_block.true_block});
     false when IfBlock#if_block.false_block =/= undefined ->
-        Break = run(Context, 
-            #eval{statements=IfBlock#if_block.false_block}),
-        Break;
+        run(Context, 
+            #eval{statements=IfBlock#if_block.false_block});
     _ ->
         false
     end;
