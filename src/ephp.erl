@@ -100,7 +100,13 @@ eval(Filename, Context, PHP) ->
         {error, eparse, Line, _Text} ->
             ephp_error:handle_error(Context, {error, eparse, Line, Filename});
         Compiled ->
-            ephp_interpr:process(Context, Compiled)
+            case catch ephp_interpr:process(Context, Compiled) of
+                {ok, Return} ->
+                    {ok, Return};
+                {error, _, _, _}=Error ->
+                    ephp_error:handle_error(Context, Error),
+                    {ok, <<>>}
+            end
     end.
 
 -spec main(Args :: [string()]) -> integer().

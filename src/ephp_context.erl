@@ -434,13 +434,15 @@ resolve({operation_not, Expr, _Line}, State) ->
         {_, NewState} -> {false, NewState}
     end;
 
-resolve({operation_bnot, Expr, _Line}, State) ->
+resolve({operation_bnot, Expr, Line}, State) ->
     case resolve(Expr, State) of
         {Number, NewState} when is_integer(Number) -> {bnot(Number), NewState};
         {Number, NewState} when is_float(Number) -> {bnot(Number), NewState};
         {Binary, NewState} when is_binary(Binary) -> 
             {<< <<bnot(B)/integer>> || <<B:8/integer>> <= Binary >>, NewState};
-        _ -> ephp_error:error(ebadbnot)
+        _ ->
+            File = State#state.active_file,
+            ephp_error:error({error, ebadbnot, Line, File})
     end;
 
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->

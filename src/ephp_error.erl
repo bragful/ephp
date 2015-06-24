@@ -73,6 +73,11 @@ get_message(eundefun, Line, {File, Fun}) ->
         "~nFatal error: Call to undefined function ~s() in ~s on line ~p~n",
         [Fun, File, Line]);
 
+get_message(ebadbnot, Line, File) ->
+    io_lib:format(
+        "~nFatal error: Unsupported operand types in ~s on line ~p~n",
+        [File, Line]);
+
 get_message(Unknown, Line, Data) ->
     io_lib:format(
         "~nFatal Error: unknown ~p for ~p in line ~p~n",

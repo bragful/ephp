@@ -68,6 +68,7 @@ code_to_test_() ->
         "test_return_values",
         "test_include_value",
         "test_logic_bnot",
+        "test_bnot_error",
         "test_logic",
         "test_magic_constants",
         "test_minus",
