@@ -204,12 +204,12 @@ run_depth(_Context, _Statement, Break) ->
         {break | continue | return() | false, binary()}.
 
 run_loop(PrePost, Context, Cond, Statements) ->
-    case PrePost =:= post orelse ephp_context:solve(Context, Cond) of
+    case (PrePost =:= post) or ephp_context:solve(Context, Cond) of
     true -> 
         Break = run(Context, #eval{statements=Statements}),
-        case 
-            Break =/= break andalso
-            not is_tuple(Break) andalso
+        case
+            (Break =/= break) and
+            (not is_tuple(Break)) and
             ephp_context:solve(Context, Cond)
         of
         true ->
