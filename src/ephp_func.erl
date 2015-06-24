@@ -110,21 +110,12 @@ run(Context, #call{line=Line}=Call) ->
     catch
         throw:die ->
             {return, null};
-        throw:{error, erequired, Ln, ReqFile} ->
+        throw:{error, erequired, _, ReqFile} ->
             File = ephp_context:get_const(Context, <<"__FILE__">>),
-            Error = io_lib:format(
-                "~nFatal error: require(): Failed opening required '~s'"
-                " in ~s on line ~p~n",
-                [ReqFile, File, Ln]),
-            ephp_context:set_output(Context, Error),
-            {return, null}; 
+            Data = {File, ReqFile},
+            ephp_error:handle_error(Context, {error, erequired, Line, Data});
         throw:{error, eundefun, _, Fun} ->
-            %% TODO: format better the output errors
             File = ephp_context:get_const(Context, <<"__FILE__">>),
-            Error = io_lib:format(
-                "~nFatal error: Call to undefined function ~s()"
-                " in ~s on line ~p~n",
-                [Fun, File, ephp_util:get_line(Line)]),
-            ephp_context:set_output(Context, Error),
-            {return, null}
+            Data = {File, Fun},
+            ephp_error:handle_error(Context, {error, eundefun, Line, Data})
     end.

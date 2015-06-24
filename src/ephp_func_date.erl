@@ -6,13 +6,13 @@
 
 -export([
     init/0,
-    time/1,
-    date/2,
+    time/2,
     date/3,
-    gmdate/2,
+    date/4,
     gmdate/3,
-    date_default_timezone_set/2,
-    date_default_timezone_get/1
+    gmdate/4,
+    date_default_timezone_set/3,
+    date_default_timezone_get/2
 ]).
 
 -include("ephp.hrl").
@@ -25,56 +25,56 @@ init() -> [
     date_default_timezone_set
 ]. 
 
--spec time(Context :: context()) -> integer().
+-spec time(context(), line()) -> integer().
 
-time(_Context) ->
+time(_Context, _Line) ->
     {MS,S,_} = os:timestamp(),
     MS * 1000000 + S.
 
--spec date(Context :: context(), Format :: {variable(),binary()}) -> binary().
+-spec date(context(), line(), Format :: {variable(),binary()}) -> binary().
 
-date(Context, {_,Format}) ->
+date(Context, _Line, {_,Format}) ->
     {MS,S,US} = os:timestamp(),
     date(Context, {"", Format}, {"", (MS * 1000000) + S + (US / 1000000)}).
 
 -spec date(
-    Context :: context(), 
+    context(), line(),
     Format :: {variable(),binary()}, 
     Timestamp :: {variable(),(integer() | float())}) -> binary().
 
-date(Context, {_,Format}, {_,Timestamp}) ->
+date(Context, _Line, {_,Format}, {_,Timestamp}) ->
     {M,S,U} = get_timestamp(Timestamp),
     TZ = ephp_context:get_tz(Context),
     Date = ezic:utc_to_local(calendar:now_to_universal_time({M,S,U}), TZ),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
--spec gmdate(Context :: context(), Format :: {variable(),binary()}) -> binary().
+-spec gmdate(context(), line(), Format :: {variable(),binary()}) -> binary().
 
-gmdate(Context, {_,Format}) ->
+gmdate(Context, _Line, {_,Format}) ->
     {MS,S,US} = os:timestamp(),
     gmdate(Context, Format, (MS * 1000000) + S + (US / 1000000)).
 
 -spec gmdate(
-    Context :: context(), 
+    context(), line(),
     Format :: {variable(),binary()}, 
     Timestamp :: integer() | float()) -> binary().
 
-gmdate(_Context, Format, Timestamp) ->
+gmdate(_Context, _Line, Format, Timestamp) ->
     {M,S,U} = get_timestamp(Timestamp),
     TZ = "GMT",
     Date = calendar:now_to_universal_time({M,S,U}),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
--spec date_default_timezone_get(Context :: context()) -> binary().
+-spec date_default_timezone_get(context(), line()) -> binary().
 
-date_default_timezone_get(Context) ->
+date_default_timezone_get(Context, _Line) ->
     ephp_util:to_bin(ephp_context:get_tz(Context)).
 
 -spec date_default_timezone_set(
-    Context :: context(), 
+    context(), line(),
     TZ :: {variable(),binary()}) -> binary().
 
-date_default_timezone_set(Context, {_,TZ}) ->
+date_default_timezone_set(Context, _Line, {_,TZ}) ->
     ephp_context:set_tz(Context, TZ),
     null.
 

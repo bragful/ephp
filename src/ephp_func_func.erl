@@ -6,10 +6,10 @@
 
 -export([
     init/0,
-    register_shutdown_function/2,
-    get_defined_functions/1,
-    function_exists/2,
-    func_num_args/1
+    register_shutdown_function/3,
+    get_defined_functions/2,
+    function_exists/3,
+    func_num_args/2
 ]).
 
 -include("ephp.hrl").
@@ -26,15 +26,21 @@ init() -> [
     func_num_args
 ].
 
-register_shutdown_function(Context, [{_,Callback}|_RawArgs]) ->
+-spec register_shutdown_function(context(), line(), [var_value()]) -> ok.
+
+register_shutdown_function(Context, _Line, [{_,Callback}|_RawArgs]) ->
     %% TODO: add params to call the functions.
     ephp_context:register_shutdown_func(Context, Callback),
     ok.
 
-func_num_args(Context) ->
+-spec func_num_args(context(), line()) -> non_neg_integer().
+
+func_num_args(Context, _Line) ->
     ephp_context:get_current_function_arity(Context).
 
-get_defined_functions(Context) ->
+-spec get_defined_functions(context(), line()) -> ?DICT_TYPE.
+
+get_defined_functions(Context, _Line) ->
     Append = fun(Type, I, Func, Dict) ->
         NewTypeDict = case ?DICT:find(Type, Dict) of
             {ok,TypeDict} ->
@@ -54,5 +60,7 @@ get_defined_functions(Context) ->
     end, {0,BaseDict}, ephp_context:get_functions(Context)),
     FuncList.
 
-function_exists(Context, {_,FuncName}) ->
+-spec function_exists(context(), line(), FuncName :: var_value()) -> boolean().
+
+function_exists(Context, _Line, {_,FuncName}) ->
     ephp_context:get_function(Context, FuncName) =/= error.

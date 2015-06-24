@@ -25,12 +25,15 @@ test_code(File) ->
     ?_assert(begin
         try
             {ok, OutCode, _Ret} = eval(?CODE_PATH ++ File ++ ".php"),
-            {ok, OutFile} = file:read_file(?CODE_PATH ++ File ++ ".out"),
+            {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
+            {ok, CWD} = file:get_cwd(),
+            OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
+                list_to_binary(CWD ++ "/.."), [global]),
             ?assertEqual(iolist_to_binary(OutCode), OutFile),
             true
         catch Type:Reason ->
-            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n",
-                [File, Type, Reason]),
+            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
+                [File, Type, Reason, erlang:get_stacktrace()]),
             false
         end
     end).

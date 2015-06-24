@@ -6,10 +6,10 @@
 
 -export([
     init/0,
-    define/3,
-    sleep/2,
-    usleep/2,
-    exit/2,
+    define/4,
+    sleep/3,
+    usleep/3,
+    exit/3,
     shutdown/1
 ]).
 
@@ -25,36 +25,37 @@ init() -> [
     exit
 ]. 
 
--spec define(context(), Constant :: var_value(), 
+-spec define(context(), line(), Constant :: var_value(), 
     Content :: var_value()) -> boolean().
 
-define(Context, {#constant{name=Constant},_}, {_UnParsedContent,Content}) ->
+define(Context, _Line, {#constant{name=Constant},_},
+        {_UnParsedContent,Content}) ->
     ephp_context:register_const(Context, Constant, Content),
     true.
 
--spec sleep(context(), Seconds :: var_value()) -> false | integer().
+-spec sleep(context(), line(), Seconds :: var_value()) -> false | integer().
 
-sleep(_Context, {_, Seconds}) when is_number(Seconds) ->
+sleep(_Context, _Line, {_, Seconds}) when is_number(Seconds) ->
     timer:sleep(trunc(Seconds) * 1000),
     0;
 
-sleep(_Context, _) ->
+sleep(_Context, _Line, _) ->
     false.
 
--spec usleep(context(), MicroSeconds :: var_value()) -> 
+-spec usleep(context(), line(), MicroSeconds :: var_value()) -> 
     false | integer().
 
-usleep(_Context, {_, MicroSeconds}) when is_number(MicroSeconds) ->
+usleep(_Context, _Line, {_, MicroSeconds}) when is_number(MicroSeconds) ->
     timer:sleep(trunc(MicroSeconds) div 1000),
     0;
 
-usleep(_Context, _) ->
+usleep(_Context, _Line, _) ->
     false.
 
--spec exit(context(), Message :: var_value()) ->
+-spec exit(context(), line(), Message :: var_value()) ->
     null.
 
-exit(Context, {_, Value}) ->
+exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),
     throw(die).
 
@@ -70,7 +71,7 @@ shutdown(Context) ->
     end, false, ephp_context:get_shutdown_funcs(Context)),
     if Result =:= false ->
         ?DICT:fold(fun(K,V,Acc) ->
-            ephp_func_vars:unset(Context, {#variable{name=K},V}),
+            ephp_func_vars:unset(Context, undefined, {#variable{name=K},V}),
             Acc
         end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
     true ->

@@ -287,7 +287,7 @@ resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
 
 resolve(#assign{variable=#variable{type=class, class = <<"self">>, line=Index}},
         #state{active_class=undefined}) ->
-    throw({error, eundefclass, ephp_util:get_line(Index), <<"self">>});
+    ephp_error:error({error, eundefclass, Index, <<"self">>});
 
 resolve(#assign{variable=#variable{type=class, class = <<"self">>}=Var}=Assign,
         #state{active_class=ClassName}=State) ->
@@ -304,7 +304,7 @@ resolve(#assign{
     {ok, #class{static_context=ClassCtx}} ->
         set(ClassCtx, VarPath, Value);
     error ->
-        throw({error, eundefclass, ephp_util:get_line(Index), ClassName})
+        ephp_error:error({error, eundefclass, Index, ClassName})
     end,
     {Value, NState};
 
@@ -415,7 +415,7 @@ resolve({operation_bnot, Expr, _Line}, State) ->
         {Number, NewState} when is_float(Number) -> {bnot(Number), NewState};
         {Binary, NewState} when is_binary(Binary) -> 
             {<< <<bnot(B)/integer>> || <<B:8/integer>> <= Binary >>, NewState};
-        _ -> throw(ebadbnot)
+        _ -> ephp_error:error(ebadbnot)
     end;
 
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->
@@ -463,14 +463,9 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
         {ok, Mirror} = start_mirror(NState),
-        Value = try
-            if
-                PackArgs -> erlang:apply(M,F,[Mirror,Args]);
-                true -> erlang:apply(M,F,[Mirror|Args])
-            end
-        catch
-            throw:{erequired,File} -> 
-                throw({error, erequired, ephp_util:get_line(Index), File})
+        Value = if
+            PackArgs -> erlang:apply(M,F,[Mirror,Index,Args]);
+            true -> erlang:apply(M,F,[Mirror,Index|Args])
         end,
         destroy(Mirror),
         {Value, NState};
@@ -482,8 +477,8 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
         end, {[], State}, RawArgs),
         {ok, Mirror} = start_mirror(NState),
         Value = if
-            PackArgs -> F([Mirror,Args]);
-            true -> F([Mirror|Args])
+            PackArgs -> F([Mirror,Index,Args]);
+            true -> F([Mirror,Index|Args])
         end,
         destroy(Mirror),
         {Value, NState};
@@ -519,7 +514,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun), 
         {Value, State};
     error ->
-        throw({error, eundefun, ephp_util:get_line(Index), Fun})
+        ephp_error:error({error, eundefun, Index, Fun})
     end;
 
 resolve(#call{type=class,class=Name,line=Index}=Call,
@@ -528,7 +523,7 @@ resolve(#call{type=class,class=Name,line=Index}=Call,
     {ok, Class} ->
         run_method(Class, Call, State);
     error ->
-        throw({error, eundefclass, ephp_util:get_line(Index), Name})
+        ephp_error:error({error, eundefclass, Index, Name})
     end;
 
 resolve({object,Idx,Line}, State) ->
@@ -573,13 +568,10 @@ resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
     {{var_ref, Vars, Var}, State};
 
 resolve(auto, _State) ->
-    % Fatal error: Cannot use [] for reading
-    throw(earrayundef);
+    ephp_error:error({error, earrayundef, undefined, <<>>});
 
-resolve(Unknown, #state{}=State) ->
-    %% TODO: better handle of this errors
-    io:format("~p - ~p~n", [Unknown,State]),
-    throw(eundeftoken).
+resolve(Unknown, _State) ->
+    ephp_error:error({error, eundeftoken, undefined, Unknown}).
 
 run_method(RegInstance, #call{args=RawArgs}=Call,
         #state{const=Const, vars=Vars}=State) ->
@@ -656,7 +648,7 @@ resolve_var(#variable{type=normal}=Var, State) ->
 
 resolve_var(#variable{type=class,class = <<"self">>, line=Index},
         #state{active_class=undefined}) ->
-    throw({error, enoclassscope, ephp_util:get_line(Index), <<"self">>});
+    ephp_error:error({error, enoclassscope, Index, <<"self">>});
 
 resolve_var(#variable{type=class, class = <<"self">>}=Var,
         #state{active_class=ClassName}=State) ->
@@ -670,7 +662,7 @@ resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
         Value = get(ClassCtx, NewVar),
         {Value, NewState};
     error ->
-        throw({error, eundefclass, ephp_util:get_line(Index), ClassName})
+        ephp_error:error({error, eundefclass, Index, ClassName})
     end.
 
 
@@ -740,8 +732,8 @@ resolve_op(#operation{
             {ephp_util:to_bool(OpRes2), State2}
     end;
 
-resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2},
-        State) ->
+resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
+        line=Index}, State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
     {case Type of
@@ -755,7 +747,7 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2},
             A = ephp_util:zero_if_undef(OpRes1),
             B = ephp_util:zero_if_undef(OpRes2),
             if 
-                B == 0 -> throw(edivzero);
+                B == 0 -> ephp_error:error({error, edivzero, Index, <<>>});
                 true -> A / B
             end;
         <<"%">> -> 

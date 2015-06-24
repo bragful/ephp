@@ -6,9 +6,8 @@
 
 -export([
     init/0,
-    in_array/3,
-    count/2,
-    sizeof/2
+    in_array/4,
+    count/3
 ]).
 
 -include("ephp.hrl").
@@ -18,26 +17,23 @@
 init() -> [
     in_array,
     count,
-    sizeof
+    {count, <<"sizeof">>}
 ]. 
 
--spec in_array(Context :: context(), Key :: var_value(), Array :: var_value()) -> boolean().
+-spec in_array(
+    context(), line(),
+    Key :: var_value(), Array :: var_value()) -> boolean().
 
-in_array(_Context, {_,Value}, {_,Array}) ->
+in_array(_Context, _Line, {_,Value}, {_,Array}) ->
     member(Value, Array).
 
--spec count(Context :: context(), Array :: var_value()) -> integer().
+-spec count(context(), line(), Array :: var_value()) -> integer().
 
-count(_Context, {_,Array}) when ?IS_DICT(Array) ->
+count(_Context, _Line, {_,Array}) when ?IS_DICT(Array) ->
     ?DICT:size(Array);
 
-count(_Context, _Var) ->
+count(_Context, _Line, _Var) ->
     1.
-
--spec sizeof(Context :: context(), Array :: var_value()) -> integer().
-
-sizeof(Context, Array) ->
-    count(Context, Array).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

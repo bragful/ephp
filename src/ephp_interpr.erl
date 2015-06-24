@@ -193,10 +193,8 @@ run_depth(Context, #text_to_process{}=TP, false) ->
 run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false) ->
     ephp_context:solve(Context, Var);
 
-run_depth(_Context, _Statement, false) ->
-    %% TODO: do better error handling
-    io:format("FATAL: ~p~n", [_Statement]),
-    throw(eunknownst);
+run_depth(_Context, Statement, false) ->
+    ephp_error:error({error, eunknownst, undefined, Statement});
 
 run_depth(_Context, _Statement, Break) ->
     Break.

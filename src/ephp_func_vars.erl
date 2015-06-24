@@ -6,21 +6,21 @@
 
 -export([
     init/0,
-    php_is_array/2,
-    php_is_bool/2,
-    php_is_integer/2,
-    php_is_float/2,
-    php_is_numeric/2,
-    php_is_null/2,
-    php_is_object/2,
-    php_is_string/2,
-    print_r/2,
-    var_dump/2,
+    php_is_array/3,
+    php_is_bool/3,
+    php_is_integer/3,
+    php_is_float/3,
+    php_is_numeric/3,
+    php_is_null/3,
+    php_is_object/3,
+    php_is_string/3,
     print_r/3,
-    isset/2,
-    empty/2,
-    gettype/2,
-    unset/2
+    print_r/4,
+    var_dump/3,
+    isset/3,
+    empty/3,
+    gettype/3,
+    unset/3
 ]).
 
 -include("ephp.hrl").
@@ -53,47 +53,48 @@ init() -> [
     var_dump
 ].
 
--spec php_is_array(context(), var_value()) -> boolean().
-php_is_array(_Context, {_,Value}) -> ?IS_DICT(Value).
+-spec php_is_array(context(), line(), var_value()) -> boolean().
+php_is_array(_Context, _Line, {_,Value}) -> ?IS_DICT(Value).
 
--spec php_is_bool(context(), var_value()) -> boolean().
-php_is_bool(_Context, {_,Value}) -> erlang:is_boolean(Value).
+-spec php_is_bool(context(), line(), var_value()) -> boolean().
+php_is_bool(_Context, _Line, {_,Value}) -> erlang:is_boolean(Value).
 
--spec php_is_integer(context(), var_value()) -> boolean().
-php_is_integer(_Context, {_,Value}) -> erlang:is_integer(Value).
+-spec php_is_integer(context(), line(), var_value()) -> boolean().
+php_is_integer(_Context, _Line, {_,Value}) -> erlang:is_integer(Value).
 
--spec php_is_numeric(context(), var_value()) -> boolean().
-php_is_numeric(_Context, {_,Value}) -> erlang:is_number(Value).
+-spec php_is_numeric(context(), line(), var_value()) -> boolean().
+php_is_numeric(_Context, _Line, {_,Value}) -> erlang:is_number(Value).
 
--spec php_is_float(context(), var_value()) -> boolean().
-php_is_float(_Context, {_,Value}) -> erlang:is_float(Value).
+-spec php_is_float(context(), line(), var_value()) -> boolean().
+php_is_float(_Context, _Line, {_,Value}) -> erlang:is_float(Value).
 
--spec php_is_null(context(), var_value()) -> boolean().
-php_is_null(_Context, {_,null}) -> true;
-php_is_null(_Context, {_,undefined}) -> true;
-php_is_null(_Context, _Var) -> false.
+-spec php_is_null(context(), line(), var_value()) -> boolean().
+php_is_null(_Context, _Line, {_,null}) -> true;
+php_is_null(_Context, _Line, {_,undefined}) -> true;
+php_is_null(_Context, _Line, _Var) -> false.
 
--spec php_is_string(context(), var_value()) -> boolean().
-php_is_string(_Context, {_,Value}) -> erlang:is_binary(Value).
+-spec php_is_string(context(), line(), var_value()) -> boolean().
+php_is_string(_Context, _Line, {_,Value}) -> erlang:is_binary(Value).
 
--spec php_is_object(context(), var_value()) -> boolean().
-php_is_object(_Context, {_,Value}) -> erlang:is_record(Value, reg_instance).
+-spec php_is_object(context(), line(), var_value()) -> boolean().
+php_is_object(_Context, _Line, {_,Value}) ->
+    erlang:is_record(Value, reg_instance).
 
--spec print_r(context(), var_value()) -> true | binary().
+-spec print_r(context(), line(), var_value()) -> true | binary().
 
-print_r(Context, {_,#reg_instance{}}=Vars) ->
-    print_r(Context, Vars, {false,false});
+print_r(Context, Line, {_,#reg_instance{}}=Vars) ->
+    print_r(Context, Line, Vars, {false,false});
 
-print_r(_Context, {_,Value}) when not ?IS_DICT(Value) -> 
+print_r(_Context, _Line, {_,Value}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
-print_r(Context, Value) ->
-    print_r(Context, Value, {false,false}).
+print_r(Context, Line, Value) ->
+    print_r(Context, Line, Value, {false,false}).
 
 
--spec var_dump(context(), var_value()) -> null.
+-spec var_dump(context(), line(), var_value()) -> null.
 
-var_dump(Context, {_,Value}) ->
+var_dump(Context, _Line, {_,Value}) ->
     Result = case var_dump_fmt(Context, Value, <<?SPACES_VD>>) of
     Elements when is_list(Elements) ->
         Data = lists:foldl(fun(Chunk,Total) ->
@@ -121,9 +122,11 @@ var_dump(Context, {_,Value}) ->
     ephp_context:set_output(Context, Result), 
     null.
 
--spec print_r(context(), var_value(), Output :: boolean()) -> true | binary().
+-spec print_r(context(), line(), var_value(), Output :: boolean()) ->
+    true | binary().
 
-print_r(_Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,true}) ->
+print_r(_Context, _Line, {_,#reg_instance{class=Class, context=Ctx}},
+        {_,true}) ->
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}), 
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
@@ -132,7 +135,8 @@ print_r(_Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,true}) ->
     end, <<>>, Class#class.attrs),
     <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,false}) ->
+print_r(Context, _Line, {_,#reg_instance{class=Class, context=Ctx}}=_Val,
+        {_,false}) ->
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}), 
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
@@ -143,37 +147,37 @@ print_r(Context, {_,#reg_instance{class=Class, context=Ctx}}, {_,false}) ->
     ephp_context:set_output(Context, Out),
     true; 
 
-print_r(_Context, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
+print_r(_Context, _Line, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
     ephp_util:to_bin(Value);
 
-print_r(Context, {_,Value}, {_,false}) when not ?IS_DICT(Value) -> 
+print_r(Context, _Line, {_,Value}, {_,false}) when not ?IS_DICT(Value) -> 
     ephp_context:set_output(Context, ephp_util:to_bin(Value)),
     true;
 
-print_r(Context, {_,Value}, {_,true}) ->
+print_r(Context, _Line, {_,Value}, {_,true}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, {_,Value}, {_,false}) ->
+print_r(Context, _Line, {_,Value}, {_,false}) ->
     Data = lists:foldl(fun(Chunk,Total) ->
         <<Total/binary, Chunk/binary>>
     end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     true.
 
--spec isset(context(), var_value()) -> boolean().
+-spec isset(context(), line(), var_value()) -> boolean().
 
-isset(_Context, {_,Value}) ->
+isset(_Context, _Line, {_,Value}) ->
     case Value of
         undefined -> false;
         _ -> true
     end.
 
--spec empty(context(), var_value()) -> boolean().
+-spec empty(context(), line(), var_value()) -> boolean().
 
-empty(_Context, {_,Value}) ->
+empty(_Context, _Line, {_,Value}) ->
     case Value of
         undefined -> true;
         <<"0">> -> true;
@@ -182,25 +186,26 @@ empty(_Context, {_,Value}) ->
         _ -> false
     end.
 
--spec gettype(context(), var_value()) -> binary().
+-spec gettype(context(), line(), var_value()) -> binary().
 
-gettype(_Context, {_,Value}) when is_boolean(Value) -> <<"boolean">>;
-gettype(_Context, {_,Value}) when is_integer(Value) -> <<"integer">>;
-gettype(_Context, {_,Value}) when is_float(Value) -> <<"float">>;
-gettype(_Context, {_,Value}) when is_binary(Value) -> <<"string">>;
-gettype(_Context, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
-gettype(_Context, {_,Value}) when is_record(Value, reg_instance) -> <<"object">>;
-gettype(_Context, {_,Value}) when is_pid(Value) -> <<"resource">>;
-gettype(_Context, {_,null}) -> <<"NULL">>;
-gettype(_Context, {_,_}) -> <<"unknown type">>.
+gettype(_Context, _Line, {_,Value}) when is_boolean(Value) -> <<"boolean">>;
+gettype(_Context, _Line, {_,Value}) when is_integer(Value) -> <<"integer">>;
+gettype(_Context, _Line, {_,Value}) when is_float(Value) -> <<"float">>;
+gettype(_Context, _Line, {_,Value}) when is_binary(Value) -> <<"string">>;
+gettype(_Context, _Line, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
+gettype(_Context, _Line, {_,Value}) when is_record(Value, reg_instance) ->
+    <<"object">>;
+gettype(_Context, _Line, {_,Value}) when is_pid(Value) -> <<"resource">>;
+gettype(_Context, _Line, {_,null}) -> <<"NULL">>;
+gettype(_Context, _Line, {_,_}) -> <<"unknown type">>.
 
--spec unset(context(), var_value()) -> null.
+-spec unset(context(), line(), var_value()) -> null.
 
-unset(Context, {#variable{idx=Idx}=Var,_}) ->
+unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
     case ephp_context:get(Context, Var) of
         Array when ?IS_DICT(Array) ->
             lists:foreach(fun({K,_V}) ->
-                unset(Context, {Var#variable{idx=Idx ++ [K]},<<>>})
+                unset(Context, Line, {Var#variable{idx=Idx ++ [K]},<<>>})
             end, Array);
         #reg_instance{class=Class}=Instance ->
             case ephp_class:get_destructor(Class) of
@@ -245,12 +250,11 @@ var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) ->
     <<"string(",Size/binary,") \"",(ephp_util:to_bin(Value))/binary, "\"\n">>;
 
 var_dump_fmt(Context, #reg_instance{class=Class, context=Ctx}, Spaces) ->
-    lists:foldl(fun(#class_attr{name=Name,access=Acc}, Output) ->
-        Access = atom_to_binary(Acc, utf8),
+    lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
         ValDumped = var_dump_fmt(Context, Value, <<Spaces/binary, ?SPACES_VD>>),
         Output ++ [<<
-          Spaces/binary, Access/binary, " $", Name/binary, " =>\n",
+          Spaces/binary, "[\"", Name/binary, "\"]=>\n",
           Spaces/binary, ValDumped/binary>>]
     end, [], Class#class.attrs);
 

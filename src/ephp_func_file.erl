@@ -6,8 +6,8 @@
 
 -export([
     init/0,
-    basename/2,
-    dirname/2
+    basename/3,
+    dirname/3
 ]).
 
 -include("ephp.hrl").
@@ -18,12 +18,12 @@ init() -> [
     basename, dirname
 ]. 
 
--spec basename(context(), var_value()) -> binary().
+-spec basename(context(), line(), var_value()) -> binary().
 
-basename(_Context, {_Var,PathFile}) ->
+basename(_Context, _Line, {_Var,PathFile}) ->
     filename:basename(PathFile).
 
--spec dirname(context(), var_value()) -> binary().
+-spec dirname(context(), line(), var_value()) -> binary().
 
-dirname(_Context, {_Var,PathFile}) ->
+dirname(_Context, _Line, {_Var,PathFile}) ->
     filename:dirname(PathFile).

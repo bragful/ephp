@@ -6,10 +6,10 @@
 
 -export([
     init/0,
-    include/2,
-    include_once/2,
-    require/2,
-    require_once/2
+    include/3,
+    include_once/3,
+    require/3,
+    require_once/3
 ]).
 
 -include("ephp.hrl").
@@ -21,75 +21,70 @@ init() -> [
     require, require_once
 ]. 
 
--spec include(Context :: context(), File :: var_value()) -> any().
+-spec include(context(), line(), InclFile :: var_value()) -> any().
 
-include(Context, {_,File}) ->
-    case ephp_context:load(Context, File) of
-    {error, _} -> null;
+include(Context, Line, {_,InclFile}) ->
+    case ephp_context:load(Context, InclFile) of
+    {error, _} ->
+        File = ephp_context:get_const(Context, <<"__FILE__">>),
+        NoFileData = {File, InclFile, <<"include">>},
+        IncludeData = {File, InclFile, <<"include">>},
+        ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
+        ephp_error:handle_error(Context, {error, einclude, Line, IncludeData}),
+        null;
     Code -> 
-        OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
-        ephp_context:register_const(Context, <<"__FILE__">>, File),
-        {ok, Res} = ephp_interpr:process(Context, Code), 
-        ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        case Res of
-            {return, Value} -> Value;
-            _ -> null
-        end
+        include_file(Context, Code, InclFile)
     end.
 
--spec include_once(Context :: context(), File :: var_value()) -> any().
+-spec include_once(context(), line(), File :: var_value()) -> any().
 
-include_once(Context, {_,File}) ->
-    case ephp_context:load_once(Context, File) of
-    {error, _} -> null;
+include_once(Context, Line, {_,InclFile}) ->
+    case ephp_context:load_once(Context, InclFile) of
+    {error, _} ->
+        File = ephp_context:get_const(Context, <<"__FILE__">>),
+        NoFileData = {File, InclFile, <<"include_once">>},
+        IncludeData = {File, InclFile, <<"include_once">>},
+        ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
+        ephp_error:handle_error(Context, {error, einclude, Line, IncludeData}),
+        null;
     {return, true} ->
         true;
     Code -> 
-        OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
-        ephp_context:register_const(Context, <<"__FILE__">>, File),
-        {ok, Res} = ephp_interpr:process(Context, Code), 
-        ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        case Res of
-            {return, Value} -> Value;
-            _ -> null
-        end
+        include_file(Context, Code, InclFile)
     end.
 
--spec require(Context :: context(), File :: var_value()) -> any().
+-spec require(context(), line(), File :: var_value()) -> any().
 
-require(Context, {_,File}) ->
+require(Context, Line, {_,File}) ->
     case ephp_context:load(Context, File) of
-    {error, _} -> throw({erequired, File});
+    {error, _} ->
+        throw({error, erequired, Line, File});
     Code -> 
-        OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
-        ephp_context:register_const(Context, <<"__FILE__">>, File),
-        {ok, Res} = ephp_interpr:process(Context, Code), 
-        ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        case Res of
-            {return, Value} -> Value;
-            _ -> null
-        end
+        include_file(Context, Code, File)
     end.
 
--spec require_once(Context :: context(), File :: var_value()) -> any().
+-spec require_once(context(), line(), File :: var_value()) -> any().
 
-require_once(Context, {_,File}) ->
+require_once(Context, Line, {_,File}) ->
     case ephp_context:load_once(Context, File) of
-    {error, _} -> throw(erequired);
+    {error, _} ->
+        throw({error, erequired, Line, File});
     {return, true} ->
         true;
-    Code -> 
-        OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
-        ephp_context:register_const(Context, <<"__FILE__">>, File),
-        {ok, Res} = ephp_interpr:process(Context, Code), 
-        ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
-        case Res of
-            {return, Value} -> Value;
-            _ -> null
-        end
+    Code ->
+        include_file(Context, Code, File)
     end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+include_file(Context, Code, File) ->
+    OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
+    ephp_context:register_const(Context, <<"__FILE__">>, File),
+    {ok, Res} = ephp_interpr:process(Context, Code), 
+    ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
+    case Res of
+        {return, Value} -> Value;
+        _ -> null
+    end.

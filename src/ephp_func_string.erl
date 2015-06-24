@@ -6,13 +6,13 @@
 
 -export([
     init/0,
-    strlen/2,
-    ord/2,
-    chr/2,
-    implode/2,
+    strlen/3,
+    ord/3,
+    chr/3,
     implode/3,
-    explode/3,
-    explode/4
+    implode/4,
+    explode/4,
+    explode/5
 ]).
 
 -include("ephp.hrl").
@@ -27,38 +27,39 @@ init() -> [
     {explode, <<"split">>}
 ]. 
 
--spec strlen(Context :: context(), String :: var_value()) -> integer().
+-spec strlen(context(), line(), String :: var_value()) -> integer().
 
-strlen(_Context, {_,String}) when is_binary(String) ->
+strlen(_Context, _Line, {_,String}) when is_binary(String) ->
     byte_size(String);
 
-strlen(_Context, _Var) ->
+strlen(_Context, _Line, _Var) ->
     %% TODO: Warning: strlen() expects parameter 1 to be string
     null.
 
--spec ord(Context :: context(), String :: var_value()) -> integer().
+-spec ord(context(), line(), String :: var_value()) -> integer().
 
-ord(_Context, {_,<<I:8/integer,_/binary>>}) ->
+ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
     I;
 
-ord(_Context, _Var) ->
+ord(_Context, _Line, _Var) ->
     %% TODO: Warning: ord() expects parameter 1 to be string
     null.
 
--spec chr(Context :: context(), Integer :: var_value()) -> binary().
+-spec chr(context(), line(), Integer :: var_value()) -> binary().
 
-chr(_Context, {_,C}) when is_integer(C) ->
+chr(_Context, _Line, {_,C}) when is_integer(C) ->
     <<C:8/integer>>;
 
-chr(_Context, _Var) ->
+chr(_Context, _Line, _Var) ->
     null.
 
--spec implode(Context :: context(), Glue :: var_value(), Pieces :: var_value()) -> binary().
+-spec implode(context(), line(),
+    Glue :: var_value(), Pieces :: var_value()) -> binary().
 
-implode(Context, {_,Glue}=VarGlue, _Pieces) when ?IS_DICT(Glue) ->
-    implode(Context, VarGlue);
+implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_DICT(Glue) ->
+    implode(Context, Line, VarGlue);
 
-implode(_Context, {_,RawGlue}, {_,Pieces}) ->
+implode(_Context, _Line, {_,RawGlue}, {_,Pieces}) ->
     Glue = ephp_util:to_bin(RawGlue),
     ListOfPieces = ?DICT:fold(fun(_Key, Piece, SetOfPieces) -> 
         SetOfPieces ++ [ephp_util:to_bin(Piece)]
@@ -68,15 +69,15 @@ implode(_Context, {_,RawGlue}, {_,Pieces}) ->
         [H|T] -> <<H/binary, (<< <<Glue/binary,X/binary>> || X <- T >>)/binary>>
     end.
 
--spec implode(Context :: context(), Pieces :: var_value()) -> binary().
+-spec implode(context(), line(), Pieces :: var_value()) -> binary().
 
-implode(Context, Pieces) ->
-    implode(Context, <<>>, Pieces).
+implode(Context, Line, Pieces) ->
+    implode(Context, Line, <<>>, Pieces).
 
--spec explode(context(), Delimiter :: var_value(), String :: var_value())
+-spec explode(context(), line(), Delimiter :: var_value(), String :: var_value())
     -> ?DICT_TYPE.
 
-explode(_Context, {_,Delimiter}, {_,String}) ->
+explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     Pieces = binary:split(String, Delimiter, [global]),
     {_,Res} = lists:foldl(fun(Piece, {I,Explode}) ->
         {I+1, ?DICT:store(I, Piece, Explode)}
@@ -84,19 +85,20 @@ explode(_Context, {_,Delimiter}, {_,String}) ->
     Res.
 
 -spec explode(
-    context(), 
+    context(), line(),
     Delimiter :: var_value(),
     String :: var_value(),
     Limit :: var_value()) -> ?DICT_TYPE.
 
-explode(_Context, _Delimiter, _String, {_,Limit}) when not is_integer(Limit) ->
+explode(_Context, _Line, _Delimiter, _String, {_,Limit})
+        when not is_integer(Limit) ->
     %% TODO: Warning: explode() expects parameter 3 to be long
     null;
 
-explode(_Context, _Delimiter, {_,String}, {_,0}) ->
+explode(_Context, _Line, _Delimiter, {_,String}, {_,0}) ->
     String;
 
-explode(_Context, {_,Delimiter}, {_,String}, {_,Limit}) ->
+explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
     split_limit(Delimiter, String, ?DICT:new(), Limit-1, 0).
 
 
