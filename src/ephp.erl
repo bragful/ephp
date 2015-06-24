@@ -5,7 +5,6 @@
 -export([
     context_new/0,
     context_new/1,
-    context_new/2,
     register_var/3,
     register_func/5,
     register_module/2,
@@ -22,26 +21,17 @@
     {ok, context()} | {error, Reason::term()}.
 
 context_new() ->
-    {ok, Cwd} = file:get_cwd(),
-    context_new(<<"php shell code">>, list_to_binary(Cwd)).
+    context_new(undefined).
 
 -spec context_new(Filename :: binary()) -> 
     {ok, context()} | {error, Reason::term()}.
 
 context_new(Filename) ->
-    context_new(Filename, filename:dirname(Filename)).
-
--spec context_new(Filename :: binary(), Dirname :: binary()) -> 
-    {ok, context()} | {error, Reason::term()}.
-
-context_new(Filename, Dirname) ->
     Modules = ?MODULES,
     case ephp_context:start_link() of
         {ok, Ctx} -> 
             [ register_module(Ctx, Module) || Module <- Modules ],
-            ephp_context:register_const(Ctx, <<"__FILE__">>, Filename),
-            ephp_context:register_const(Ctx, <<"__DIR__">>, Dirname),
-            ephp_context:register_const(Ctx, <<"__FUNCTION__">>, <<>>), 
+            ephp_context:set_active_file(Ctx, Filename),
             {ok, Ctx};
         Error ->
             Error

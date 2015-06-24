@@ -16,6 +16,7 @@
     include :: reference(),
     shutdown :: reference(),
 
+    active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
     active_fun_args = 0 :: non_neg_integer(),
     active_class = <<>> :: class_name()
@@ -34,6 +35,9 @@
     destroy_all/1,
 
     get_state/1,
+
+    get_active_file/1,
+    set_active_file/2,
 
     set_tz/2,
     get_tz/1,
@@ -193,6 +197,27 @@ call_method(Context, Instance, Call) ->
     {Val, NS} = run_method(Instance, Call, erlang:get(Context)),
     erlang:put(Context, NS),
     Val.
+
+get_active_file(Context) ->
+    #state{active_file=Filename} = erlang:get(Context),
+    Filename.
+
+set_active_file(Context, undefined) ->
+    Filename = <<"php shell code">>,
+    {ok, Cwd} = file:get_cwd(),
+    Dirname = list_to_binary(Cwd),
+    State = erlang:get(Context),
+    erlang:put(Context, State#state{active_file=Filename}),
+    register_const(Context, <<"__FILE__">>, Filename),
+    register_const(Context, <<"__DIR__">>, Dirname),
+    ok;
+
+set_active_file(Context, Filename) ->
+    State = erlang:get(Context),
+    erlang:put(Context, State#state{active_file=Filename}),
+    register_const(Context, <<"__FILE__">>, Filename),
+    register_const(Context, <<"__DIR__">>, filename:dirname(Filename)),
+    ok.
 
 get_tz(Context) ->
     #state{timezone=TZ} = erlang:get(Context),

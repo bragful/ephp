@@ -21,7 +21,13 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    Init = [
+        {<<"__FILE__">>, <<>>}
+    ],
+    Consts = lists:foldl(fun({K,V},C) ->
+        ?DICT:store(K,V,C)
+    end, ?DICT:new(), Init),
+    erlang:put(Ref, Consts),
     {ok, Ref}.
 
 get(Ref, Name) ->

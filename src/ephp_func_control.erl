@@ -26,7 +26,7 @@ init() -> [
 include(Context, Line, {_,InclFile}) ->
     case ephp_context:load(Context, InclFile) of
     {error, _} ->
-        File = ephp_context:get_const(Context, <<"__FILE__">>),
+        File = ephp_context:get_active_file(Context),
         NoFileData = {File, InclFile, <<"include">>},
         IncludeData = {File, InclFile, <<"include">>},
         ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
@@ -41,7 +41,7 @@ include(Context, Line, {_,InclFile}) ->
 include_once(Context, Line, {_,InclFile}) ->
     case ephp_context:load_once(Context, InclFile) of
     {error, _} ->
-        File = ephp_context:get_const(Context, <<"__FILE__">>),
+        File = ephp_context:get_active_file(Context),
         NoFileData = {File, InclFile, <<"include_once">>},
         IncludeData = {File, InclFile, <<"include_once">>},
         ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
@@ -80,10 +80,10 @@ require_once(Context, Line, {_,File}) ->
 %% ----------------------------------------------------------------------------
 
 include_file(Context, Code, File) ->
-    OldValue = ephp_context:get_const(Context, <<"__FILE__">>),
-    ephp_context:register_const(Context, <<"__FILE__">>, File),
+    OldValue = ephp_context:get_active_file(Context),
+    ephp_context:set_active_file(Context, File),
     {ok, Res} = ephp_interpr:process(Context, Code), 
-    ephp_context:register_const(Context, <<"__FILE__">>, OldValue),
+    ephp_context:set_active_file(Context, OldValue),
     case Res of
         {return, Value} -> Value;
         _ -> null

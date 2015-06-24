@@ -31,6 +31,8 @@
 ]).
 
 
+-type file_name() :: binary().
+
 -type mixed() :: 
     integer() | float() | binary() | boolean() | ?DICT_TYPE | null.
 
