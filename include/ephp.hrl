@@ -17,6 +17,8 @@
 
 -define(SETS, sets).
 
+-define(PHP_INI_FILE, <<"php.ini">>).
+
 % built-in modules
 -define(MODULES, [
     ephp_func_date,

@@ -117,6 +117,7 @@ main([Filename]) ->
     {ok, Content} ->
         start_profiling(),
         AbsFilename = list_to_binary(filename:absname(Filename)),
+        ephp_config:start_link(?PHP_INI_FILE),
         {ok, Ctx} = context_new(AbsFilename),
         case eval(AbsFilename, Ctx, Content) of
             {ok, _Return} ->
