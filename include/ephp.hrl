@@ -18,6 +18,7 @@
 -define(SETS, sets).
 
 -define(PHP_INI_FILE, <<"php.ini">>).
+-define(PHP_VERSION, <<"5.2.0">>).
 
 % built-in modules
 -define(MODULES, [
@@ -29,9 +30,11 @@
     ephp_func_array,
     ephp_func_string,
     ephp_func_file,
-    ephp_func_func
+    ephp_func_func,
+    ephp_func_info
 ]).
 
+-type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.
 
 -type file_name() :: binary().
 

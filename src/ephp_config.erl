@@ -23,17 +23,19 @@ start_link() ->
 -spec start_link(file_name()) -> ok.
 
 start_link(File) ->
-    Config = case read_config(File) of
-        {ok, C} -> C;
-        _ -> get_defaults()
-    end,
-    [ application:set_env(ephp, K, V) || {K,V} <- Config ],
-    ok.
+    start_link(),
+    case read_config(File) of
+        {ok, Config} ->
+            [ application:set_env(ephp, K, V) || {K,V} <- Config ],
+            ok;
+        _ ->
+            ok
+    end.
 
 -spec get(Key :: binary()) -> mixed().
 
 get(Key) ->
-    application:get_env(ephp, Key).
+    application:get_env(ephp, Key, undefined).
 
 -spec read_config(file_name()) -> proplists:proplists().
 
@@ -63,5 +65,6 @@ get_defaults() ->
         {<<"error_reporting">>,"E_ALL & ~E_DEPRECATED & ~E_STRICT"},
         {<<"display_errors">>,<<"On">>},
         {<<"display_startup_errors">>,<<"On">>},
-        {<<"log_errors">>,<<"On">>}
+        {<<"log_errors">>,<<"On">>},
+        {<<"include_path">>, <<".:">>}
     ].

@@ -113,6 +113,9 @@ eval(Filename, Context, PHP) ->
 -spec main(Args :: [string()]) -> integer().
 
 main([Filename]) ->
+    application:start(ezic),
+    application:start(zucchini),
+    application:start(ephp),
     case file:read_file(Filename) of
     {ok, Content} ->
         start_profiling(),
