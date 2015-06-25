@@ -5,7 +5,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 main_test() ->
-    ?assertEqual(0, ephp:main(["../test/code/empty.php"])).
+    ?assertEqual(0, ephp:main(["../test/code/test_empty.php"])).
 
 main_file_not_found_test() ->
     ?assertEqual(-2, ephp:main(["../test/code/file_not_found"])).
