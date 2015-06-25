@@ -19,7 +19,7 @@
     get_method/3,
 
     register_class/3,
-    instance/3
+    instance/4
 ]).
 
 %% ------------------------------------------------------------------
@@ -55,12 +55,11 @@ register_class(Ref, GlobalCtx, #class{name=Name}=PHPClass) ->
     erlang:put(Ref, ?DICT:store(Name, ActivePHPClass, Classes)),
     ok.
 
-instance(Ref, GlobalCtx, ClassName) ->
+instance(Ref, GlobalCtx, ClassName, Line) ->
     case get(Ref, ClassName) of
     error ->
-        %% TODO: enhance the error handling!
-        io:format("~p~n", [ClassName]),
-        throw(eundefclass);
+        File = ephp_context:get_active_file(GlobalCtx),
+        ephp_error:error({error, eundefclass, Line, {File, ClassName}});
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
@@ -123,7 +122,7 @@ get_method(#class{methods=Methods,line=Index}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        throw({error, eundefmethod, ephp_util:get_line(Index), MethodName});
+        ephp_error:error({error, eundefmethod, Index, MethodName});
     #class_method{}=ClassMethod ->
         ClassMethod
     end.

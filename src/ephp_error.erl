@@ -20,6 +20,7 @@
     eundeftoken |
     enoclassscope |
     emethodtypes |
+    eundefmethod |
     edivzero |
     eparse |
     enostatement |
@@ -72,6 +73,17 @@ get_message(eundefun, Line, {File, Fun}) ->
     io_lib:format(
         "~nFatal error: Call to undefined function ~s() in ~s on line ~p~n",
         [Fun, File, Line]);
+
+get_message(eundefclass, Line, {File, <<>>}) ->
+    io_lib:format(
+        "~nFatal error: Cannot access self:: when no class scope is active "
+        "in ~s on line ~p~n",
+        [File, Line]);
+
+get_message(eundefclass, Line, {File, Class}) ->
+    io_lib:format(
+        "~nFatal error: Class '~s' not found in ~s on line ~p~n",
+        [Class, File, Line]);
 
 get_message(ebadbnot, Line, File) ->
     io_lib:format(

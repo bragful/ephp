@@ -311,8 +311,8 @@ resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
     {Value, NState};
 
 resolve(#assign{variable=#variable{type=class, class = <<"self">>, line=Index}},
-        #state{active_class=undefined}) ->
-    ephp_error:error({error, eundefclass, Index, <<"self">>});
+        #state{active_class=undefined,active_file=File}) ->
+    ephp_error:error({error, eundefclass, Index, {File,<<"self">>}});
 
 resolve(#assign{variable=#variable{type=class, class = <<"self">>}=Var}=Assign,
         #state{active_class=ClassName}=State) ->
@@ -321,7 +321,7 @@ resolve(#assign{variable=#variable{type=class, class = <<"self">>}=Var}=Assign,
 resolve(#assign{
             variable=#variable{type=class,class=ClassName,line=Index}=Var,
             expression=Expr},
-        #state{class=Classes}=State) ->
+        #state{class=Classes,active_file=File}=State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),
 
@@ -329,7 +329,7 @@ resolve(#assign{
     {ok, #class{static_context=ClassCtx}} ->
         set(ClassCtx, VarPath, Value);
     error ->
-        ephp_error:error({error, eundefclass, Index, ClassName})
+        ephp_error:error({error, eundefclass, Index, {File,ClassName}})
     end,
     {Value, NState};
 
@@ -545,20 +545,20 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
     end;
 
 resolve(#call{type=class,class=Name,line=Index}=Call,
-        #state{class=Classes}=State) ->
+        #state{class=Classes,active_file=File}=State) ->
     case ephp_class:get(Classes, Name) of
     {ok, Class} ->
         run_method(Class, Call, State);
     error ->
-        ephp_error:error({error, eundefclass, Index, Name})
+        ephp_error:error({error, eundefclass, Index, {File,Name}})
     end;
 
 resolve({object,Idx,Line}, State) ->
     {{object,Idx,Line}, State};
 
-resolve(#instance{name=ClassName, args=RawArgs}=Instance,
+resolve(#instance{name=ClassName, args=RawArgs, line=Line}=Instance,
         #state{class=Classes,global=GlobalCtx}=State) ->
-    Value = ephp_class:instance(Classes, GlobalCtx, ClassName),
+    Value = ephp_class:instance(Classes, GlobalCtx, ClassName, Line),
     RetInstance = Value#reg_instance{instance = Instance},
     #reg_instance{class = Class} = RetInstance,
     case ephp_class:get_constructor(Class) of
@@ -682,14 +682,14 @@ resolve_var(#variable{type=class, class = <<"self">>}=Var,
     resolve_var(Var#variable{class=ClassName}, State);
 
 resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
-        #state{class=Classes}=State) ->
+        #state{class=Classes,active_file=File}=State) ->
     {NewVar, NewState} = resolve_indexes(Var, State),
     case ephp_class:get(Classes, ClassName) of
     {ok, #class{static_context=ClassCtx}} ->
         Value = get(ClassCtx, NewVar),
         {Value, NewState};
     error ->
-        ephp_error:error({error, eundefclass, Index, ClassName})
+        ephp_error:error({error, eundefclass, Index, {File,ClassName}})
     end.
 
 

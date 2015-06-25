@@ -1,0 +1,2 @@
+
+Fatal error: Class 'ClassNotFound' not found in {{CWD}}/test/code/test_class_notfound_error.php on line 3
