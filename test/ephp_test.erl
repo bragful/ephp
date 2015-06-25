@@ -11,7 +11,7 @@ main_file_not_found_test() ->
     ?assertEqual(-2, ephp:main(["../test/code/file_not_found"])).
 
 main_error_test() ->
-    ?assertEqual(0, ephp:main(["../test/code/error.php"])).
+    ?assertEqual(-1, ephp:main(["../test/code/error.php"])).
 
 main_other_error_test() ->
     ?assertEqual(-3, ephp:main(["../test/"])).

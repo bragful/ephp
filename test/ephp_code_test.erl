@@ -13,10 +13,10 @@ eval(Filename) ->
         {ok, Ctx} = ephp:context_new(AbsFilename),
         {ok, Output} = ephp_output:start_link(false),
         ephp_context:set_output_handler(Ctx, Output),
-        {ok, Ret} = ephp:eval(AbsFilename, Ctx, Content),
+        ephp:eval(AbsFilename, Ctx, Content),
         Out = ephp_context:get_output(Ctx),
         ephp_context:destroy_all(Ctx), 
-        {ok, Out, Ret};
+        {ok, Out};
     Error ->
         Error
     end.
@@ -24,7 +24,7 @@ eval(Filename) ->
 test_code(File) ->
     ?_assert(begin
         try
-            {ok, OutCode, _Ret} = eval(?CODE_PATH ++ File ++ ".php"),
+            {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
             {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
             {ok, CWD} = file:get_cwd(),
             OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
