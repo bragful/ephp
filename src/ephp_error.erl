@@ -46,7 +46,7 @@ handle_error(Context, {error, Type, Index, Data}) ->
 
 get_message(eparse, Line, Filename) ->
     io_lib:format(
-        "~nParse Error: parse error in ~s on line ~p~n",
+        "~nParse error: parse error in ~s on line ~p~n",
         [Filename, Line]);
 
 get_message(erequired, Line, {File, ReqFile}) ->

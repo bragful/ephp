@@ -45,6 +45,7 @@ code_to_test_() ->
         "strings_01",
         "template_01",
         "text_op",
+        "test_parse_error",
         "test_arith",
         "test_concat_number",
         "test_cond",
