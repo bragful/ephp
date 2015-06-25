@@ -316,3 +316,11 @@
     instance :: instance(),
     context = ?DICT:new() :: ?DICT_TYPE
 }).
+
+-record(ephp_data, {
+    id :: reference(),
+    count :: non_neg_integer(),
+    data :: null | any()
+}).
+
+-type ephp_data() :: #ephp_data{}.
