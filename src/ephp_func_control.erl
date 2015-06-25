@@ -58,7 +58,7 @@ include_once(Context, Line, {_,InclFile}) ->
 require(Context, Line, {_,File}) ->
     case ephp_context:load(Context, File) of
     {error, _} ->
-        throw({error, erequired, Line, File});
+        ephp_error:error({error, erequired, Line, File});
     Code -> 
         include_file(Context, Code, File)
     end.
@@ -68,7 +68,7 @@ require(Context, Line, {_,File}) ->
 require_once(Context, Line, {_,File}) ->
     case ephp_context:load_once(Context, File) of
     {error, _} ->
-        throw({error, erequired, Line, File});
+        ephp_error:error({error, erequired, Line, File});
     {return, true} ->
         true;
     Code ->

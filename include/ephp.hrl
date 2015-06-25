@@ -20,6 +20,8 @@
 -define(PHP_INI_FILE, <<"php.ini">>).
 -define(PHP_VERSION, <<"5.2.0">>).
 
+-define(PATH_SEP, <<":">>).
+
 % built-in modules
 -define(MODULES, [
     ephp_func_date,

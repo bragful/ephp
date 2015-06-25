@@ -30,9 +30,8 @@ load_once(Ref, Name) ->
     {ok, _Value} ->
         {return, true};
     error ->
-        case file:read_file(Name) of
+        case find_file(Name) of
         {error, enoent} ->
-            %% TODO: use include_path to search the file
             {error, enoent};
         {ok, Content} -> 
             Value = ephp_parser:parse(Content),
@@ -47,9 +46,8 @@ load(Ref, Name) ->
     {ok, Value} ->
         Value;
     error ->
-        case file:read_file(Name) of
+        case find_file(Name) of
         {error, enoent} ->
-            %% TODO: use include_path to search the file
             {error, enoent};
         {ok, Content} -> 
             Value = ephp_parser:parse(Content),
@@ -60,3 +58,22 @@ load(Ref, Name) ->
 
 destroy(Inc) ->
     erlang:erase(Inc).
+
+%% ----------------------------------------------------------------------------
+%% Internal functions
+%% ----------------------------------------------------------------------------
+
+get_paths() ->
+    IncludePath = ephp_config:get(<<"include_path">>),
+    binary:split(IncludePath, ?PATH_SEP, [global]).
+
+find_file(Name) ->
+    lists:foldl(fun
+        (Path, {error, enoent}) ->
+            FullPath = filename:join(Path, Name),
+            case filelib:is_file(FullPath) of
+                true -> file:read_file(FullPath);
+                false -> {error, enoent}
+            end;
+        (_, FullPath) -> FullPath
+    end, {error, enoent}, get_paths()).
