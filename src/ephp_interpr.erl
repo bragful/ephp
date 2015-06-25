@@ -26,7 +26,7 @@ process(Context, Statements) ->
         (_Statement, {return, Value}) ->
             {return, Value}
     end, false, Statements),
-    ephp_func_misc:shutdown(Context),
+    ephp_shutdown:shutdown(Context),
     {ok, Value}.
 
 -type flow_status() :: break | continue | return() | false.

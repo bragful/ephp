@@ -9,8 +9,7 @@
     define/4,
     sleep/3,
     usleep/3,
-    exit/3,
-    shutdown/1
+    exit/3
 ]).
 
 -include("ephp.hrl").
@@ -58,25 +57,6 @@ usleep(_Context, _Line, _) ->
 exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),
     throw(die).
-
--spec shutdown(context()) -> null.
-
-shutdown(Context) ->
-    Result = lists:foldl(fun
-        (FuncName, false) ->
-            Shutdown = #call{name = FuncName},
-            ephp_interpr:run(Context, #eval{statements=[Shutdown]});
-        (_, Break) ->
-            Break
-    end, false, ephp_context:get_shutdown_funcs(Context)),
-    if Result =:= false ->
-        ?DICT:fold(fun(K,V,Acc) ->
-            ephp_func_vars:unset(Context, undefined, {#variable{name=K},V}),
-            Acc
-        end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
-    true ->
-        null
-    end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
