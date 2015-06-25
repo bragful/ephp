@@ -23,7 +23,7 @@
 
 
 <pre><code>
-get_line(X1::<a href="#type-line">line()</a>) -&gt; non_neg_integer()
+get_line(X1::<a href="#type-line">line()</a> | undefined) -&gt; non_neg_integer() | undefined
 </code></pre>
 <br />
 

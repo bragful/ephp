@@ -50,7 +50,7 @@ Features
     - [x] args by reference
     - [x] include/require code from other files
 - Error handling
-    - [ ] launch errors
+    - [x] launch errors
     - [ ] silent warnings/errors (@)
     - [ ] launch exceptions (throw)
     - [ ] catch exceptions (try...catch)
@@ -61,7 +61,7 @@ Features
     - [x] define class
     - [x] define methods
     - [x] construct
-    - [ ] destroy (delete)
+    - [x] destroy (delete)
     - [ ] check public, private and/or protected for methods
     - [x] define attributes
     - [ ] check public, private and/or protected for attributes
@@ -82,7 +82,12 @@ Functions
    * [gettype](http://www.php.net/gettype)
    * [is_array](http://www.php.net/is_array)
    * [is_bool](http://www.php.net/is_bool)
-   * [is_integer](http://www.php.net/is_integer)
+   * [is_float](http://www.php.net/is_float) (and aliases: is_double)
+   * [is_integer](http://www.php.net/is_integer) (and aliases: is_int and is_long)
+   * [is_numeric](http://www.php.net/is_numeric)
+   * [is_null](http://www.php.net/is_null)
+   * [is_object](http://www.php.net/is_object)
+   * [is_string](http://www.php.net/is_string)
    * [isset](http://www.php.net/isset)
    * [print_r](http://www.php.net/print_r)
    * [unset](http://www.php.net/unset)
@@ -94,9 +99,12 @@ Functions
    * [sizeof](http://www.php.net/sizeof)
 
  * String related functions:
+   * [chr](http://www.php.net/chr)
+   * [explode](http://www.php.net/explode)
    * [implode](http://www.php.net/implode)
    * [join](http://www.php.net/join)
    * [ord](http://www.php.net/ord)
+   * [split](http://www.php.net/split)
    * [strlen](http://www.php.net/strlen)
 
  * Date/Time related functions:
@@ -105,6 +113,12 @@ Functions
    * [date_default_timezone_set](http://www.php.net/date_default_timezone_set)
    * [gmdate](http://www.php.net/gmdate)
    * [time](http://www.php.net/time)
+
+* Functions related functions:
+   * [register_shutdown_function](http://www.php.net/register_shutdown_function)
+   * [get_defined_functions](http://www.php.net/get_defined_functions)
+   * [function_exists](http://www.php.net/function_exists)
+   * [func_num_args](http://www.php.net/func_num_args)
 
  * Misc functions:
    * [define](http://www.php.net/define) (not complete)

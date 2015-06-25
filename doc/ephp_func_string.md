@@ -10,31 +10,20 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#chr-2">chr/2</a></td><td></td></tr><tr><td valign="top"><a href="#explode-3">explode/3</a></td><td></td></tr><tr><td valign="top"><a href="#explode-4">explode/4</a></td><td></td></tr><tr><td valign="top"><a href="#implode-2">implode/2</a></td><td></td></tr><tr><td valign="top"><a href="#implode-3">implode/3</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#ord-2">ord/2</a></td><td></td></tr><tr><td valign="top"><a href="#strlen-2">strlen/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#chr-3">chr/3</a></td><td></td></tr><tr><td valign="top"><a href="#explode-4">explode/4</a></td><td></td></tr><tr><td valign="top"><a href="#explode-5">explode/5</a></td><td></td></tr><tr><td valign="top"><a href="#implode-3">implode/3</a></td><td></td></tr><tr><td valign="top"><a href="#implode-4">implode/4</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#ord-3">ord/3</a></td><td></td></tr><tr><td valign="top"><a href="#strlen-3">strlen/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
 
-<a name="chr-2"></a>
+<a name="chr-3"></a>
 
-### chr/2 ###
-
-
-<pre><code>
-chr(Context::<a href="#type-context">context()</a>, Integer::<a href="#type-var_value">var_value()</a>) -&gt; binary()
-</code></pre>
-<br />
-
-
-<a name="explode-3"></a>
-
-### explode/3 ###
+### chr/3 ###
 
 
 <pre><code>
-explode(Context::<a href="#type-context">context()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; '?DICT_TYPE'
+chr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Integer::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -45,18 +34,18 @@ explode(Context::<a href="#type-context">context()</a>, Delimiter::<a href="#typ
 
 
 <pre><code>
-explode(Context::<a href="#type-context">context()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>) -&gt; '?DICT_TYPE'
+explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; '?DICT_TYPE'
 </code></pre>
 <br />
 
 
-<a name="implode-2"></a>
+<a name="explode-5"></a>
 
-### implode/2 ###
+### explode/5 ###
 
 
 <pre><code>
-implode(Context::<a href="#type-context">context()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>) -&gt; '?DICT_TYPE'
 </code></pre>
 <br />
 
@@ -67,7 +56,18 @@ implode(Context::<a href="#type-context">context()</a>, Pieces::<a href="#type-v
 
 
 <pre><code>
-implode(Context::<a href="#type-context">context()</a>, Glue::<a href="#type-var_value">var_value()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+</code></pre>
+<br />
+
+
+<a name="implode-4"></a>
+
+### implode/4 ###
+
+
+<pre><code>
+implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Glue::<a href="#type-var_value">var_value()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -83,24 +83,24 @@ init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()<
 <br />
 
 
-<a name="ord-2"></a>
+<a name="ord-3"></a>
 
-### ord/2 ###
+### ord/3 ###
 
 
 <pre><code>
-ord(Context::<a href="#type-context">context()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+ord(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
 
-<a name="strlen-2"></a>
+<a name="strlen-3"></a>
 
-### strlen/2 ###
+### strlen/3 ###
 
 
 <pre><code>
-strlen(Context::<a href="#type-context">context()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+strlen(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 

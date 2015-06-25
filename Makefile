@@ -9,6 +9,9 @@ deps:
 	./rebar get-deps
 	./rebar compile
 
+doc:
+	./rebar doc skip_deps=true
+
 compile: deps
 	./rebar compile skip_deps=true
 
@@ -18,5 +21,5 @@ test: deps
 ephp: compile
 	./rebar escriptize skip_deps=true
 
-.PHONY: test compile force-deps all
+.PHONY: doc test compile force-deps all
 

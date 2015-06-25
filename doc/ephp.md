@@ -28,7 +28,7 @@ values() = integer() | binary() | float() | '?DICT_TYPE'
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-2">context_new/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td></td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-4">register_func/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td></td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td></td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td></td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td></td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -53,17 +53,6 @@ context_new() -&gt; {ok, <a href="#type-context">context()</a>} | {error, Reason
 
 <pre><code>
 context_new(Filename::binary()) -&gt; {ok, <a href="#type-context">context()</a>} | {error, Reason::term()}
-</code></pre>
-<br />
-
-
-<a name="context_new-2"></a>
-
-### context_new/2 ###
-
-
-<pre><code>
-context_new(Filename::binary(), Dirname::binary()) -&gt; {ok, <a href="#type-context">context()</a>} | {error, Reason::term()}
 </code></pre>
 <br />
 
@@ -101,13 +90,13 @@ main(Args::[string()]) -&gt; integer()
 <br />
 
 
-<a name="register_func-4"></a>
+<a name="register_func-5"></a>
 
-### register_func/4 ###
+### register_func/5 ###
 
 
 <pre><code>
-register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::atom(), Fun::atom()) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::atom(), Fun::atom(), PackArgs::boolean()) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 

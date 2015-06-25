@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2014 Altenwald Solutions, S.L.
+Copyright (c) 2013-2015 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -60,11 +60,13 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <tr><td><a href="ephp_class.md" class="module">ephp_class</a></td></tr>
 <tr><td><a href="ephp_const.md" class="module">ephp_const</a></td></tr>
 <tr><td><a href="ephp_context.md" class="module">ephp_context</a></td></tr>
+<tr><td><a href="ephp_error.md" class="module">ephp_error</a></td></tr>
 <tr><td><a href="ephp_func.md" class="module">ephp_func</a></td></tr>
 <tr><td><a href="ephp_func_array.md" class="module">ephp_func_array</a></td></tr>
 <tr><td><a href="ephp_func_control.md" class="module">ephp_func_control</a></td></tr>
 <tr><td><a href="ephp_func_date.md" class="module">ephp_func_date</a></td></tr>
 <tr><td><a href="ephp_func_file.md" class="module">ephp_func_file</a></td></tr>
+<tr><td><a href="ephp_func_func.md" class="module">ephp_func_func</a></td></tr>
 <tr><td><a href="ephp_func_misc.md" class="module">ephp_func_misc</a></td></tr>
 <tr><td><a href="ephp_func_ob.md" class="module">ephp_func_ob</a></td></tr>
 <tr><td><a href="ephp_func_string.md" class="module">ephp_func_string</a></td></tr>
@@ -73,6 +75,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <tr><td><a href="ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
 <tr><td><a href="ephp_output.md" class="module">ephp_output</a></td></tr>
 <tr><td><a href="ephp_parser.md" class="module">ephp_parser</a></td></tr>
+<tr><td><a href="ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
 <tr><td><a href="ephp_util.md" class="module">ephp_util</a></td></tr>
 <tr><td><a href="ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
 
