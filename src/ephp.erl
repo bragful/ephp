@@ -98,14 +98,15 @@ eval(Context, PHP) ->
 eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of
         {error, eparse, Line, _Text} ->
-            ephp_error:handle_error(Context, {error, eparse, Line, Filename});
+            ephp_error:handle_error(Context, {error, eparse, Line, Filename}),
+            {error, eparse};
         Compiled ->
             case catch ephp_interpr:process(Context, Compiled) of
                 {ok, Return} ->
                     {ok, Return};
-                {error, _, _, _}=Error ->
+                {error, Reason, _, _}=Error ->
                     ephp_error:handle_error(Context, Error),
-                    {ok, <<>>}
+                    {error, Reason}
             end
     end.
 
@@ -117,14 +118,19 @@ main([Filename]) ->
         start_profiling(),
         AbsFilename = list_to_binary(filename:absname(Filename)),
         {ok, Ctx} = context_new(AbsFilename),
-        {ok, _Return} = eval(AbsFilename, Ctx, Content),
-        Result = ephp_context:get_output(Ctx),
-        io:format("~s", [Result]),
-        stop_profiling(),
-        0;
+        case eval(AbsFilename, Ctx, Content) of
+            {ok, _Return} ->
+                Result = ephp_context:get_output(Ctx),
+                io:format("~s", [Result]),
+                stop_profiling(),
+                0;
+            {error, _Reason} ->
+                stop_profiling(),
+                -1
+        end;
     {error, enoent} ->
         io:format("File not found: ~s~n", [Filename]),
-        -2; 
+        -2;
     {error, Reason} ->
         io:format("Error: ~p~n", [Reason]),
         -3
