@@ -120,14 +120,14 @@ Functions
    * [function_exists](http://www.php.net/function_exists)
    * [func_num_args](http://www.php.net/func_num_args)
 
- * Misc functions:
+* Misc functions:
    * [define](http://www.php.net/define) (not complete)
    * [die](http://www.php.net/die)
    * [exit](http://www.php.net/exit)
    * [sleep](http://www.php.net/sleep)
    * [usleep](http://www.php.net/usleep)
 
- * Output control functions:
+* Output control functions:
    * [flush](http://www.php.net/flush)
    * [ob_clean](http://www.php.net/ob_clean)
    * [ob_end_clean](http://www.php.net/ob_end_clean)
