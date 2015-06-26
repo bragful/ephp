@@ -64,16 +64,19 @@ destroy(Inc) ->
 %% ----------------------------------------------------------------------------
 
 get_paths() ->
-    IncludePath = ephp_config:get(<<"include_path">>),
+    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     binary:split(IncludePath, ?PATH_SEP, [global]).
 
 find_file(Name) ->
     lists:foldl(fun
+        (<<>>, FullPath) ->
+            FullPath;
         (Path, {error, enoent}) ->
             FullPath = filename:join(Path, Name),
             case filelib:is_file(FullPath) of
                 true -> file:read_file(FullPath);
                 false -> {error, enoent}
             end;
-        (_, FullPath) -> FullPath
+        (_, FullPath) ->
+            FullPath
     end, {error, enoent}, get_paths()).

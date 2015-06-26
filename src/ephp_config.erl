@@ -9,6 +9,7 @@
     start_link/1,
 
     get/1,
+    get/2,
 
     read_config/1,
     get_defaults/0
@@ -36,6 +37,11 @@ start_link(File) ->
 
 get(Key) ->
     application:get_env(ephp, Key, undefined).
+
+-spec get(Key :: binary(), Default :: mixed()) -> mixed().
+
+get(Key, Default) ->
+    application:get_env(ephp, Key, Default).
 
 -spec read_config(file_name()) -> proplists:proplists().
 
