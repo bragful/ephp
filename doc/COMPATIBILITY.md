@@ -106,6 +106,7 @@ Functions
    * [ord](http://www.php.net/ord)
    * [split](http://www.php.net/split)
    * [strlen](http://www.php.net/strlen)
+   * [str_replace](http://www.php.net/str_replace)
 
  * Date/Time related functions:
    * [date](http://www.php.net/date) (not complete)

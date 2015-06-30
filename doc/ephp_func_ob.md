@@ -10,7 +10,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#flush-2">flush/2</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#ob_clean-2">ob_clean/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_contents-2">ob_get_contents/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_length-2">ob_get_length/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_start-2">ob_start/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#flush-2">flush/2</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#ob_clean-2">ob_clean/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_contents-2">ob_get_contents/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_get_length-2">ob_get_length/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_start-2">ob_start/2</a></td><td></td></tr><tr><td valign="top"><a href="#ob_start-3">ob_start/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -79,6 +79,17 @@ ob_get_length(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 
 <pre><code>
 ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; boolean()
+</code></pre>
+<br />
+
+
+<a name="ob_start-3"></a>
+
+### ob_start/3 ###
+
+
+<pre><code>
+ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Callback::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 

@@ -58,6 +58,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <table width="100%" border="0" summary="list of modules">
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp.md" class="module">ephp</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_class.md" class="module">ephp_class</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_config.md" class="module">ephp_config</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_const.md" class="module">ephp_const</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_context.md" class="module">ephp_context</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_error.md" class="module">ephp_error</a></td></tr>
@@ -67,6 +68,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_date.md" class="module">ephp_func_date</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_file.md" class="module">ephp_func_file</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_func.md" class="module">ephp_func_func</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_info.md" class="module">ephp_func_info</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_misc.md" class="module">ephp_func_misc</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_ob.md" class="module">ephp_func_ob</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_string.md" class="module">ephp_func_string</a></td></tr>
