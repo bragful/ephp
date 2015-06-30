@@ -39,6 +39,7 @@ test_code(File) ->
     end).
 
 code_to_test_() ->
+    ephp:start(),
     {ok, Files} = file:list_dir(?CODE_PATH),
     Codes = [ filename:rootname(File) || File <- Files,
         filename:extension(File) =:= ".out" ],

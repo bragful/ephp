@@ -12,6 +12,7 @@
     eval/2,
     eval/3,
 
+    start/0,
     main/1   %% for escriptize
 ]).
 
@@ -110,12 +111,18 @@ eval(Filename, Context, PHP) ->
             end
     end.
 
--spec main(Args :: [string()]) -> integer().
+-spec start() -> ok.
 
-main([Filename]) ->
+start() ->
     application:start(ezic),
     application:start(zucchini),
     application:start(ephp),
+    ok.
+
+-spec main(Args :: [string()]) -> integer().
+
+main([Filename]) ->
+    start(),
     case file:read_file(Filename) of
     {ok, Content} ->
         start_profiling(),
