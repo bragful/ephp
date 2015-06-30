@@ -13,7 +13,8 @@
     implode/4,
     explode/4,
     explode/5,
-    str_replace/5
+    str_replace/5,
+    str_replace/6
 ]).
 
 -include("ephp.hrl").
@@ -108,6 +109,14 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
     Subject :: var_value()) -> binary().
 
 str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject}) ->
+    binary:replace(Subject, Search, Replace, [global]).
+
+-spec str_replace(context(), line(),
+    Search :: var_value(), Replace :: var_value(),
+    Subject :: var_value(), Count :: var_value()) -> binary().
+
+str_replace(Context, _Line, {_, Search}, {_, Replace}, {_, Subject}, {Count,_}) ->
+    ephp_context:set(Context, Count, length(binary:matches(Subject, Search))),
     binary:replace(Subject, Search, Replace, [global]).
 
 %% ----------------------------------------------------------------------------
