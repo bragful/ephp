@@ -11,7 +11,7 @@ eval(Filename) ->
     {ok, Content} ->
         AbsFilename = list_to_binary(filename:absname(Filename)),
         {ok, Ctx} = ephp:context_new(AbsFilename),
-        {ok, Output} = ephp_output:start_link(false),
+        {ok, Output} = ephp_output:start_link(Ctx, false),
         ephp_context:set_output_handler(Ctx, Output),
         ephp:eval(AbsFilename, Ctx, Content),
         Out = ephp_context:get_output(Ctx),

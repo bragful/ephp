@@ -81,7 +81,7 @@
 start_link() ->
     Ref = make_ref(),
     {ok, Funcs} = ephp_func:start_link(),
-    {ok, Output} = ephp_output:start_link(),
+    {ok, Output} = ephp_output:start_link(Ref),
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
     {ok, Class} = ephp_class:start_link(),
@@ -489,7 +489,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
             {A,NewState} = resolve(Arg,S),
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
-        {ok, Mirror} = start_mirror(NState),
+        {ok, Mirror} = start_mirror(NState#state{global=Vars}),
         Value = if
             PackArgs -> erlang:apply(M,F,[Mirror,Index,Args]);
             true -> erlang:apply(M,F,[Mirror,Index|Args])
@@ -502,7 +502,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
             {A,NewState} = resolve(Arg,S),
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
-        {ok, Mirror} = start_mirror(NState),
+        {ok, Mirror} = start_mirror(NState#state{global=Vars}),
         Value = if
             PackArgs -> F([Mirror,Index,Args]);
             true -> F([Mirror,Index|Args])

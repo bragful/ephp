@@ -8,6 +8,7 @@
     init/0,
     flush/2,
     ob_start/2,
+    ob_start/3,
     ob_get_contents/2,
     ob_get_length/2,
     ob_clean/2
@@ -37,12 +38,28 @@ flush(Context, _Line) ->
 
 -spec ob_start(context(), line()) -> boolean().
 
-%% TODO: add ob_start/1 to pass the output handle function.
 ob_start(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:set_flush(Output, true),
     ephp_output:flush(Output),
-    true. 
+    true.
+
+-spec ob_start(context(), line(), Callback :: var_value()) -> boolean().
+
+ob_start(Context, Line, {_, Callback}) when is_binary(Callback) ->
+    Output = ephp_context:get_output_handler(Context),
+    PHPFunc = fun(Ctx, Var) ->
+        Call = #call{
+            line = Line,
+            name = Callback,
+            args = [Var]
+        },
+        ephp_context:solve(Ctx, Call)
+    end,
+    ephp_output:set_flush(Output, true),
+    ephp_output:flush(Output),
+    ephp_output:set_handler(Output, PHPFunc),
+    true.
 
 -spec ob_get_contents(context(), line()) -> binary().
 
