@@ -12,7 +12,8 @@
     implode/3,
     implode/4,
     explode/4,
-    explode/5
+    explode/5,
+    str_replace/5
 ]).
 
 -include("ephp.hrl").
@@ -24,7 +25,8 @@ init() -> [
     implode,
     {implode, <<"join">>},
     explode,
-    {explode, <<"split">>}
+    {explode, <<"split">>},
+    str_replace
 ]. 
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
@@ -101,6 +103,12 @@ explode(_Context, _Line, _Delimiter, {_,String}, {_,0}) ->
 explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
     split_limit(Delimiter, String, ?DICT:new(), Limit-1, 0).
 
+-spec str_replace(context(), line(),
+    Search :: var_value(), Replace :: var_value(),
+    Subject :: var_value()) -> binary().
+
+str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject}) ->
+    binary:replace(Subject, Search, Replace, [global]).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
