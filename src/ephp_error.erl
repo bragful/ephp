@@ -57,7 +57,7 @@ get_message(erequired, Line, {File, ReqFile}) ->
         [ReqFile, File, Line]);
 
 get_message(einclude, Line, {File, ReqFile, Func}) ->
-    IncludePath = ephp_config:get(<<"include_path">>),
+    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
         "~nWarning: ~s(): Failed opening '~s' for inclusion (include_path='~s')"
         " in ~s on line ~p~n",

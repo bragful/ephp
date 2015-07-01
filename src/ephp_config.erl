@@ -18,13 +18,14 @@
 -spec start_link() -> ok.
 
 start_link() ->
-    [ application:set_env(ephp, K, V) || {K,V} <- get_defaults() ],
-    ok.
+    set_defaults().
 
 -spec start_link(file_name()) -> ok.
 
 start_link(File) ->
-    start_link(),
+    % ensure the application ephp is started
+    ephp:start(),
+    set_defaults(),
     case read_config(File) of
         {ok, Config} ->
             [ application:set_env(ephp, K, V) || {K,V} <- Config ],
@@ -74,3 +75,13 @@ get_defaults() ->
         {<<"log_errors">>,<<"On">>},
         {<<"include_path">>, <<".:">>}
     ].
+
+%% ----------------------------------------------------------------------------
+%% Internal functions
+%% ----------------------------------------------------------------------------
+
+-spec set_defaults() -> ok.
+
+set_defaults() ->
+    [ application:set_env(ephp, K, V) || {K,V} <- get_defaults() ],
+    ok.
