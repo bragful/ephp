@@ -17,6 +17,23 @@ In the same way, you can use for server PHP pages in an easy way.
 The port is not 100% complete, please refer to [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
 
 
+### <a name="Requirements">Requirements</a> ###
+
+ePHP requires to be run over a Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
+
+- R16B01 **OK**
+- R16B02 **OK**
+- R16B03 **OK**
+- R16B03-1 **OK**
+- 17.0 **OK**
+- 17.1 **OK**
+- 17.2 **untested**: is not available in Travis-CI
+- 17.3 **NO**: fail in SSL notification to coveralls, maybe SSL prone to fail.
+- 17.4 **OK**
+- 17.5 **untested**: is not available in Travis-CI
+- 18.0 **untested**: is not available in Travis-CI
+
+
 ### <a name="Getting_Started">Getting Started</a> ###
 
 A simple way to use, is include in your project `rebar.config` the following dependency line:
