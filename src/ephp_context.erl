@@ -96,9 +96,16 @@ start_link() ->
         shutdown = Shutdown
     }).
 
-start_link(#state{ref=Ref}=State) ->
+start_link(#state{ref=undefined}=State) ->
+    start_link(State#state{ref=make_ref()});
+
+start_link(#state{ref=Ref, global=Ref}) when is_reference(Ref) ->
+    throw({error, ecyclerefs}); 
+
+start_link(#state{ref=Ref}=State) when is_reference(Ref) ->
     {ok, Vars} = ephp_vars:start_link(),
     erlang:put(Ref, State#state{
+        ref = Ref,
         vars = Vars
     }),
     {ok, Ref}.
@@ -266,11 +273,10 @@ set_global(Context, GlobalContext) ->
     ok.
 
 generate_subcontext(Context) ->
-    #state{vars=VarsPID} = State = erlang:get(Context),
-    {ok, SubContext} = ephp_vars:start_link(),
+    State = erlang:get(Context),
     start_link(State#state{
-        vars=SubContext,
-        global=VarsPID}).
+        ref=undefined,
+        global=Context}).
 
 register_shutdown_func(Context, FuncName) ->
     #state{shutdown=Ref} = erlang:get(Context),
@@ -481,7 +487,7 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     resolve(Call#call{name=Name}, NewState);
 
 resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}, 
-        #state{vars=Vars,funcs=Funcs,const=Const}=State) ->
+        #state{ref=Ref,vars=Vars,funcs=Funcs,const=Const}=State) ->
     case ephp_func:get(Funcs, Fun) of
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F}}}
             when is_atom(M) andalso is_atom(F) -> 
@@ -489,7 +495,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
             {A,NewState} = resolve(Arg,S),
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
-        {ok, Mirror} = start_mirror(NState#state{global=Vars}),
+        {ok, Mirror} = start_mirror(NState#state{global=Ref}),
         Value = if
             PackArgs -> erlang:apply(M,F,[Mirror,Index,Args]);
             true -> erlang:apply(M,F,[Mirror,Index|Args])
@@ -502,7 +508,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
             {A,NewState} = resolve(Arg,S),
             {Args ++ [{Arg,A}], NewState}
         end, {[], State}, RawArgs),
-        {ok, Mirror} = start_mirror(NState#state{global=Vars}),
+        {ok, Mirror} = start_mirror(NState#state{global=Ref}),
         Value = if
             PackArgs -> F([Mirror,Index,Args]);
             true -> F([Mirror,Index|Args])
@@ -517,7 +523,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
         {ok, NewVars} = ephp_vars:start_link(),
         {ok, SubContext} = start_mirror(NState#state{
             vars=NewVars,
-            global=Vars,
+            global=Ref,
             active_fun=Fun,
             active_class=undefined,
             active_fun_args=length(Args)}),
@@ -574,8 +580,9 @@ resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
     {null, State};
 
 resolve({global, GVars,_Line}, #state{
-        global=GlobalVars,
+        global=GlobalCtx,
         vars=Vars}=State) ->
+    #state{vars=GlobalVars} = erlang:get(GlobalCtx),
     lists:foreach(fun(GlobalVar) ->
         ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
     end, GVars),
@@ -601,7 +608,7 @@ resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, Unknown}).
 
 run_method(RegInstance, #call{args=RawArgs}=Call,
-        #state{const=Const, vars=Vars}=State) ->
+        #state{ref=Ref, const=Const, vars=Vars}=State) ->
     {Args, NState} = lists:foldl(fun(Arg,{Args,S}) ->
         {A,NewState} = resolve(Arg,S),
         {Args ++ [{Arg,A}], NewState}
@@ -618,7 +625,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
         ephp_class:get_method(Class, Call#call.name),
     {ok, SubContext} = start_mirror(NState#state{
         vars=NewVars,
-        global=Vars,
+        global=Ref,
         active_fun=MethodName,
         active_fun_args=length(Args),
         active_class=Class#class.name}),
