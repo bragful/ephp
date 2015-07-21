@@ -31,8 +31,10 @@
     size/1,
     flush/1,
     set_flush/2,
-    set_handler/2,
-    get_handler/1,
+    set_output_handler/2,
+    get_output_handler/1,
+    set_flush_handler/2,
+    get_flush_handler/1,
     destroy/1
 ]).
 
@@ -55,13 +57,22 @@ start_link(Ctx, Flush, FlushHandler) ->
     }),
     {ok, Ref}.
 
-get_handler(Ref) ->
+get_output_handler(Ref) ->
     #state{output_handler=Handler} = erlang:get(Ref),
     Handler.
 
-set_handler(Ref, Handler) ->
+set_output_handler(Ref, Handler) ->
     State = erlang:get(Ref),
     erlang:put(Ref, State#state{output_handler=Handler}),
+    ok.
+
+get_flush_handler(Ref) ->
+    #state{flush_handler=Handler} = erlang:get(Ref),
+    Handler.
+
+set_flush_handler(Ref, Handler) ->
+    State = erlang:get(Ref),
+    erlang:put(Ref, State#state{flush_handler=Handler}),
     ok.
 
 pop(Ref) ->
@@ -108,8 +119,13 @@ destroy(Ref) ->
 do_flush(Ref) ->
     #state{output=RawOutput, global_context=Ctx} = State = erlang:get(Ref),
     Output = output_handler(Ctx, RawOutput, State#state.output_handler),
-    flush_handler(Output, State#state.flush_handler),
-    State#state{output = <<>>}.
+    if 
+        State#state.flush ->
+            flush_handler(Output, State#state.flush_handler),
+            State#state{output = <<>>};
+        true ->
+            State#state{output = Output}
+    end.
 
 output_handler(_Ctx, Text, undefined) ->
     Text;

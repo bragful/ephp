@@ -40,7 +40,6 @@ flush(Context, _Line) ->
 
 ob_start(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
-    ephp_output:set_flush(Output, true),
     ephp_output:flush(Output),
     true.
 
@@ -56,9 +55,8 @@ ob_start(Context, Line, {_, Callback}) when is_binary(Callback) ->
         },
         ephp_context:solve(Ctx, Call)
     end,
-    ephp_output:set_flush(Output, true),
     ephp_output:flush(Output),
-    ephp_output:set_handler(Output, PHPFunc),
+    ephp_output:set_output_handler(Output, PHPFunc),
     true.
 
 -spec ob_get_contents(context(), line()) -> binary().
