@@ -24,7 +24,8 @@
     edivzero |
     eparse |
     enostatement |
-    eunknownst.
+    eunknownst |
+    eassignthis.
 
 -type throw_error() ::
     atom() |
@@ -88,6 +89,11 @@ get_message(eundefclass, Line, {File, Class}) ->
 get_message(ebadbnot, Line, File) ->
     io_lib:format(
         "~nFatal error: Unsupported operand types in ~s on line ~p~n",
+        [File, Line]);
+
+get_message(eassignthis, Line, File) ->
+    io_lib:format(
+        "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
         [File, Line]);
 
 get_message(Unknown, Line, Data) ->

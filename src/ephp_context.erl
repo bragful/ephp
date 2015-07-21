@@ -310,6 +310,11 @@ resolve(#assign{
     ephp_vars:ref(State#state.vars, Var, State#state.vars, RefVar),
     resolve(RefVar, State);
 
+resolve(#assign{variable=#variable{name = <<"this">>, idx=[]}}=A, State) ->
+    #assign{line=Line} = A,
+    #state{active_file=File} = State,
+    ephp_error:error({error, eassignthis, Line, File});
+
 resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),

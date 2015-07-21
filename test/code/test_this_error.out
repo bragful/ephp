@@ -1,0 +1,2 @@
+
+Fatal error: Cannot re-assign $this in {{CWD}}/test/code/test_this_error.php on line 3
