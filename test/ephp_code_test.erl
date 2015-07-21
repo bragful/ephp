@@ -29,7 +29,7 @@ test_code(File) ->
             {ok, CWD} = file:get_cwd(),
             OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
                 list_to_binary(CWD ++ "/.."), [global]),
-            ?assertEqual(iolist_to_binary(OutCode), OutFile),
+            ?assertEqual(OutFile, iolist_to_binary(OutCode)),
             true
         catch Type:Reason ->
             ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
