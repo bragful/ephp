@@ -128,10 +128,10 @@ destroy(Context) ->
 
 destroy_all(Context) ->
     State = erlang:get(Context),
-    ephp_func:destroy(State#state.funcs),
     ephp_output:destroy(State#state.output),
     ephp_const:destroy(State#state.const),
     ephp_include:destroy(State#state.include),
+    ephp_func:destroy(State#state.funcs),
     destroy(Context).    
 
 get_state(Context) ->
