@@ -153,6 +153,7 @@ main([Filename]) ->
             {ok, _Return} ->
                 Result = ephp_context:get_output(Ctx),
                 io:format("~s", [Result]),
+                ephp_context:destroy_all(Ctx),
                 stop_profiling(),
                 0;
             {error, _Reason} ->
