@@ -108,6 +108,21 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
     Search :: var_value(), Replace :: var_value(),
     Subject :: var_value()) -> binary().
 
+str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject})
+        when ?IS_DICT(Search) andalso is_binary(Replace) ->
+    ?DICT:fold(fun(_,V,Sub) ->
+        binary:replace(Sub, V, Replace, [global])
+    end, Subject, Search);
+
+str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject})
+        when ?IS_DICT(Search) andalso ?IS_DICT(Replace) ->
+    A = ?DICT:to_list(Search),
+    B = ?DICT:to_list(Replace),
+    Lists = lists:zipwith(fun({_,V1}, {_,V2}) -> {V1,V2} end, A, B),
+    lists:foldl(fun({Source, Target}, Sub) ->
+        binary:replace(Sub, Source, Target, [global])
+    end, Subject, Lists);
+
 str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject}) ->
     binary:replace(Subject, Search, Replace, [global]).
 
