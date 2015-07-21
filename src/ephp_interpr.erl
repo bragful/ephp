@@ -188,7 +188,8 @@ run_depth(Context, #text_to_process{}=TP, false) ->
     false;
 
 run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false) ->
-    ephp_context:solve(Context, Var);
+    ephp_context:solve(Context, Var),
+    false;
 
 run_depth(_Context, Statement, false) ->
     ephp_error:error({error, eunknownst, undefined, Statement});
