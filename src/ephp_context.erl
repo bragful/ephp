@@ -5,16 +5,16 @@
 -include("ephp.hrl").
 
 -record(state, {
-    ref :: reference(),
-    vars :: reference(),
-    funcs :: reference(),
-    class :: reference(),
+    ref :: ephp:context_id(),
+    vars :: ephp:vars_id(),
+    funcs :: ephp:funcs_id(),
+    class :: ephp:classes_id(),
     timezone = "Europe/Madrid" :: string(),
-    output :: reference(),
-    const :: reference(),
-    global :: reference(),
-    include :: reference(),
-    shutdown :: reference(),
+    output :: ephp:output_id(),
+    const :: ephp:consts_id(),
+    global :: ephp:context_id(),
+    include :: ephp:includes_id(),
+    shutdown :: ephp:shutdown_id(),
 
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),

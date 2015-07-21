@@ -16,6 +16,26 @@
     main/1   %% for escriptize
 ]).
 
+-export_type([
+    context_id/0,
+    vars_id/0,
+    output_id/0,
+    funcs_id/0,
+    classes_id/0,
+    consts_id/0,
+    includes_id/0,
+    shutdown_id/0
+]).
+
+-opaque context_id() :: reference().
+-opaque vars_id() :: reference().
+-opaque output_id() :: reference().
+-opaque funcs_id() :: reference().
+-opaque classes_id() :: reference().
+-opaque consts_id() :: reference().
+-opaque includes_id() :: reference().
+-opaque shutdown_id() :: reference().
+
 -include("ephp.hrl").
 
 -spec context_new() -> 
