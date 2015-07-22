@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,21 +20,17 @@
 
 ### file/1 ###
 
-
 <pre><code>
 file(Filename::<a href="file.md#type-name">file:name()</a>) -&gt; any()
 </code></pre>
 <br />
 
-
 <a name="parse-1"></a>
 
 ### parse/1 ###
-
 
 <pre><code>
 parse(List::binary() | list()) -&gt; any()
 </code></pre>
 <br />
-
 

@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -23,13 +22,11 @@
 
 `ini_get(Context, Line, X3) -> any()`
 
-
 <a name="init-0"></a>
 
 ### init/0 ###
 
 `init() -> any()`
-
 
 <a name="phpinfo-2"></a>
 
@@ -37,11 +34,9 @@
 
 `phpinfo(Context, Line) -> any()`
 
-
 <a name="phpversion-2"></a>
 
 ### phpversion/2 ###
 
 `phpversion(Context, Line) -> any()`
-
 

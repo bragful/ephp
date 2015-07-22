@@ -5,6 +5,7 @@
 * [Function Details](#functions)
 
 __Behaviours:__ [`ephp_func`](ephp_func.md).
+
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,76 +22,62 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 
 ### flush/2 ###
 
-
 <pre><code>
 flush(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; null
 </code></pre>
 <br />
 
-
 <a name="init-0"></a>
 
 ### init/0 ###
-
 
 <pre><code>
 init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
 
-
 <a name="ob_clean-2"></a>
 
 ### ob_clean/2 ###
-
 
 <pre><code>
 ob_clean(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; null
 </code></pre>
 <br />
 
-
 <a name="ob_get_contents-2"></a>
 
 ### ob_get_contents/2 ###
-
 
 <pre><code>
 ob_get_contents(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
-
 <a name="ob_get_length-2"></a>
 
 ### ob_get_length/2 ###
-
 
 <pre><code>
 ob_get_length(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; integer()
 </code></pre>
 <br />
 
-
 <a name="ob_start-2"></a>
 
 ### ob_start/2 ###
-
 
 <pre><code>
 ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
-
 <a name="ob_start-3"></a>
 
 ### ob_start/3 ###
-
 
 <pre><code>
 ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Callback::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
-
 

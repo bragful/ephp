@@ -335,7 +335,6 @@ resolve(#assign{
         #state{class=Classes,active_file=File}=State) ->
     VarPath = get_var_path(Var, State),
     {Value, NState} = resolve(Expr, State),
-
     case ephp_class:get(Classes, ClassName) of
     {ok, #class{static_context=ClassCtx}} ->
         set(ClassCtx, VarPath, Value);

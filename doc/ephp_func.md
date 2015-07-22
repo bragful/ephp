@@ -17,7 +17,6 @@ __This module defines the `ephp_func` behaviour.__<br /> Required callback funct
 ### <a name="type-php_function">php_function()</a> ###
 
 
-
 <pre><code>
 php_function() = atom()
 </code></pre>
@@ -25,15 +24,12 @@ php_function() = atom()
 
 
 
-
 ### <a name="type-php_function_alias">php_function_alias()</a> ###
-
 
 
 <pre><code>
 php_function_alias() = binary()
 </code></pre>
-
 
 <a name="index"></a>
 
@@ -53,13 +49,11 @@ php_function_alias() = binary()
 
 `destroy(Funcs) -> any()`
 
-
 <a name="get-2"></a>
 
 ### get/2 ###
 
 `get(Ref, FuncName) -> any()`
-
 
 <a name="get_functions-1"></a>
 
@@ -67,13 +61,11 @@ php_function_alias() = binary()
 
 `get_functions(Ref) -> any()`
 
-
 <a name="register_func-3"></a>
 
 ### register_func/3 ###
 
 `register_func(Ref, PHPFunc, Fun) -> any()`
-
 
 <a name="register_func-4"></a>
 
@@ -81,13 +73,11 @@ php_function_alias() = binary()
 
 `register_func(Ref, PHPFunc, Module, Fun) -> any()`
 
-
 <a name="register_func-5"></a>
 
 ### register_func/5 ###
 
 `register_func(Ref, PHPFunc, Module, Fun, PackArgs) -> any()`
-
 
 <a name="run-2"></a>
 
@@ -95,11 +85,9 @@ php_function_alias() = binary()
 
 `run(Context, Call) -> any()`
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
 
 `start_link() -> any()`
-
 

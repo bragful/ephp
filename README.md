@@ -6,7 +6,6 @@ Copyright (c) 2013-2015 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
-
 [![Build Status](https://api.travis-ci.org/altenwald/ephp.png?branch=master)](https://travis-ci.org/altenwald/ephp)
 [![Coverage Status](https://coveralls.io/repos/altenwald/ephp/badge.png)](https://coveralls.io/r/altenwald/ephp)
 
@@ -30,8 +29,8 @@ ePHP requires to be run over a Erlang/OTP +R16, but not all the versions are ful
 - 17.2 **untested**: is not available in Travis-CI
 - 17.3 **NO**: fail in SSL notification to coveralls, maybe SSL prone to fail.
 - 17.4 **OK**
-- 17.5 **untested**: is not available in Travis-CI
-- 18.0 **untested**: is not available in Travis-CI
+- 17.5 **OK** (tested on local environment)
+- 18.0 **OK** (tested on local environment)
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
@@ -66,35 +65,4 @@ You can add your own functions specifying the PHP name, and the module and funct
 ```erlang
 ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 ```
-
-
-
-## Modules ##
-
-
-<table width="100%" border="0" summary="list of modules">
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp.md" class="module">ephp</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_class.md" class="module">ephp_class</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_config.md" class="module">ephp_config</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_const.md" class="module">ephp_const</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_context.md" class="module">ephp_context</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_error.md" class="module">ephp_error</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func.md" class="module">ephp_func</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_array.md" class="module">ephp_func_array</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_control.md" class="module">ephp_func_control</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_date.md" class="module">ephp_func_date</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_file.md" class="module">ephp_func_file</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_func.md" class="module">ephp_func_func</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_info.md" class="module">ephp_func_info</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_misc.md" class="module">ephp_func_misc</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_ob.md" class="module">ephp_func_ob</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_string.md" class="module">ephp_func_string</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func_vars.md" class="module">ephp_func_vars</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_include.md" class="module">ephp_include</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_output.md" class="module">ephp_output</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser.md" class="module">ephp_parser</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_util.md" class="module">ephp_util</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
 

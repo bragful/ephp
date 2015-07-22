@@ -5,6 +5,7 @@
 * [Function Details](#functions)
 
 __Behaviours:__ [`ephp_func`](ephp_func.md).
+
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,32 +22,26 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 
 ### count/3 ###
 
-
 <pre><code>
 count(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
-
 <a name="in_array-4"></a>
 
 ### in_array/4 ###
-
 
 <pre><code>
 in_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Key::<a href="#type-var_value">var_value()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
-
 <a name="init-0"></a>
 
 ### init/0 ###
-
 
 <pre><code>
 init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
-
 

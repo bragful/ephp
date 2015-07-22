@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -23,13 +22,11 @@
 
 `destroy(Const) -> any()`
 
-
 <a name="get-2"></a>
 
 ### get/2 ###
 
 `get(Ref, Name) -> any()`
-
 
 <a name="set-3"></a>
 
@@ -37,11 +34,9 @@
 
 `set(Ref, Name, Value) -> any()`
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
 
 `start_link() -> any()`
-
 

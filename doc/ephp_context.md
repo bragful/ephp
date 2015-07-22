@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -23,13 +22,11 @@
 
 `call_method(Context, Instance, Call) -> any()`
 
-
 <a name="destroy-1"></a>
 
 ### destroy/1 ###
 
 `destroy(Context) -> any()`
-
 
 <a name="destroy_all-1"></a>
 
@@ -37,13 +34,11 @@
 
 `destroy_all(Context) -> any()`
 
-
 <a name="generate_subcontext-1"></a>
 
 ### generate_subcontext/1 ###
 
 `generate_subcontext(Context) -> any()`
-
 
 <a name="get-2"></a>
 
@@ -51,13 +46,11 @@
 
 `get(Context, VarPath) -> any()`
 
-
 <a name="get_active_file-1"></a>
 
 ### get_active_file/1 ###
 
 `get_active_file(Context) -> any()`
-
 
 <a name="get_const-2"></a>
 
@@ -65,13 +58,11 @@
 
 `get_const(Context, Name) -> any()`
 
-
 <a name="get_current_class-1"></a>
 
 ### get_current_class/1 ###
 
 `get_current_class(Context) -> any()`
-
 
 <a name="get_current_function-1"></a>
 
@@ -79,13 +70,11 @@
 
 `get_current_function(Context) -> any()`
 
-
 <a name="get_current_function_arity-1"></a>
 
 ### get_current_function_arity/1 ###
 
 `get_current_function_arity(Context) -> any()`
-
 
 <a name="get_function-2"></a>
 
@@ -93,13 +82,11 @@
 
 `get_function(Context, FuncName) -> any()`
 
-
 <a name="get_functions-1"></a>
 
 ### get_functions/1 ###
 
 `get_functions(Context) -> any()`
-
 
 <a name="get_output-1"></a>
 
@@ -107,13 +94,11 @@
 
 `get_output(Context) -> any()`
 
-
 <a name="get_output_handler-1"></a>
 
 ### get_output_handler/1 ###
 
 `get_output_handler(Context) -> any()`
-
 
 <a name="get_shutdown_funcs-1"></a>
 
@@ -121,13 +106,11 @@
 
 `get_shutdown_funcs(Context) -> any()`
 
-
 <a name="get_state-1"></a>
 
 ### get_state/1 ###
 
 `get_state(Context) -> any()`
-
 
 <a name="get_tz-1"></a>
 
@@ -135,13 +118,11 @@
 
 `get_tz(Context) -> any()`
 
-
 <a name="load-2"></a>
 
 ### load/2 ###
 
 `load(Context, File) -> any()`
-
 
 <a name="load_once-2"></a>
 
@@ -149,13 +130,11 @@
 
 `load_once(Context, File) -> any()`
 
-
 <a name="register_class-2"></a>
 
 ### register_class/2 ###
 
 `register_class(Context, Class) -> any()`
-
 
 <a name="register_const-3"></a>
 
@@ -163,13 +142,11 @@
 
 `register_const(Context, Name, Value) -> any()`
 
-
 <a name="register_func-3"></a>
 
 ### register_func/3 ###
 
 `register_func(Context, PHPFunc, Fun) -> any()`
-
 
 <a name="register_func-4"></a>
 
@@ -177,13 +154,11 @@
 
 `register_func(Context, PHPFunc, Module, Fun) -> any()`
 
-
 <a name="register_func-5"></a>
 
 ### register_func/5 ###
 
 `register_func(Context, PHPFunc, Module, Fun, PackArgs) -> any()`
-
 
 <a name="register_shutdown_func-2"></a>
 
@@ -191,13 +166,11 @@
 
 `register_shutdown_func(Context, FuncName) -> any()`
 
-
 <a name="set-3"></a>
 
 ### set/3 ###
 
 `set(Context, VarPath, Value) -> any()`
-
 
 <a name="set_active_file-2"></a>
 
@@ -205,13 +178,11 @@
 
 `set_active_file(Context, Filename) -> any()`
 
-
 <a name="set_global-2"></a>
 
 ### set_global/2 ###
 
 `set_global(Context, GlobalContext) -> any()`
-
 
 <a name="set_output-2"></a>
 
@@ -219,13 +190,11 @@
 
 `set_output(Context, Text) -> any()`
 
-
 <a name="set_output_handler-2"></a>
 
 ### set_output_handler/2 ###
 
 `set_output_handler(Context, Output) -> any()`
-
 
 <a name="set_tz-2"></a>
 
@@ -233,13 +202,11 @@
 
 `set_tz(Context, TZ) -> any()`
 
-
 <a name="solve-2"></a>
 
 ### solve/2 ###
 
 `solve(Context, Expression) -> any()`
-
 
 <a name="start_link-0"></a>
 
@@ -247,11 +214,9 @@
 
 `start_link() -> any()`
 
-
 <a name="unregister_shutdown_func-2"></a>
 
 ### unregister_shutdown_func/2 ###
 
 `unregister_shutdown_func(Context, FuncName) -> any()`
-
 

@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -23,13 +22,11 @@
 
 `destroy(Classes) -> any()`
 
-
 <a name="get-2"></a>
 
 ### get/2 ###
 
 `get(Ref, ClassName) -> any()`
-
 
 <a name="get_constructor-1"></a>
 
@@ -37,13 +34,11 @@
 
 `get_constructor(Class) -> any()`
 
-
 <a name="get_destructor-1"></a>
 
 ### get_destructor/1 ###
 
 `get_destructor(Class) -> any()`
-
 
 <a name="get_method-2"></a>
 
@@ -51,13 +46,11 @@
 
 `get_method(Class, MethodName) -> any()`
 
-
 <a name="get_method-3"></a>
 
 ### get_method/3 ###
 
 `get_method(Ref, ClassName, MethodName) -> any()`
-
 
 <a name="instance-4"></a>
 
@@ -65,18 +58,15 @@
 
 `instance(Ref, GlobalCtx, ClassName, Line) -> any()`
 
-
 <a name="register_class-3"></a>
 
 ### register_class/3 ###
 
 `register_class(Ref, GlobalCtx, Class) -> any()`
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
 
 `start_link() -> any()`
-
 

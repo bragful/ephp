@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,65 +20,53 @@
 
 ### get/1 ###
 
-
 <pre><code>
 get(Key::binary()) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
-
 <a name="get-2"></a>
 
 ### get/2 ###
-
 
 <pre><code>
 get(Key::binary(), Default::<a href="#type-mixed">mixed()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
-
 <a name="get_defaults-0"></a>
 
 ### get_defaults/0 ###
-
 
 <pre><code>
 get_defaults() -&gt; <a href="proplists.md#type-proplists">proplists:proplists()</a>
 </code></pre>
 <br />
 
-
 <a name="read_config-1"></a>
 
 ### read_config/1 ###
-
 
 <pre><code>
 read_config(File::<a href="#type-file_name">file_name()</a>) -&gt; <a href="proplists.md#type-proplists">proplists:proplists()</a>
 </code></pre>
 <br />
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
-
 
 <pre><code>
 start_link() -&gt; ok
 </code></pre>
 <br />
 
-
 <a name="start_link-1"></a>
 
 ### start_link/1 ###
-
 
 <pre><code>
 start_link(File::<a href="#type-file_name">file_name()</a>) -&gt; ok
 </code></pre>
 <br />
-
 

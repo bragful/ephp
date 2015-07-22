@@ -5,8 +5,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
-
 <a name="types"></a>
 
 ## Data Types ##
@@ -17,11 +15,9 @@
 ### <a name="type-error_type">error_type()</a> ###
 
 
-
 <pre><code>
-error_type() = eundefclass | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst
+error_type() = eundefclass | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eassignthis
 </code></pre>
-
 
 
 
@@ -29,11 +25,9 @@ error_type() = eundefclass | ebadbnot | erequired | einclude | enofile | eundefu
 ### <a name="type-throw_error">throw_error()</a> ###
 
 
-
 <pre><code>
 throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, binary()}
 </code></pre>
-
 
 <a name="index"></a>
 
@@ -51,21 +45,17 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 
 ### error/1 ###
 
-
 <pre><code>
 error(X1::<a href="#type-throw_error">throw_error()</a>) -&gt; ok
 </code></pre>
 <br />
 
-
 <a name="handle_error-2"></a>
 
 ### handle_error/2 ###
-
 
 <pre><code>
 handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, binary()}) -&gt; ok
 </code></pre>
 <br />
-
 

@@ -5,6 +5,7 @@
 * [Function Details](#functions)
 
 __Behaviours:__ [`ephp_func`](ephp_func.md).
+
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,109 +22,89 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 
 ### chr/3 ###
 
-
 <pre><code>
 chr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Integer::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
-
 <a name="explode-4"></a>
 
 ### explode/4 ###
-
 
 <pre><code>
 explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; '?DICT_TYPE'
 </code></pre>
 <br />
 
-
 <a name="explode-5"></a>
 
 ### explode/5 ###
-
 
 <pre><code>
 explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>) -&gt; '?DICT_TYPE'
 </code></pre>
 <br />
 
-
 <a name="implode-3"></a>
 
 ### implode/3 ###
-
 
 <pre><code>
 implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
-
 <a name="implode-4"></a>
 
 ### implode/4 ###
-
 
 <pre><code>
 implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Glue::<a href="#type-var_value">var_value()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
-
 <a name="init-0"></a>
 
 ### init/0 ###
-
 
 <pre><code>
 init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
 
-
 <a name="ord-3"></a>
 
 ### ord/3 ###
-
 
 <pre><code>
 ord(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
-
 <a name="str_replace-5"></a>
 
 ### str_replace/5 ###
-
 
 <pre><code>
 str_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Search::<a href="#type-var_value">var_value()</a>, Replace::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
-
 <a name="str_replace-6"></a>
 
 ### str_replace/6 ###
-
 
 <pre><code>
 str_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Search::<a href="#type-var_value">var_value()</a>, Replace::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
-
 <a name="strlen-3"></a>
 
 ### strlen/3 ###
-
 
 <pre><code>
 strlen(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
-
 

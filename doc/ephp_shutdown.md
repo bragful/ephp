@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,54 +20,44 @@
 
 ### get_funcs/1 ###
 
-
 <pre><code>
 get_funcs(Ref::reference()) -&gt; [<a href="#type-function_name">function_name()</a>]
 </code></pre>
 <br />
 
-
 <a name="register_func-2"></a>
 
 ### register_func/2 ###
-
 
 <pre><code>
 register_func(Ref::reference(), FuncName::<a href="#type-function_name">function_name()</a>) -&gt; ok
 </code></pre>
 <br />
 
-
 <a name="shutdown-1"></a>
 
 ### shutdown/1 ###
-
 
 <pre><code>
 shutdown(Context::<a href="#type-context">context()</a>) -&gt; null
 </code></pre>
 <br />
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
-
 
 <pre><code>
 start_link() -&gt; {ok, reference()}
 </code></pre>
 <br />
 
-
 <a name="unregister_func-2"></a>
 
 ### unregister_func/2 ###
-
 
 <pre><code>
 unregister_func(Ref::reference(), FuncName::<a href="#type-function_name">function_name()</a>) -&gt; ok
 </code></pre>
 <br />
-
 

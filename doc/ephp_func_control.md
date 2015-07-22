@@ -5,6 +5,7 @@
 * [Function Details](#functions)
 
 __Behaviours:__ [`ephp_func`](ephp_func.md).
+
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,54 +22,44 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 
 ### include/3 ###
 
-
 <pre><code>
 include(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, InclFile::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
-
 <a name="include_once-3"></a>
 
 ### include_once/3 ###
-
 
 <pre><code>
 include_once(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
-
 <a name="init-0"></a>
 
 ### init/0 ###
-
 
 <pre><code>
 init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>]
 </code></pre>
 <br />
 
-
 <a name="require-3"></a>
 
 ### require/3 ###
-
 
 <pre><code>
 require(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
-
 <a name="require_once-3"></a>
 
 ### require_once/3 ###
-
 
 <pre><code>
 require_once(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
-
 

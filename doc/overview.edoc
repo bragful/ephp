@@ -25,8 +25,8 @@ ePHP requires to be run over a Erlang/OTP +R16, but not all the versions are ful
 - 17.2 **untested**: is not available in Travis-CI
 - 17.3 **NO**: fail in SSL notification to coveralls, maybe SSL prone to fail.
 - 17.4 **OK**
-- 17.5 **untested**: is not available in Travis-CI
-- 18.0 **untested**: is not available in Travis-CI
+- 17.5 **OK** (tested on local environment)
+- 18.0 **OK** (tested on local environment) 
 
 == Getting Started ==
 

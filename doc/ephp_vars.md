@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -23,13 +22,11 @@
 
 `del(Context, VarPath) -> any()`
 
-
 <a name="destroy-1"></a>
 
 ### destroy/1 ###
 
 `destroy(Context) -> any()`
-
 
 <a name="get-2"></a>
 
@@ -37,13 +34,11 @@
 
 `get(Context, VarPath) -> any()`
 
-
 <a name="ref-4"></a>
 
 ### ref/4 ###
 
 `ref(Context, VarPath, VarsPID, RefVarPath) -> any()`
-
 
 <a name="set-3"></a>
 
@@ -51,11 +46,9 @@
 
 `set(Context, VarPath, Value) -> any()`
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
 
 `start_link() -> any()`
-
 

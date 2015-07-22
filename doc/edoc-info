@@ -1,6 +1,5 @@
 %% encoding: UTF-8
 {application,ephp}.
-{packages,[]}.
 {modules,[ephp,ephp_class,ephp_config,ephp_const,ephp_context,ephp_error,
           ephp_func,ephp_func_array,ephp_func_control,ephp_func_date,
           ephp_func_file,ephp_func_func,ephp_func_info,ephp_func_misc,
