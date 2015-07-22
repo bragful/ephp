@@ -3,6 +3,7 @@
 -compile([warnings_as_errors]).
 
 -export([
+    gettype/1,
     to_bin/1,
     to_lower/1,
     increment_code/1,
@@ -18,6 +19,18 @@
 ]).
 
 -include("ephp.hrl").
+
+-spec gettype(mixed()) -> binary().
+
+gettype(Value) when is_boolean(Value) -> <<"boolean">>;
+gettype(Value) when is_integer(Value) -> <<"integer">>;
+gettype(Value) when is_float(Value) -> <<"float">>;
+gettype(Value) when is_binary(Value) -> <<"string">>;
+gettype(Value) when ?IS_DICT(Value) -> <<"array">>;
+gettype(Value) when is_record(Value, reg_instance) -> <<"object">>;
+gettype(Value) when is_pid(Value) -> <<"resource">>;
+gettype(null) -> <<"NULL">>;
+gettype(_) -> <<"unknown type">>.
 
 -spec to_bin(A :: binary() | string() | integer() | undefined) -> binary().
 

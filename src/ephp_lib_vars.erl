@@ -188,16 +188,8 @@ empty(_Context, _Line, {_,Value}) ->
 
 -spec gettype(context(), line(), var_value()) -> binary().
 
-gettype(_Context, _Line, {_,Value}) when is_boolean(Value) -> <<"boolean">>;
-gettype(_Context, _Line, {_,Value}) when is_integer(Value) -> <<"integer">>;
-gettype(_Context, _Line, {_,Value}) when is_float(Value) -> <<"float">>;
-gettype(_Context, _Line, {_,Value}) when is_binary(Value) -> <<"string">>;
-gettype(_Context, _Line, {_,Value}) when ?IS_DICT(Value) -> <<"array">>;
-gettype(_Context, _Line, {_,Value}) when is_record(Value, reg_instance) ->
-    <<"object">>;
-gettype(_Context, _Line, {_,Value}) when is_pid(Value) -> <<"resource">>;
-gettype(_Context, _Line, {_,null}) -> <<"NULL">>;
-gettype(_Context, _Line, {_,_}) -> <<"unknown type">>.
+gettype(_Context, _Line, {_,Value}) ->
+    ephp_util:gettype(Value).
 
 -spec unset(context(), line(), var_value()) -> null.
 
