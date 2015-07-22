@@ -24,16 +24,16 @@
 
 % built-in modules
 -define(MODULES, [
-    ephp_func_date,
-    ephp_func_vars,
-    ephp_func_misc,
-    ephp_func_ob,
-    ephp_func_control,
-    ephp_func_array,
-    ephp_func_string,
-    ephp_func_file,
-    ephp_func_func,
-    ephp_func_info
+    ephp_lib_date,
+    ephp_lib_vars,
+    ephp_lib_misc,
+    ephp_lib_ob,
+    ephp_lib_control,
+    ephp_lib_array,
+    ephp_lib_string,
+    ephp_lib_file,
+    ephp_lib_func,
+    ephp_lib_info
 ]).
 
 -type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.

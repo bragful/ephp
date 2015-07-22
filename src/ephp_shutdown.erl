@@ -57,7 +57,7 @@ shutdown(Context) ->
     end, false, ephp_context:get_shutdown_funcs(Context)),
     if Result =:= false ->
         ?DICT:fold(fun(K,V,Acc) ->
-            ephp_func_vars:unset(Context, undefined, {#variable{name=K},V}),
+            ephp_lib_vars:unset(Context, undefined, {#variable{name=K},V}),
             Acc
         end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
     true ->

@@ -1,4 +1,4 @@
--module(ephp_func_string).
+-module(ephp_lib_string).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
