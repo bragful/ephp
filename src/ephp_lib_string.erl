@@ -16,7 +16,9 @@
     str_replace/5,
     str_replace/6,
     strtolower/3,
-    strtoupper/3
+    strtoupper/3,
+    str_split/3,
+    str_split/4
 ]).
 
 -include("ephp.hrl").
@@ -31,7 +33,8 @@ init() -> [
     {explode, <<"split">>},
     str_replace,
     strtolower,
-    strtoupper
+    strtoupper,
+    str_split
 ]. 
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
@@ -154,9 +157,44 @@ strtolower(_Context, _Line, {_, Text}) ->
 strtoupper(_Context, _Line, {_, Text}) ->
     unistring:to_upper(ephp_util:to_bin(Text)).
 
+-spec str_split(context(), line(), Text :: var_value()) -> ?DICT_TYPE.
+
+str_split(Context, Line, Text) ->
+    str_split(Context, Line, Text, {1, 1}).
+
+-spec str_split(context(), line(),
+    Text :: var_value(), Size :: var_value()) -> ?DICT_TYPE | undefined.
+
+str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"str_split">>, 2, <<"long">>, ephp_util:gettype(Size), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    undefined;
+
+str_split(_Context, _Line, {_, Text}, {_, Size}) ->
+    split_chars(Text, ?DICT:new(), 0, Size).
+
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+split_chars(<<>>, Parts, _I, _Size) ->
+    Parts;
+
+split_chars(String, Parts, I, Size) when is_integer(Size) ->
+    case String of
+        <<Text:Size/binary,Rest/binary>> ->
+            split_chars(Rest, ?DICT:store(I, Text, Parts), I+1, Size);
+        <<Text/binary>> ->
+            ?DICT:store(I, Text, Parts);
+        <<>> ->
+            Parts
+    end;
+
+split_chars(_String, _Parts, _I, _Size) ->
+    {error, enosize}.
+
 
 split_limit(_Delimiter, String, Parts, Limit, Limit) ->
     ?DICT:store(Limit, String, Parts);
