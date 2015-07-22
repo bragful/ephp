@@ -15,6 +15,7 @@
     global :: ephp:context_id(),
     include :: ephp:includes_id(),
     shutdown :: ephp:shutdown_id(),
+    errors :: ephp:errors_id(),
 
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
@@ -57,6 +58,9 @@
     get_current_class/1,
     get_current_function_arity/1,
 
+    set_errors_id/2,
+    get_errors_id/1,
+
     get_const/2,
     register_const/3,
 
@@ -86,6 +90,7 @@ start_link() ->
     {ok, Inc} = ephp_include:start_link(),
     {ok, Class} = ephp_class:start_link(),
     {ok, Shutdown} = ephp_class:start_link(),
+    {ok, Errors} = ephp_error:start_link(),
     start_link(#state{
         ref = Ref,
         output = Output,
@@ -93,7 +98,8 @@ start_link() ->
         class = Class,
         const = Const,
         include = Inc,
-        shutdown = Shutdown
+        shutdown = Shutdown,
+        errors = Errors
     }).
 
 start_link(#state{ref=undefined}=State) ->
@@ -139,6 +145,7 @@ destroy_all(Context) ->
     ephp_const:destroy(State#state.const),
     ephp_include:destroy(State#state.include),
     ephp_func:destroy(State#state.funcs),
+    ephp_error:destroy(State#state.errors),
     destroy(Context).    
 
 get_state(Context) ->
@@ -190,6 +197,15 @@ get_current_function_arity(Context) ->
 get_current_class(Context) ->
     #state{active_class=ActiveClass} = erlang:get(Context),
     ActiveClass.
+
+get_errors_id(Context) ->
+    #state{errors=Errors} = erlang:get(Context),
+    Errors.
+
+set_errors_id(Context, Errors) ->
+    State = erlang:get(Context),
+    erlang:put(Context, State#state{errors=Errors}),
+    ok.
 
 get_const(Context, Name) ->
     #state{const=Const} = erlang:get(Context),
@@ -607,6 +623,11 @@ resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
 
 resolve(auto, _State) ->
     ephp_error:error({error, earrayundef, undefined, <<>>});
+
+resolve({silent, Statement}, #state{errors=Errors}=State) ->
+    ephp_error:run_quiet(Errors, fun() ->
+        resolve(Statement, State)
+    end);
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, Unknown}).

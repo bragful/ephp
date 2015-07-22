@@ -36,6 +36,14 @@ __abstract datatype__: `context_id()`
 
 
 
+### <a name="type-errors_id">errors_id()</a> ###
+
+
+__abstract datatype__: `errors_id()`
+
+
+
+
 ### <a name="type-funcs_id">funcs_id()</a> ###
 
 

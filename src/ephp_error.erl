@@ -3,9 +3,18 @@
 -compile([warnings_as_errors]).
 
 -export([
+    start_link/0,
+    destroy/1,
+
+    set_output/2,
+
+    run_quiet/2,
+
     error/1,
     handle_error/2
 ]).
+
+-callback set_output(context(), string()) -> ok.
 
 -include("ephp.hrl").
 
@@ -27,6 +36,21 @@
     eunknownst |
     eassignthis.
 
+-record(state, {
+    handler = ?MODULE :: module(),
+    silent = false :: boolean()
+}).
+
+-spec start_link() -> {ok, ephp:errors_id()}.
+
+start_link() ->
+    Ref = make_ref(),
+    erlang:put(Ref, #state{}),
+    {ok, Ref}.
+
+destroy(Funcs) ->
+    erlang:erase(Funcs).
+
 -type throw_error() ::
     atom() |
     {error, error_type(), line(), binary()}.
@@ -41,8 +65,31 @@ error({error, Type, Index, Data}) ->
 handle_error(Context, {error, Type, Index, Data}) ->
     Line = ephp_util:get_line(Index),
     ErrorText = get_message(Type, Line, Data),
-    ephp_context:set_output(Context, iolist_to_binary(ErrorText)),
+    case erlang:get(ephp_context:get_errors_id(Context)) of
+        #state{silent=true} ->
+            ok;
+        #state{handler=Module} ->
+            Module:set_output(Context, iolist_to_binary(ErrorText))
+    end,
     get_return(Type).
+
+-spec set_output(context(), binary()) -> ok.
+
+set_output(Context, Text) ->
+    ephp_context:set_output(Context, Text).
+
+-spec run_quiet(ephp:errors_id(), function()) -> ok.
+
+run_quiet(Errors, Fun) ->
+    case erlang:get(Errors) of
+        #state{silent=true} ->
+            Fun();
+        State ->
+            erlang:put(Errors, State#state{silent=true}),
+            Result = Fun(),
+            erlang:put(Errors, State#state{silent=false}),
+            Result
+    end.
 
 -spec get_message(error_type(), pos_integer() | undefined, binary()) -> string().
 

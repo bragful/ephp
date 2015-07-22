@@ -51,7 +51,7 @@ Features
     - [x] include/require code from other files
 - Error handling
     - [x] launch errors
-    - [ ] silent warnings/errors (@)
+    - [x] silent warnings/errors (@)
     - [ ] launch exceptions (throw)
     - [ ] catch exceptions (try...catch)
 - Exit functions
