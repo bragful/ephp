@@ -3,8 +3,9 @@
 @title ePHP
 
 @doc
-<a href="https://travis-ci.org/altenwald/ephp"><img src="https://api.travis-ci.org/altenwald/ephp.png?branch=master" alt="Build Status"/></a>
-<a href='https://coveralls.io/r/altenwald/ephp'><img src='https://coveralls.io/repos/altenwald/ephp/badge.png' alt='Coverage Status' /></a>
+<a href="https://travis-ci.org/altenwald/ephp"><img src="https://img.shields.io/travis/altenwald/ephp/master.svg" alt="Build Status"/></a>
+<a href='https://coveralls.io/r/altenwald/ephp'><img src='https://img.shields.io/coveralls/altenwald/ephp/master.svg' alt='Coverage Status' /></a>
+<a href='https://raw.githubusercontent.com/altenwald/ephp/master/COPYING'><img src='https://img.shields.io/github/license/altenwald/ephp.svg' alt='License: LGPL 2.1'/></a>
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
