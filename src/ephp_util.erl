@@ -47,7 +47,7 @@ to_bin(undefined) -> <<>>.
 -spec to_lower(binary()) -> binary().
 
 to_lower(Text) ->
-    list_to_binary(string:to_lower(binary_to_list(Text))).
+    unistring:to_lower(Text).
 
 -spec increment_code(Code :: binary()) -> integer() | binary().
 

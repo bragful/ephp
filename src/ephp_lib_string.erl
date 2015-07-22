@@ -14,7 +14,9 @@
     explode/4,
     explode/5,
     str_replace/5,
-    str_replace/6
+    str_replace/6,
+    strtolower/3,
+    strtoupper/3
 ]).
 
 -include("ephp.hrl").
@@ -27,7 +29,9 @@ init() -> [
     {implode, <<"join">>},
     explode,
     {explode, <<"split">>},
-    str_replace
+    str_replace,
+    strtolower,
+    strtoupper
 ]. 
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
@@ -133,6 +137,16 @@ str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject}) ->
 str_replace(Context, _Line, {_, Search}, {_, Replace}, {_, Subject}, {Count,_}) ->
     ephp_context:set(Context, Count, length(binary:matches(Subject, Search))),
     binary:replace(Subject, Search, Replace, [global]).
+
+-spec strtolower(context(), line(), Text :: var_value()) -> binary().
+
+strtolower(_Context, _Line, {_, Text}) ->
+    unistring:to_lower(ephp_util:to_bin(Text)).
+
+-spec strtoupper(context(), line(), Text :: var_value()) -> binary().
+
+strtoupper(_Context, _Line, {_, Text}) ->
+    unistring:to_upper(ephp_util:to_bin(Text)).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
