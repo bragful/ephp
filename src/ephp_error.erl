@@ -96,6 +96,11 @@ get_message(eassignthis, Line, File) ->
         "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
         [File, Line]);
 
+get_message(ewrongarg, Line, {Function, ArgNum, ArgType, WrongType, File}) ->
+    io_lib:format(
+        "~nWarning: ~s() expects parameter ~p to be ~s, ~s given in ~s on line ~p~n",
+        [Function, ArgNum, ArgType, WrongType, File, Line]);
+
 get_message(Unknown, Line, Data) ->
     io_lib:format(
         "~nFatal Error: unknown ~p for ~p in line ~p~n",

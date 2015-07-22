@@ -39,18 +39,22 @@ init() -> [
 strlen(_Context, _Line, {_,String}) when is_binary(String) ->
     byte_size(String);
 
-strlen(_Context, _Line, _Var) ->
-    %% TODO: Warning: strlen() expects parameter 1 to be string
-    null.
+strlen(Context, Line, {_, Var}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"strlen">>, 1, <<"string">>, ephp_util:gettype(Var), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    undefined.
 
 -spec ord(context(), line(), String :: var_value()) -> integer().
 
 ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
     I;
 
-ord(_Context, _Line, _Var) ->
-    %% TODO: Warning: ord() expects parameter 1 to be string
-    null.
+ord(Context, Line, {_, Var}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"ord">>, 1, <<"string">>, ephp_util:gettype(Var), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    undefined.
 
 -spec chr(context(), line(), Integer :: var_value()) -> binary().
 
@@ -97,10 +101,12 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     String :: var_value(),
     Limit :: var_value()) -> ?DICT_TYPE.
 
-explode(_Context, _Line, _Delimiter, _String, {_,Limit})
+explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
-    %% TODO: Warning: explode() expects parameter 3 to be long
-    null;
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"explode">>, 3, <<"long">>, ephp_util:gettype(Limit), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    undefined;
 
 explode(_Context, _Line, _Delimiter, {_,String}, {_,0}) ->
     String;
