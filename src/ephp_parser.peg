@@ -171,29 +171,25 @@ class_method <- (abstract space)? ((public / protected / private) space)? (stati
 
 % Statements
 
-statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
-    [Statement, StatementsRaw] = Node,
-    NewStatement = if
-        is_tuple(Statement) -> [Statement];
-        is_atom(Statement) -> [Statement];
-        true -> Statement
-    end,
-    Statements = [ S || [_,S] <- StatementsRaw ],
-    lists:flatmap(fun(S) -> 
-        if 
-            is_tuple(S) -> [S]; 
-            is_atom(S) -> [S];
-            true -> S 
-        end
-    end, [NewStatement] ++ Statements)
+statements <- (comment / statement / literal_block) space? statements* `
+    case Node of
+        [Statement,_Space,[]] when not is_list(Statement) ->
+            [Statement];
+        [Statement,_Space,[Statements]] when not is_list(Statement) ->
+            [Statement|Statements];
+        [Statement,_Space,[]] ->
+            Statement;
+        [Statement,_Space,[Statements]] ->
+            Statement ++ Statements
+    end
 `;
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- '@'? space? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_call_function / st_global / st_conditions) `
+statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_call_function / st_global / st_conditions) `
     case Node of
-        [[],_,Statement] -> Statement;
-        [_,_,Statement] -> {silent, Statement}
+        [[],Statement] -> Statement;
+        [_,Statement] -> {silent, Statement}
     end
 `;
 
@@ -421,12 +417,12 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 %% Expressions
 
-expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
+expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / arith_mono / additive / number / call_function / var / constant ~;
 
-expression <- '@'? space? (array_def / expr_string / boolean / null / new_object / include_call / call_function / arith_mono / ternary / additive / conditions / number / var / constant) `
+expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / arith_mono / ternary / additive / conditions / number / call_function / var / constant) `
     case Node of
-        [[],_,Expression] -> Expression;
-        [_,_,Expression] -> {silent, Expression}
+        [[],Expression] -> Expression;
+        [_,Expression] -> {silent, Expression}
     end
 `;
 
