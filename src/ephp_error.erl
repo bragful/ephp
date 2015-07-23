@@ -22,6 +22,7 @@
 -type error_type() ::
     eundefclass |
     eprivateaccess |
+    ecallprivate |
     ebadbnot |
     erequired |
     einclude |
@@ -160,7 +161,12 @@ get_message(eundefclass, Line, {File, Class}) ->
 
 get_message(eprivateaccess, Line, {File, Class, Element, Access}) ->
     io_lib:format(
-        "~nFatal error: Cannot access ~s property ~s::~s in ~s on line ~p~n",
+        "~nFatal error: Cannot access ~s property ~s::$~s in ~s on line ~p~n",
+        [Access, Class, Element, File, Line]);
+
+get_message(ecallprivate, Line, {File, Class, Element, Access}) ->
+    io_lib:format(
+        "~nFatal error: Call to ~s method ~s::~s() in ~s on line ~p~n",
         [Access, Class, Element, File, Line]);
 
 get_message(ebadbnot, Line, File) ->

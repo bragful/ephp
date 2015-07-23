@@ -1,0 +1,2 @@
+
+Fatal error: Call to private method A::no_call_me() in {{CWD}}/test/code/test_class_access_method.php on line 12

@@ -698,8 +698,22 @@ resolve_var(#variable{name = <<"this">>, idx=[{object,#call{}=Call,_}]}=Var, Sta
 
 resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     InstanceVar = Var#variable{idx=[]},
-    Instance = ephp_vars:get(State#state.vars, InstanceVar),
-    run_method(Instance, Call#call{type=object}, State);
+    #reg_instance{class=Class} = Instance =
+        ephp_vars:get(State#state.vars, InstanceVar),
+    case ephp_class:get_method(Class, Call#call.name) of
+        #class_method{access=public} ->
+            run_method(Instance, Call#call{type=object}, State);
+        #class_method{access=protected} ->
+            File = State#state.active_file,
+            Data = {File, Class#class.name, Call#call.name, <<"protected">>},
+            ephp_error:error({error, ecallprivate, Var#variable.line,
+                ?E_ERROR, Data});
+        #class_method{access=private} ->
+            File = State#state.active_file,
+            Data = {File, Class#class.name, Call#call.name, <<"private">>},
+            ephp_error:error({error, ecallprivate, Var#variable.line,
+                ?E_ERROR, Data})
+    end;
 
 resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
     Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
@@ -722,13 +736,13 @@ resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
         #class_attr{access=protected} ->
             File = State#state.active_file,
             Data = {File, Class#class.name,
-                <<"$",(NewVar#variable.name)/binary>>, <<"protected">>},
+                NewVar#variable.name, <<"protected">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
                 ?E_ERROR, Data});
         #class_attr{access=private} ->
             File = State#state.active_file,
             Data = {File, Class#class.name,
-                <<"$",(NewVar#variable.name)/binary>>, <<"private">>},
+                NewVar#variable.name, <<"private">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
                 ?E_ERROR, Data})
     end,
