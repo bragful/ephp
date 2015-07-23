@@ -67,7 +67,7 @@ chr(_Context, _Line, {_,C}) when is_integer(C) ->
     <<C:8/integer>>;
 
 chr(_Context, _Line, _Var) ->
-    null.
+    undefined.
 
 -spec implode(context(), line(),
     Glue :: var_value(), Pieces :: var_value()) -> binary().

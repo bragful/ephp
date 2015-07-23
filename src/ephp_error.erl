@@ -191,5 +191,5 @@ get_message(Unknown, Line, Data) ->
 
 -spec get_return(error_type()) -> term().
 
-get_return(eparse) -> {ok, null};
-get_return(_) -> {return, null}.
+get_return(eparse) -> {ok, undefined};
+get_return(_) -> {return, undefined}.

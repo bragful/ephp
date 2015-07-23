@@ -69,7 +69,6 @@ php_is_numeric(_Context, _Line, {_,Value}) -> erlang:is_number(Value).
 php_is_float(_Context, _Line, {_,Value}) -> erlang:is_float(Value).
 
 -spec php_is_null(context(), line(), var_value()) -> boolean().
-php_is_null(_Context, _Line, {_,null}) -> true;
 php_is_null(_Context, _Line, {_,undefined}) -> true;
 php_is_null(_Context, _Line, _Var) -> false.
 
@@ -92,7 +91,7 @@ print_r(Context, Line, Value) ->
     print_r(Context, Line, Value, {false,false}).
 
 
--spec var_dump(context(), line(), var_value()) -> null.
+-spec var_dump(context(), line(), var_value()) -> undefined.
 
 var_dump(Context, _Line, {_,Value}) ->
     Result = case var_dump_fmt(Context, Value, <<?SPACES_VD>>) of
@@ -120,7 +119,7 @@ var_dump(Context, _Line, {_,Value}) ->
         Element
     end,
     ephp_context:set_output(Context, Result), 
-    null.
+    undefined.
 
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
     true | binary().
@@ -191,7 +190,7 @@ empty(_Context, _Line, {_,Value}) ->
 gettype(_Context, _Line, {_,Value}) ->
     ephp_util:gettype(Value).
 
--spec unset(context(), line(), var_value()) -> null.
+-spec unset(context(), line(), var_value()) -> undefined.
 
 unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
     case ephp_context:get(Context, Var) of
@@ -213,7 +212,7 @@ unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
             ok
     end,
     ephp_context:set(Context, Var, undefined),
-    null. 
+    undefined. 
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

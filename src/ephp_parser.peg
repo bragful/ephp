@@ -135,7 +135,7 @@ class_variable <- ((public / protected / private) space)? (static space)? var_si
     end,
     VarName = Var#variable.name,
     Expr = case Ex of
-        [] -> null;
+        [] -> undefined;
         [_,_,_,E] -> E
     end,
     Type = case St of
@@ -495,7 +495,7 @@ do <- #(?i)do# `do`;
 and <- #(?i)and# / '&&' `'and'`;
 or <- #(?i)or# / '||' `'or'`;
 not <- #(?i)not# / '!' `'not'`;
-null <- #(?i)null# `null`;
+null <- #(?i)null# `undefined`;
 true <- #(?i)true# `true`;
 false <- #(?i)false# `false`;
 return <- #(?i)return# `return`;

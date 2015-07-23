@@ -29,12 +29,12 @@ init() -> [
     {ob_clean, <<"ob_end_clean">>}
 ]. 
 
--spec flush(context(), line()) -> null.
+-spec flush(context(), line()) -> undefined.
 
 flush(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:flush(Output),
-    null.
+    undefined.
 
 -spec ob_start(context(), line()) -> boolean().
 
@@ -71,9 +71,9 @@ ob_get_length(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:size(Output).
 
--spec ob_clean(context(), line()) -> null.
+-spec ob_clean(context(), line()) -> undefined.
 
 ob_clean(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:pop(Output),
-    null.
+    undefined.

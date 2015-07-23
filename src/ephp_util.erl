@@ -29,7 +29,7 @@ gettype(Value) when is_binary(Value) -> <<"string">>;
 gettype(Value) when ?IS_DICT(Value) -> <<"array">>;
 gettype(Value) when is_record(Value, reg_instance) -> <<"object">>;
 gettype(Value) when is_pid(Value) -> <<"resource">>;
-gettype(null) -> <<"NULL">>;
+gettype(undefined) -> <<"NULL">>;
 gettype(_) -> <<"unknown type">>.
 
 -spec to_bin(A :: binary() | string() | integer() | undefined) -> binary().
@@ -52,8 +52,6 @@ to_bin(A) when is_float(A) ->
 to_bin(true) -> <<"1">>;
 
 to_bin(false) -> <<>>;
-
-to_bin(null) -> <<>>;
 
 to_bin(undefined) -> <<>>. 
 

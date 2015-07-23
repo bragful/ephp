@@ -33,7 +33,7 @@ include(Context, Line, {_,InclFile}) ->
             NoFileData}),
         ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
             IncludeData}),
-        null;
+        undefined;
     Code -> 
         include_file(Context, Code, InclFile)
     end.
@@ -50,7 +50,7 @@ include_once(Context, Line, {_,InclFile}) ->
             NoFileData}),
         ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
             IncludeData}),
-        null;
+        undefined;
     {return, true} ->
         true;
     Code -> 
@@ -90,5 +90,5 @@ include_file(Context, Code, File) ->
     ephp_context:set_active_file(Context, OldValue),
     case Res of
         {return, Value} -> Value;
-        _ -> null
+        _ -> undefined
     end.

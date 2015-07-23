@@ -316,7 +316,7 @@ resolve(true, State) ->
 resolve(false, State) -> 
     {false, State};
 
-resolve(null, State) -> 
+resolve(undefined, State) -> 
     {undefined, State};
 
 %% TODO: reference from/to class var
@@ -572,7 +572,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
         Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
             {return, V} -> V;
-            _ -> null
+            _ -> undefined
         end,
         destroy(SubContext),
         ephp_vars:destroy(NewVars), 
@@ -609,7 +609,7 @@ resolve(#instance{name=ClassName, args=RawArgs, line=Line}=Instance,
     end;
 
 resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
-    {null, State};
+    {undefined, State};
 
 resolve({global, GVars,_Line}, #state{
         global=GlobalCtx,
@@ -618,17 +618,17 @@ resolve({global, GVars,_Line}, #state{
     lists:foreach(fun(GlobalVar) ->
         ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
     end, GVars),
-    {null, State};
+    {undefined, State};
 
 resolve(#constant{name=Name}, #state{const=Const}=State) ->
     {ephp_const:get(Const, Name), State};
 
 resolve(#print_text{text=Text}, #state{output=Output}=State) ->
     ephp_output:push(Output, Text),
-    {null, State};
+    {1, State};
 
 resolve(undefined, State) ->
-    {null, State};
+    {undefined, State};
 
 resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
     {{var_ref, Vars, Var}, State};
@@ -680,7 +680,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
     ephp_const:set(Const, <<"__CLASSNAME__">>, Class#class.name),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
-        _ -> null
+        _ -> undefined
     end,
     destroy(SubContext),
     ephp_vars:destroy(NewVars), 
@@ -800,7 +800,7 @@ resolve_txt(Texts, State) ->
         (true, {ResultTxt,NS}) ->
             {<<"1",ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when 
-                Data =:= null orelse 
+                Data =:= undefined orelse 
                 Data =:= false ->
             {<<ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when is_binary(Data) ->

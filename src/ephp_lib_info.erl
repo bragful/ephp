@@ -46,7 +46,7 @@ phpinfo(Context, _Line) ->
     "\n"
     >>,
     ephp_context:set_output(Context, Output),
-    null.
+    undefined.
 
 phpversion(_Context, _Line) ->
     ?PHP_VERSION.

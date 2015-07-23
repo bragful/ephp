@@ -109,7 +109,7 @@ run(Context, #call{line=Line}=Call) ->
         false
     catch
         throw:die ->
-            {return, null};
+            {return, undefined};
         throw:{error, erequired, _, ReqFile} ->
             File = ephp_context:get_active_file(Context),
             Data = {File, ReqFile},

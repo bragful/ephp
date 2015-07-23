@@ -45,7 +45,7 @@ unregister_func(Ref, FuncName) ->
 get_funcs(Ref) ->
     erlang:get(Ref).
 
--spec shutdown(context()) -> null.
+-spec shutdown(context()) -> undefined.
 
 shutdown(Context) ->
     Result = lists:foldl(fun
@@ -59,7 +59,7 @@ shutdown(Context) ->
         ?DICT:fold(fun(K,V,Acc) ->
             ephp_lib_vars:unset(Context, undefined, {#variable{name=K},V}),
             Acc
-        end, null, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
+        end, undefined, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
     true ->
-        null
+        undefined
     end.

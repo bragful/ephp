@@ -76,7 +76,7 @@ date_default_timezone_get(Context, _Line) ->
 
 date_default_timezone_set(Context, _Line, {_,TZ}) ->
     ephp_context:set_tz(Context, TZ),
-    null.
+    undefined.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

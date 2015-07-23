@@ -52,7 +52,7 @@ usleep(_Context, _Line, _) ->
     false.
 
 -spec exit(context(), line(), Message :: var_value()) ->
-    null.
+    undefined.
 
 exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),
