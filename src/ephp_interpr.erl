@@ -191,6 +191,9 @@ run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false) ->
     ephp_context:solve(Context, Var),
     false;
 
+run_depth(_Context, #constant{}, false) ->
+    false;
+
 run_depth(Context, {silent, Statement}, false) ->
     ephp_error:run_quiet(ephp_context:get_errors_id(Context), fun() ->
         run_depth(Context, Statement, false)

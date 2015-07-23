@@ -36,6 +36,11 @@
     ephp_lib_info
 ]).
 
+% built-in consts
+-define(CONST_MODULES, [
+    ephp_error
+]).
+
 -type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.
 
 -type file_name() :: binary().

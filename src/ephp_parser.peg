@@ -633,9 +633,11 @@ var_ref <- '&' space? (var_complex / var_simple) `
 
 var_access <- var_access_array / var_access_object ~;
 
-var_access_object <- ('->' / '::') space? (array_index / key) `
+var_access_object <- ('->' / '::') space? array_index `
     case Node of
+        [<<"->">>,_,#constant{name=Name}] -> {object, Name, Index};
         [<<"->">>,_,Expr] -> {object, Expr, Index};
+        [<<"::">>,_,#constant{name=Name}] -> {class, Name, Index};
         [<<"::">>,_,Expr] -> {class, Expr, Index}
     end
 `;
@@ -674,7 +676,7 @@ enclosed_var_simple <- '$' '{' key '}' `
 
 %% math operations
 
-arith_params <- number / call_function / var / logic_mono / arith_mono ~;
+arith_params <- number / call_function / var / constant / logic_mono / arith_mono ~;
 
 logic_mono <- mono_logic space? expression `
     [_Op, _, Expr] = Node,

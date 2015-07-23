@@ -12,6 +12,7 @@
     start_link/0,
     get/2,
     set/3,
+    set_bulk/2,
     destroy/1
 ]).
 
@@ -28,6 +29,7 @@ start_link() ->
         ?DICT:store(K,V,C)
     end, ?DICT:new(), Init),
     erlang:put(Ref, Consts),
+    [ set_bulk(Ref, Module:init_consts()) || Module <- ?CONST_MODULES ],
     {ok, Ref}.
 
 get(Ref, Name) ->
@@ -37,9 +39,14 @@ get(Ref, Name) ->
         error -> Name
     end.
 
+set_bulk(Ref, Values) ->
+    erlang:put(Ref, lists:foldl(fun({Name, Value}, Const) ->
+        ?DICT:store(Name, Value, Const)
+    end, erlang:get(Ref), Values)).
+
 set(Ref, Name, Value) ->
     Const = erlang:get(Ref),
-    put(Ref, ?DICT:store(Name, Value, Const)),
+    erlang:put(Ref, ?DICT:store(Name, Value, Const)),
     ok.
 
 destroy(Const) ->
