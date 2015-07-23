@@ -571,12 +571,12 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
     end;
 
 resolve(#call{type=class,class=Name,line=Index}=Call,
-        #state{class=Classes,active_file=File}=State) ->
+        #state{class=Classes}=State) ->
     case ephp_class:get(Classes, Name) of
     {ok, Class} ->
         run_method(Class, Call, State);
     error ->
-        ephp_error:error({error, eundefclass, Index, {File,Name}})
+        ephp_error:error({error, eundefclass, Index, Name})
     end;
 
 resolve({object,Idx,Line}, State) ->
