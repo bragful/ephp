@@ -180,7 +180,7 @@ get_message(ewrongarg, Line, {Function, ArgNum, ArgType, WrongType, File}) ->
 
 get_message(enoarray, Line, File) ->
     io_lib:format(
-        "PHP Warning:  Cannot use a scalar value as an array in ~s "
+        "~nWarning:  Cannot use a scalar value as an array in ~s "
         "on line ~p~n",
         [File, Line]);
 
