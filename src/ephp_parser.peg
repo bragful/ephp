@@ -398,10 +398,10 @@ conditions <- condition space? nexo space? conditions / cs:condition `
     end
 `;
 
-condition <- primary_cond space? comparator space? cs:condition / not? pri:primary_cond `
+condition <- primary_cond space? comparator space? cs:condition / not? space? pri:primary_cond `
     case Node of
         [A,_,Type,_,{cs,B}] -> #operation{type=Type, expression_left=A, expression_right=B};
-        [Not, {pri, Param}] -> case Not of
+        [Not,_,{pri, Param}] -> case Not of
             [] -> Param;
             'not' -> {operation_not, Param, Index}
         end
