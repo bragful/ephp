@@ -200,7 +200,8 @@ run_depth(Context, {silent, Statement}, false) ->
     end);
 
 run_depth(_Context, Statement, false) ->
-    ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement});
+    ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement}),
+    break;
 
 run_depth(_Context, _Statement, Break) ->
     Break.

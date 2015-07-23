@@ -128,6 +128,8 @@ eval(Filename, Context, PHP) ->
             case catch ephp_interpr:process(Context, Compiled) of
                 {ok, Return} ->
                     {ok, Return};
+                die ->
+                    {ok, undefined};
                 {error, Reason, _, _, _}=Error ->
                     ephp_error:handle_error(Context, Error),
                     {error, Reason}
