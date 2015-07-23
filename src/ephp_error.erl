@@ -21,6 +21,7 @@
 
 -type error_type() ::
     eundefclass |
+    eprivateaccess |
     ebadbnot |
     erequired |
     einclude |
@@ -152,6 +153,11 @@ get_message(eundefclass, Line, {File, Class}) ->
     io_lib:format(
         "~nFatal error: Class '~s' not found in ~s on line ~p~n",
         [Class, File, Line]);
+
+get_message(eprivateaccess, Line, {File, Class, Element, Access}) ->
+    io_lib:format(
+        "~nFatal error: Cannot access ~s property ~s::~s in ~s on line ~p~n",
+        [Access, Class, Element, File, Line]);
 
 get_message(ebadbnot, Line, File) ->
     io_lib:format(

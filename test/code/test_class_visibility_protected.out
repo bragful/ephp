@@ -1,0 +1,2 @@
+
+Fatal error: Cannot access protected property Hello::$hello in /Users/bombadil/Projects/BosqueViejo/ephp/test_class_visibility.php on line 8

@@ -15,6 +15,8 @@
     get/2,
     get_constructor/1,
     get_destructor/1,
+    get_attribute/3,
+    get_attribute/2,
     get_method/2,
     get_method/3,
 
@@ -112,6 +114,18 @@ get_destructor(#class{methods=Methods}) ->
         undefined;
     #class_method{}=ClassMethod ->
         ClassMethod
+    end.
+
+get_attribute(Ref, ClassName, AttributeName) ->
+    {ok, Class} = get(Ref, ClassName),
+    get_attribute(Class, AttributeName).
+
+get_attribute(#class{attrs=Attrs}, AttributeName) ->
+    case lists:keyfind(AttributeName, #class_attr.name, Attrs) of
+    false ->
+        undefined;
+    #class_attr{}=ClassAttr ->
+        ClassAttr
     end.
 
 get_method(Ref, ClassName, MethodName) ->

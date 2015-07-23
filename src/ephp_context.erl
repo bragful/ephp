@@ -679,6 +679,11 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
 resolve_var(#variable{type=normal,idx=[]}=Var, State) ->
     {ephp_vars:get(State#state.vars, Var), State};
 
+resolve_var(#variable{name = <<"this">>, idx=[{object,#call{}=Call,_}]}=Var, State) ->
+    InstanceVar = Var#variable{idx=[]},
+    Instance = ephp_vars:get(State#state.vars, InstanceVar),
+    run_method(Instance, Call#call{type=object}, State);
+
 resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     InstanceVar = Var#variable{idx=[]},
     Instance = ephp_vars:get(State#state.vars, InstanceVar),
@@ -694,10 +699,25 @@ resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
 
 resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
         when is_binary(VarName) -> 
-    Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
-    Context = Instance#reg_instance.context,
+    #reg_instance{class=Class, context=Context} =
+        ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
     {NewVar, NewState} =
         resolve_indexes(#variable{name=VarName,idx=Idx}, State),
+    ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
+    case ClassAttr of
+        #class_attr{access=public} ->
+            ok;
+        #class_attr{access=protected} ->
+            File = State#state.active_file,
+            Data = {File, Class#class.name,
+                <<"$",(NewVar#variable.name)/binary>>, <<"protected">>},
+            ephp_error:error({error, eprivateaccess, Var#variable.line, Data});
+        #class_attr{access=private} ->
+            File = State#state.active_file,
+            Data = {File, Class#class.name,
+                <<"$",(NewVar#variable.name)/binary>>, <<"private">>},
+            ephp_error:error({error, eprivateaccess, Var#variable.line, Data})
+    end,
     {ephp_context:get(Context, NewVar), NewState};
 
 resolve_var(#variable{type=normal}=Var, State) ->
