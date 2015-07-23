@@ -29,8 +29,10 @@ include(Context, Line, {_,InclFile}) ->
         File = ephp_context:get_active_file(Context),
         NoFileData = {File, InclFile, <<"include">>},
         IncludeData = {File, InclFile, <<"include">>},
-        ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
-        ephp_error:handle_error(Context, {error, einclude, Line, IncludeData}),
+        ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
+            NoFileData}),
+        ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
+            IncludeData}),
         null;
     Code -> 
         include_file(Context, Code, InclFile)
@@ -44,8 +46,10 @@ include_once(Context, Line, {_,InclFile}) ->
         File = ephp_context:get_active_file(Context),
         NoFileData = {File, InclFile, <<"include_once">>},
         IncludeData = {File, InclFile, <<"include_once">>},
-        ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
-        ephp_error:handle_error(Context, {error, einclude, Line, IncludeData}),
+        ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
+            NoFileData}),
+        ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
+            IncludeData}),
         null;
     {return, true} ->
         true;
@@ -58,7 +62,7 @@ include_once(Context, Line, {_,InclFile}) ->
 require(Context, Line, {_,File}) ->
     case ephp_context:load(Context, File) of
     {error, _} ->
-        ephp_error:error({error, erequired, Line, File});
+        ephp_error:error({error, erequired, Line, ?E_ERROR, File});
     Code -> 
         include_file(Context, Code, File)
     end.
@@ -68,7 +72,7 @@ require(Context, Line, {_,File}) ->
 require_once(Context, Line, {_,File}) ->
     case ephp_context:load_once(Context, File) of
     {error, _} ->
-        ephp_error:error({error, erequired, Line, File});
+        ephp_error:error({error, erequired, Line, ?E_ERROR, File});
     {return, true} ->
         true;
     Code ->

@@ -120,14 +120,15 @@ eval(Context, PHP) ->
 
 eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of
-        {error, eparse, Line, _Text} ->
-            ephp_error:handle_error(Context, {error, eparse, Line, Filename}),
+        {error, eparse, Line, _ErrorLevel, _Text} ->
+            ephp_error:handle_error(Context, {error, eparse, Line,
+                ?E_PARSE bor ?E_ERROR, Filename}),
             {error, eparse};
         Compiled ->
             case catch ephp_interpr:process(Context, Compiled) of
                 {ok, Return} ->
                     {ok, Return};
-                {error, Reason, _, _}=Error ->
+                {error, Reason, _, _, _}=Error ->
                     ephp_error:handle_error(Context, Error),
                     {error, Reason}
             end

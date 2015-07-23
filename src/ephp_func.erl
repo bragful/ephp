@@ -113,9 +113,11 @@ run(Context, #call{line=Line}=Call) ->
         throw:{error, erequired, _, ReqFile} ->
             File = ephp_context:get_active_file(Context),
             Data = {File, ReqFile},
-            ephp_error:handle_error(Context, {error, erequired, Line, Data});
+            ephp_error:handle_error(Context, {error, erequired, Line,
+                ?E_ERROR, Data});
         throw:{error, eundefun, _, Fun} ->
             File = ephp_context:get_active_file(Context),
             Data = {File, Fun},
-            ephp_error:handle_error(Context, {error, eundefun, Line, Data})
+            ephp_error:handle_error(Context, {error, eundefun, Line,
+                ?E_ERROR, Data})
     end.

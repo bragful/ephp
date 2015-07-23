@@ -40,7 +40,8 @@
 
 -record(state, {
     handler = ?MODULE :: module(),
-    silent = false :: boolean()
+    silent = false :: boolean(),
+    level = ?E_ALL
 }).
 
 -spec start_link() -> {ok, ephp:errors_id()}.
@@ -54,40 +55,43 @@ destroy(Funcs) ->
     erlang:erase(Funcs).
 
 init_consts() -> [
-    {<<"E_ERROR">>, 1},
-    {<<"E_WARNING">>, 2},
-    {<<"E_PARSE">>, 4},
-    {<<"E_NOTICE">>, 8},
-    {<<"E_CORE_ERROR">>, 16},
-    {<<"E_CORE_WARNING">>, 32},
-    {<<"E_COMPILE_ERROR">>, 64},
-    {<<"E_COMPILE_WARNING">>, 128},
-    {<<"E_USER_ERROR">>, 256},
-    {<<"E_USER_WARNING">>, 512},
-    {<<"E_USER_NOTICE">>, 1024},
-    {<<"E_STRICT">>, 2048},
-    {<<"E_RECOVERABLE_ERROR">>, 4096},
-    {<<"E_DEPRECATED">>, 8192},
-    {<<"E_USER_DEPRECATED">>, 16384},
-    {<<"E_ALL">>, 32767}
+    {<<"E_ERROR">>, ?E_ERROR},
+    {<<"E_WARNING">>, ?E_WARNING},
+    {<<"E_PARSE">>, ?E_PARSE},
+    {<<"E_NOTICE">>, ?E_NOTICE},
+    {<<"E_CORE_ERROR">>, ?E_CORE_ERROR},
+    {<<"E_CORE_WARNING">>, ?E_CORE_WARNING},
+    {<<"E_COMPILE_ERROR">>, ?E_COMPILE_ERROR},
+    {<<"E_COMPILE_WARNING">>, ?E_COMPILE_WARNING},
+    {<<"E_USER_ERROR">>, ?E_USER_ERROR},
+    {<<"E_USER_WARNING">>, ?E_USER_WARNING},
+    {<<"E_USER_NOTICE">>, ?E_USER_NOTICE},
+    {<<"E_STRICT">>, ?E_STRICT},
+    {<<"E_RECOVERABLE_ERROR">>, ?E_RECOVERABLE_ERROR},
+    {<<"E_DEPRECATED">>, ?E_DEPRECATED},
+    {<<"E_USER_DEPRECATED">>, ?E_USER_DEPRECATED},
+    {<<"E_ALL">>, ?E_ALL}
 ].
 
 -type throw_error() ::
     atom() |
-    {error, error_type(), line(), binary()}.
+    {error, error_type(), line(), error_level(), any()}.
 
 -spec error(throw_error()) -> ok.
 
-error({error, Type, Index, Data}) ->
-    throw({error, Type, Index, Data}).
+error({error, Type, Index, Level, Data}) ->
+    throw({error, Type, Index, Level, Data}).
 
--spec handle_error(context(), {error, error_type(), line(), binary()}) -> ok.
+-spec handle_error(context(), {error, error_type(), line(),
+    error_level(), any()}) -> ok.
 
-handle_error(Context, {error, Type, Index, Data}) ->
+handle_error(Context, {error, Type, Index, Level, Data}) ->
     Line = ephp_util:get_line(Index),
     ErrorText = get_message(Type, Line, Data),
     case erlang:get(ephp_context:get_errors_id(Context)) of
         #state{silent=true} ->
+            ok;
+        #state{level=CfgLevel} when (CfgLevel band Level) =:= 0 ->
             ok;
         #state{handler=Module} ->
             Module:set_output(Context, iolist_to_binary(ErrorText))
@@ -173,6 +177,12 @@ get_message(ewrongarg, Line, {Function, ArgNum, ArgType, WrongType, File}) ->
     io_lib:format(
         "~nWarning: ~s() expects parameter ~p to be ~s, ~s given in ~s on line ~p~n",
         [Function, ArgNum, ArgType, WrongType, File, Line]);
+
+get_message(enoarray, Line, File) ->
+    io_lib:format(
+        "PHP Warning:  Cannot use a scalar value as an array in ~s "
+        "on line ~p~n",
+        [File, Line]);
 
 get_message(Unknown, Line, Data) ->
     io_lib:format(

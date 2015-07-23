@@ -326,20 +326,23 @@ resolve(#assign{
     ephp_vars:ref(State#state.vars, Var, State#state.vars, RefVar),
     resolve(RefVar, State);
 
-resolve(#assign{variable=#variable{name = <<"this">>, idx=[]}}=A, State) ->
-    #assign{line=Line} = A,
-    #state{active_file=File} = State,
-    ephp_error:error({error, eassignthis, Line, File});
+resolve(#assign{variable=#variable{name = <<"this">>, idx=[]}}=Assign, State) ->
+    ephp_error:error({error, eassignthis, Assign#assign.line,
+        ?E_ERROR, State#state.active_file});
 
 resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
-    VarPath = get_var_path(Var, State),
-    {Value, NState} = resolve(Expr, State),
-    ephp_vars:set(NState#state.vars, VarPath, Value),
-    {Value, NState};
+    case catch get_var_path(Var, State) of
+        #variable{}=VarPath ->
+            {Value, NState} = resolve(Expr, State),
+            ephp_vars:set(NState#state.vars, VarPath, Value),
+            {Value, NState};
+        {error, _Reason} ->
+            {undefined, State}
+    end;
 
 resolve(#assign{variable=#variable{type=class, class = <<"self">>, line=Index}},
         #state{active_class=undefined,active_file=File}) ->
-    ephp_error:error({error, eundefclass, Index, {File,<<"self">>}});
+    ephp_error:error({error, eundefclass, Index, ?E_ERROR, {File, <<"self">>}});
 
 resolve(#assign{variable=#variable{type=class, class = <<"self">>}=Var}=Assign,
         #state{active_class=ClassName}=State) ->
@@ -349,15 +352,20 @@ resolve(#assign{
             variable=#variable{type=class,class=ClassName,line=Index}=Var,
             expression=Expr},
         #state{class=Classes,active_file=File}=State) ->
-    VarPath = get_var_path(Var, State),
-    {Value, NState} = resolve(Expr, State),
-    case ephp_class:get(Classes, ClassName) of
-    {ok, #class{static_context=ClassCtx}} ->
-        set(ClassCtx, VarPath, Value);
-    error ->
-        ephp_error:error({error, eundefclass, Index, {File,ClassName}})
-    end,
-    {Value, NState};
+    case catch get_var_path(Var, State) of
+        #variable{}=VarPath ->
+            {Value, NState} = resolve(Expr, State),
+            case ephp_class:get(Classes, ClassName) of
+            {ok, #class{static_context=ClassCtx}} ->
+                set(ClassCtx, VarPath, Value);
+            error ->
+                ephp_error:error({error, eundefclass, Index,
+                    ?E_ERROR, {File, ClassName}})
+            end,
+            {Value, NState};
+        {error, _Reason} ->
+            {undefined, State}
+    end;
 
 resolve(#operation{}=Op, State) ->
     resolve_op(Op, State);
@@ -384,24 +392,28 @@ resolve(#text_to_process{text=Texts}, State) ->
     resolve_txt(Texts, State);
 
 resolve({pre_incr, Var, _Line}, State) ->
-    VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath) of
-        undefined -> 
-            ephp_vars:set(State#state.vars, VarPath, 1),
-            {1, State};
-        V when is_number(V) -> 
-            ephp_vars:set(State#state.vars, VarPath, V+1),
-            {V+1, State};
-        V when is_binary(V) andalso byte_size(V) > 0 ->
-            NewVal = try
-                binary_to_integer(V) + 1
-            catch error:badarg ->
-                ephp_util:increment_code(V)
-            end,
-            ephp_vars:set(State#state.vars, VarPath, NewVal),
-            {NewVal, State};
-        V -> 
-            {V, State}
+    case catch get_var_path(Var, State) of
+        #variable{}=VarPath ->
+            case ephp_vars:get(State#state.vars, VarPath) of
+                undefined -> 
+                    ephp_vars:set(State#state.vars, VarPath, 1),
+                    {1, State};
+                V when is_number(V) -> 
+                    ephp_vars:set(State#state.vars, VarPath, V+1),
+                    {V+1, State};
+                V when is_binary(V) andalso byte_size(V) > 0 ->
+                    NewVal = try
+                        binary_to_integer(V) + 1
+                    catch error:badarg ->
+                        ephp_util:increment_code(V)
+                    end,
+                    ephp_vars:set(State#state.vars, VarPath, NewVal),
+                    {NewVal, State};
+                V -> 
+                    {V, State}
+            end;
+        {error, _Reason} ->
+            {undefined, State}
     end;
 
 resolve({pre_decr, Var, _Line}, State) ->
@@ -468,7 +480,7 @@ resolve({operation_bnot, Expr, Line}, State) ->
             {<< <<bnot(B)/integer>> || <<B:8/integer>> <= Binary >>, NewState};
         _ ->
             File = State#state.active_file,
-            ephp_error:error({error, ebadbnot, Line, File})
+            ephp_error:error({error, ebadbnot, Line, ?E_ERROR, File})
     end;
 
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->
@@ -567,7 +579,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index},
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun), 
         {Value, State};
     error ->
-        ephp_error:error({error, eundefun, Index, Fun})
+        ephp_error:error({error, eundefun, Index, ?E_ERROR, Fun})
     end;
 
 resolve(#call{type=class,class=Name,line=Index}=Call,
@@ -576,7 +588,7 @@ resolve(#call{type=class,class=Name,line=Index}=Call,
     {ok, Class} ->
         run_method(Class, Call, State);
     error ->
-        ephp_error:error({error, eundefclass, Index, Name})
+        ephp_error:error({error, eundefclass, Index, ?E_ERROR, Name})
     end;
 
 resolve({object,Idx,Line}, State) ->
@@ -622,7 +634,7 @@ resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
     {{var_ref, Vars, Var}, State};
 
 resolve(auto, _State) ->
-    ephp_error:error({error, earrayundef, undefined, <<>>});
+    ephp_error:error({error, earrayundef, undefined, ?E_ERROR, <<>>});
 
 resolve({silent, Statement}, #state{errors=Errors}=State) ->
     ephp_error:run_quiet(Errors, fun() ->
@@ -630,7 +642,7 @@ resolve({silent, Statement}, #state{errors=Errors}=State) ->
     end);
 
 resolve(Unknown, _State) ->
-    ephp_error:error({error, eundeftoken, undefined, Unknown}).
+    ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
 run_method(RegInstance, #call{args=RawArgs}=Call,
         #state{ref=Ref, const=Const, vars=Vars}=State) ->
@@ -711,12 +723,14 @@ resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
             File = State#state.active_file,
             Data = {File, Class#class.name,
                 <<"$",(NewVar#variable.name)/binary>>, <<"protected">>},
-            ephp_error:error({error, eprivateaccess, Var#variable.line, Data});
+            ephp_error:error({error, eprivateaccess, Var#variable.line,
+                ?E_ERROR, Data});
         #class_attr{access=private} ->
             File = State#state.active_file,
             Data = {File, Class#class.name,
                 <<"$",(NewVar#variable.name)/binary>>, <<"private">>},
-            ephp_error:error({error, eprivateaccess, Var#variable.line, Data})
+            ephp_error:error({error, eprivateaccess, Var#variable.line,
+                ?E_ERROR, Data})
     end,
     {ephp_context:get(Context, NewVar), NewState};
 
@@ -727,7 +741,7 @@ resolve_var(#variable{type=normal}=Var, State) ->
 
 resolve_var(#variable{type=class,class = <<"self">>, line=Index},
         #state{active_class=undefined}) ->
-    ephp_error:error({error, enoclassscope, Index, <<"self">>});
+    ephp_error:error({error, enoclassscope, Index, ?E_ERROR, <<"self">>});
 
 resolve_var(#variable{type=class, class = <<"self">>}=Var,
         #state{active_class=ClassName}=State) ->
@@ -741,7 +755,8 @@ resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
         Value = get(ClassCtx, NewVar),
         {Value, NewState};
     error ->
-        ephp_error:error({error, eundefclass, Index, {File,ClassName}})
+        ephp_error:error({error, eundefclass, Index, ?E_ERROR,
+            {File,ClassName}})
     end.
 
 
@@ -762,11 +777,15 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
             Value = case ephp_vars:get(Vars, NewEntry) of
             undefined -> 
                 0;
-            Array -> 
+            Array when ?IS_DICT(Array) -> 
                 ?DICT:fold(fun
                     (K,_V,Max) when is_integer(K) andalso K >= Max -> K+1;
                     (_K,_V,Max) -> Max
-                end, 0, Array)
+                end, 0, Array);
+            _Array ->
+                ephp_error:handle_error(State#state.ref, {error, enoarray,
+                    Var#variable.line, ?E_WARNING, State#state.active_file}),
+                throw({error, enoarray})
             end,
             LIdx ++ [Value];
         (Idx, LIdx) ->
@@ -826,8 +845,10 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
             A = ephp_util:zero_if_undef(OpRes1),
             B = ephp_util:zero_if_undef(OpRes2),
             if 
-                B == 0 -> ephp_error:error({error, edivzero, Index, <<>>});
-                true -> A / B
+                B == 0 ->
+                    ephp_error:error({error, edivzero, Index, ?E_ERROR, <<>>});
+                true ->
+                    A / B
             end;
         <<"%">> -> 
             trunc(ephp_util:zero_if_undef(OpRes1)) rem 

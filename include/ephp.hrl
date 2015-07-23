@@ -41,6 +41,25 @@
     ephp_error
 ]).
 
+-define(E_ERROR, 1).
+-define(E_WARNING, 2).
+-define(E_PARSE, 4).
+-define(E_NOTICE, 8).
+-define(E_CORE_ERROR, 16).
+-define(E_CORE_WARNING, 32).
+-define(E_COMPILE_ERROR, 64).
+-define(E_COMPILE_WARNING, 128).
+-define(E_USER_ERROR, 256).
+-define(E_USER_WARNING, 512).
+-define(E_USER_NOTICE, 1024).
+-define(E_STRICT, 2048).
+-define(E_RECOVERABLE_ERROR, 4096).
+-define(E_DEPRECATED, 8192).
+-define(E_USER_DEPRECATED, 16384).
+-define(E_ALL, 32767).
+
+-type error_level() :: pos_integer().
+
 -type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.
 
 -type file_name() :: binary().

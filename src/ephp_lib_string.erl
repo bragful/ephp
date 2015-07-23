@@ -45,7 +45,8 @@ strlen(_Context, _Line, {_,String}) when is_binary(String) ->
 strlen(Context, Line, {_, Var}) ->
     File = ephp_context:get_active_file(Context),
     Data = {<<"strlen">>, 1, <<"string">>, ephp_util:gettype(Var), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
     undefined.
 
 -spec ord(context(), line(), String :: var_value()) -> integer().
@@ -56,7 +57,8 @@ ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
 ord(Context, Line, {_, Var}) ->
     File = ephp_context:get_active_file(Context),
     Data = {<<"ord">>, 1, <<"string">>, ephp_util:gettype(Var), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
     undefined.
 
 -spec chr(context(), line(), Integer :: var_value()) -> binary().
@@ -108,7 +110,8 @@ explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
     File = ephp_context:get_active_file(Context),
     Data = {<<"explode">>, 3, <<"long">>, ephp_util:gettype(Limit), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
     undefined;
 
 explode(_Context, _Line, _Delimiter, {_,String}, {_,0}) ->
@@ -168,7 +171,8 @@ str_split(Context, Line, Text) ->
 str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     File = ephp_context:get_active_file(Context),
     Data = {<<"str_split">>, 2, <<"long">>, ephp_util:gettype(Size), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, Data}),
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
     undefined;
 
 str_split(_Context, _Line, {_, Text}, {_, Size}) ->

@@ -61,7 +61,8 @@ instance(Ref, GlobalCtx, ClassName, Line) ->
     case get(Ref, ClassName) of
     error ->
         File = ephp_context:get_active_file(GlobalCtx),
-        ephp_error:error({error, eundefclass, Line, {File, ClassName}});
+        ephp_error:error({error, eundefclass, Line, ?E_ERROR,
+            {File, ClassName}});
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
@@ -136,7 +137,7 @@ get_method(#class{methods=Methods,line=Index}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        ephp_error:error({error, eundefmethod, Index, MethodName});
+        ephp_error:error({error, eundefmethod, Index, ?E_ERROR, MethodName});
     #class_method{}=ClassMethod ->
         ClassMethod
     end.

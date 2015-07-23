@@ -792,7 +792,8 @@ concat <- concat_types (space? '\.' space? concat_types)+ `
 throw_error(Error, Index, Data) ->
     Output = iolist_to_binary(Data),
     Size = min(byte_size(Output), 20),
-    ephp_error:error({error, Error, Index, <<Output:Size/binary, "...">>}).
+    ephp_error:error({error, Error, Index, ?E_PARSE,
+        <<Output:Size/binary, "...">>}).
 
 get_print({Type, Value, _}, Index) when
         Type =:= int; Type =:= float; Type =:= text ->
