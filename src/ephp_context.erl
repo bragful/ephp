@@ -820,9 +820,9 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
-        <<"^">> -> OpRes1 bxor OpRes2;
-        <<"|">> -> OpRes1 bor OpRes2;
-        <<"&">> -> OpRes1 band OpRes2
+        <<"^">> -> ephp_util:zero_if_undef(OpRes1) bxor ephp_util:zero_if_undef(OpRes2);
+        <<"|">> -> ephp_util:zero_if_undef(OpRes1) bor ephp_util:zero_if_undef(OpRes2);
+        <<"&">> -> ephp_util:zero_if_undef(OpRes1) band ephp_util:zero_if_undef(OpRes2)
     end, State2};
 
 resolve_op(Cond, State) ->
