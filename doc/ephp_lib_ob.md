@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### flush/2 ###
 
 <pre><code>
-flush(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; null
+flush(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()<
 ### ob_clean/2 ###
 
 <pre><code>
-ob_clean(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; null
+ob_clean(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
 </code></pre>
 <br />
 

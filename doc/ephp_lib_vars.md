@@ -149,7 +149,7 @@ print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### unset/3 ###
 
 <pre><code>
-unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; null
+unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -158,7 +158,7 @@ unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### var_dump/3 ###
 
 <pre><code>
-var_dump(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; null
+var_dump(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 

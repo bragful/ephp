@@ -18,7 +18,7 @@ __This module defines the `ephp_error` behaviour.__<br /> Required callback func
 
 
 <pre><code>
-error_type() = eundefclass | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eassignthis
+error_type() = eundefclass | eprivateaccess | ecallprivate | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eassignthis
 </code></pre>
 
 
@@ -28,7 +28,7 @@ error_type() = eundefclass | ebadbnot | erequired | einclude | enofile | eundefu
 
 
 <pre><code>
-throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, binary()}
+throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, <a href="#type-error_level">error_level()</a>, any()}
 </code></pre>
 
 <a name="index"></a>
@@ -36,7 +36,7 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_consts-0">init_consts/0</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -63,9 +63,15 @@ error(X1::<a href="#type-throw_error">throw_error()</a>) -&gt; ok
 ### handle_error/2 ###
 
 <pre><code>
-handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, binary()}) -&gt; ok
+handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, <a href="#type-error_level">error_level()</a>, any()}) -&gt; ok
 </code></pre>
 <br />
+
+<a name="init_consts-0"></a>
+
+### init_consts/0 ###
+
+`init_consts() -> any()`
 
 <a name="run_quiet-2"></a>
 

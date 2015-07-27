@@ -32,7 +32,7 @@ define(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### exit/3 ###
 
 <pre><code>
-exit(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Message::<a href="#type-var_value">var_value()</a>) -&gt; null
+exit(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Message::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 

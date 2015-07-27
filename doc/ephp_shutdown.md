@@ -39,7 +39,7 @@ register_func(Ref::reference(), FuncName::<a href="#type-function_name">function
 ### shutdown/1 ###
 
 <pre><code>
-shutdown(Context::<a href="#type-context">context()</a>) -&gt; null
+shutdown(Context::<a href="#type-context">context()</a>) -&gt; undefined
 </code></pre>
 <br />
 

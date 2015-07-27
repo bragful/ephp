@@ -62,9 +62,9 @@ Features
     - [x] define methods
     - [x] construct
     - [x] destroy (delete)
-    - [ ] check public, private and/or protected for methods
+    - [x] check public, private and/or protected for methods
     - [x] define attributes
-    - [ ] check public, private and/or protected for attributes
+    - [x] check public, private and/or protected for attributes
     - [x] define constants
     - [ ] inheritance
     - [ ] implementations (or interfaces)

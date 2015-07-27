@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_constructor-1">get_constructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_destructor-1">get_destructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-2">get_method/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-3">get_method/3</a></td><td></td></tr><tr><td valign="top"><a href="#instance-4">instance/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-3">register_class/3</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_attribute-2">get_attribute/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_attribute-3">get_attribute/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_constructor-1">get_constructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_destructor-1">get_destructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-2">get_method/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-3">get_method/3</a></td><td></td></tr><tr><td valign="top"><a href="#instance-4">instance/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-3">register_class/3</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -27,6 +27,18 @@
 ### get/2 ###
 
 `get(Ref, ClassName) -> any()`
+
+<a name="get_attribute-2"></a>
+
+### get_attribute/2 ###
+
+`get_attribute(Class, AttributeName) -> any()`
+
+<a name="get_attribute-3"></a>
+
+### get_attribute/3 ###
+
+`get_attribute(Ref, ClassName, AttributeName) -> any()`
 
 <a name="get_constructor-1"></a>
 
