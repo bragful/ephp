@@ -417,9 +417,9 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 %% Expressions
 
-expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / arith_mono / additive / number / call_function / var / constant ~;
+expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / func_anon / arith_mono / additive / number / call_function / var / constant ~;
 
-expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / arith_mono / ternary / additive / conditions / number / call_function / var / constant) `
+expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / func_anon / arith_mono / ternary / additive / conditions / number / call_function / var / constant) `
     case Node of
         [[],Expression] -> Expression;
         [_,Expression] -> {silent, Expression}
@@ -461,6 +461,25 @@ call_function <- (key '::')? (key / var) space? '(' (space? expression (space? '
         name=FuncName,
         args=Arguments,
         line=Index}
+`;
+
+use_anon <- use space? '(' space? (var (space? ',' space? var)* space?) ')' space? `
+    case Node of
+        [_,_,_,_,[]|_] ->
+            [];
+        [_,_,_,_,[Var,Vars,_]|_] ->
+            [ Var | [ V || [_,_,_,V] <- Vars ]]
+    end
+`;
+
+func_anon <- function space? '(' space? (var (space? ',' space? var)* space?)? ')' space? use_anon? code_block `
+    case Node of
+        [_Func,_,_,_,[],_,_,Use,Code] ->
+            #function{code=Code, use=Use, line=Index};
+        [_Func,_,_,_,[Var,Vars,_],_,_,Use,Code] ->
+            Args = [Var | [ V || [_,_,_,V] <- Vars ]],
+            #function{code=Code, use=Use, args=Args, line=Index}
+    end
 `;
 
 %% Objects and Classes
@@ -515,6 +534,7 @@ const <- #(?i)const# `const`;
 abstract <- #(?i)abstract# `abstract`;
 new <- #(?i)new# `new`;
 delete <- #(?i)delete# `delete`;
+use <- #(?i)use# `use`;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;

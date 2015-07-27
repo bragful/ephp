@@ -253,8 +253,9 @@
 -type function_name() :: binary().
 
 -record(function, {
-    name :: function_name(),
+    name :: function_name() | undefined,
     args = [] :: [variable()],
+    use = [] :: [variable()],
     code :: statements(),
     line :: line()
 }).

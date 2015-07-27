@@ -514,6 +514,9 @@ resolve(#array{elements=ArrayElements}, State) ->
 resolve(#concat{texts=Texts}, State) ->
     resolve_txt(Texts, State);
 
+resolve(#call{name=undefined,args=_Args}=_Call, _State) ->
+    ephp_error:error({error, enocall, undefined, undefined});
+
 resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name=Name}, NewState);
