@@ -716,8 +716,8 @@ resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     end;
 
 resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
-    Instance = ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
-    Context = Instance#reg_instance.context,
+    #reg_instance{class=Class, context=Context} =
+        ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} =
         resolve_indexes(#variable{name=SubVal,idx=Idx}, State2),
