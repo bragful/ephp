@@ -721,7 +721,20 @@ resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} =
         resolve_indexes(#variable{name=SubVal,idx=Idx}, State2),
-    {ephp_context:get(Context, NewVar), State3};
+    case ephp_class:get_attribute(Class, SubVal) of
+        #class_attr{access=public} ->
+            {ephp_context:get(Context, NewVar), State3};
+        #class_attr{access=protected} ->
+            File = State#state.active_file,
+            Data = {File, Class#class.name, SubVal, <<"protected">>},
+            ephp_error:error({error, eprivateaccess, SubVar#variable.line,
+                ?E_ERROR, Data});
+        #class_attr{access=private} ->
+            File = State#state.active_file,
+            Data = {File, Class#class.name, SubVal, <<"private">>},
+            ephp_error:error({error, eprivateaccess, SubVar#variable.line,
+                ?E_ERROR, Data})
+    end;
 
 resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
         when is_binary(VarName) -> 
@@ -732,7 +745,7 @@ resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
     case ClassAttr of
         #class_attr{access=public} ->
-            ok;
+            {ephp_context:get(Context, NewVar), NewState};
         #class_attr{access=protected} ->
             File = State#state.active_file,
             Data = {File, Class#class.name,
@@ -745,8 +758,7 @@ resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
                 NewVar#variable.name, <<"private">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
                 ?E_ERROR, Data})
-    end,
-    {ephp_context:get(Context, NewVar), NewState};
+    end;
 
 resolve_var(#variable{type=normal}=Var, State) ->
     {NewVar, NewState} = resolve_indexes(Var, State),
