@@ -11,6 +11,7 @@
 -export([
     start_link/0,
     get/2,
+    get/3,
     set/3,
     ref/4,
     del/2,
@@ -33,7 +34,10 @@ start_link() ->
     {ok, Ref}.
 
 get(Context, VarPath) ->
-    search(VarPath, erlang:get(Context)).
+    get(Context, VarPath, undefined).
+
+get(Context, VarPath, ContextRef) ->
+    search(VarPath, erlang:get(Context), ContextRef).
 
 set(Context, VarPath, Value) ->
     erlang:put(Context, change(VarPath, Value, erlang:get(Context))),
@@ -53,33 +57,43 @@ destroy(Context) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-search(#variable{name = <<"GLOBALS">>, idx=[]}, Vars) ->
+search(#variable{name = <<"GLOBALS">>, idx=[]}, Vars, _Context) ->
     Vars;
 
-search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars) ->
-    search(#variable{name=Root, idx=Idx}, Vars);
+search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars, _Context) ->
+    search(#variable{name=Root, idx=Idx}, Vars, undefined);
 
-search(#variable{name=Root, idx=[]}, Vars) ->
+search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
     case ?DICT:find(Root, Vars) of
+    error when Context =:= undefined ->
+        undefined;
     error ->
+        File = ephp_context:get_active_file(Context),
+        ephp_error:handle_error(Context,
+            {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
         undefined;
     {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
-        get(RefVarsPID, RefVar);
+        get(RefVarsPID, RefVar, undefined);
     {ok, Value} ->
         Value
     end;
 
-search(#variable{name=Root, idx=[NewRoot|Idx]}, Vars) ->
+search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
     case ?DICT:find(Root, Vars) of
     {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
         NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-        get(RefVarsPID, NewRefVar);
+        get(RefVarsPID, NewRefVar, undefined);
     {ok, #reg_instance{context=Ctx}} ->
         NewObjVar = #variable{name=NewRoot, idx=Idx},
-        get(Ctx, NewObjVar);
+        get(Ctx, NewObjVar, undefined);
     {ok, NewVars} -> 
-        search(#variable{name=NewRoot, idx=Idx}, NewVars);
+        search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
+    _ when Context =:= undefined ->
+        undefined;
     _ -> 
+        File = ephp_context:get_active_file(Context),
+        ephp_error:handle_error(Context,
+            {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
         undefined
     end.
 
@@ -123,7 +137,9 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
         ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
         Vars;
     {ok, NewVars} when ?IS_DICT(NewVars) -> 
-        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, NewVars), Vars);
+        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
+            NewVars), Vars);
     _ -> 
-        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value, ?DICT:new()), Vars)
+        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
+            ?DICT:new()), Vars)
     end.

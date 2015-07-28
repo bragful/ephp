@@ -37,6 +37,7 @@
     eparse |
     enostatement |
     eunknownst |
+    eundefvar |
     eassignthis.
 
 -record(state, {
@@ -189,6 +190,11 @@ get_message(enoarray, Line, File) ->
         "~nWarning:  Cannot use a scalar value as an array in ~s "
         "on line ~p~n",
         [File, Line]);
+
+get_message(eundefvar, Line, {File, Var}) ->
+    io_lib:format(
+        "~nNotice: Undefined variable: ~s in ~s on line ~p~n",
+        [Var, File, Line]);
 
 get_message(Unknown, Line, Data) ->
     io_lib:format(

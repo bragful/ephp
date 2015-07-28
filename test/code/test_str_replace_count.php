@@ -10,6 +10,7 @@ $yummy   = array("pizza", "beer", "ice cream");
 
 print str_replace($healthy, $yummy, $phrase) . "\n";
 
+$count = 0;
 $str = str_replace("ll", "", "good golly miss molly!", $count);
 echo "count = $count\n";
 

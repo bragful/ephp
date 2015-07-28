@@ -220,7 +220,7 @@ unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
 
 var_dump_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     %% FIXME add recursion control
-    Var = ephp_vars:get(VarPID, VarRef),
+    Var = ephp_vars:get(VarPID, VarRef, Context),
     Res = var_dump_fmt(Context, Var, Spaces),
     <<"&", Res/binary>>;
 
@@ -277,7 +277,7 @@ var_dump_fmt(Context, Value, Spaces) when is_list(Value) ->
 
 print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     %% FIXME add recursion control
-    Var = ephp_vars:get(VarPID, VarRef),
+    Var = ephp_vars:get(VarPID, VarRef, Context),
     print_r_fmt(Context, Var, Spaces);
 
 print_r_fmt(_Context, Value, _Spaces) when not ?IS_DICT(Value) -> 

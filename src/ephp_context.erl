@@ -123,7 +123,7 @@ start_mirror(#state{}=State) ->
 
 get(Context, VarPath) ->
     #state{vars=Vars} = erlang:get(Context),
-    ephp_vars:get(Vars, VarPath).
+    ephp_vars:get(Vars, VarPath, Context).
 
 set(Context, VarPath, Value) ->
     State = erlang:get(Context),
@@ -394,7 +394,7 @@ resolve(#text_to_process{text=Texts}, State) ->
 resolve({pre_incr, Var, _Line}, State) ->
     case catch get_var_path(Var, State) of
         #variable{}=VarPath ->
-            case ephp_vars:get(State#state.vars, VarPath) of
+            case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
                 undefined -> 
                     ephp_vars:set(State#state.vars, VarPath, 1),
                     {1, State};
@@ -418,7 +418,7 @@ resolve({pre_incr, Var, _Line}, State) ->
 
 resolve({pre_decr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath) of
+    case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
         undefined -> 
             {undefined, State};
         V when is_number(V) -> 
@@ -430,7 +430,7 @@ resolve({pre_decr, Var, _Line}, State) ->
 
 resolve({post_incr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath) of
+    case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
         undefined -> 
             ephp_vars:set(State#state.vars, VarPath, 1),
             {undefined, State};
@@ -451,7 +451,7 @@ resolve({post_incr, Var, _Line}, State) ->
 
 resolve({post_decr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath) of
+    case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
         undefined -> 
             {undefined, State};
         V when is_number(V) ->
@@ -692,17 +692,17 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
     {Value, NState}.
 
 resolve_var(#variable{type=normal,idx=[]}=Var, State) ->
-    {ephp_vars:get(State#state.vars, Var), State};
+    {ephp_vars:get(State#state.vars, Var, State#state.ref), State};
 
 resolve_var(#variable{name = <<"this">>, idx=[{object,#call{}=Call,_}]}=Var, State) ->
     InstanceVar = Var#variable{idx=[]},
-    Instance = ephp_vars:get(State#state.vars, InstanceVar),
+    Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     run_method(Instance, Call#call{type=object}, State);
 
 resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
     InstanceVar = Var#variable{idx=[]},
     #reg_instance{class=Class} = Instance =
-        ephp_vars:get(State#state.vars, InstanceVar),
+        ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     case ephp_class:get_method(Class, Call#call.name) of
         #class_method{access=public} ->
             run_method(Instance, Call#call{type=object}, State);
@@ -720,7 +720,7 @@ resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
 
 resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
     #reg_instance{class=Class, context=Context} =
-        ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
+        ephp_vars:get(State#state.vars, Var#variable{idx=[]}, State#state.ref),
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} =
         resolve_indexes(#variable{name=SubVal,idx=Idx}, State2),
@@ -742,7 +742,7 @@ resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
 resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
         when is_binary(VarName) -> 
     #reg_instance{class=Class, context=Context} =
-        ephp_vars:get(State#state.vars, Var#variable{idx=[]}),
+        ephp_vars:get(State#state.vars, Var#variable{idx=[]}, State#state.ref),
     {NewVar, NewState} =
         resolve_indexes(#variable{name=VarName,idx=Idx}, State),
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
@@ -765,7 +765,7 @@ resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
 
 resolve_var(#variable{type=normal}=Var, State) ->
     {NewVar, NewState} = resolve_indexes(Var, State),
-    Value = ephp_vars:get(NewState#state.vars, NewVar),
+    Value = ephp_vars:get(NewState#state.vars, NewVar, State#state.ref),
     {Value, NewState};
 
 resolve_var(#variable{type=class,class = <<"self">>, line=Index},
@@ -803,7 +803,7 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
     NewIndexes = lists:foldl(fun
         (auto, LIdx) ->
             NewEntry = Var#variable{idx=LIdx},
-            Value = case ephp_vars:get(Vars, NewEntry) of
+            Value = case ephp_vars:get(Vars, NewEntry, State#state.ref) of
             undefined -> 
                 0;
             Array when ?IS_DICT(Array) -> 
