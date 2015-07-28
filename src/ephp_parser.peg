@@ -186,7 +186,7 @@ statements <- (comment / statement / literal_block) space? statements* `
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_call_function / st_global / st_conditions) `
+statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_die / st_call_function / st_global / st_conditions) `
     case Node of
         [[],Statement] -> Statement;
         [_,Statement] -> {silent, Statement}
@@ -236,6 +236,10 @@ st_print <- (st_print_fun / st_print_old) space? ';' `
 
 st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
     get_print(nth(5, Node), Index)
+`;
+
+st_die <- die space? ';' `
+    head(Node)
 `;
 
 st_print_old <- (print / echo) space expression `
@@ -417,7 +421,7 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 %% Expressions
 
-expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / func_anon / arith_mono / additive / number / call_function / var / constant ~;
+expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_die / st_print_fun / func_anon / arith_mono / additive / number / call_function / var / constant ~;
 
 expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / func_anon / arith_mono / ternary / additive / conditions / number / call_function / var / constant) `
     case Node of
@@ -535,6 +539,7 @@ abstract <- #(?i)abstract# `abstract`;
 new <- #(?i)new# `new`;
 delete <- #(?i)delete# `delete`;
 use <- #(?i)use# `use`;
+die <- #(?i)die# `die`;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;

@@ -199,6 +199,9 @@ run_depth(Context, {silent, Statement}, false) ->
         run_depth(Context, Statement, false)
     end);
 
+run_depth(_Context, die, false) ->
+    throw(die);
+
 run_depth(_Context, Statement, false) ->
     ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement}),
     break;
