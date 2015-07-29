@@ -201,6 +201,8 @@
 
 -record(constant, {
     name :: binary(),
+    type = normal :: variable_types(),
+    class :: class_name() | undefined,
     line :: line()
 }).
 

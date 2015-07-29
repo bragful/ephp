@@ -628,6 +628,10 @@ resolve({global, GVars,_Line}, #state{
     end, GVars),
     {undefined, State};
 
+resolve(#constant{type=class,class=ClassName,name=Name},
+        #state{class=Classes}=State) ->
+    {ephp_class:get_const(Classes, ClassName, Name), State};
+
 resolve(#constant{name=Name}, #state{const=Const}=State) ->
     {ephp_const:get(Const, Name), State};
 

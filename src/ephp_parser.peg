@@ -627,13 +627,14 @@ integer <- '-'? space? [0-9]+ `
     #int{int=list_to_integer(IntList) * S, line=Index}
 `;
 
-constant <- key `
+constant <- (key space? '::')? space? key `
     case Node of
-        <<"__LINE__">> -> 
-            {{line,Line},{column,_}} = Index,
-            #int{int=Line, line=Index};
-        _ -> 
-            #constant{name=Node, line=Index}
+        [[],_,<<"__LINE__">>] -> 
+            #int{int=ephp_util:get_line(Index), line=Index};
+        [[],_,Key] -> 
+            #constant{name=Key, line=Index};
+        [[Class,_,_],_,Key] ->
+            #constant{type=class, class=Class, name=Key, line=Index}
     end
 `;
 
@@ -650,12 +651,10 @@ var_ref <- '&' space? (var_complex / var_simple) `
 
 var_access <- var_access_array / var_access_object ~;
 
-var_access_object <- ('->' / '::') space? (call_function / constant / array_index) `
+var_access_object <- '->' space? (call_function / constant / array_index) `
     case Node of
         [<<"->">>,_,#constant{name=Name}] -> {object, Name, Index};
-        [<<"->">>,_,Expr] -> {object, Expr, Index};
-        [<<"::">>,_,#constant{name=Name}] -> {class, Name, Index};
-        [<<"::">>,_,Expr] -> {class, Expr, Index}
+        [<<"->">>,_,Expr] -> {object, Expr, Index}
     end
 `;
 

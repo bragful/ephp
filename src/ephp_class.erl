@@ -19,6 +19,8 @@
     get_attribute/2,
     get_method/2,
     get_method/3,
+    get_const/2,
+    get_const/3,
 
     register_class/3,
     instance/4
@@ -46,12 +48,15 @@ set(Ref, ClassName, Class) ->
     erlang:put(Ref, NC),
     ok.
 
-register_class(Ref, GlobalCtx, #class{name=Name}=PHPClass) ->
+register_class(Ref, GlobalCtx, #class{name=Name,constants=ConstDef}=PHPClass) ->
     Classes = erlang:get(Ref),
     {ok, Ctx} = ephp_context:start_link(),
     ephp_context:set_global(Ctx, GlobalCtx),
     ActivePHPClass = PHPClass#class{
-        static_context = Ctx
+        static_context = Ctx,
+        constants = lists:foldl(fun(#class_const{name=N,value=V}, D) ->
+            ?DICT:store(N,ephp_context:solve(Ctx, V),D)
+        end, ?DICT:new(), ConstDef)
     },
     initialize_class(ActivePHPClass),
     erlang:put(Ref, ?DICT:store(Name, ActivePHPClass, Classes)),
@@ -140,6 +145,16 @@ get_method(#class{methods=Methods,line=Index}, MethodName) ->
         ephp_error:error({error, eundefmethod, Index, ?E_ERROR, MethodName});
     #class_method{}=ClassMethod ->
         ClassMethod
+    end.
+
+get_const(Ref, ClassName, ConstName) ->
+    {ok, Class} = get(Ref, ClassName),
+    get_const(Class, ConstName).
+
+get_const(#class{constants=Const}, ConstName) ->
+    case ?DICT:find(ConstName, Const) of
+        {ok, Value} -> Value;
+        error -> ConstName
     end.
 
 %% ------------------------------------------------------------------
