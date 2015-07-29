@@ -191,6 +191,11 @@ run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false) ->
     ephp_context:solve(Context, Var),
     false;
 
+run_depth(Context, #constant{type=define,name=Name,value=Expr}, false) ->
+    Value = ephp_context:solve(Context, Expr),
+    ephp_context:register_const(Context, Name, Value),
+    false;
+
 run_depth(_Context, #constant{}, false) ->
     false;
 

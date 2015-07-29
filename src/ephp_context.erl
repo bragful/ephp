@@ -632,7 +632,7 @@ resolve(#constant{type=class,class=ClassName,name=Name},
         #state{class=Classes}=State) ->
     {ephp_class:get_const(Classes, ClassName, Name), State};
 
-resolve(#constant{name=Name}, #state{const=Const}=State) ->
+resolve(#constant{type=normal,name=Name}, #state{const=Const}=State) ->
     {ephp_const:get(Const, Name), State};
 
 resolve(#print_text{text=Text}, #state{output=Output}=State) ->

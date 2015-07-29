@@ -199,9 +199,12 @@
     line :: line()
 }).
 
+-type constant_types() :: normal | class | define.
+
 -record(constant, {
     name :: binary(),
-    type = normal :: variable_types(),
+    type = normal :: constant_types(),
+    value :: expression(),
     class :: class_name() | undefined,
     line :: line()
 }).

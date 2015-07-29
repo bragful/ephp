@@ -93,6 +93,7 @@ code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
 `;
 
 % Class definition
+
 st_class <- (abstract space)? class space key (space extends space key)? (space implements space key (',' space? key)*)? space? '{' space? class_block space? '}' `
     [Abstract,_Class,_,ClassName,Ext,Imp,_,_,_,ClassBlock,_,_] = Node,
     Type = case Abstract of
@@ -186,7 +187,7 @@ statements <- (comment / statement / literal_block) space? statements* `
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_die / st_call_function / st_global / st_conditions) `
+statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_die / st_call_function / st_global / st_conditions / st_const) `
     case Node of
         [[],Statement] -> Statement;
         [_,Statement] -> {silent, Statement}
@@ -363,6 +364,11 @@ st_function <- function space key space? '(' space? (var (space? ',' space? var)
             Args = [Var | [ V || [_,_,_,V] <- Vars ]],
             #function{name=Name, args=Args, code=Code, line=Index}
     end
+`;
+
+st_const <- const space key space? '=' space? expression space? ';' `
+    [_Const,_,ConstName,_,_,_,Expr|_] = Node,
+    #constant{type=define, name=ConstName, value=Expr, line=Index}
 `;
 
 %% Assign
