@@ -22,6 +22,8 @@
 
 -define(PATH_SEP, <<":">>).
 
+-define(FUNC_ANON_NAME, <<"{closure}">>).
+
 % built-in modules
 -define(MODULES, [
     ephp_lib_date,

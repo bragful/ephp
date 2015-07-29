@@ -15,6 +15,7 @@
     set/3,
     ref/4,
     del/2,
+    zip_args/4,
     destroy/1
 ]).
 
@@ -49,6 +50,19 @@ ref(Context, VarPath, VarsPID, RefVarPath) ->
 
 del(Context, VarPath) ->
     set(Context, VarPath, undefined).
+
+zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs) ->
+    lists:foldl(fun
+        (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
+            ref(VarsDst, VarRef, VarsSrc, VarName),
+            RestArgs;
+        (FuncArg, [{_,ArgVal}|RestArgs]) ->
+            set(VarsDst, FuncArg, ArgVal),
+            RestArgs;
+        (_FuncArg, []) ->
+            []
+    end, ValArgs, FuncArgs),
+    ok.
 
 destroy(Context) ->
     erlang:erase(Context).

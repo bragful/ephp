@@ -467,13 +467,9 @@ call_function <- (key '::')? (key / var) space? '(' (space? expression (space? '
         line=Index}
 `;
 
-use_anon <- use space? '(' space? (var (space? ',' space? var)* space?) ')' space? `
-    case Node of
-        [_,_,_,_,[]|_] ->
-            [];
-        [_,_,_,_,[Var,Vars,_]|_] ->
-            [ Var | [ V || [_,_,_,V] <- Vars ]]
-    end
+use_anon <- use space? '(' space? expression (space? ',' space? expression)* space? ')' space? `
+    [_Use,_,_Parens,_,Var,Vars|_] = Node,
+    [ Var | [ V || [_,_Comma,_,V] <- Vars ]]
 `;
 
 func_anon <- function space? '(' space? (var (space? ',' space? var)* space?)? ')' space? use_anon? code_block `
