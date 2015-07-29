@@ -61,7 +61,7 @@
     set_errors_id/2,
     get_errors_id/1,
 
-    get_const/2,
+    get_const/3,
     register_const/3,
 
     load/2,
@@ -207,9 +207,9 @@ set_errors_id(Context, Errors) ->
     erlang:put(Context, State#state{errors=Errors}),
     ok.
 
-get_const(Context, Name) ->
+get_const(Context, Name, Index) ->
     #state{const=Const} = erlang:get(Context),
-    ephp_const:get(Const, Name).
+    ephp_const:get(Const, Name, Index, Context).
 
 register_const(Context, Name, Value) ->
     #state{const=Const} = erlang:get(Context),
@@ -228,18 +228,21 @@ get_active_file(Context) ->
 set_active_file(Context, undefined) ->
     Filename = <<"php shell code">>,
     {ok, Cwd} = file:get_cwd(),
-    Dirname = list_to_binary(Cwd),
-    State = erlang:get(Context),
+    #state{const=Const} = State = erlang:get(Context),
     erlang:put(Context, State#state{active_file=Filename}),
-    register_const(Context, <<"__FILE__">>, Filename),
-    register_const(Context, <<"__DIR__">>, Dirname),
+    ephp_const:set_bulk(Const, [
+        {<<"__FILE__">>, Filename},
+        {<<"__DIR__">>, list_to_binary(Cwd)}
+    ]),
     ok;
 
 set_active_file(Context, Filename) ->
-    State = erlang:get(Context),
+    #state{const=Const} = State = erlang:get(Context),
     erlang:put(Context, State#state{active_file=Filename}),
-    register_const(Context, <<"__FILE__">>, Filename),
-    register_const(Context, <<"__DIR__">>, filename:dirname(Filename)),
+    ephp_const:set_bulk(Const, [
+        {<<"__FILE__">>, Filename},
+        {<<"__DIR__">>, filename:dirname(Filename)}
+    ]),
     ok.
 
 get_tz(Context) ->
@@ -632,8 +635,9 @@ resolve(#constant{type=class,class=ClassName,name=Name},
         #state{class=Classes}=State) ->
     {ephp_class:get_const(Classes, ClassName, Name), State};
 
-resolve(#constant{type=normal,name=Name}, #state{const=Const}=State) ->
-    {ephp_const:get(Const, Name), State};
+resolve(#constant{type=normal,name=Name,line=Line},
+        #state{ref=Ref, const=Const}=State) ->
+    {ephp_const:get(Const, Name, Line, Ref), State};
 
 resolve(#print_text{text=Text}, #state{output=Output}=State) ->
     ephp_output:push(Output, Text),
@@ -692,16 +696,20 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
         active_fun_args=length(Args),
         active_class=Class#class.name}),
     ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
-    ephp_const:set(Const, <<"__FUNCTION__">>, MethodName),
-    ephp_const:set(Const, <<"__CLASSNAME__">>, Class#class.name),
+    ephp_const:set_bulk(Const, [
+        {<<"__FUNCTION__">>, MethodName},
+        {<<"__CLASSNAME__">>, Class#class.name}
+    ]),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
         _ -> undefined
     end,
     destroy(SubContext),
     ephp_vars:destroy(NewVars), 
-    ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun), 
-    ephp_const:set(Const, <<"__CLASSNAME__">>, State#state.active_class),
+    ephp_const:set_bulk(Const, [
+        {<<"__FUNCTION__">>, State#state.active_fun},
+        {<<"__CLASSNAME__">>, State#state.active_class}
+    ]),
     {Value, NState}.
 
 resolve_var(#variable{type=normal,idx=[]}=Var, State) ->

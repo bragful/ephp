@@ -11,6 +11,7 @@
 -export([
     start_link/0,
     get/2,
+    get/4,
     set/3,
     set_bulk/2,
     destroy/1
@@ -33,10 +34,20 @@ start_link() ->
     {ok, Ref}.
 
 get(Ref, Name) ->
+    get(Ref, Name, undefined, undefined).
+
+get(Ref, Name, Line, Context) ->
     Const = erlang:get(Ref),
     case ?DICT:find(Name, Const) of
-        {ok, Value} -> Value;
-        error -> Name
+        {ok, Value} ->
+            Value;
+        error when Context =:= undefined ->
+            Name;
+        error ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefconst, Line, ?E_NOTICE, {File, Name}}),
+            Name
     end.
 
 set_bulk(Ref, Values) ->

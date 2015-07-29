@@ -38,6 +38,7 @@
     enostatement |
     eunknownst |
     eundefvar |
+    eundefconst |
     eassignthis.
 
 -record(state, {
@@ -195,6 +196,12 @@ get_message(eundefvar, Line, {File, Var}) ->
     io_lib:format(
         "~nNotice: Undefined variable: ~s in ~s on line ~p~n",
         [Var, File, Line]);
+
+get_message(eundefconst, Line, {File, Const}) ->
+    io_lib:format(
+        "~nNotice: Use of undefined constant ~s - assumed '~s' in ~s"
+        " on line ~p~n",
+        [Const, Const, File, Line]);
 
 get_message(Unknown, Line, Data) ->
     io_lib:format(
