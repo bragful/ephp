@@ -484,11 +484,11 @@ func_anon <- function space? '(' space? (var (space? ',' space? var)* space?)? '
 
 %% Objects and Classes
 
-new_object <- new space key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+new_object <- new space key (space? '(' (space? expression (space? ',' space? expression)*)? space? ')')? `
     {ObjName, Arguments} = case Node of
-        [_New,_,Name,_,_,[_,Arg,Args],_,_] ->
+        [_New,_,Name,[_,_,[_,Arg,Args],_,_]] ->
             {Name, [Arg | [ A || [_,_,_,A] <- Args ]]};
-        [_New,_,Name,_,_,[],_,_] ->
+        [_New,_,Name|_] ->
             {Name, []}
     end,
     #instance{name=ObjName, args=Arguments, line=Index}
