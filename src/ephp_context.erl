@@ -590,7 +590,8 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun), 
         {Value, NState};
     error ->
-        ephp_error:error({error, eundefun, Index, ?E_ERROR, Fun})
+        File = State#state.active_file,
+        ephp_error:error({error, eundefun, Index, ?E_ERROR, {File, Fun}})
     end;
 
 resolve(#call{type=class,class=Name,line=Index}=Call,
