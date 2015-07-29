@@ -29,6 +29,7 @@ gettype(Value) when is_binary(Value) -> <<"string">>;
 gettype(Value) when ?IS_DICT(Value) -> <<"array">>;
 gettype(Value) when is_record(Value, reg_instance) -> <<"object">>;
 gettype(Value) when is_pid(Value) -> <<"resource">>;
+gettype(Value) when is_record(Value, function) -> <<"object">>;
 gettype(undefined) -> <<"NULL">>;
 gettype(_) -> <<"unknown type">>.
 

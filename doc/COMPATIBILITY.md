@@ -71,7 +71,7 @@ Features
     - [ ] namespaces
     - [ ] traits
 - Functional
-    - [ ] closures
+    - [x] closures
 
 
 Functions
