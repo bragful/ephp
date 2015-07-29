@@ -20,7 +20,7 @@
 ].
 
 init() -> [
-    {register_shutdown_function, true},
+    {register_shutdown_function, [pack_args]},
     get_defined_functions,
     function_exists,
     func_num_args

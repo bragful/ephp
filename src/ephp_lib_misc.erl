@@ -20,7 +20,7 @@ init() -> [
     define,
     sleep,
     usleep,
-    {exit, <<"die">>},
+    {exit, [{alias, <<"die">>}]},
     exit
 ]. 
 

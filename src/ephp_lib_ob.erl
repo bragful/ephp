@@ -21,12 +21,12 @@
 init() -> [
     flush,
     ob_start,
-    {flush, <<"ob_flush">>},
+    {flush, [{alias, <<"ob_flush">>}]},
     ob_get_contents,
     ob_get_length,
-    {flush, <<"ob_end_flush">>},
+    {flush, [{alias, <<"ob_end_flush">>}]},
     ob_clean,
-    {ob_clean, <<"ob_end_clean">>}
+    {ob_clean, [{alias, <<"ob_end_clean">>}]}
 ]. 
 
 -spec flush(context(), line()) -> undefined.

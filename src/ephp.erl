@@ -88,13 +88,10 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs) ->
 
 register_module(Ctx, Module) ->
     lists:foreach(fun
-        ({Func, Name, PackArgs}) ->
+        ({Func, Opts}) ->
+            PackArgs = proplists:get_value(pack_args, Opts, false),
+            Name = proplists:get_value(alias, Opts, atom_to_binary(Func, utf8)),
             ephp:register_func(Ctx, Name, Module, Func, PackArgs);
-        ({Func, PackArgs}) when is_boolean(PackArgs) ->
-            Name = atom_to_binary(Func, utf8),
-            ephp:register_func(Ctx, Name, Module, Func, PackArgs);
-        ({Func, Name}) ->
-            ephp:register_func(Ctx, Name, Module, Func, false);
         (Func) ->
             Name = atom_to_binary(Func, utf8),
             ephp:register_func(Ctx, Name, Module, Func, false)

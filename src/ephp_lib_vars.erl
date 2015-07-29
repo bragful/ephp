@@ -34,23 +34,23 @@
 ].
 
 init() -> [
-    {php_is_array, <<"is_array">>},
-    {php_is_bool, <<"is_bool">>},
-    {php_is_integer, <<"is_long">>},
-    {php_is_integer, <<"is_int">>},
-    {php_is_integer, <<"is_integer">>},
-    {php_is_float, <<"is_float">>},
-    {php_is_float, <<"is_double">>},
-    {php_is_numeric, <<"is_numeric">>},
-    {php_is_null, <<"is_null">>},
-    {php_is_object, <<"is_object">>},
-    {php_is_string, <<"is_string">>},
+    {php_is_array, [{alias, <<"is_array">>}]},
+    {php_is_bool, [{alias, <<"is_bool">>}]},
+    {php_is_integer, [{alias, <<"is_long">>}]},
+    {php_is_integer, [{alias, <<"is_int">>}]},
+    {php_is_integer, [{alias, <<"is_integer">>}]},
+    {php_is_float, [{alias, <<"is_float">>}]},
+    {php_is_float, [{alias, <<"is_double">>}]},
+    {php_is_numeric, [{alias, <<"is_numeric">>}]},
+    {php_is_null, [{alias, <<"is_null">>}]},
+    {php_is_object, [{alias, <<"is_object">>}]},
+    {php_is_string, [{alias, <<"is_string">>}]},
     print_r,
     isset,
     empty,
     gettype,
     unset,
-    var_dump
+    {var_dump, [pack_args]}
 ].
 
 -spec php_is_array(context(), line(), var_value()) -> boolean().
@@ -91,7 +91,13 @@ print_r(Context, Line, Value) ->
     print_r(Context, Line, Value, {false,false}).
 
 
--spec var_dump(context(), line(), var_value()) -> undefined.
+-spec var_dump(context(), line(), [var_value()] | var_value()) -> undefined.
+
+var_dump(Context, Line, Values) when is_list(Values) ->
+    lists:foreach(fun(Value) ->
+        var_dump(Context, Line, Value)
+    end, Values),
+    undefined;
 
 var_dump(Context, _Line, {_,Value}) ->
     Result = case var_dump_fmt(Context, Value, <<?SPACES_VD>>) of

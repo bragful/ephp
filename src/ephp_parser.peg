@@ -429,7 +429,7 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_die / st_print_fun / func_anon / arith_mono / additive / number / call_function / var / constant ~;
 
-expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / func_anon / arith_mono / ternary / additive / conditions / number / call_function / var / constant) `
+expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / func_anon / conditions / arith_mono / ternary / additive / number / call_function / var / constant) `
     case Node of
         [[],Expression] -> Expression;
         [_,Expression] -> {silent, Expression}
@@ -542,10 +542,11 @@ new <- #(?i)new# `new`;
 delete <- #(?i)delete# `delete`;
 use <- #(?i)use# `use`;
 die <- #(?i)die# `die`;
+instanceof <- #(?i)instanceof# `instanceof`;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
-comparator <- eq / xeq / ne / xne / gt / geq / lt / leq ~;
+comparator <- xeq / eq / ne / xne / gt / geq / lt / leq / instanceof ~;
 
 assign_op <- assign_plus / assign_minus / assign_mul / assign_div ~;
 

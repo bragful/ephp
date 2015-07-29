@@ -883,6 +883,11 @@ resolve_op(#operation{
             {ephp_util:to_bool(OpRes2), State2}
     end;
 
+resolve_op(#operation{type=instanceof, expression_left=Op1,
+        expression_right=#constant{name=ClassName}}, State) ->
+    {OpRes1, State1} = resolve(Op1, State),
+    {get_class_name(OpRes1) =:= ClassName, State1};
+
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         line=Index}, State) ->
     {OpRes1, State1} = resolve(Op1, State),
@@ -910,16 +915,23 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         <<">">> -> OpRes1 > OpRes2;
         <<">=">> -> OpRes1 >= OpRes2;
         <<"=<">> -> OpRes1 =< OpRes2;
+        <<"==">> when
+                is_record(OpRes1, reg_instance) andalso
+                is_record(OpRes2, reg_instance) ->
+            get_class_name(OpRes1) =:= get_class_name(OpRes2);
         <<"==">> -> OpRes1 == OpRes2;
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
         <<"^">> -> ephp_util:zero_if_undef(OpRes1) bxor ephp_util:zero_if_undef(OpRes2);
         <<"|">> -> ephp_util:zero_if_undef(OpRes1) bor ephp_util:zero_if_undef(OpRes2);
-        <<"&">> -> ephp_util:zero_if_undef(OpRes1) band ephp_util:zero_if_undef(OpRes2)
+        <<"&">> -> ephp_util:zero_if_undef(OpRes1) band ephp_util:zero_if_undef(OpRes2);
+        instanceof -> get_class_name(OpRes1) =:= get_class_name(OpRes2)
     end, State2};
 
 resolve_op(Cond, State) ->
     {Value, NewState} = resolve(Cond, State),
     BoolValue = ephp_util:to_bool(Value),
     {BoolValue, NewState}.
+
+get_class_name(#reg_instance{class=#class{name=Name}}) -> Name.

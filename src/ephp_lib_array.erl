@@ -17,7 +17,7 @@
 init() -> [
     in_array,
     count,
-    {count, <<"sizeof">>}
+    {count, [{alias, <<"sizeof">>}]}
 ]. 
 
 -spec in_array(

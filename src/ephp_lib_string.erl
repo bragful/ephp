@@ -28,9 +28,9 @@
 init() -> [
     strlen, ord, chr,
     implode,
-    {implode, <<"join">>},
+    {implode, [{alias, <<"join">>}]},
     explode,
-    {explode, <<"split">>},
+    {explode, [{alias, <<"split">>}]},
     str_replace,
     strtolower,
     strtoupper,
