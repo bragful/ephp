@@ -769,7 +769,9 @@ resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
             Data = {File, Class#class.name,
                 NewVar#variable.name, <<"private">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
-                ?E_ERROR, Data})
+                ?E_ERROR, Data});
+        undefined -> % dynamic attribute, not defined
+            {ephp_context:get(Context, NewVar), NewState}
     end;
 
 resolve_var(#variable{type=normal}=Var, State) ->

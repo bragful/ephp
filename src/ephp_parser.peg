@@ -650,7 +650,7 @@ var_ref <- '&' space? (var_complex / var_simple) `
 
 var_access <- var_access_array / var_access_object ~;
 
-var_access_object <- ('->' / '::') space? array_index `
+var_access_object <- ('->' / '::') space? (call_function / constant / array_index) `
     case Node of
         [<<"->">>,_,#constant{name=Name}] -> {object, Name, Index};
         [<<"->">>,_,Expr] -> {object, Expr, Index};

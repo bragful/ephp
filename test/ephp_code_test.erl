@@ -22,7 +22,7 @@ eval(Filename) ->
     end.
 
 test_code(File) ->
-    ?_assert(begin
+    {File, ?_assert(begin
         try
             {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
             {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
@@ -36,7 +36,7 @@ test_code(File) ->
                 [File, Type, Reason, erlang:get_stacktrace()]),
             false
         end
-    end).
+    end)}.
 
 code_to_test_() ->
     ephp:start(),
