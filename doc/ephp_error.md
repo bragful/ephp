@@ -18,7 +18,7 @@ __This module defines the `ephp_error` behaviour.__<br /> Required callback func
 
 
 <pre><code>
-error_type() = eundefclass | eprivateaccess | ecallprivate | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eassignthis
+error_type() = eundefclass | eprivateaccess | ecallprivate | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eundefvar | eassignthis
 </code></pre>
 
 
