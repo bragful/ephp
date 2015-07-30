@@ -5,7 +5,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     include/3,
     include_once/3,
     require/3,
@@ -14,9 +14,9 @@
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     include, include_once,
     require, require_once
 ]. 

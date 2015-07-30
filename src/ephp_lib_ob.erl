@@ -5,7 +5,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     flush/2,
     ob_start/2,
     ob_start/3,
@@ -16,9 +16,9 @@
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     flush,
     ob_start,
     {flush, [{alias, <<"ob_flush">>}]},

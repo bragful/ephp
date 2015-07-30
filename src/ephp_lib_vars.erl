@@ -5,7 +5,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     php_is_array/3,
     php_is_bool/3,
     php_is_integer/3,
@@ -28,12 +28,9 @@
 -define(SPACES, "    ").
 -define(SPACES_VD, "  ").
 
--spec init() -> [
-    ephp_func:php_function() |
-    {ephp_func:php_function(), ephp_func:php_function_alias()}
-].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     {php_is_array, [{alias, <<"is_array">>}]},
     {php_is_bool, [{alias, <<"is_bool">>}]},
     {php_is_integer, [{alias, <<"is_long">>}]},

@@ -5,14 +5,21 @@
 -include("ephp.hrl").
 
 -type php_function() :: atom().
--type php_function_alias() :: binary().
+-type php_function_opt() :: atom() | {atom(), any()}.
+-type php_function_opts() :: [php_function_opts()].
+-type php_function_result() ::
+    php_function() | {php_function(), php_function_opts}.
+-type php_function_results() :: [php_function_result()].
 
 -export_type([
     php_function/0,
-    php_function_alias/0
+    php_function_results/0,
+    php_function_result/0,
+    php_function_opts/0,
+    php_function_opt/0
 ]).
 
--callback init() -> [php_function()].
+-callback init_func() -> php_function_results().
 
 %% ------------------------------------------------------------------
 %% API Function Exports

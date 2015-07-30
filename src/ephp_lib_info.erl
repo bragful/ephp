@@ -5,13 +5,15 @@
 -include("ephp.hrl").
 
 -export([
-    init/0,
+    init_func/0,
     phpinfo/2,
     phpversion/2,
     ini_get/3
 ]).
 
-init() -> [
+-spec init_func() -> ephp_func:php_function_results().
+
+init_func() -> [
     phpinfo,
     phpversion,
     ini_get

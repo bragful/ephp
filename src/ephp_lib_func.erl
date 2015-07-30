@@ -5,7 +5,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     register_shutdown_function/3,
     get_defined_functions/2,
     function_exists/3,
@@ -14,12 +14,9 @@
 
 -include("ephp.hrl").
 
--spec init() -> [
-    ephp_func:php_function() |
-    {ephp_func:php_function(), ephp_func:php_function_alias()}
-].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     {register_shutdown_function, [pack_args]},
     get_defined_functions,
     function_exists,

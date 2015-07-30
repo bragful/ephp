@@ -95,7 +95,7 @@ register_module(Ctx, Module) ->
         (Func) ->
             Name = atom_to_binary(Func, utf8),
             ephp:register_func(Ctx, Name, Module, Func, false)
-    end, Module:init()).
+    end, Module:init_func()).
 
 -spec run(Context :: context(), Compiled :: [statement()]) -> 
     {ok, binary()} | {error, Reason::reason()}.

@@ -5,7 +5,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     strlen/3,
     ord/3,
     chr/3,
@@ -23,9 +23,9 @@
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     strlen, ord, chr,
     implode,
     {implode, [{alias, <<"join">>}]},

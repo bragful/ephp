@@ -5,7 +5,7 @@
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     time/2,
     date/3,
     date/4,
@@ -17,9 +17,9 @@
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     time, date, gmdate,
     date_default_timezone_get,
     date_default_timezone_set
