@@ -37,7 +37,7 @@ code_normal <- init_tag_code space? statements space? `
     [Init,Code,end_tag]
 `;
 
-code_expr <- init_value space? expression space? (literal_block / end_tag)+ `
+code_expr <- init_value space? (ternary / arith_mono / additive / conditions) space? (literal_block / end_tag)+ `
     [Init,_,CodeOne,_,End] = Node,
     Code = [ get_print(CodeOne, Index) | End ],
     [Init,Code,end_tag]
@@ -187,7 +187,7 @@ statements <- (comment / statement / literal_block) space? statements* `
 
 statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
 
-statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_die / st_call_function / st_global / st_conditions / st_const) `
+statement <- ('@' space?)? (statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_die / st_call_function / st_global / st_conditions / st_additive / st_const) `
     case Node of
         [[],Statement] -> Statement;
         [_,Statement] -> {silent, Statement}
@@ -199,6 +199,10 @@ code_parse_error <- !'}' .* `
 `;
 
 st_conditions <- conditions space? ';' `
+    head(Node)
+`;
+
+st_additive <- additive space? ';' `
     head(Node)
 `;
 
@@ -408,20 +412,21 @@ conditions <- condition space? nexo space? conditions / cs:condition `
     end
 `;
 
-condition <- primary_cond space? comparator space? cs:condition / not? space? pri:primary_cond `
+condition <- primary_cond space? comparator space? cs:condition / not space? pri:primary_cond / pri:primary_cond `
     case Node of
-        [A,_,Type,_,{cs,B}] -> #operation{type=Type, expression_left=A, expression_right=B};
-        [Not,_,{pri, Param}] -> case Not of
-            [] -> Param;
-            'not' -> {operation_not, Param, Index}
-        end
+        [A,_,Type,_,{cs,B}] ->
+            #operation{type=Type, expression_left=A, expression_right=B};
+        [_Not,_,{pri, Param}] ->
+            {operation_not, Param, Index};
+        {pri,Param} ->
+            Param
     end 
 `;
 
 primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
-    if
-        is_tuple(Node) -> Node;
-        is_list(Node) -> proplists:get_value(cs, Node)
+    case Node of
+        [_,_,{cs,Conditions},_,_] -> Conditions;
+        _ -> Node
     end
 `;
 
@@ -429,7 +434,7 @@ primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
 
 expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_die / st_print_fun / func_anon / arith_mono / additive / number / call_function / var / constant ~;
 
-expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / func_anon / conditions / arith_mono / ternary / additive / number / call_function / var / constant) `
+expression <- ('@' space?)? (array_def / expr_string / boolean / null / new_object / include_call / func_anon / arith_mono / ternary / conditions / number / call_function / var / constant / additive) `
     case Node of
         [[],Expression] -> Expression;
         [_,Expression] -> {silent, Expression}
@@ -564,8 +569,8 @@ xne <- '!==' / '<=>' `<<"!==">>`;
 gt <- '>' ~;
 lt <- '<' ~;
 
-geq <- '>=' / '=>' `<<">=">>`;
-leq <- '<=' / '=<' `<<"=<">>`;
+geq <- '>=' `<<">=">>`;
+leq <- '<=' `<<"=<">>`;
 
 boolean <- true / false ~;
 
@@ -701,7 +706,7 @@ enclosed_var_simple <- '$' '{' key '}' `
 
 %% math operations
 
-arith_params <- number / call_function / var / constant / logic_mono / arith_mono ~;
+arith_params <- array_def / new_object / func_anon / expr_string / number / boolean / null / st_print_old / st_print_fun / call_function / var / constant / logic_mono / arith_mono ~;
 
 logic_mono <- mono_logic space? expression `
     [_Op, _, Expr] = Node,
@@ -739,19 +744,39 @@ multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logic
     end 
 `;
 
-logical <- primary space? ( "^" / "|" / "&" ) space? log:logical / pri:primary `
+logical <- comparative space? ( "^" / "|" / "&" ) space? log:logical / comp:comparative `
     case Node of
-    [A,_,Type,_,{log,B}] ->
-        get_op(Type, A, B, Index, Input);
-    {pri, Param} ->
+        [A,_,Type,_,{log,B}] -> get_op(Type, A, B, Index, Input);
+        {comp, Param} -> Param
+    end
+`;
+
+comparative <- nexitive space? comparator space? comp:comparative / not space? nex:nexitive / nex:nexitive `
+    case Node of
+    [A,_,Comp,_,{comp,B}] ->
+        get_op(Comp, A, B, Index, Input);
+    [_Not,_,{nex,Param}] ->
+        {operation_not, Param, Index};
+    {nex,Param} ->
+        Param
+    end
+`;
+
+nexitive <- primary space? nexo space? nex:nexitive / not space? pri:primary / pri:primary `
+    case Node of
+    [A,_,Nexo,_,{nex,B}] ->
+        get_op(Nexo, A, B, Index, Input);
+    [_Not,_,{pri,Param}] ->
+        {operation_not, Param, Index};
+    {pri,Param} ->
         Param
     end
 `;
 
 primary <- ("(" space? add:additive space? ")") / arith_params `
-    if
-        is_tuple(Node) -> Node;
-        is_list(Node) -> proplists:get_value(add, Node)
+    case Node of
+        [_,_,{add,Additive},_,_] -> Additive;
+        _ -> Node
     end
 `;
 
@@ -858,7 +883,7 @@ get_op(Type, A, B, Index, Data) ->
             true ->
                 #operation{type=Type, expression_left=A,
                     expression_right=B, line=Index}
-        end; 
+        end;
     _ ->
         #operation{type=Type, expression_left=A, expression_right=B,
             line=Index}
