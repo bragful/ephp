@@ -48,6 +48,7 @@ Features
     - [x] insensitive name of functions
     - [x] call to functions
     - [x] args by reference
+    - [ ] default values as params in functions
     - [x] include/require code from other files
 - Error handling
     - [x] launch errors
