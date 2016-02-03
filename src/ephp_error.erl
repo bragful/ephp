@@ -127,10 +127,11 @@ get_message(eparse, Line, Filename) ->
         [Filename, Line]);
 
 get_message(erequired, Line, {File, ReqFile}) ->
+    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
         "~nFatal error: require(): Failed opening required '~s'"
-        " in ~s on line ~p~n",
-        [ReqFile, File, Line]);
+        " (include_path='~s') in ~s on line ~p~n",
+        [ReqFile, IncludePath, File, Line]);
 
 get_message(einclude, Line, {File, ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
