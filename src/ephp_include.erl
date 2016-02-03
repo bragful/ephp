@@ -33,7 +33,7 @@ load_once(Ref, Name) ->
         case find_file(Name) of
         {error, enoent} ->
             {error, enoent};
-        {ok, Content} -> 
+        {ok, Content} ->
             Value = ephp_parser:parse(Content),
             erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
             Value
@@ -49,7 +49,7 @@ load(Ref, Name) ->
         case find_file(Name) of
         {error, enoent} ->
             {error, enoent};
-        {ok, Content} -> 
+        {ok, Content} ->
             Value = ephp_parser:parse(Content),
             erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
             Value
