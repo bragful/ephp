@@ -690,7 +690,7 @@ resolve_args(RawArgs, State) ->
 
 run_method(RegInstance, #call{args=RawArgs}=Call,
         #state{ref=Ref, const=Const, vars=Vars}=State) ->
-    {Args, NState} = resolve_args(RawArgs, State),
+    {Args, NStatePrev} = resolve_args(RawArgs, State),
     {ok, NewVars} = ephp_vars:start_link(),
     Class = case RegInstance of
     #reg_instance{class=C} ->
@@ -699,8 +699,9 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
     #class{}=C ->
         C
     end,
-    #class_method{name=MethodName, args=MethodArgs, code=Code} =
+    #class_method{name=MethodName, args=RawMethodArgs, code=Code} =
         ephp_class:get_method(Class, Call#call.name),
+    {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     {ok, SubContext} = start_mirror(NState#state{
         vars=NewVars,
         global=Ref,
