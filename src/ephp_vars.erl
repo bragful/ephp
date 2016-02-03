@@ -59,6 +59,9 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs) ->
         (FuncArg, [{_,ArgVal}|RestArgs]) ->
             set(VarsDst, FuncArg, ArgVal),
             RestArgs;
+        (#variable{default_value=Val}=FuncArg, []) when Val =/= null ->
+            set(VarsDst, FuncArg, Val),
+            [];
         (_FuncArg, []) ->
             []
     end, ValArgs, FuncArgs),

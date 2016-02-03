@@ -219,6 +219,7 @@
     class :: class_name() | undefined,
     name :: binary(),
     idx = [] :: [array_index() | {object, binary()} | {class, binary()}],
+    default_value = null :: mixed(),
     line :: line()
 }).
 
@@ -302,7 +303,7 @@
     name :: binary(),
     access = public :: access_types(),
     type = normal :: normal | static,
-    init_value = null :: any()
+    init_value = null :: mixed()
 }).
 
 -type class_attr() :: #class_attr{}.

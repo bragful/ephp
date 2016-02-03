@@ -517,9 +517,10 @@ resolve(#array{elements=ArrayElements}, State) ->
 resolve(#concat{texts=Texts}, State) ->
     resolve_txt(Texts, State);
 
-resolve(#call{name=#function{args=FuncArgs,code=Code,use=Use},args=RawArgs},
+resolve(#call{name=#function{args=RawFuncArgs,code=Code,use=Use},args=RawArgs},
         #state{ref=Ref,vars=Vars,const=Const}=State) ->
-    {Args, NState} = resolve_args(RawArgs, State),
+    {Args, NStatePrev} = resolve_args(RawArgs, State),
+    {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
     {ok, NewVars} = ephp_vars:start_link(),
     {ok, SubContext} = start_mirror(NState#state{
         vars=NewVars,
@@ -570,8 +571,9 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
         end,
         destroy(Mirror),
         {Value, NState};
-    {ok,#reg_func{type=php, args=FuncArgs, code=Code}} ->
-        {Args, NState} = resolve_args(RawArgs, State),
+    {ok,#reg_func{type=php, args=RawFuncArgs, code=Code}} ->
+        {Args, NStatePrev} = resolve_args(RawArgs, State),
+        {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
         {ok, NewVars} = ephp_vars:start_link(),
         {ok, SubContext} = start_mirror(NState#state{
             vars=NewVars,
@@ -670,6 +672,15 @@ resolve(#function{name=undefined,use=Use}=Anon, #state{vars=Vars}=State) ->
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
+
+resolve_func_args(RawFuncArgs, State) ->
+    lists:foldl(fun
+        (#variable{default_value=Val}=Var, {Vars, S}) when Val =/= null ->
+            {Value, NewState} = resolve(Val,S),
+            {Vars ++ [Var#variable{default_value=Value}], NewState};
+        (Var, {Vars, NewState}) ->
+            {Vars ++ [Var], NewState}
+    end, {[], State}, RawFuncArgs).
 
 resolve_args(RawArgs, State) ->
     lists:foldl(fun(Arg, {Args,S}) ->

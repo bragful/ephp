@@ -418,7 +418,14 @@ st_if_simple <- if space? conditions_use space? ( code_block / statement / error
     end, line=Index}
 `;
 
-st_function <- function space key space? '(' space? (var (space? ',' space? var)*
+param <- var (space? '=' space? expression)? `
+    case Node of
+        [Var,[]] -> Var;
+        [Var,[_,_,_,Expression]] -> Var#variable{default_value=Expression}
+    end
+`;
+
+st_function <- function space key space? '(' space? (param (space? ',' space? param)*
                space?)? ')' space? code_block
 `
     case Node of
