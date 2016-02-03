@@ -15,8 +15,6 @@
 -define(DICT_TYPE, (dict())).
 -endif.
 
--define(SETS, sets).
-
 -define(PHP_INI_FILE, <<"php.ini">>).
 -define(PHP_VERSION, <<"5.2.0">>).
 
