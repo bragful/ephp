@@ -103,11 +103,11 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
     {ok, #reg_instance{context=Ctx}} ->
         NewObjVar = #variable{name=NewRoot, idx=Idx},
         get(Ctx, NewObjVar, undefined);
-    {ok, NewVars} -> 
+    {ok, NewVars} ->
         search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
     _ when Context =:= undefined ->
         undefined;
-    _ -> 
+    _ ->
         File = ephp_context:get_active_file(Context),
         ephp_error:handle_error(Context,
             {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
@@ -153,10 +153,10 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     {ok, #reg_instance{context=Ctx}} ->
         ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
         Vars;
-    {ok, NewVars} when ?IS_DICT(NewVars) -> 
+    {ok, NewVars} when ?IS_DICT(NewVars) ->
         ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
             NewVars), Vars);
-    _ -> 
+    _ ->
         ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
             ?DICT:new()), Vars)
     end.

@@ -67,7 +67,7 @@
 
 -type file_name() :: binary().
 
--type mixed() :: 
+-type mixed() ::
     integer() | float() | binary() | boolean() | ?DICT_TYPE | null.
 
 -type var_value() :: {variable(), mixed()}.

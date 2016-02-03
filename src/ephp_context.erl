@@ -106,7 +106,7 @@ start_link(#state{ref=undefined}=State) ->
     start_link(State#state{ref=make_ref()});
 
 start_link(#state{ref=Ref, global=Ref}) when is_reference(Ref) ->
-    throw({error, ecyclerefs}); 
+    throw({error, ecyclerefs});
 
 start_link(#state{ref=Ref}=State) when is_reference(Ref) ->
     {ok, Vars} = ephp_vars:start_link(),
@@ -146,7 +146,7 @@ destroy_all(Context) ->
     ephp_include:destroy(State#state.include),
     ephp_func:destroy(State#state.funcs),
     ephp_error:destroy(State#state.errors),
-    destroy(Context).    
+    destroy(Context).
 
 get_state(Context) ->
     get(Context).
@@ -284,7 +284,7 @@ load_once(Context, File) ->
 register_class(Context, Class) ->
     #state{class=Classes, global=GlobalCtx} = erlang:get(Context),
     ephp_class:register_class(Classes, GlobalCtx, Class),
-    ok. 
+    ok.
 
 set_global(Context, GlobalContext) ->
     State = erlang:get(Context),
@@ -313,13 +313,13 @@ get_shutdown_funcs(Context) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-resolve(true, State) -> 
+resolve(true, State) ->
     {true, State};
 
-resolve(false, State) -> 
+resolve(false, State) ->
     {false, State};
 
-resolve(undefined, State) -> 
+resolve(undefined, State) ->
     {undefined, State};
 
 %% TODO: reference from/to class var
@@ -373,7 +373,7 @@ resolve(#assign{
 resolve(#operation{}=Op, State) ->
     resolve_op(Op, State);
 
-resolve(#int{int=Int}, State) -> 
+resolve(#int{int=Int}, State) ->
     {Int, State};
 
 resolve(N, State) when is_number(N) ->
@@ -383,12 +383,12 @@ resolve(S, State) when is_binary(S) ->
     {S, State};
 
 resolve(A, State) when ?IS_DICT(A) ->
-    {A, State}; 
+    {A, State};
 
-resolve(#float{float=Float}, State) -> 
+resolve(#float{float=Float}, State) ->
     {Float, State};
 
-resolve(#text{text=Text}, State) -> 
+resolve(#text{text=Text}, State) ->
     {Text, State};
 
 resolve(#text_to_process{text=Texts}, State) ->
@@ -398,10 +398,10 @@ resolve({pre_incr, Var, _Line}, State) ->
     case catch get_var_path(Var, State) of
         #variable{}=VarPath ->
             case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
-                undefined -> 
+                undefined ->
                     ephp_vars:set(State#state.vars, VarPath, 1),
                     {1, State};
-                V when is_number(V) -> 
+                V when is_number(V) ->
                     ephp_vars:set(State#state.vars, VarPath, V+1),
                     {V+1, State};
                 V when is_binary(V) andalso byte_size(V) > 0 ->
@@ -412,7 +412,7 @@ resolve({pre_incr, Var, _Line}, State) ->
                     end,
                     ephp_vars:set(State#state.vars, VarPath, NewVal),
                     {NewVal, State};
-                V -> 
+                V ->
                     {V, State}
             end;
         {error, _Reason} ->
@@ -422,22 +422,22 @@ resolve({pre_incr, Var, _Line}, State) ->
 resolve({pre_decr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
-        undefined -> 
+        undefined ->
             {undefined, State};
-        V when is_number(V) -> 
+        V when is_number(V) ->
             ephp_vars:set(State#state.vars, VarPath, V-1),
             {V-1, State};
-        V -> 
+        V ->
             {V, State}
     end;
 
 resolve({post_incr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
-        undefined -> 
+        undefined ->
             ephp_vars:set(State#state.vars, VarPath, 1),
             {undefined, State};
-        V when is_number(V) -> 
+        V when is_number(V) ->
             ephp_vars:set(State#state.vars, VarPath, V+1),
             {V, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
@@ -448,19 +448,19 @@ resolve({post_incr, Var, _Line}, State) ->
             end,
             ephp_vars:set(State#state.vars, VarPath, NewVal),
             {V, State};
-        V -> 
+        V ->
             {V, State}
     end;
 
 resolve({post_decr, Var, _Line}, State) ->
     VarPath = get_var_path(Var, State),
     case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
-        undefined -> 
+        undefined ->
             {undefined, State};
         V when is_number(V) ->
             ephp_vars:set(State#state.vars, VarPath, V-1),
             {V, State};
-        V -> 
+        V ->
             {V, State}
     end;
 
@@ -479,7 +479,7 @@ resolve({operation_bnot, Expr, Line}, State) ->
     case resolve(Expr, State) of
         {Number, NewState} when is_integer(Number) -> {bnot(Number), NewState};
         {Number, NewState} when is_float(Number) -> {bnot(Number), NewState};
-        {Binary, NewState} when is_binary(Binary) -> 
+        {Binary, NewState} when is_binary(Binary) ->
             {<< <<bnot(B)/integer>> || <<B:8/integer>> <= Binary >>, NewState};
         _ ->
             File = State#state.active_file,
@@ -506,7 +506,7 @@ resolve(#array{elements=ArrayElements}, State) ->
             {Value, NewState} = resolve(Element,NS),
             {Idx, ReNewState} = resolve(I,NewState),
             if
-            is_integer(Idx) ->  
+            is_integer(Idx) ->
                 {Idx+1,?DICT:store(Idx,Value,Dict),ReNewState};
             true ->
                 {INum,?DICT:store(Idx,Value,Dict),ReNewState}
@@ -588,8 +588,8 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
             _ -> undefined
         end,
         destroy(SubContext),
-        ephp_vars:destroy(NewVars), 
-        ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun), 
+        ephp_vars:destroy(NewVars),
+        ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
         {Value, NState};
     error ->
         File = State#state.active_file,
@@ -717,7 +717,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
         _ -> undefined
     end,
     destroy(SubContext),
-    ephp_vars:destroy(NewVars), 
+    ephp_vars:destroy(NewVars),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, State#state.active_fun},
         {<<"__CLASSNAME__">>, State#state.active_class}
@@ -773,7 +773,7 @@ resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
     end;
 
 resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
-        when is_binary(VarName) -> 
+        when is_binary(VarName) ->
     #reg_instance{class=Class, context=Context} =
         ephp_vars:get(State#state.vars, Var#variable{idx=[]}, State#state.ref),
     {NewVar, NewState} =
@@ -839,9 +839,9 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
         (auto, LIdx) ->
             NewEntry = Var#variable{idx=LIdx},
             Value = case ephp_vars:get(Vars, NewEntry, State#state.ref) of
-            undefined -> 
+            undefined ->
                 0;
-            Array when ?IS_DICT(Array) -> 
+            Array when ?IS_DICT(Array) ->
                 ?DICT:fold(fun
                     (K,_V,Max) when is_integer(K) andalso K >= Max -> K+1;
                     (_K,_V,Max) -> Max
@@ -863,8 +863,8 @@ resolve_txt(Texts, State) ->
     lists:foldr(fun
         (true, {ResultTxt,NS}) ->
             {<<"1",ResultTxt/binary>>,NS};
-        (Data, {ResultTxt,NS}) when 
-                Data =:= undefined orelse 
+        (Data, {ResultTxt,NS}) when
+                Data =:= undefined orelse
                 Data =:= false ->
             {<<ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when is_binary(Data) ->
@@ -877,17 +877,17 @@ resolve_txt(Texts, State) ->
 
 
 resolve_op(#operation{
-    type=Type, expression_left=Op1, expression_right=Op2}, State) 
+    type=Type, expression_left=Op1, expression_right=Op2}, State)
         when Type =:= 'and'; Type =:= 'or'->
     {RawOpRes1, State1} = resolve(Op1, State),
     OpRes1 = ephp_util:to_bool(RawOpRes1),
     case Type of
-        'and' when OpRes1 =:= false -> 
+        'and' when OpRes1 =:= false ->
             {false, State1};
         'and' ->
             {OpRes2, State2} = resolve(Op2, State1),
             {ephp_util:to_bool(OpRes2), State2};
-        'or' when OpRes1 =:= true -> 
+        'or' when OpRes1 =:= true ->
             {true, State1};
         'or' ->
             {OpRes2, State2} = resolve(Op2, State1),
@@ -910,17 +910,17 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
             ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
         <<"*">> ->
             ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
-        <<"/">> -> 
+        <<"/">> ->
             A = ephp_util:zero_if_undef(OpRes1),
             B = ephp_util:zero_if_undef(OpRes2),
-            if 
+            if
                 B == 0 ->
                     ephp_error:error({error, edivzero, Index, ?E_ERROR, <<>>});
                 true ->
                     A / B
             end;
-        <<"%">> -> 
-            trunc(ephp_util:zero_if_undef(OpRes1)) rem 
+        <<"%">> ->
+            trunc(ephp_util:zero_if_undef(OpRes1)) rem
             trunc(ephp_util:zero_if_undef(OpRes2));
         <<"<">> -> OpRes1 < OpRes2;
         <<">">> -> OpRes1 > OpRes2;

@@ -68,7 +68,7 @@ register_func(Ref, PHPFunc, Module, Fun)
         when is_atom(Module) andalso is_atom(Fun) ->
     register_func(Ref, PHPFunc, Module, Fun, false);
 
-register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) -> 
+register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) ->
     Funcs = erlang:get(Ref),
     IPHPFunc = ephp_util:to_lower(PHPFunc),
     RegFunc = #reg_func{
@@ -111,7 +111,7 @@ register_func(Ref, PHPFunc, Args, Code, PackArgs) ->
 
 
 run(Context, #call{line=Line}=Call) ->
-    try 
+    try
         ephp_context:solve(Context, Call),
         false
     catch
