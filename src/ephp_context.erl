@@ -901,9 +901,15 @@ resolve_op(#operation{
     end;
 
 resolve_op(#operation{type=instanceof, expression_left=Op1,
-        expression_right=#constant{name=ClassName}}, State) ->
+        expression_right=#constant{name=ClassName}},
+        #state{class=Classes}=State) ->
     {OpRes1, State1} = resolve(Op1, State),
-    {get_class_name(OpRes1) =:= ClassName, State1};
+    case ephp_class:get(Classes, ClassName) of
+        {ok, #class{name=RealClassName}} ->
+            {get_class_name(OpRes1) =:= RealClassName, State1};
+        {error, enoexist} ->
+            {false, State1}
+    end;
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         line=Index}, State) ->
