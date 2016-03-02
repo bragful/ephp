@@ -103,8 +103,8 @@ var_dump(Context, _Line, {_,Value}) ->
             <<Total/binary, Chunk/binary>>
         end, <<>>, Elements),
         Size = case Value of
-        V when is_list(V) ->
-            ephp_util:to_bin(length(Value));
+        V when ?IS_DICT(V) ->
+            ephp_util:to_bin(?DICT:size(Value));
         #reg_instance{class=#class{attrs=Attrs}} ->
             ephp_util:to_bin(length(Attrs))
         end,
@@ -198,9 +198,9 @@ gettype(_Context, _Line, {_,Value}) ->
 unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
     case ephp_context:get(Context, Var) of
         Array when ?IS_DICT(Array) ->
-            lists:foreach(fun({K,_V}) ->
+            ?DICT:fold(fun(K,_V,_) ->
                 unset(Context, Line, {Var#variable{idx=Idx ++ [K]},<<>>})
-            end, Array);
+            end, ok, Array);
         #reg_instance{class=Class}=Instance ->
             case ephp_class:get_destructor(Class) of
             undefined ->
@@ -255,7 +255,7 @@ var_dump_fmt(Context, #reg_instance{class=Class, context=Ctx}, Spaces) ->
 var_dump_fmt(_Context, undefined, _Spaces) ->
     <<"NULL\n">>;
 
-var_dump_fmt(Context, Value, Spaces) when is_list(Value) ->
+var_dump_fmt(Context, Value, Spaces) when ?IS_DICT(Value) ->
     ?DICT:fold(fun(Key, Val, Res) ->
         KeyBin = if
             not is_binary(Key) -> ephp_util:to_bin(Key);
