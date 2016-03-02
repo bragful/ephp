@@ -23,7 +23,8 @@
     get_const/3,
 
     register_class/3,
-    instance/4
+    set_alias/3,
+    instance/5
 ]).
 
 %% ------------------------------------------------------------------
@@ -40,13 +41,28 @@ destroy(Classes) ->
 
 get(Ref, ClassName) ->
     Classes = erlang:get(Ref),
-    ?DICT:find(ClassName, Classes).
+    case ?DICT:find(ClassName, Classes) of
+        {ok, {alias, NewClassName}} ->
+            get(Ref, NewClassName);
+        {ok, Class} ->
+            {ok, Class};
+        error ->
+            {error, enoexist}
+    end.
 
 set(Ref, ClassName, Class) ->
     Classes = erlang:get(Ref),
     NC = ?DICT:store(ClassName, Class, Classes),
     erlang:put(Ref, NC),
     ok.
+
+set_alias(Ref, ClassName, AliasName) ->
+    case get(Ref, ClassName) of
+        {ok, _Class} ->
+            set(Ref, AliasName, {alias, ClassName});
+        {error, enoexist} ->
+            {error, enoexist}
+    end.
 
 register_class(Ref, GlobalCtx, #class{name=Name,constants=ConstDef}=PHPClass) ->
     Classes = erlang:get(Ref),
@@ -62,12 +78,8 @@ register_class(Ref, GlobalCtx, #class{name=Name,constants=ConstDef}=PHPClass) ->
     erlang:put(Ref, ?DICT:store(Name, ActivePHPClass, Classes)),
     ok.
 
-instance(Ref, GlobalCtx, ClassName, Line) ->
-    case get(Ref, ClassName) of
-    error ->
-        File = ephp_context:get_active_file(GlobalCtx),
-        ephp_error:error({error, eundefclass, Line, ?E_ERROR,
-            {File, ClassName}});
+instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
+    case get(Ref, RawClassName) of
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
@@ -78,13 +90,17 @@ instance(Ref, GlobalCtx, ClassName, Line) ->
             context=Ctx},
         initialize(Ctx, Class),
         set(Ref, ClassName, Class#class{instance_counter=InsCount}),
-        RegClass
+        RegClass;
+    {error, enoexist} ->
+        File = ephp_context:get_active_file(LocalCtx),
+        ephp_error:error({error, eundefclass, Line, ?E_ERROR,
+            {File, RawClassName}})
     end.
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
     lists:foreach(fun
         (#class_attr{type=static, name=Name, init_value=RawVal}) ->
-            Val = ephp_context:solve(Ctx, RawVal), 
+            Val = ephp_context:solve(Ctx, RawVal),
             ephp_context:set(Ctx, #variable{name=Name}, Val);
         (#class_attr{type=normal}) ->
             ignore
@@ -93,7 +109,7 @@ initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
 initialize(Ctx, #class{attrs=Attrs}) ->
     lists:foreach(fun
         (#class_attr{type=normal, name=Name, init_value=RawVal}) ->
-            Val = ephp_context:solve(Ctx, RawVal), 
+            Val = ephp_context:solve(Ctx, RawVal),
             ephp_context:set(Ctx, #variable{name=Name}, Val);
         (#class_attr{type=static}) ->
             ignore

@@ -1,0 +1,16 @@
+array(7) {
+  ["a == b"]=>
+  bool(true)
+  ["a === b"]=>
+  bool(false)
+  ["a instance of b"]=>
+  bool(true)
+  ["a instance of foo"]=>
+  bool(true)
+  ["a instance of bar"]=>
+  bool(true)
+  ["b instance of foo"]=>
+  bool(true)
+  ["b instance of bar"]=>
+  bool(true)
+}

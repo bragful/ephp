@@ -742,6 +742,9 @@ nexo <- and / or ~;
 
 space <- [ \t\n\s\r]+ ~;
 
+% space or comment
+sorc <- (space / comment)+ ~;
+
 % definitions
 
 array_index <- arith_mono / ternary / string / additive ~;
@@ -757,12 +760,12 @@ array_def <- array_def_func /
              array_def_simple /
              array_def_simple_empty ~;
 
-array_def_simple_empty <- '[' space? ']' `
+array_def_simple_empty <- '[' sorc? ']' `
     #array{elements=[], line=Index}
 `;
 
-array_def_simple <- '[' space? array_element tail:( space? ',' space?
-                    array_element )* ','? space? ']'
+array_def_simple <- '[' sorc? array_element tail:( sorc? ',' sorc?
+                    array_element )* ','? sorc? ']'
 `
     [_,_,ArrayElement,{tail,Tail}|_] = Node,
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->

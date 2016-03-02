@@ -69,6 +69,7 @@
 
     call_method/3,
     register_class/2,
+    set_class_alias/3,
 
     set_global/2,
     generate_subcontext/1,
@@ -286,6 +287,10 @@ register_class(Context, Class) ->
     ephp_class:register_class(Classes, GlobalCtx, Class),
     ok.
 
+set_class_alias(Context, ClassName, ClassAlias) ->
+    #state{class=Classes} = erlang:get(Context),
+    ephp_class:set_alias(Classes, ClassName, ClassAlias).
+
 set_global(Context, GlobalContext) ->
     State = erlang:get(Context),
     erlang:put(Context, State#state{global=GlobalContext}),
@@ -361,7 +366,7 @@ resolve(#assign{
             case ephp_class:get(Classes, ClassName) of
             {ok, #class{static_context=ClassCtx}} ->
                 set(ClassCtx, VarPath, Value);
-            error ->
+            {error, enoexist} ->
                 ephp_error:error({error, eundefclass, Index,
                     ?E_ERROR, {File, ClassName}})
             end,
@@ -601,7 +606,7 @@ resolve(#call{type=class,class=Name,line=Index}=Call,
     case ephp_class:get(Classes, Name) of
     {ok, Class} ->
         run_method(Class, Call, State);
-    error ->
+    {error, enoexist} ->
         ephp_error:error({error, eundefclass, Index, ?E_ERROR, Name})
     end;
 
@@ -609,8 +614,8 @@ resolve({object,Idx,Line}, State) ->
     {{object,Idx,Line}, State};
 
 resolve(#instance{name=ClassName, args=RawArgs, line=Line}=Instance,
-        #state{class=Classes,global=GlobalCtx}=State) ->
-    Value = ephp_class:instance(Classes, GlobalCtx, ClassName, Line),
+        #state{ref=LocalCtx,class=Classes,global=GlobalCtx}=State) ->
+    Value = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
     RetInstance = Value#reg_instance{instance = Instance},
     #reg_instance{class = Class} = RetInstance,
     case ephp_class:get_constructor(Class) of
@@ -819,7 +824,7 @@ resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
     {ok, #class{static_context=ClassCtx}} ->
         Value = get(ClassCtx, NewVar),
         {Value, NewState};
-    error ->
+    {error, enoexist} ->
         ephp_error:error({error, eundefclass, Index, ?E_ERROR,
             {File,ClassName}})
     end.
