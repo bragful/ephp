@@ -90,7 +90,7 @@ start_link() ->
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
     {ok, Class} = ephp_class:start_link(),
-    {ok, Shutdown} = ephp_class:start_link(),
+    {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, Errors} = ephp_error:start_link(),
     start_link(#state{
         ref = Ref,
