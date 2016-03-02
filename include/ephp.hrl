@@ -9,7 +9,7 @@
 -define(IS_DICT(D), (is_list(D))).
 -endif.
 
--ifdef(NEW_DICT_TYPE).
+-ifndef(OLD_DICT_TYPE).
 -define(DICT_TYPE, (dict:dict())).
 -else.
 -define(DICT_TYPE, (dict())).
