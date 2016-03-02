@@ -81,7 +81,7 @@ php_is_object(_Context, _Line, {_,Value}) ->
 print_r(Context, Line, {_,#reg_instance{}}=Vars) ->
     print_r(Context, Line, Vars, {false,false});
 
-print_r(_Context, _Line, {_,Value}) when not ?IS_DICT(Value) -> 
+print_r(_Context, _Line, {_,Value}) when not ?IS_DICT(Value) ->
     ephp_util:to_bin(Value);
 
 print_r(Context, Line, Value) ->
@@ -121,7 +121,7 @@ var_dump(Context, _Line, {_,Value}) ->
     Element ->
         Element
     end,
-    ephp_context:set_output(Context, Result), 
+    ephp_context:set_output(Context, Result),
     undefined.
 
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
@@ -130,9 +130,9 @@ var_dump(Context, _Line, {_,Value}) ->
 print_r(_Context, _Line, {_,#reg_instance{class=Class, context=Ctx}},
         {_,true}) ->
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
-        Value = ephp_context:get(Ctx, #variable{name=Name}), 
+        Value = ephp_context:get(Ctx, #variable{name=Name}),
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
-        <<Output/binary, ?SPACES, "[", Name/binary, "] => ", 
+        <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
           ValDumped/binary, "\n">>
     end, <<>>, Class#class.attrs),
     <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
@@ -140,19 +140,19 @@ print_r(_Context, _Line, {_,#reg_instance{class=Class, context=Ctx}},
 print_r(Context, _Line, {_,#reg_instance{class=Class, context=Ctx}}=_Val,
         {_,false}) ->
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
-        Value = ephp_context:get(Ctx, #variable{name=Name}), 
+        Value = ephp_context:get(Ctx, #variable{name=Name}),
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
-        <<Output/binary, ?SPACES, "[", Name/binary, "] => ", 
+        <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
           ValDumped/binary>>
     end, <<>>, Class#class.attrs),
     Out = <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>,
     ephp_context:set_output(Context, Out),
-    true; 
+    true;
 
-print_r(_Context, _Line, {_,Value}, {_,true}) when not ?IS_DICT(Value) -> 
+print_r(_Context, _Line, {_,Value}, {_,true}) when not ?IS_DICT(Value) ->
     ephp_util:to_bin(Value);
 
-print_r(Context, _Line, {_,Value}, {_,false}) when not ?IS_DICT(Value) -> 
+print_r(Context, _Line, {_,Value}, {_,false}) when not ?IS_DICT(Value) ->
     ephp_context:set_output(Context, ephp_util:to_bin(Value)),
     true;
 
@@ -215,7 +215,7 @@ unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
             ok
     end,
     ephp_context:set(Context, Var, undefined),
-    undefined. 
+    undefined.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
@@ -233,13 +233,13 @@ var_dump_fmt(_Context, true, _Spaces) ->
 var_dump_fmt(_Context, false, _Spaces) ->
     <<"bool(false)\n">>;
 
-var_dump_fmt(_Context, Value, _Spaces) when is_integer(Value) -> 
+var_dump_fmt(_Context, Value, _Spaces) when is_integer(Value) ->
     <<"int(",(ephp_util:to_bin(Value))/binary, ")\n">>;
 
-var_dump_fmt(_Context, Value, _Spaces) when is_float(Value) -> 
+var_dump_fmt(_Context, Value, _Spaces) when is_float(Value) ->
     <<"float(",(ephp_util:to_bin(Value))/binary, ")\n">>;
 
-var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) -> 
+var_dump_fmt(_Context, Value, _Spaces) when is_binary(Value) ->
     Size = ephp_util:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",(ephp_util:to_bin(Value))/binary, "\"\n">>;
 
@@ -262,7 +262,7 @@ var_dump_fmt(Context, Value, Spaces) when is_list(Value) ->
             true -> <<"\"", Key/binary, "\"">>
         end,
         Res ++ case var_dump_fmt(Context, Val, <<Spaces/binary, ?SPACES_VD>>) of
-            V when is_binary(V) -> 
+            V when is_binary(V) ->
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
                         Spaces/binary, V/binary>>
@@ -283,21 +283,21 @@ print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
     Var = ephp_vars:get(VarPID, VarRef, Context),
     print_r_fmt(Context, Var, Spaces);
 
-print_r_fmt(_Context, Value, _Spaces) when not ?IS_DICT(Value) -> 
+print_r_fmt(_Context, Value, _Spaces) when not ?IS_DICT(Value) ->
     <<(ephp_util:to_bin(Value))/binary, "\n">>;
 
 print_r_fmt(Context, Value, Spaces) ->
     ?DICT:fold(fun(Key, Val, Res) ->
         KeyBin = ephp_util:to_bin(Key),
         Res ++ case print_r_fmt(Context, Val, <<Spaces/binary, ?SPACES>>) of
-            V when is_binary(V) -> 
+            V when is_binary(V) ->
                 [<<Spaces/binary, "[", KeyBin/binary, "] => ", V/binary>>];
             V when is_list(V) ->
                 Content = lists:map(fun(Element) ->
                     <<Spaces/binary, Element/binary>>
                 end, V),
                 [
-                    <<Spaces/binary, "[", KeyBin/binary, "] => Array\n">>, 
+                    <<Spaces/binary, "[", KeyBin/binary, "] => Array\n">>,
                     <<Spaces/binary, "    (\n">>
                 ] ++ Content ++ [
                     <<Spaces/binary, "    )\n">>
