@@ -1,8 +1,7 @@
 
 -ifdef(FAST_DICT_MODE).
 -define(DICT, dict).
--include_lib("dict/include/dict.hrl").
--define(IS_DICT(D), (is_record(D, dict))).
+-define(IS_DICT(D), (element(1, D) =:= dict)).
 -else.
 -define(DICT, orddict).
 %% FIXME: do a better way to do this:
