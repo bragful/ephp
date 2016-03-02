@@ -90,7 +90,7 @@ error({error, Type, Index, Level, Data}) ->
 
 handle_error(Context, {error, Type, Index, Level, Data}) ->
     Line = ephp_util:get_line(Index),
-    ErrorText = get_message(Type, Line, Data),
+    ErrorText = get_message(Type, Line, get_level(Level), Data),
     case erlang:get(ephp_context:get_errors_id(Context)) of
         #state{silent=true} ->
             ok;
@@ -119,97 +119,117 @@ run_quiet(Errors, Fun) ->
             Result
     end.
 
--spec get_message(error_type(), pos_integer() | undefined, binary()) -> string().
+-spec get_message(error_type(), pos_integer() | undefined,
+                  binary(), binary() | term()) -> string().
 
-get_message(eparse, Line, Filename) ->
+get_message(eparse, Line, _Level, Filename) ->
     io_lib:format(
         "~nParse error: parse error in ~s on line ~p~n",
         [Filename, Line]);
 
-get_message(erequired, Line, {File, ReqFile}) ->
+get_message(erequired, Line, _Level, {File, ReqFile}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
         "~nFatal error: require(): Failed opening required '~s'"
         " (include_path='~s') in ~s on line ~p~n",
         [ReqFile, IncludePath, File, Line]);
 
-get_message(einclude, Line, {File, ReqFile, Func}) ->
+get_message(einclude, Line, _Level, {File, ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
         "~nWarning: ~s(): Failed opening '~s' for inclusion (include_path='~s')"
         " in ~s on line ~p~n",
         [Func, ReqFile, IncludePath, File, Line]);
 
-get_message(enofile, Line, {File, OpenFile, Func}) ->
+get_message(enofile, Line, _Level, {File, OpenFile, Func}) ->
     io_lib:format(
         "~nWarning: ~s(~s): failed to open stream: No such file or directory "
         "in ~s on line ~p~n",
         [Func, OpenFile, File, Line]);
 
-get_message(eundefun, Line, {File, Fun}) ->
+get_message(eundefun, Line, _Level, {File, Fun}) ->
     io_lib:format(
         "~nFatal error: Call to undefined function ~s() in ~s on line ~p~n",
         [Fun, File, Line]);
 
-get_message(eundefclass, Line, {File, <<>>}) ->
+get_message(eundefclass, Line, _Level, {File, <<>>}) ->
     io_lib:format(
         "~nFatal error: Cannot access self:: when no class scope is active "
         "in ~s on line ~p~n",
         [File, Line]);
 
-get_message(eundefclass, Line, {File, Class}) ->
+get_message(eundefclass, Line, Level, {File, Class}) ->
     io_lib:format(
-        "~nFatal error: Class '~s' not found in ~s on line ~p~n",
-        [Class, File, Line]);
+        "~n~s: Class '~s' not found in ~s on line ~p~n",
+        [Level, Class, File, Line]);
 
-get_message(eprivateaccess, Line, {File, Class, Element, Access}) ->
+get_message(eprivateaccess, Line, _Level, {File, Class, Element, Access}) ->
     io_lib:format(
         "~nFatal error: Cannot access ~s property ~s::$~s in ~s on line ~p~n",
         [Access, Class, Element, File, Line]);
 
-get_message(ecallprivate, Line, {File, Class, Element, Access}) ->
+get_message(ecallprivate, Line, _Level, {File, Class, Element, Access}) ->
     io_lib:format(
         "~nFatal error: Call to ~s method ~s::~s() in ~s on line ~p~n",
         [Access, Class, Element, File, Line]);
 
-get_message(ebadbnot, Line, File) ->
+get_message(ebadbnot, Line, _Level, File) ->
     io_lib:format(
         "~nFatal error: Unsupported operand types in ~s on line ~p~n",
         [File, Line]);
 
-get_message(eassignthis, Line, File) ->
+get_message(eassignthis, Line, _Level, File) ->
     io_lib:format(
         "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
         [File, Line]);
 
-get_message(ewrongarg, Line, {Function, ArgNum, ArgType, WrongType, File}) ->
+get_message(ewrongarg, Line, _Level, {Function, ArgNum, ArgType, WrongType, File}) ->
     io_lib:format(
         "~nWarning: ~s() expects parameter ~p to be ~s, ~s given in ~s on line ~p~n",
         [Function, ArgNum, ArgType, WrongType, File, Line]);
 
-get_message(enoarray, Line, File) ->
+get_message(enoarray, Line, _Level, File) ->
     io_lib:format(
         "~nWarning:  Cannot use a scalar value as an array in ~s "
         "on line ~p~n",
         [File, Line]);
 
-get_message(eundefvar, Line, {File, Var}) ->
+get_message(eundefvar, Line, _Level, {File, Var}) ->
     io_lib:format(
         "~nNotice: Undefined variable: ~s in ~s on line ~p~n",
         [Var, File, Line]);
 
-get_message(eundefconst, Line, {File, Const}) ->
+get_message(eundefconst, Line, _Level, {File, Const}) ->
     io_lib:format(
         "~nNotice: Use of undefined constant ~s - assumed '~s' in ~s"
         " on line ~p~n",
         [Const, Const, File, Line]);
 
-get_message(Unknown, Line, Data) ->
+get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
-        "~nFatal Error: unknown ~p for ~p in line ~p~n",
+        "~nFatal error: unknown ~p for ~p in line ~p~n",
         [Unknown, Data, Line]).
 
 -spec get_return(error_type()) -> term().
 
 get_return(eparse) -> {ok, undefined};
 get_return(_) -> {return, undefined}.
+
+-spec get_level( Level :: pos_integer() ) -> binary().
+
+get_level(?E_ERROR) -> <<"Fatal error">>;
+get_level(?E_WARNING) -> <<"Warning">>;
+get_level(?E_PARSE) -> <<"Parse error">>;
+get_level(?E_NOTICE) -> <<"Notice">>;
+get_level(?E_CORE_ERROR) -> <<"Error">>;
+get_level(?E_CORE_WARNING) -> <<"Warning">>;
+get_level(?E_COMPILE_ERROR) -> <<"Error">>;
+get_level(?E_COMPILE_WARNING) -> <<"Warning">>;
+get_level(?E_USER_ERROR) -> <<"Error">>;
+get_level(?E_USER_WARNING) -> <<"Warning">>;
+get_level(?E_USER_NOTICE) -> <<"Notice">>;
+get_level(?E_STRICT) -> <<"Strict">>;
+get_level(?E_RECOVERABLE_ERROR) -> <<"Error">>;
+get_level(?E_DEPRECATED) -> <<"Deprecated">>;
+get_level(?E_USER_DEPRECATED) -> <<"Deprecated">>;
+get_level(_) -> <<"Unknown">>.
