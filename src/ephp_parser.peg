@@ -92,11 +92,51 @@ literal_block <- (end_tag (document / code_expr) init_tag_code) /
     end
 `;
 
+code_block_if_simple <- ':' space? statements space? endif ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_if_else <- ':' space? statements space? `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_while <- ':' space? statements space? endwhile ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_foreach <- ':' space? statements space? endforeach ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_for <- ':' space? statements space? endfor ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
 code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
     [_,_,Statement|_] = Node,
     case Statement of
         {error, Data} -> throw_error(eparse, Index, Data);
-        [St,_,_] -> St
+        [St|_] -> St
     end
 `;
 
@@ -187,15 +227,15 @@ class_method <- (abstract space)? ((public / protected / private) space)?
 
 % Statements
 
-statements <- (comment / statement / literal_block) space? statements* `
+statements <- (!ends (comment / statement / literal_block)) space? statements* `
     case Node of
-        [Statement,_Space,[]] when not is_list(Statement) ->
+        [[[],Statement],_Space,[]] when not is_list(Statement) ->
             [Statement];
-        [Statement,_Space,[Statements]] when not is_list(Statement) ->
+        [[[],Statement],_Space,[Statements]] when not is_list(Statement) ->
             [Statement|Statements];
-        [Statement,_Space,[]] ->
+        [[[],Statement],_Space,[]] ->
             Statement;
-        [Statement,_Space,[Statements]] ->
+        [[[],Statement],_Space,[Statements]] ->
             Statement ++ Statements
     end
 `;
@@ -315,7 +355,7 @@ for_assignments <- base_assign ( space? ',' space? base_assign )* `
 
 st_for <- for space? '(' space? for_assignments space? ';' space? conditions
           space? ';' space? for_assignments space? ')' space?
-          ( code_block / statement / ';' / error:(.*) )
+          ( code_block / code_block_for / statement / ';' / error:(.*) )
 `
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
     CodeBlock = case Code of
@@ -347,9 +387,10 @@ st_switch <- switch space? '(' space? expression_cond space? ')' space? '{'
         line=Index}
 `;
 
-st_foreach <- foreach space? '(' space? var space as (space var space? '=>')?
+st_foreach <- foreach space? '(' space? (var / array_def) space as
+              (space var space? '=>')?
               space? var space? ')' space?
-              ( code_block / statement / ';' / error:(.*) )
+              ( code_block_foreach / code_block / statement / ';' / error:(.*) )
 `
     [_Foreach,_,_,_,List,_,_As,KeyOpt,_,Element,_,_,_,St] = Node,
     case St of
@@ -378,7 +419,8 @@ st_do_while <- do space? ( code_block / statement / error:(.*) ) space? while
     #while{type=post, conditions=Cond, loop_block=St, line=Index}
 `;
 
-st_while <- while space? conditions_use space? ( code_block /
+st_while <- while space? conditions_use space? ( code_block_while /
+                                                 code_block /
                                                  statement /
                                                  ';' /
                                                  error:(.*) )
@@ -394,7 +436,8 @@ st_while <- while space? conditions_use space? ( code_block /
 
 st_if <- st_if_else / st_if_simple ~;
 
-st_if_else <- st_if_simple space? else space? ( code_block / statement / error:(.*) ) `
+st_if_else <- st_if_simple space? else space?
+              ( code_block_if_simple / code_block / statement / error:(.*) ) `
     [#if_block{}=IfBlock,_,_Else,_,ElseSt] = Node,
     case ElseSt of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -406,7 +449,9 @@ st_if_else <- st_if_simple space? else space? ( code_block / statement / error:(
     end, line=Index}
 `;
 
-st_if_simple <- if space? conditions_use space? ( code_block / statement / error:(.*) ) `
+st_if_simple <- if space? conditions_use space?
+                ( code_block_if_simple / code_block_if_else / code_block /
+                  statement / error:(.*) ) `
     [_If,_,Cond,_,St] = Node,
     case St of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -660,6 +705,13 @@ delete <- #(?i)delete# `delete`;
 use <- #(?i)use# `use`;
 die <- #(?i)die# `die`;
 instanceof <- #(?i)instanceof# `instanceof`;
+endfor <- #(?i)endfor# `endfor`;
+endif <- #(?i)endif# `endif`;
+endwhile <- #(?i)endwhile# `endwhile`;
+endforeach <- #(?i)endforeach# `endforeach`;
+endswitch <- #(?i)endswitch# `endswitch`;
+
+ends <- else / endforeach / endif / endwhile / endfor / endswitch ~;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
