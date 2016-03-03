@@ -717,12 +717,13 @@ mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
 comparator <- xeq / leq / eq / ne / xne / geq / gt / lt / instanceof ~;
 
-assign_op <- assign_plus / assign_minus / assign_mul / assign_div ~;
+assign_op <- assign_plus / assign_minus / assign_mul / assign_div / assign_mod ~;
 
 assign_plus <- '+=' `<<"+">>`;
 assign_minus <- '-=' `<<"-">>`;
 assign_mul <- '*=' `<<"*">>`;
 assign_div <- '/=' `<<"/">>`;
+assign_mod <- '%=' `<<"%">>`;
 
 eq <- '==' ~;
 xeq <- '===' ~;
