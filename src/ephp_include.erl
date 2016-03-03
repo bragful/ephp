@@ -21,12 +21,12 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    erlang:put(Ref, dict:new()),
     {ok, Ref}.
 
 load_once(Ref, Name) ->
     Inc = erlang:get(Ref),
-    case ?DICT:find(Name, Inc) of
+    case dict:find(Name, Inc) of
     {ok, _Value} ->
         {return, true};
     error ->
@@ -35,14 +35,14 @@ load_once(Ref, Name) ->
             {error, enoent};
         {ok, Content} ->
             Value = ephp_parser:parse(Content),
-            erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
+            erlang:put(Ref, dict:store(Name, Value, Inc)),
             Value
         end
     end.
 
 load(Ref, Name) ->
     Inc = erlang:get(Ref),
-    case ?DICT:find(Name, Inc) of
+    case dict:find(Name, Inc) of
     {ok, Value} ->
         Value;
     error ->
@@ -51,7 +51,7 @@ load(Ref, Name) ->
             {error, enoent};
         {ok, Content} ->
             Value = ephp_parser:parse(Content),
-            erlang:put(Ref, ?DICT:store(Name, Value, Inc)),
+            erlang:put(Ref, dict:store(Name, Value, Inc)),
             Value
         end
     end.

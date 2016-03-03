@@ -113,8 +113,8 @@ run_depth(Context, #foreach{
         is_atom(LB) -> [LB];
         LB =:= undefined -> []
     end,
-    Elements = ?DICT:to_list(ephp_context:solve(Context, RawElements)),
-    run_foreach(Context, Key,Var,Elements,LoopBlock);
+    Elements = ephp_array:to_list(ephp_context:solve(Context, RawElements)),
+    run_foreach(Context, Key, Var, Elements, LoopBlock);
 
 run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB}, false) ->
     LoopBlock = if

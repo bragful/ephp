@@ -31,7 +31,7 @@ start_link() ->
     %%         remove the link to the data and, if the data has 0 links
     %%         then the data is removed.
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    erlang:put(Ref, ephp_array:new()),
     {ok, Ref}.
 
 get(Context, VarPath) ->
@@ -81,7 +81,7 @@ search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars, _Context) ->
     search(#variable{name=Root, idx=Idx}, Vars, undefined);
 
 search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
-    case ?DICT:find(Root, Vars) of
+    case ephp_array:find(Root, Vars) of
     error when Context =:= undefined ->
         undefined;
     error ->
@@ -96,7 +96,7 @@ search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
     end;
 
 search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
-    case ?DICT:find(Root, Vars) of
+    case ephp_array:find(Root, Vars) of
     {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
         NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
         get(RefVarsPID, NewRefVar, undefined);
@@ -114,38 +114,38 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
         undefined
     end.
 
-change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars) when ?IS_DICT(Value) ->
-    lists:foldl(fun({Root,Val}, NewVars) ->
-        ?DICT:store(Root, Val, NewVars)
-    end, ?DICT:new(), ?DICT:to_list(Value));
+change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars) when ?IS_ARRAY(Value) ->
+    ephp_array:fold(fun(Root, Val, NewVars) ->
+        ephp_array:store(Root, Val, NewVars)
+    end, ephp_array:new(), Value);
 
 change(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Value, Vars) ->
     change(#variable{name=Root, idx=Idx}, Value, Vars);
 
 change(#variable{name=Root, idx=[]}=_Var, undefined, Vars) ->
-    ?DICT:erase(Root, Vars);
+    ephp_array:erase(Root, Vars);
 
 change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
-    case ?DICT:find(Root, Vars) of
+    case ephp_array:find(Root, Vars) of
     {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
         set(RefVarsPID, RefVar, Value),
         Vars;
     _ ->
-        ?DICT:store(Root, Value, Vars)
+        ephp_array:store(Root, Value, Vars)
     end;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars) ->
-    {ok, #reg_instance{context=Ctx}} = ?DICT:find(Root, Vars),
+    {ok, #reg_instance{context=Ctx}} = ephp_array:find(Root, Vars),
     ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
     Vars;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var, Value, Vars) ->
-    {ok, #reg_instance{context=Ctx}} = ?DICT:find(Root, Vars),
+    {ok, #reg_instance{context=Ctx}} = ephp_array:find(Root, Vars),
     ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
     Vars;
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
-    case ?DICT:find(Root, Vars) of
+    case ephp_array:find(Root, Vars) of
     {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
         NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
         set(RefVarsPID, NewRefVar, Value),
@@ -153,10 +153,10 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     {ok, #reg_instance{context=Ctx}} ->
         ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
         Vars;
-    {ok, NewVars} when ?IS_DICT(NewVars) ->
-        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
+    {ok, NewVars} when ?IS_ARRAY(NewVars) ->
+        ephp_array:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
             NewVars), Vars);
     _ ->
-        ?DICT:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
-            ?DICT:new()), Vars)
+        ephp_array:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
+            ephp_array:new()), Vars)
     end.

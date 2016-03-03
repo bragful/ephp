@@ -26,7 +26,7 @@ gettype(Value) when is_boolean(Value) -> <<"boolean">>;
 gettype(Value) when is_integer(Value) -> <<"integer">>;
 gettype(Value) when is_float(Value) -> <<"float">>;
 gettype(Value) when is_binary(Value) -> <<"string">>;
-gettype(Value) when ?IS_DICT(Value) -> <<"array">>;
+gettype(Value) when ?IS_ARRAY(Value) -> <<"array">>;
 gettype(Value) when is_record(Value, reg_instance) -> <<"object">>;
 gettype(Value) when is_pid(Value) -> <<"resource">>;
 gettype(Value) when is_record(Value, function) -> <<"object">>;
@@ -36,25 +36,25 @@ gettype(_) -> <<"unknown type">>.
 -spec to_bin(A :: binary() | string() | integer() | undefined) -> binary().
 
 to_bin(A) when is_binary(A) ->
-    A; 
+    A;
 
-to_bin(A) when ?IS_DICT(A) ->
+to_bin(A) when ?IS_ARRAY(A) ->
     <<"Array">>;
 
-to_bin(A) when is_list(A) -> 
+to_bin(A) when is_list(A) ->
     list_to_binary(A);
 
-to_bin(A) when is_integer(A) -> 
+to_bin(A) when is_integer(A) ->
     integer_to_binary(A);
 
-to_bin(A) when is_float(A) -> 
+to_bin(A) when is_float(A) ->
     float_to_binary(A, [{decimals, 100}, compact]);
 
 to_bin(true) -> <<"1">>;
 
 to_bin(false) -> <<>>;
 
-to_bin(undefined) -> <<>>. 
+to_bin(undefined) -> <<>>.
 
 -spec to_lower(binary()) -> binary().
 
@@ -72,7 +72,7 @@ increment_code(Code) when is_binary(Code) ->
     if
         (T >= $a andalso T < $z) orelse
         (T >= $A andalso T < $Z) orelse
-        (T >= $0 andalso T < $9) -> 
+        (T >= $0 andalso T < $9) ->
             <<H/binary,(T+1):8/integer>>;
         T =:= $z andalso H =/= <<>> ->
             NewH = increment_code(H),
@@ -94,7 +94,7 @@ increment_code(Code) when is_binary(Code) ->
     end.
 
 -spec to_bool(Value :: undefined | boolean() |
-    ?DICT_TYPE | integer() | float() | string() | binary()) -> boolean().
+    ephp_array() | integer() | float() | string() | binary()) -> boolean().
 
 to_bool(false) -> false;
 
@@ -106,17 +106,17 @@ to_bool(<<>>) -> false;
 
 to_bool([]) -> false;
 
-to_bool(Array) when ?IS_DICT(Array) -> ?DICT:new() =/= Array;
+to_bool(Array) when ?IS_ARRAY(Array) -> ephp_array:new() =/= Array;
 
 to_bool(_Other) -> true.
 
 
--spec zero_if_undef(Value :: undefined | 
-    ?DICT_TYPE | integer() | float() | string() | binary()) -> integer().
+-spec zero_if_undef(Value :: undefined |
+    ephp_array() | integer() | float() | string() | binary()) -> integer().
 
 zero_if_undef(undefined) -> 0;
 
-zero_if_undef(Value) when ?IS_DICT(Value) -> throw(einvalidop);
+zero_if_undef(Value) when ?IS_ARRAY(Value) -> throw(einvalidop);
 
 zero_if_undef(Value) when not is_number(Value) -> 0;
 

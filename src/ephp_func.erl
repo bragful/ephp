@@ -45,7 +45,7 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    erlang:put(Ref, dict:new()),
     {ok, Ref}.
 
 destroy(Funcs) ->
@@ -54,7 +54,7 @@ destroy(Funcs) ->
 get(Ref, FuncName) ->
     Funcs = erlang:get(Ref),
     IFuncName = ephp_util:to_lower(FuncName),
-    ?DICT:find(IFuncName, Funcs).
+    dict:find(IFuncName, Funcs).
 
 get_functions(Ref) ->
     Funcs = erlang:get(Ref),
@@ -62,7 +62,7 @@ get_functions(Ref) ->
         (#reg_func{name=Name, type=builtin}) -> {Name, <<"internal">>};
         (#reg_func{name=Name, type=php}) -> {Name, <<"user">>}
     end,
-    [ Get(FuncName) || {_,FuncName} <- ?DICT:to_list(Funcs) ].
+    [ Get(FuncName) || {_,FuncName} <- dict:to_list(Funcs) ].
 
 register_func(Ref, PHPFunc, Module, Fun)
         when is_atom(Module) andalso is_atom(Fun) ->
@@ -76,7 +76,7 @@ register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) ->
         type=builtin,
         builtin=Fun,
         pack_args=PackArgs},
-    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
+    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok;
 
 register_func(Ref, PHPFunc, Args, Code) ->
@@ -94,7 +94,7 @@ register_func(Ref, PHPFunc, Module, Fun, PackArgs)
         type=builtin,
         builtin={Module, Fun},
         pack_args=PackArgs},
-    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
+    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok;
 
 register_func(Ref, PHPFunc, Args, Code, PackArgs) ->
@@ -106,7 +106,7 @@ register_func(Ref, PHPFunc, Args, Code, PackArgs) ->
         args=Args,
         code=Code,
         pack_args=PackArgs},
-    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
+    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok.
 
 

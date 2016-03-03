@@ -33,7 +33,7 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    erlang:put(Ref, dict:new()),
     {ok, Ref}.
 
 destroy(Classes) ->
@@ -41,7 +41,7 @@ destroy(Classes) ->
 
 get(Ref, ClassName) ->
     Classes = erlang:get(Ref),
-    case ?DICT:find(ClassName, Classes) of
+    case dict:find(ClassName, Classes) of
         {ok, {alias, NewClassName}} ->
             get(Ref, NewClassName);
         {ok, Class} ->
@@ -52,7 +52,7 @@ get(Ref, ClassName) ->
 
 set(Ref, ClassName, Class) ->
     Classes = erlang:get(Ref),
-    NC = ?DICT:store(ClassName, Class, Classes),
+    NC = dict:store(ClassName, Class, Classes),
     erlang:put(Ref, NC),
     ok.
 
@@ -71,11 +71,11 @@ register_class(Ref, GlobalCtx, #class{name=Name,constants=ConstDef}=PHPClass) ->
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         constants = lists:foldl(fun(#class_const{name=N,value=V}, D) ->
-            ?DICT:store(N,ephp_context:solve(Ctx, V),D)
-        end, ?DICT:new(), ConstDef)
+            dict:store(N,ephp_context:solve(Ctx, V),D)
+        end, dict:new(), ConstDef)
     },
     initialize_class(ActivePHPClass),
-    erlang:put(Ref, ?DICT:store(Name, ActivePHPClass, Classes)),
+    erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
     ok.
 
 instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
@@ -168,7 +168,7 @@ get_const(Ref, ClassName, ConstName) ->
     get_const(Class, ConstName).
 
 get_const(#class{constants=Const}, ConstName) ->
-    case ?DICT:find(ConstName, Const) of
+    case dict:find(ConstName, Const) of
         {ok, Value} -> Value;
         error -> ConstName
     end.

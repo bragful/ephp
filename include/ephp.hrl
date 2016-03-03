@@ -1,25 +1,13 @@
-
--ifdef(FAST_DICT_MODE).
--define(DICT, dict).
--define(IS_DICT(D), (element(1, D) =:= dict)).
--else.
--define(DICT, orddict).
-%% FIXME: do a better way to do this:
--define(IS_DICT(D), (is_list(D))).
--endif.
-
--ifndef(OLD_DICT_TYPE).
--define(DICT_TYPE, (dict:dict())).
--else.
--define(DICT_TYPE, (dict())).
--endif.
+%% Author: Manuel Rubio <manuel@altenwald.com>
 
 -define(PHP_INI_FILE, <<"php.ini">>).
--define(PHP_VERSION, <<"5.2.0">>).
+-define(PHP_VERSION, <<"5.5.0">>).
 
 -define(PATH_SEP, <<":">>).
 
 -define(FUNC_ANON_NAME, <<"{closure}">>).
+
+-define(IS_ARRAY(A), ((element(1, A) =:= ephp_array))).
 
 % built-in modules
 -define(MODULES, [
@@ -64,8 +52,16 @@
 
 -type file_name() :: binary().
 
+-record(ephp_array, {
+    size = 0 :: pos_integer(),
+    values = [] :: [any()],
+    last_num_index = 0 :: pos_integer()
+}).
+
+-type ephp_array() :: #ephp_array{}.
+
 -type mixed() ::
-    integer() | float() | binary() | boolean() | ?DICT_TYPE | null.
+    integer() | float() | binary() | boolean() | ephp_array() | null.
 
 -type var_value() :: {variable(), mixed()}.
 
@@ -321,7 +317,7 @@
     type = normal :: class_type(),
     extends :: undefined | class_name(),
     implements = [] :: [class_name()],
-    constants = ?DICT:new() :: ?DICT_TYPE,
+    constants = dict:new(),
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     line :: line(),
@@ -352,5 +348,5 @@
     id :: pos_integer(),
     class :: class(),
     instance :: instance(),
-    context = ?DICT:new() :: ?DICT_TYPE
+    context = ephp_array:new() :: ephp_array()
 }).

@@ -27,8 +27,8 @@ start_link() ->
         {<<"__FILE__">>, <<>>}
     ],
     Consts = lists:foldl(fun({K,V},C) ->
-        ?DICT:store(K,V,C)
-    end, ?DICT:new(), Init),
+        dict:store(K,V,C)
+    end, dict:new(), Init),
     erlang:put(Ref, Consts),
     [ set_bulk(Ref, Module:init_consts()) || Module <- ?CONST_MODULES ],
     {ok, Ref}.
@@ -38,7 +38,7 @@ get(Ref, Name) ->
 
 get(Ref, Name, Line, Context) ->
     Const = erlang:get(Ref),
-    case ?DICT:find(Name, Const) of
+    case dict:find(Name, Const) of
         {ok, Value} ->
             Value;
         error when Context =:= undefined ->
@@ -52,12 +52,12 @@ get(Ref, Name, Line, Context) ->
 
 set_bulk(Ref, Values) ->
     erlang:put(Ref, lists:foldl(fun({Name, Value}, Const) ->
-        ?DICT:store(Name, Value, Const)
+        dict:store(Name, Value, Const)
     end, erlang:get(Ref), Values)).
 
 set(Ref, Name, Value) ->
     Const = erlang:get(Ref),
-    erlang:put(Ref, ?DICT:store(Name, Value, Const)),
+    erlang:put(Ref, dict:store(Name, Value, Const)),
     ok.
 
 destroy(Const) ->

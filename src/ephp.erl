@@ -40,19 +40,19 @@
 
 -include("ephp.hrl").
 
--spec context_new() -> 
+-spec context_new() ->
     {ok, context()} | {error, Reason::term()}.
 
 context_new() ->
     context_new(undefined).
 
--spec context_new(Filename :: binary()) -> 
+-spec context_new(Filename :: binary()) ->
     {ok, context()} | {error, Reason::term()}.
 
 context_new(Filename) ->
     Modules = ?MODULES,
     case ephp_context:start_link() of
-        {ok, Ctx} -> 
+        {ok, Ctx} ->
             [ register_module(Ctx, Module) || Module <- Modules ],
             ephp_context:set_active_file(Ctx, Filename),
             {ok, Ctx};
@@ -60,24 +60,24 @@ context_new(Filename) ->
             Error
     end.
 
--type values() :: integer() | binary() | float() | ?DICT_TYPE.
+-type values() :: integer() | binary() | float() | ephp_array().
 
 -spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.
 
 register_var(Ctx, Var, Value) when
-        is_reference(Ctx) andalso 
-        (is_integer(Value) orelse 
+        is_reference(Ctx) andalso
+        (is_integer(Value) orelse
         is_float(Value) orelse
         is_binary(Value) orelse
-        ?IS_DICT(Value)) ->
+        ?IS_ARRAY(Value)) ->
     ephp_context:set(Ctx, #variable{name=Var}, Value);
 
 register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
 -spec register_func(
-    Ctx :: context(), PHPName :: binary(), 
+    Ctx :: context(), PHPName :: binary(),
     Module :: atom(), Fun :: atom(),
     PackArgs :: boolean()) -> ok | {error, reason()}.
 
@@ -97,22 +97,22 @@ register_module(Ctx, Module) ->
             ephp:register_func(Ctx, Name, Module, Func, false)
     end, Module:init_func()).
 
--spec run(Context :: context(), Compiled :: [statement()]) -> 
+-spec run(Context :: context(), Compiled :: [statement()]) ->
     {ok, binary()} | {error, Reason::reason()}.
 
 run(Context, Compiled) ->
     ephp_interpr:process(Context, Compiled).
 
--spec eval(Context :: context(), PHP :: string() | binary()) -> 
-    {ok, Result :: binary()} | {error, Reason :: reason()} | 
+-spec eval(Context :: context(), PHP :: string() | binary()) ->
+    {ok, Result :: binary()} | {error, Reason :: reason()} |
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
 
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
 -spec eval(Filename :: binary(), Context :: context(),
-        PHP :: string() | binary()) -> 
-    {ok, Result :: binary()} | {error, Reason :: reason()} | 
+        PHP :: string() | binary()) ->
+    {ok, Result :: binary()} | {error, Reason :: reason()} |
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
 
 eval(Filename, Context, PHP) ->

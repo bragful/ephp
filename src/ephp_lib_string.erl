@@ -35,7 +35,7 @@ init_func() -> [
     strtolower,
     strtoupper,
     str_split
-]. 
+].
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
 
@@ -72,12 +72,12 @@ chr(_Context, _Line, _Var) ->
 -spec implode(context(), line(),
     Glue :: var_value(), Pieces :: var_value()) -> binary().
 
-implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_DICT(Glue) ->
+implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
     implode(Context, Line, VarGlue);
 
 implode(_Context, _Line, {_,RawGlue}, {_,Pieces}) ->
     Glue = ephp_util:to_bin(RawGlue),
-    ListOfPieces = ?DICT:fold(fun(_Key, Piece, SetOfPieces) -> 
+    ListOfPieces = ephp_array:fold(fun(_Key, Piece, SetOfPieces) ->
         SetOfPieces ++ [ephp_util:to_bin(Piece)]
     end, [], Pieces),
     case ListOfPieces of
@@ -91,20 +91,19 @@ implode(Context, Line, Pieces) ->
     implode(Context, Line, <<>>, Pieces).
 
 -spec explode(context(), line(), Delimiter :: var_value(), String :: var_value())
-    -> ?DICT_TYPE.
+    -> ephp_array().
 
 explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     Pieces = binary:split(String, Delimiter, [global]),
-    {_,Res} = lists:foldl(fun(Piece, {I,Explode}) ->
-        {I+1, ?DICT:store(I, Piece, Explode)}
-    end, {0,?DICT:new()}, Pieces),
-    Res.
+    lists:foldl(fun(Piece, Explode) ->
+        ephp_array:store(auto, Piece, Explode)
+    end, ephp_array:new(), Pieces).
 
 -spec explode(
     context(), line(),
     Delimiter :: var_value(),
     String :: var_value(),
-    Limit :: var_value()) -> ?DICT_TYPE.
+    Limit :: var_value()) -> ephp_array().
 
 explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
@@ -118,22 +117,22 @@ explode(_Context, _Line, _Delimiter, {_,String}, {_,0}) ->
     String;
 
 explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
-    split_limit(Delimiter, String, ?DICT:new(), Limit-1, 0).
+    split_limit(Delimiter, String, ephp_array:new(), Limit-1, 0).
 
 -spec str_replace(context(), line(),
     Search :: var_value(), Replace :: var_value(),
     Subject :: var_value()) -> binary().
 
 str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject})
-        when ?IS_DICT(Search) andalso is_binary(Replace) ->
-    ?DICT:fold(fun(_,V,Sub) ->
+        when ?IS_ARRAY(Search) andalso is_binary(Replace) ->
+    ephp_array:fold(fun(_,V,Sub) ->
         binary:replace(Sub, V, Replace, [global])
     end, Subject, Search);
 
 str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject})
-        when ?IS_DICT(Search) andalso ?IS_DICT(Replace) ->
-    A = ?DICT:to_list(Search),
-    B = ?DICT:to_list(Replace),
+        when ?IS_ARRAY(Search) andalso ?IS_ARRAY(Replace) ->
+    A = ephp_array:to_list(Search),
+    B = ephp_array:to_list(Replace),
     Lists = lists:zipwith(fun({_,V1}, {_,V2}) -> {V1,V2} end, A, B),
     lists:foldl(fun({Source, Target}, Sub) ->
         binary:replace(Sub, Source, Target, [global])
@@ -160,13 +159,13 @@ strtolower(_Context, _Line, {_, Text}) ->
 strtoupper(_Context, _Line, {_, Text}) ->
     unistring:to_upper(ephp_util:to_bin(Text)).
 
--spec str_split(context(), line(), Text :: var_value()) -> ?DICT_TYPE.
+-spec str_split(context(), line(), Text :: var_value()) -> ephp_array().
 
 str_split(Context, Line, Text) ->
     str_split(Context, Line, Text, {1, 1}).
 
 -spec str_split(context(), line(),
-    Text :: var_value(), Size :: var_value()) -> ?DICT_TYPE | undefined.
+    Text :: var_value(), Size :: var_value()) -> ephp_array() | undefined.
 
 str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     File = ephp_context:get_active_file(Context),
@@ -176,7 +175,7 @@ str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     undefined;
 
 str_split(_Context, _Line, {_, Text}, {_, Size}) ->
-    split_chars(Text, ?DICT:new(), 0, Size).
+    split_chars(Text, ephp_array:new(), 0, Size).
 
 
 %% ----------------------------------------------------------------------------
@@ -189,9 +188,9 @@ split_chars(<<>>, Parts, _I, _Size) ->
 split_chars(String, Parts, I, Size) when is_integer(Size) ->
     case String of
         <<Text:Size/binary,Rest/binary>> ->
-            split_chars(Rest, ?DICT:store(I, Text, Parts), I+1, Size);
+            split_chars(Rest, ephp_array:store(I, Text, Parts), I+1, Size);
         <<Text/binary>> ->
-            ?DICT:store(I, Text, Parts);
+            ephp_array:store(I, Text, Parts);
         <<>> ->
             Parts
     end;
@@ -201,13 +200,13 @@ split_chars(_String, _Parts, _I, _Size) ->
 
 
 split_limit(_Delimiter, String, Parts, Limit, Limit) ->
-    ?DICT:store(Limit, String, Parts);
+    ephp_array:store(Limit, String, Parts);
 
 split_limit(Delimiter, String, Parts, Limit, Index) ->
     case binary:split(String, Delimiter) of
         [Part,RestString] ->
-            NewParts = ?DICT:store(Index, Part, Parts),
+            NewParts = ephp_array:store(Index, Part, Parts),
             split_limit(Delimiter, RestString, NewParts, Limit, Index+1);
         [LastPart] ->
-            ?DICT:store(Index, LastPart, Parts)
+            ephp_array:store(Index, LastPart, Parts)
     end.

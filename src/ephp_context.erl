@@ -387,7 +387,7 @@ resolve(N, State) when is_number(N) ->
 resolve(S, State) when is_binary(S) ->
     {S, State};
 
-resolve(A, State) when ?IS_DICT(A) ->
+resolve(A, State) when ?IS_ARRAY(A) ->
     {A, State};
 
 resolve(#float{float=Float}, State) ->
@@ -470,7 +470,7 @@ resolve({post_decr, Var, _Line}, State) ->
     end;
 
 resolve({operation_not, Expr, _Line}, State) ->
-    EmptyArray = ?DICT:new(),
+    EmptyArray = ephp_array:new(),
     case resolve(Expr, State) of
         {false, NewState} -> {true, NewState};
         {<<>>, NewState} -> {true, NewState};
@@ -503,20 +503,15 @@ resolve(#variable{}=Var, State) ->
     resolve_var(Var, State);
 
 resolve(#array{elements=ArrayElements}, State) ->
-    {_I,Array,NState} = lists:foldl(fun
-        (#array_element{idx=auto, element=Element}, {I,Dict,NS}) ->
+    {Array,NState} = lists:foldl(fun
+        (#array_element{idx=auto,element=Element}, {Dict,NS}) ->
             {Value, NewState} = resolve(Element,NS),
-            {I+1,?DICT:store(I,Value,Dict),NewState};
-        (#array_element{idx=I, element=Element}, {INum,Dict,NS}) ->
+            {ephp_array:store(auto,Value,Dict),NewState};
+        (#array_element{idx=I, element=Element}, {Dict,NS}) ->
             {Value, NewState} = resolve(Element,NS),
             {Idx, ReNewState} = resolve(I,NewState),
-            if
-            is_integer(Idx) ->
-                {Idx+1,?DICT:store(Idx,Value,Dict),ReNewState};
-            true ->
-                {INum,?DICT:store(Idx,Value,Dict),ReNewState}
-            end
-    end, {0,?DICT:new(),State}, ArrayElements),
+            {ephp_array:store(Idx,Value,Dict), ReNewState}
+    end, {ephp_array:new(),State}, ArrayElements),
     {Array, NState};
 
 resolve(#concat{texts=Texts}, State) ->
@@ -847,11 +842,8 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
             Value = case ephp_vars:get(Vars, NewEntry, State#state.ref) of
             undefined ->
                 0;
-            Array when ?IS_DICT(Array) ->
-                ?DICT:fold(fun
-                    (K,_V,Max) when is_integer(K) andalso K >= Max -> K+1;
-                    (_K,_V,Max) -> Max
-                end, 0, Array);
+            Array when ?IS_ARRAY(Array) ->
+                ephp_array:last_index(Array);
             _Array ->
                 ephp_error:handle_error(State#state.ref, {error, enoarray,
                     Var#variable.line, ?E_WARNING, State#state.active_file}),
