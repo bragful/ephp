@@ -711,7 +711,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
     ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, MethodName},
-        {<<"__CLASSNAME__">>, Class#class.name}
+        {<<"__CLASS__">>, Class#class.name}
     ]),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
@@ -721,7 +721,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
     ephp_vars:destroy(NewVars),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, State#state.active_fun},
-        {<<"__CLASSNAME__">>, State#state.active_class}
+        {<<"__CLASS__">>, State#state.active_class}
     ]),
     {Value, NState}.
 
