@@ -214,6 +214,12 @@ get_message(eundefconst, Line, _Level, {File, Const}) ->
         " on line ~p~n",
         [Const, Const, File, Line]);
 
+get_message(enotostring, Line, _Level, {File, ClassName}) ->
+    io_lib:format(
+        "~nCatchable fatal error: Object of class ~s could not be converted "
+        "to string in ~s on line ~p~n",
+        [ClassName, File, Line]);
+
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
         "~nFatal error: unknown ~p for ~p in line ~p~n",
@@ -238,7 +244,7 @@ get_level(?E_USER_ERROR) -> <<"Error">>;
 get_level(?E_USER_WARNING) -> <<"Warning">>;
 get_level(?E_USER_NOTICE) -> <<"Notice">>;
 get_level(?E_STRICT) -> <<"Strict">>;
-get_level(?E_RECOVERABLE_ERROR) -> <<"Error">>;
+get_level(?E_RECOVERABLE_ERROR) -> <<"Catchable fatal error">>;
 get_level(?E_DEPRECATED) -> <<"Deprecated">>;
 get_level(?E_USER_DEPRECATED) -> <<"Deprecated">>;
 get_level(_) -> <<"Unknown">>.

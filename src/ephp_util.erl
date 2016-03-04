@@ -5,6 +5,7 @@
 -export([
     gettype/1,
     to_bin/1,
+    to_bin/3,
     to_lower/1,
     increment_code/1,
     to_bool/1,
@@ -55,6 +56,22 @@ to_bin(true) -> <<"1">>;
 to_bin(false) -> <<>>;
 
 to_bin(undefined) -> <<>>.
+
+-spec to_bin(context(), line(),
+             A :: binary() | string() | integer() | undefined) -> binary().
+
+to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
+    try
+        Call = #call{name = <<"__toString">>},
+        ephp_context:call_method(Context, RegInstance, Call)
+    catch
+        throw:{error,eundefmethod,_,_,<<"__toString">>} ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:error({error, enotostring, Line, ?E_ERROR, {File, CN}})
+    end;
+
+to_bin(_Context, _Line, Val) ->
+    to_bin(Val).
 
 -spec to_lower(binary()) -> binary().
 

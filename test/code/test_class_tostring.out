@@ -1,0 +1,3 @@
+B<class>
+
+Catchable fatal error: Object of class A could not be converted to string in {{CWD}}/test/code/test_class_tostring.php on line 14

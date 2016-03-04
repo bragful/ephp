@@ -396,8 +396,8 @@ resolve(#float{float=Float}, State) ->
 resolve(#text{text=Text}, State) ->
     {Text, State};
 
-resolve(#text_to_process{text=Texts}, State) ->
-    resolve_txt(Texts, State);
+resolve(#text_to_process{text=Texts, line=Line}, State) ->
+    resolve_txt(Texts, Line, State);
 
 resolve({pre_incr, Var, _Line}, State) ->
     case catch get_var_path(Var, State) of
@@ -514,8 +514,8 @@ resolve(#array{elements=ArrayElements}, State) ->
     end, {ephp_array:new(),State}, ArrayElements),
     {Array, NState};
 
-resolve(#concat{texts=Texts}, State) ->
-    resolve_txt(Texts, State);
+resolve(#concat{texts=Texts, line=Line}, State) ->
+    resolve_txt(Texts, Line, State);
 
 resolve(#call{name=#function{args=RawFuncArgs,code=Code,use=Use},args=RawArgs},
         #state{ref=Ref,vars=Vars,const=Const}=State) ->
@@ -857,7 +857,7 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
     Var#variable{idx=NewIndexes}.
 
 
-resolve_txt(Texts, State) ->
+resolve_txt(Texts, Line, State) ->
     lists:foldr(fun
         (true, {ResultTxt,NS}) ->
             {<<"1",ResultTxt/binary>>,NS};
@@ -869,7 +869,7 @@ resolve_txt(Texts, State) ->
             {<<Data/binary,ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when is_tuple(Data) ->
             {TextRaw,NewState} = resolve(Data, NS),
-            Text = ephp_util:to_bin(TextRaw),
+            Text = ephp_util:to_bin(NS#state.ref, Line, TextRaw),
             {<<Text/binary,ResultTxt/binary>>,NewState}
     end, {<<>>,State}, Texts).
 

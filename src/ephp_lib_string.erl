@@ -75,10 +75,10 @@ chr(_Context, _Line, _Var) ->
 implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
     implode(Context, Line, VarGlue);
 
-implode(_Context, _Line, {_,RawGlue}, {_,Pieces}) ->
-    Glue = ephp_util:to_bin(RawGlue),
+implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
+    Glue = ephp_util:to_bin(Context, Line, RawGlue),
     ListOfPieces = ephp_array:fold(fun(_Key, Piece, SetOfPieces) ->
-        SetOfPieces ++ [ephp_util:to_bin(Piece)]
+        SetOfPieces ++ [ephp_util:to_bin(Context, Line, Piece)]
     end, [], Pieces),
     case ListOfPieces of
         [] -> <<>>;
@@ -151,13 +151,13 @@ str_replace(Context, _Line, {_, Search}, {_, Replace}, {_, Subject}, {Count,_}) 
 
 -spec strtolower(context(), line(), Text :: var_value()) -> binary().
 
-strtolower(_Context, _Line, {_, Text}) ->
-    unistring:to_lower(ephp_util:to_bin(Text)).
+strtolower(Context, Line, {_, Text}) ->
+    unistring:to_lower(ephp_util:to_bin(Context, Line, Text)).
 
 -spec strtoupper(context(), line(), Text :: var_value()) -> binary().
 
-strtoupper(_Context, _Line, {_, Text}) ->
-    unistring:to_upper(ephp_util:to_bin(Text)).
+strtoupper(Context, Line, {_, Text}) ->
+    unistring:to_upper(ephp_util:to_bin(Context, Line, Text)).
 
 -spec str_split(context(), line(), Text :: var_value()) -> ephp_array().
 
