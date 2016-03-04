@@ -8,6 +8,7 @@
     init_consts/0,
 
     set_output/2,
+    set_output_handler/2,
 
     run_quiet/2,
 
@@ -105,6 +106,14 @@ handle_error(Context, {error, Type, Index, Level, Data}) ->
 
 set_output(Context, Text) ->
     ephp_context:set_output(Context, Text).
+
+-spec set_output_handler(context(), module()) -> ok.
+
+set_output_handler(Context, Module) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{handler=Module}),
+    ok.
 
 -spec run_quiet(ephp:errors_id(), function()) -> ok.
 
