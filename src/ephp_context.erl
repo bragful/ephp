@@ -7,6 +7,7 @@
 -record(state, {
     ref :: ephp:context_id(),
     vars :: ephp:vars_id(),
+    data :: ephp:data_id(),
     funcs :: ephp:funcs_id(),
     class :: ephp:classes_id(),
     timezone = "Europe/Madrid" :: string(),
@@ -92,6 +93,7 @@ start_link() ->
     {ok, Class} = ephp_class:start_link(),
     {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, Errors} = ephp_error:start_link(),
+    {ok, Data} = ephp_data:start_link(),
     start_link(#state{
         ref = Ref,
         output = Output,
@@ -100,7 +102,8 @@ start_link() ->
         const = Const,
         include = Inc,
         shutdown = Shutdown,
-        errors = Errors
+        errors = Errors,
+        data = Data
     }).
 
 start_link(#state{ref=undefined}=State) ->
@@ -109,8 +112,8 @@ start_link(#state{ref=undefined}=State) ->
 start_link(#state{ref=Ref, global=Ref}) when is_reference(Ref) ->
     throw({error, ecyclerefs});
 
-start_link(#state{ref=Ref}=State) when is_reference(Ref) ->
-    {ok, Vars} = ephp_vars:start_link(),
+start_link(#state{ref=Ref, data=Data}=State) when is_reference(Ref) ->
+    {ok, Vars} = ephp_vars:start_link(Data),
     erlang:put(Ref, State#state{
         ref = Ref,
         vars = Vars
@@ -147,6 +150,7 @@ destroy_all(Context) ->
     ephp_include:destroy(State#state.include),
     ephp_func:destroy(State#state.funcs),
     ephp_error:destroy(State#state.errors),
+    ephp_data:destroy(State#state.data),
     destroy(Context).
 
 get_state(Context) ->
@@ -521,7 +525,7 @@ resolve(#call{name=#function{args=RawFuncArgs,code=Code,use=Use},args=RawArgs},
         #state{ref=Ref,vars=Vars,const=Const}=State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
-    {ok, NewVars} = ephp_vars:start_link(),
+    {ok, NewVars} = ephp_vars:start_link(State#state.data),
     {ok, SubContext} = start_mirror(NState#state{
         vars=NewVars,
         global=Ref,
@@ -574,7 +578,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
     {ok,#reg_func{type=php, args=RawFuncArgs, code=Code}} ->
         {Args, NStatePrev} = resolve_args(RawArgs, State),
         {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
-        {ok, NewVars} = ephp_vars:start_link(),
+        {ok, NewVars} = ephp_vars:start_link(State#state.data),
         {ok, SubContext} = start_mirror(NState#state{
             vars=NewVars,
             global=Ref,
@@ -691,7 +695,7 @@ resolve_args(RawArgs, State) ->
 run_method(RegInstance, #call{args=RawArgs}=Call,
         #state{ref=Ref, const=Const, vars=Vars}=State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
-    {ok, NewVars} = ephp_vars:start_link(),
+    {ok, NewVars} = ephp_vars:start_link(State#state.data),
     Class = case RegInstance of
     #reg_instance{class=C} ->
         ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance),

@@ -353,8 +353,8 @@
 
 -record(ephp_data, {
     id :: reference(),
-    count :: non_neg_integer(),
-    data :: null | any()
+    count = 1 :: non_neg_integer(),
+    data = null :: null | any()
 }).
 
 -type ephp_data() :: #ephp_data{}.

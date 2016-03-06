@@ -25,7 +25,8 @@
     consts_id/0,
     includes_id/0,
     shutdown_id/0,
-    errors_id/0
+    errors_id/0,
+    data_id/0
 ]).
 
 -opaque context_id() :: reference().
@@ -37,6 +38,7 @@
 -opaque includes_id() :: reference().
 -opaque shutdown_id() :: reference().
 -opaque errors_id() :: reference().
+-opaque data_id() :: reference().
 
 -include("ephp.hrl").
 

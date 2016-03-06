@@ -19,29 +19,30 @@
     destroy/1
 ]).
 
+-record(vars, {
+    vars = ephp_array:new() :: ephp_array(),
+    data :: reference()
+}).
+
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
-start_link() ->
-    %% FIXME : PHP use a table for variables for hard reference to the
-    %%         values so, when you use a reference, this creates a link
-    %%         to the data instead of a link to the original variable.
-    %%         The behaviour is, when you 'unset' a variable, you only
-    %%         remove the link to the data and, if the data has 0 links
-    %%         then the data is removed.
+start_link(DataID) ->
     Ref = make_ref(),
-    erlang:put(Ref, ephp_array:new()),
+    erlang:put(Ref, #vars{data=DataID}),
     {ok, Ref}.
 
 get(Context, VarPath) ->
     get(Context, VarPath, undefined).
 
 get(Context, VarPath, ContextRef) ->
-    search(VarPath, erlang:get(Context), ContextRef).
+    search(VarPath, (erlang:get(Context))#vars.vars, ContextRef).
 
 set(Context, VarPath, Value) ->
-    erlang:put(Context, change(VarPath, Value, erlang:get(Context))),
+    #vars{vars=Vars} = VarsSt = erlang:get(Context),
+    NewVars = change(VarPath, Value, VarsSt)
+    erlang:put(Context, VarsSt#vars{vars=NewVars}),
     ok.
 
 ref(Context, VarPath, VarsPID, RefVarPath) ->
