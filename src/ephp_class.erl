@@ -15,11 +15,16 @@
     get/2,
     get_constructor/1,
     get_destructor/1,
+    get_attribute/3,
+    get_attribute/2,
     get_method/2,
     get_method/3,
+    get_const/2,
+    get_const/3,
 
     register_class/3,
-    instance/4
+    set_alias/3,
+    instance/5
 ]).
 
 %% ------------------------------------------------------------------
@@ -28,7 +33,7 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    erlang:put(Ref, dict:new()),
     {ok, Ref}.
 
 destroy(Classes) ->
@@ -36,30 +41,45 @@ destroy(Classes) ->
 
 get(Ref, ClassName) ->
     Classes = erlang:get(Ref),
-    ?DICT:find(ClassName, Classes).
+    case dict:find(ClassName, Classes) of
+        {ok, {alias, NewClassName}} ->
+            get(Ref, NewClassName);
+        {ok, Class} ->
+            {ok, Class};
+        error ->
+            {error, enoexist}
+    end.
 
 set(Ref, ClassName, Class) ->
     Classes = erlang:get(Ref),
-    NC = ?DICT:store(ClassName, Class, Classes),
+    NC = dict:store(ClassName, Class, Classes),
     erlang:put(Ref, NC),
     ok.
 
-register_class(Ref, GlobalCtx, #class{name=Name}=PHPClass) ->
+set_alias(Ref, ClassName, AliasName) ->
+    case get(Ref, ClassName) of
+        {ok, _Class} ->
+            set(Ref, AliasName, {alias, ClassName});
+        {error, enoexist} ->
+            {error, enoexist}
+    end.
+
+register_class(Ref, GlobalCtx, #class{name=Name,constants=ConstDef}=PHPClass) ->
     Classes = erlang:get(Ref),
     {ok, Ctx} = ephp_context:start_link(),
     ephp_context:set_global(Ctx, GlobalCtx),
     ActivePHPClass = PHPClass#class{
-        static_context = Ctx
+        static_context = Ctx,
+        constants = lists:foldl(fun(#class_const{name=N,value=V}, D) ->
+            dict:store(N,ephp_context:solve(Ctx, V),D)
+        end, dict:new(), ConstDef)
     },
     initialize_class(ActivePHPClass),
-    erlang:put(Ref, ?DICT:store(Name, ActivePHPClass, Classes)),
+    erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
     ok.
 
-instance(Ref, GlobalCtx, ClassName, Line) ->
-    case get(Ref, ClassName) of
-    error ->
-        File = ephp_context:get_active_file(GlobalCtx),
-        ephp_error:error({error, eundefclass, Line, {File, ClassName}});
+instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
+    case get(Ref, RawClassName) of
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
@@ -70,13 +90,17 @@ instance(Ref, GlobalCtx, ClassName, Line) ->
             context=Ctx},
         initialize(Ctx, Class),
         set(Ref, ClassName, Class#class{instance_counter=InsCount}),
-        RegClass
+        RegClass;
+    {error, enoexist} ->
+        File = ephp_context:get_active_file(LocalCtx),
+        ephp_error:error({error, eundefclass, Line, ?E_ERROR,
+            {File, RawClassName}})
     end.
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
     lists:foreach(fun
         (#class_attr{type=static, name=Name, init_value=RawVal}) ->
-            Val = ephp_context:solve(Ctx, RawVal), 
+            Val = ephp_context:solve(Ctx, RawVal),
             ephp_context:set(Ctx, #variable{name=Name}, Val);
         (#class_attr{type=normal}) ->
             ignore
@@ -85,7 +109,7 @@ initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
 initialize(Ctx, #class{attrs=Attrs}) ->
     lists:foreach(fun
         (#class_attr{type=normal, name=Name, init_value=RawVal}) ->
-            Val = ephp_context:solve(Ctx, RawVal), 
+            Val = ephp_context:solve(Ctx, RawVal),
             ephp_context:set(Ctx, #variable{name=Name}, Val);
         (#class_attr{type=static}) ->
             ignore
@@ -114,6 +138,18 @@ get_destructor(#class{methods=Methods}) ->
         ClassMethod
     end.
 
+get_attribute(Ref, ClassName, AttributeName) ->
+    {ok, Class} = get(Ref, ClassName),
+    get_attribute(Class, AttributeName).
+
+get_attribute(#class{attrs=Attrs}, AttributeName) ->
+    case lists:keyfind(AttributeName, #class_attr.name, Attrs) of
+    false ->
+        undefined;
+    #class_attr{}=ClassAttr ->
+        ClassAttr
+    end.
+
 get_method(Ref, ClassName, MethodName) ->
     {ok, Class} = get(Ref, ClassName),
     get_method(Class, MethodName).
@@ -122,9 +158,19 @@ get_method(#class{methods=Methods,line=Index}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        ephp_error:error({error, eundefmethod, Index, MethodName});
+        ephp_error:error({error, eundefmethod, Index, ?E_ERROR, MethodName});
     #class_method{}=ClassMethod ->
         ClassMethod
+    end.
+
+get_const(Ref, ClassName, ConstName) ->
+    {ok, Class} = get(Ref, ClassName),
+    get_const(Class, ConstName).
+
+get_const(#class{constants=Const}, ConstName) ->
+    case dict:find(ConstName, Const) of
+        {ok, Value} -> Value;
+        error -> ConstName
     end.
 
 %% ------------------------------------------------------------------

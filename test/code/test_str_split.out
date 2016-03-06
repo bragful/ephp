@@ -1,0 +1,51 @@
+array(11) {
+  [0]=>
+  string(1) "h"
+  [1]=>
+  string(1) "e"
+  [2]=>
+  string(1) "l"
+  [3]=>
+  string(1) "l"
+  [4]=>
+  string(1) "o"
+  [5]=>
+  string(1) " "
+  [6]=>
+  string(1) "w"
+  [7]=>
+  string(1) "o"
+  [8]=>
+  string(1) "r"
+  [9]=>
+  string(1) "l"
+  [10]=>
+  string(1) "d"
+}
+array(6) {
+  [0]=>
+  string(2) "he"
+  [1]=>
+  string(2) "ll"
+  [2]=>
+  string(2) "o "
+  [3]=>
+  string(2) "wo"
+  [4]=>
+  string(2) "rl"
+  [5]=>
+  string(1) "d"
+}
+array(4) {
+  [0]=>
+  string(3) "hel"
+  [1]=>
+  string(3) "lo "
+  [2]=>
+  string(3) "wor"
+  [3]=>
+  string(3) "ld!"
+}
+
+Warning: str_split() expects parameter 2 to be long, string given in {{CWD}}/test/code/test_str_split.php on line 6
+NULL

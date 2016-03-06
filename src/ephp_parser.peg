@@ -12,8 +12,11 @@ document_parse_error <- .+ `
     throw_error(eparse, Index, Input)
 `;
 
-document <- (!init_tag .)* code literal_block? / (!init_tag .)+ / init_tag space? document_parse_error `
-    case Node of 
+document <- (!init_tag .)* code literal_block? /
+            (!init_tag .)+ /
+            init_tag space? document_parse_error
+`
+    case Node of
         [TextLeft, [Type, Code, _EndTag], Chunk] ->
             Label = case Type of
                 init_tag when Code =:= [] -> [];
@@ -37,7 +40,9 @@ code_normal <- init_tag_code space? statements space? `
     [Init,Code,end_tag]
 `;
 
-code_expr <- init_value space? expression space? (literal_block / end_tag)+ `
+code_expr <- init_value space? (ternary / arith_mono / additive / conditions)
+             space? (literal_block / end_tag)+
+`
     [Init,_,CodeOne,_,End] = Node,
     Code = [ get_print(CodeOne, Index) | End ],
     [Init,Code,end_tag]
@@ -72,15 +77,58 @@ comment <- comment_shell / comment_c / comment_cpp ~;
 
 % Blocks
 
-literal_block <- (end_tag (document / code_expr) init_tag_code) / (end_tag (document / code_expr)) / end_tag `
+literal_block <- (end_tag (document / code_expr) init_tag_code) /
+                 (end_tag (document / code_expr)) /
+                 end_tag
+`
     case Node of
         end_tag -> [];
         [_,[],_] -> [];
         [_,[]] -> [];
-        [_,Document,_] -> 
+        [_,Document,_] ->
             lists:flatten(Document);
-        [_,Document] -> 
+        [_,Document] ->
             lists:flatten(Document)
+    end
+`;
+
+code_block_if_simple <- ':' space? statements space? endif ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_if_else <- ':' space? statements space? `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_while <- ':' space? statements space? endwhile ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_foreach <- ':' space? statements space? endforeach ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
+    end
+`;
+
+code_block_for <- ':' space? statements space? endfor ';' `
+    [_,_,Statements|_] = Node,
+    case Statements of
+        {error, Data} -> throw_error(eparse, Index, Data);
+        _ -> Statements
     end
 `;
 
@@ -88,12 +136,16 @@ code_block <- '{' space? ((statements space? '}') / error:code_parse_error) `
     [_,_,Statement|_] = Node,
     case Statement of
         {error, Data} -> throw_error(eparse, Index, Data);
-        [St,_,_] -> St
+        [St|_] -> St
     end
 `;
 
 % Class definition
-st_class <- (abstract space)? class space key (space extends space key)? (space implements space key (',' space? key)*)? space? '{' space? class_block space? '}' `
+
+st_class <- (abstract space)? class space key (space extends space key)?
+            (space implements space key (',' space? key)*)? space? '{' space?
+            class_block space? '}'
+`
     [Abstract,_Class,_,ClassName,Ext,Imp,_,_,_,ClassBlock,_,_] = Node,
     Type = case Abstract of
         [] -> normal;
@@ -127,7 +179,9 @@ class_constant <- const space key space? '=' space? expression space? ';' `
     #class_const{name=ConstName, value=Expr}
 `;
 
-class_variable <- ((public / protected / private) space)? (static space)? var_simple (space? '=' space? expression)? space? ';' `
+class_variable <- ((public / protected / private) space)? (static space)?
+                  var_simple (space? '=' space? expression)? space? ';'
+`
     [Ac,St,Var,Ex|_] = Node,
     Access = case Ac of
         [] -> public;
@@ -135,7 +189,7 @@ class_variable <- ((public / protected / private) space)? (static space)? var_si
     end,
     VarName = Var#variable.name,
     Expr = case Ex of
-        [] -> null;
+        [] -> undefined;
         [_,_,_,E] -> E
     end,
     Type = case St of
@@ -149,7 +203,9 @@ class_variable <- ((public / protected / private) space)? (static space)? var_si
         init_value = Expr}
 `;
 
-class_method <- (abstract space)? ((public / protected / private) space)? (static space)? st_function `
+class_method <- (abstract space)? ((public / protected / private) space)?
+                (static space)? st_function
+`
     [Abstract,Ac,Static,Fun] = Node,
     Access = case Ac of
         [] -> public;
@@ -171,32 +227,60 @@ class_method <- (abstract space)? ((public / protected / private) space)? (stati
 
 % Statements
 
-statements <- (comment / statement / literal_block) ( space? (comment / statement / literal_block) )* `
-    [Statement, StatementsRaw] = Node,
-    NewStatement = if
-        is_tuple(Statement) -> [Statement];
-        is_atom(Statement) -> [Statement];
-        true -> Statement
-    end,
-    Statements = [ S || [_,S] <- StatementsRaw ],
-    lists:flatmap(fun(S) -> 
-        if 
-            is_tuple(S) -> [S]; 
-            is_atom(S) -> [S];
-            true -> S 
-        end
-    end, [NewStatement] ++ Statements)
+statements <- (!ends (comment / statement / literal_block)) space? statements* `
+    case Node of
+        [[[],Statement],_Space,[]] when not is_list(Statement) ->
+            [Statement];
+        [[[],Statement],_Space,[Statements]] when not is_list(Statement) ->
+            [Statement|Statements];
+        [[[],Statement],_Space,[]] ->
+            Statement;
+        [[[],Statement],_Space,[Statements]] ->
+            Statement ++ Statements
+    end
 `;
 
-statement_controlflow <- st_if / st_while / st_foreach / st_for / st_switch / st_do_while ~;
+statement_controlflow <- st_if /
+                         st_while /
+                         st_foreach /
+                         st_for /
+                         st_switch /
+                         st_do_while ~;
 
-statement <- statement_controlflow / st_class / st_function / st_return / st_break / st_continue / st_arith_mono / assign / st_new / st_delete / st_include / st_print / st_call_function / st_global / st_conditions ~;
+statement <- ('@' space?)? (statement_controlflow /
+                            st_class /
+                            st_function /
+                            st_return /
+                            st_break /
+                            st_continue /
+                            st_arith_mono /
+                            assign /
+                            st_new /
+                            st_delete /
+                            st_include /
+                            st_print /
+                            st_die /
+                            st_call_function /
+                            st_global /
+                            st_conditions /
+                            st_additive /
+                            st_const)
+`
+    case Node of
+        [[],Statement] -> Statement;
+        [_,Statement] -> {silent, Statement}
+    end
+`;
 
 code_parse_error <- !'}' .* `
     throw_error(eparse, Index, Input)
 `;
 
 st_conditions <- conditions space? ';' `
+    head(Node)
+`;
+
+st_additive <- additive space? ';' `
     head(Node)
 `;
 
@@ -237,6 +321,10 @@ st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
     get_print(nth(5, Node), Index)
 `;
 
+st_die <- die space? ';' `
+    head(Node)
+`;
+
 st_print_old <- (print / echo) space expression `
     get_print(nth(3, Node), Index)
 `;
@@ -265,7 +353,10 @@ for_assignments <- base_assign ( space? ',' space? base_assign )* `
     [Assign | [ A || [_,_,_,A] <- Assigns ] ]
 `;
 
-st_for <- for space? '(' space? for_assignments space? ';' space? conditions space? ';' space? for_assignments space? ')' space? ( code_block / statement / ';' / error:(.*) ) `
+st_for <- for space? '(' space? for_assignments space? ';' space? conditions
+          space? ';' space? for_assignments space? ')' space?
+          ( code_block / code_block_for / statement / ';' / error:(.*) )
+`
     [_For,_,_,_,Init,_,_,_,Cond,_,_,_,Update,_,_,_,Code] = Node,
     CodeBlock = case Code of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -275,16 +366,20 @@ st_for <- for space? '(' space? for_assignments space? ';' space? conditions spa
     #for{init=Init,conditions=Cond,update=Update,loop_block=CodeBlock, line=Index}
 `;
 
-switch_case <- ((case space (number / expr_string)) / default) space? ':' space? statements `
-    case Node of 
-    [[_Case,_,Label],_,_,_,St] -> 
+switch_case <- ((case space (number / expr_string)) / default) space? ':' space?
+               statements
+`
+    case Node of
+    [[_Case,_,Label],_,_,_,St] ->
         #switch_case{label=Label, code_block=St, line=Index};
     [_Default,_,_,_,St] ->
         #switch_case{label=default, code_block=St, line=Index}
     end
 `;
 
-st_switch <- switch space? '(' space? expression_cond space? ')' space? '{' ( space? switch_case space?)+ space? '}' `
+st_switch <- switch space? '(' space? expression_cond space? ')' space? '{'
+             (space? switch_case space?)+ space? '}'
+`
     [_Switch,_,_,_,Cond,_,_,_,_,Cases,_,_] = Node,
     #switch{
         condition=Cond,
@@ -292,7 +387,11 @@ st_switch <- switch space? '(' space? expression_cond space? ')' space? '{' ( sp
         line=Index}
 `;
 
-st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? space? var space? ')' space? ( code_block / statement / ';' / error:(.*) ) `
+st_foreach <- foreach space? '(' space? (var / array_def) space as
+              (space var space? '=>')?
+              space? var space? ')' space?
+              ( code_block_foreach / code_block / statement / ';' / error:(.*) )
+`
     [_Foreach,_,_,_,List,_,_As,KeyOpt,_,Element,_,_,_,St] = Node,
     case St of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -301,11 +400,17 @@ st_foreach <- foreach space? '(' space? var space as (space var space? '=>')? sp
     end,
     case KeyOpt of
         [] -> #foreach{iter=Element,elements=List,loop_block=St, line=Index};
-        [_,Key,_,_] -> #foreach{kiter=Key,iter=Element,elements=List,loop_block=St, line=Index}
+        [_,Key,_,_] -> #foreach{kiter=Key,
+                                iter=Element,
+                                elements=List,
+                                loop_block=St,
+                                line=Index}
     end
 `;
 
-st_do_while <- do space? ( code_block / statement / error:(.*) ) space? while space? conditions_use space? ';' `
+st_do_while <- do space? ( code_block / statement / error:(.*) ) space? while
+               space? conditions_use space? ';'
+`
     [_Do,_,St,_,_While,_,Cond,_,_] = Node,
     case St of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -314,7 +419,12 @@ st_do_while <- do space? ( code_block / statement / error:(.*) ) space? while sp
     #while{type=post, conditions=Cond, loop_block=St, line=Index}
 `;
 
-st_while <- while space? conditions_use space? ( code_block / statement / ';' / error:(.*) ) `
+st_while <- while space? conditions_use space? ( code_block_while /
+                                                 code_block /
+                                                 statement /
+                                                 ';' /
+                                                 error:(.*) )
+`
     [_While,_,Cond,_,St] = Node,
     CodeBlock = case St of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -326,7 +436,8 @@ st_while <- while space? conditions_use space? ( code_block / statement / ';' / 
 
 st_if <- st_if_else / st_if_simple ~;
 
-st_if_else <- st_if_simple space? else space? ( code_block / statement / error:(.*) ) `
+st_if_else <- st_if_simple space? else space?
+              ( code_block_if_simple / code_block / statement / error:(.*) ) `
     [#if_block{}=IfBlock,_,_Else,_,ElseSt] = Node,
     case ElseSt of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -338,7 +449,9 @@ st_if_else <- st_if_simple space? else space? ( code_block / statement / error:(
     end, line=Index}
 `;
 
-st_if_simple <- if space? conditions_use space? ( code_block / statement / error:(.*) ) `
+st_if_simple <- if space? conditions_use space?
+                ( code_block_if_simple / code_block_if_else / code_block /
+                  statement / error:(.*) ) `
     [_If,_,Cond,_,St] = Node,
     case St of
         {error,Data} -> throw_error(enostatement, Index, Data);
@@ -350,7 +463,16 @@ st_if_simple <- if space? conditions_use space? ( code_block / statement / error
     end, line=Index}
 `;
 
-st_function <- function space key space? '(' space? (var (space? ',' space? var)* space?)? ')' space? code_block `
+param <- var (space? '=' space? expression)? `
+    case Node of
+        [Var,[]] -> Var;
+        [Var,[_,_,_,Expression]] -> Var#variable{default_value=Expression}
+    end
+`;
+
+st_function <- function space key space? '(' space? (param (space? ',' space? param)*
+               space?)? ')' space? code_block
+`
     case Node of
         [_Func,_,Name,_,_,_,[],_,_,Code] ->
             #function{name=Name, code=Code, line=Index};
@@ -360,18 +482,25 @@ st_function <- function space key space? '(' space? (var (space? ',' space? var)
     end
 `;
 
+st_const <- const space key space? '=' space? expression space? ';' `
+    [_Const,_,ConstName,_,_,_,Expr|_] = Node,
+    #constant{type=define, name=ConstName, value=Expr, line=Index}
+`;
+
 %% Assign
 
 composed_assign <- var space? assign_op space? expression `
     [Var,_,Type,_,Expr] = Node,
     #assign{variable=Var, expression = #operation{
-        type=Type, 
-        expression_left=Var, 
+        type=Type,
+        expression_left=Var,
         expression_right=Expr,
         line=Index}, line=Index}
 `;
 
-base_assign <- arith_mono / composed_assign / (var space? '=' space? (base_assign / expression)) `
+base_assign <- arith_mono / composed_assign / (var space? '=' space?
+               (base_assign / expression))
+`
     case Node of
         [Var,_,_Eq,_,Expr] -> #assign{variable=Var, expression=Expr, line=Index};
         MonoArith -> MonoArith
@@ -391,46 +520,87 @@ conditions_use <- '(' space? conditions space? ')' `
 `;
 
 conditions <- condition space? nexo space? conditions / cs:condition `
-    case Node of 
-        [A,_,Type,_,B] -> #operation{type=Type, expression_left=A, expression_right=B, line=Index};
+    case Node of
+        [A,_,Type,_,B] -> #operation{type=Type,
+                                     expression_left=A,
+                                     expression_right=B,
+                                     line=Index};
         {cs, Param} -> Param
     end
 `;
 
-condition <- primary_cond space? comparator space? cs:condition / not? pri:primary_cond `
+condition <- primary_cond space? comparator space? cs:condition / not space?
+             pri:primary_cond / pri:primary_cond
+`
     case Node of
-        [A,_,Type,_,{cs,B}] -> #operation{type=Type, expression_left=A, expression_right=B};
-        [Not, {pri, Param}] -> case Not of
-            [] -> Param;
-            'not' -> {operation_not, Param, Index}
-        end
-    end 
+        [A,_,Type,_,{cs,B}] ->
+            #operation{type=Type, expression_left=A, expression_right=B};
+        [_Not,_,{pri, Param}] ->
+            {operation_not, Param, Index};
+        {pri,Param} ->
+            Param
+    end
 `;
 
 primary_cond <- ("(" space? cs:conditions space? ")") / expression_cond `
-    if
-        is_tuple(Node) -> Node;
-        is_list(Node) -> proplists:get_value(cs, Node)
+    case Node of
+        [_,_,{cs,Conditions},_,_] -> Conditions;
+        _ -> Node
     end
 `;
 
 %% Expressions
 
-expression_cond <- array_def / expr_string / boolean / null / new_object / st_include / st_print_old / st_print_fun / call_function / arith_mono / additive / number / var / constant ~;
+expression_cond <- array_def /
+                   expr_string /
+                   boolean /
+                   null /
+                   new_object /
+                   st_include /
+                   st_print_old /
+                   st_die /
+                   st_print_fun /
+                   func_anon /
+                   arith_mono /
+                   additive /
+                   number /
+                   call_function /
+                   var /
+                   constant ~;
 
-expression <- array_def / expr_string / boolean / null / new_object / include_call / call_function / arith_mono / ternary / additive / conditions / number / var / constant ~;
+expression <- ('@' space?)? (array_def /
+                             expr_string /
+                             boolean /
+                             null /
+                             new_object /
+                             include_call /
+                             func_anon /
+                             arith_mono /
+                             ternary /
+                             conditions /
+                             number /
+                             call_function /
+                             var /
+                             constant /
+                             additive)
+`
+    case Node of
+        [[],Expression] -> Expression;
+        [_,Expression] -> {silent, Expression}
+    end
+`;
 
 %% Others
 
 ternary <- conditions space? '\?' space? expression (space? ':' space? expression)? `
     case Node of
         [Cond,_,_,_,St,[]] -> #if_block{
-            conditions=Cond, 
+            conditions=Cond,
             true_block=St,
             line=Index};
         [Cond,_,_,_,St,[_,_,_,ElseSt]] -> #if_block{
-            conditions=Cond, 
-            true_block=St, 
+            conditions=Cond,
+            true_block=St,
             false_block=ElseSt,
             line=Index}
     end
@@ -438,7 +608,9 @@ ternary <- conditions space? '\?' space? expression (space? ':' space? expressio
 
 %% Functions
 
-call_function <- (key '::')? (key / var) space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+call_function <- (key '::')? (key / var) space? '(' (space? expression
+                 (space? ',' space? expression)*)? space? ')'
+`
     {Type,Class} = case hd(Node) of
         [] -> {normal,undefined};
         [ClassName,_] -> {class,ClassName}
@@ -457,13 +629,34 @@ call_function <- (key '::')? (key / var) space? '(' (space? expression (space? '
         line=Index}
 `;
 
+use_anon <- use space? '(' space? expression (space? ',' space? expression)*
+            space? ')' space?
+`
+    [_Use,_,_Parens,_,Var,Vars|_] = Node,
+    [ Var | [ V || [_,_Comma,_,V] <- Vars ]]
+`;
+
+func_anon <- function space? '(' space? (var (space? ',' space? var)* space?)?
+             ')' space? use_anon? code_block
+`
+    case Node of
+        [_Func,_,_,_,[],_,_,Use,Code] ->
+            #function{code=Code, use=Use, line=Index};
+        [_Func,_,_,_,[Var,Vars,_],_,_,Use,Code] ->
+            Args = [Var | [ V || [_,_,_,V] <- Vars ]],
+            #function{code=Code, use=Use, args=Args, line=Index}
+    end
+`;
+
 %% Objects and Classes
 
-new_object <- new space key space? '(' (space? expression (space? ',' space? expression)*)? space? ')' `
+new_object <- new space key (space? '(' (space? expression (space? ',' space?
+              expression)*)? space? ')')?
+`
     {ObjName, Arguments} = case Node of
-        [_New,_,Name,_,_,[_,Arg,Args],_,_] ->
+        [_New,_,Name,[_,_,[_,Arg,Args],_,_]] ->
             {Name, [Arg | [ A || [_,_,_,A] <- Args ]]};
-        [_New,_,Name,_,_,[],_,_] ->
+        [_New,_,Name|_] ->
             {Name, []}
     end,
     #instance{name=ObjName, args=Arguments, line=Index}
@@ -489,7 +682,7 @@ do <- #(?i)do# `do`;
 and <- #(?i)and# / '&&' `'and'`;
 or <- #(?i)or# / '||' `'or'`;
 not <- #(?i)not# / '!' `'not'`;
-null <- #(?i)null# `null`;
+null <- #(?i)null# `undefined`;
 true <- #(?i)true# `true`;
 false <- #(?i)false# `false`;
 return <- #(?i)return# `return`;
@@ -509,17 +702,28 @@ const <- #(?i)const# `const`;
 abstract <- #(?i)abstract# `abstract`;
 new <- #(?i)new# `new`;
 delete <- #(?i)delete# `delete`;
+use <- #(?i)use# `use`;
+die <- #(?i)die# `die`;
+instanceof <- #(?i)instanceof# `instanceof`;
+endfor <- #(?i)endfor# `endfor`;
+endif <- #(?i)endif# `endif`;
+endwhile <- #(?i)endwhile# `endwhile`;
+endforeach <- #(?i)endforeach# `endforeach`;
+endswitch <- #(?i)endswitch# `endswitch`;
+
+ends <- else / endforeach / endif / endwhile / endfor / endswitch ~;
 
 mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
-comparator <- eq / xeq / ne / xne / gt / geq / lt / leq ~;
+comparator <- xeq / leq / eq / ne / xne / geq / gt / lt / instanceof ~;
 
-assign_op <- assign_plus / assign_minus / assign_mul / assign_div ~;
+assign_op <- assign_plus / assign_minus / assign_mul / assign_div / assign_mod ~;
 
 assign_plus <- '+=' `<<"+">>`;
 assign_minus <- '-=' `<<"-">>`;
 assign_mul <- '*=' `<<"*">>`;
 assign_div <- '/=' `<<"/">>`;
+assign_mod <- '%=' `<<"%">>`;
 
 eq <- '==' ~;
 xeq <- '===' ~;
@@ -530,14 +734,17 @@ xne <- '!==' / '<=>' `<<"!==">>`;
 gt <- '>' ~;
 lt <- '<' ~;
 
-geq <- '>=' / '=>' `<<">=">>`;
-leq <- '<=' / '=<' `<<"=<">>`;
+geq <- '>=' `<<">=">>`;
+leq <- '<=' `<<"=<">>`;
 
 boolean <- true / false ~;
 
 nexo <- and / or ~;
 
 space <- [ \t\n\s\r]+ ~;
+
+% space or comment
+sorc <- (space / comment)+ ~;
 
 % definitions
 
@@ -549,13 +756,18 @@ array_element <- (array_index space? '=>' space?)? expression `
     end
 `;
 
-array_def <- array_def_func / array_def_func_empty / array_def_simple / array_def_simple_empty ~;
+array_def <- array_def_func /
+             array_def_func_empty /
+             array_def_simple /
+             array_def_simple_empty ~;
 
-array_def_simple_empty <- '[' space? ']' `
+array_def_simple_empty <- '[' sorc? ']' `
     #array{elements=[], line=Index}
 `;
 
-array_def_simple <- '[' space? array_element tail:( space? ',' space? array_element )* ','? space? ']' `
+array_def_simple <- '[' sorc? array_element tail:( sorc? ',' sorc?
+                    array_element )* ','? sorc? ']'
+`
     [_,_,ArrayElement,{tail,Tail}|_] = Node,
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
         [NewArrayElement|Elements]
@@ -567,7 +779,9 @@ array_def_func_empty <- array space? '(' space? ')' `
     #array{elements=[], line=Index}
 `;
 
-array_def_func <- array space? '(' space? array_element tail:( space? ',' space? array_element )* ','? space? ')' `
+array_def_func <- array space? '(' space? array_element tail:( space? ','
+                  space? array_element )* ','? space? ')'
+`
     [_Array,_,_,_,ArrayElement,{tail,Tail}|_] = Node,
     ArrayElements = lists:foldr(fun([_,_,_,NewArrayElement], Elements) ->
          [NewArrayElement|Elements]
@@ -593,20 +807,23 @@ integer <- '-'? space? [0-9]+ `
     [Sign,_,Int] = Node,
     IntBin = iolist_to_binary(Int),
     IntList = binary_to_list(IntBin),
-    S = case Sign of 
+    S = case Sign of
         <<"-">> -> -1;
         _ -> 1
     end,
     #int{int=list_to_integer(IntList) * S, line=Index}
 `;
 
-constant <- key `
+constant <- (key space? '::')? space? key `
     case Node of
-        <<"__LINE__">> -> 
-            {{line,Line},{column,_}} = Index,
-            #int{int=Line, line=Index};
-        _ -> 
-            #constant{name=Node, line=Index}
+        [[],_,<<"__LINE__">>] ->
+            #int{int=ephp_util:get_line(Index), line=Index};
+        [[],_,Key] ->
+            #constant{name=Key, line=Index};
+        [[Class,_,_],_,<<"class">>] ->
+            #text{text=Class};
+        [[Class,_,_],_,Key] ->
+            #constant{type=class, class=Class, name=Key, line=Index}
     end
 `;
 
@@ -623,10 +840,10 @@ var_ref <- '&' space? (var_complex / var_simple) `
 
 var_access <- var_access_array / var_access_object ~;
 
-var_access_object <- ('->' / '::') space? (array_index / key) `
+var_access_object <- '->' space? (call_function / constant / array_index) `
     case Node of
-        [<<"->">>,_,Expr] -> {object, Expr, Index};
-        [<<"::">>,_,Expr] -> {class, Expr, Index}
+        [<<"->">>,_,#constant{name=Name}] -> {object, Name, Index};
+        [<<"->">>,_,Expr] -> {object, Expr, Index}
     end
 `;
 
@@ -651,20 +868,34 @@ var_simple <- (key '::')? '$' key `
 
 enclosed_var <- enclosed_var_array / enclosed_var_simple ~;
 
-enclosed_var_array <- '$' '{' key ('[' space? (array_index space?)? ']')+ '}' `
-    [_Dollar,_,Key,Indexes,_] = Node,
+enclosed_var_array <- ('$' '{' / '{' '$') key
+                      ('[' space? (array_index space?)? ']')+ '}' `
+    [_Dollar,Key,Indexes,_] = Node,
     #variable{name=Key, idx=[ get_index(I) || [_,_,I,_] <- Indexes ], line=Index}
 `;
 
-enclosed_var_simple <- '$' '{' key '}' `
-    [_Dollar,_,Key,_] = Node,
+enclosed_var_simple <- ('$' '{' / '{' '$') key '}' `
+    [_Dollar,Key,_] = Node,
     #variable{name=Key, line=Index}
 `;
 
 
 %% math operations
 
-arith_params <- number / call_function / var / logic_mono / arith_mono ~;
+arith_params <- array_def /
+                new_object /
+                func_anon /
+                expr_string /
+                number /
+                boolean /
+                null /
+                st_print_old /
+                st_print_fun /
+                call_function /
+                var /
+                constant /
+                logic_mono /
+                arith_mono ~;
 
 logic_mono <- mono_logic space? expression `
     [_Op, _, Expr] = Node,
@@ -673,7 +904,7 @@ logic_mono <- mono_logic space? expression `
 
 arith_mono <- pre:(mono_aritmetic space? var) / post:(var space? mono_aritmetic) `
     case Node of
-        {pre, [Type,_,Var]} -> 
+        {pre, [Type,_,Var]} ->
             case Type of
                 <<"++">> -> {pre_incr, Var, Index};
                 <<"--">> -> {pre_decr, Var, Index}
@@ -687,34 +918,64 @@ arith_mono <- pre:(mono_aritmetic space? var) / post:(var space? mono_aritmetic)
 `;
 
 additive <- multitive space? ( "+" / "-" ) space? additive / mul:multitive `
-    case Node of 
+    case Node of
     [A,_,Type,_,B] ->
         get_op(Type, A, B, Index, Input);
     {mul, Param} -> Param
     end
 `;
 
-multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive / log:logical `
+multitive <- logical space? ( "*" / "/" / "%" ) space? mul:multitive /
+             log:logical
+`
     case Node of
     [A,_,Type,_,{mul,B}] ->
         get_op(Type, A, B, Index, Input);
     {log, Param} -> Param
-    end 
+    end
 `;
 
-logical <- primary space? ( "^" / "|" / "&" ) space? log:logical / pri:primary `
+logical <- comparative space? ( "^" / "|" / "&" ) space? log:logical /
+           comp:comparative
+`
     case Node of
-    [A,_,Type,_,{log,B}] ->
-        get_op(Type, A, B, Index, Input);
-    {pri, Param} ->
+        [A,_,Type,_,{log,B}] -> get_op(Type, A, B, Index, Input);
+        {comp, Param} -> Param
+    end
+`;
+
+comparative <- nexitive space? comparator space? comp:comparative /
+               not space? nex:nexitive /
+               nex:nexitive
+`
+    case Node of
+    [A,_,Comp,_,{comp,B}] ->
+        get_op(Comp, A, B, Index, Input);
+    [_Not,_,{nex,Param}] ->
+        {operation_not, Param, Index};
+    {nex,Param} ->
+        Param
+    end
+`;
+
+nexitive <- primary space? nexo space? nex:nexitive /
+            not space? pri:primary /
+            pri:primary
+`
+    case Node of
+    [A,_,Nexo,_,{nex,B}] ->
+        get_op(Nexo, A, B, Index, Input);
+    [_Not,_,{pri,Param}] ->
+        {operation_not, Param, Index};
+    {pri,Param} ->
         Param
     end
 `;
 
 primary <- ("(" space? add:additive space? ")") / arith_params `
-    if
-        is_tuple(Node) -> Node;
-        is_list(Node) -> proplists:get_value(add, Node)
+    case Node of
+        [_,_,{add,Additive},_,_] -> Additive;
+        _ -> Node
     end
 `;
 
@@ -737,7 +998,7 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / '\\$' / enclosed_var / var / .))* '
         ([[], <<"\\$">>], {Text, Total}) ->
             {<<"$",Text/binary>>, Total};
         ([[], Other], {Text,Total}) ->
-            {<<>>, case Text of 
+            {<<>>, case Text of
                 <<>> -> [Other|Total];
                 _ -> [Other,parse_string(Text)|Total]
             end}
@@ -757,13 +1018,21 @@ concat_special <- '(' space? (arith_mono / ternary / additive / conditions) spac
     Concat
 `;
 
-concat_types <- concat_special / boolean / null / array_def / string / call_function / number / var / constant ~;
+concat_types <- concat_special /
+                boolean /
+                null /
+                array_def /
+                string /
+                call_function /
+                number /
+                var /
+                constant ~;
 
 concat <- concat_types (space? '\.' space? concat_types)+ `
     [Str1,Strings] = Node,
     ParsedStrings = [Str1 | [ Str || [_,_,_,Str] <- Strings ]],
     Result = lists:foldr(fun
-        (String, []) -> 
+        (String, []) ->
             [String];
         (#text{text=String}, [#text{text=PrevStr}|RestStr]) ->
             [#text{text = <<String/binary, PrevStr/binary>>}|RestStr];
@@ -784,7 +1053,8 @@ concat <- concat_types (space? '\.' space? concat_types)+ `
 throw_error(Error, Index, Data) ->
     Output = iolist_to_binary(Data),
     Size = min(byte_size(Output), 20),
-    ephp_error:error({error, Error, Index, <<Output:Size/binary, "...">>}).
+    ephp_error:error({error, Error, Index, ?E_PARSE,
+        <<Output:Size/binary, "...">>}).
 
 get_print({Type, Value, _}, Index) when
         Type =:= int; Type =:= float; Type =:= text ->
@@ -796,7 +1066,7 @@ get_print(Expr, Index) ->
 
 get_op(Type, A, B, Index, Data) ->
     case {Type, A, B} of
-    {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) -> 
+    {Op, {_,An,_}, {_,Bn,_}} when is_number(An) andalso is_number(Bn) ->
         Result = case Op of
             <<"+">> -> An + Bn;
             <<"-">> -> An - Bn;
@@ -812,7 +1082,7 @@ get_op(Type, A, B, Index, Data) ->
             <<"&">> -> trunc(An) band trunc(Bn);
             _ -> undefined
         end,
-        if 
+        if
             is_integer(Result) ->
                 #int{int=Result, line=Index};
             is_float(Result) ->
@@ -820,7 +1090,7 @@ get_op(Type, A, B, Index, Data) ->
             true ->
                 #operation{type=Type, expression_left=A,
                     expression_right=B, line=Index}
-        end; 
+        end;
     _ ->
         #operation{type=Type, expression_left=A, expression_right=B,
             line=Index}

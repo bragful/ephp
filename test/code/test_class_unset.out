@@ -2,6 +2,8 @@ object(Simple)#1 (0) {
 }
 object(Simple)#2 (0) {
 }
+
+Notice: Undefined variable: s1 in {{CWD}}/test/code/test_class_unset.php on line 16
 NULL
 object(Simple)#2 (0) {
 }

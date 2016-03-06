@@ -1,20 +1,20 @@
--module(ephp_func_file).
+-module(ephp_lib_file).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     basename/3,
     dirname/3
 ]).
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     basename, dirname
 ]. 
 

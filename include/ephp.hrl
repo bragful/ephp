@@ -1,40 +1,67 @@
+%% Author: Manuel Rubio <manuel@altenwald.com>
 
--ifdef(FAST_DICT_MODE).
--define(DICT, dict).
--include_lib("dict/include/dict.hrl").
--define(IS_DICT(D), (is_record(D, dict))).
--else.
--define(DICT, orddict).
-%% FIXME: do a better way to do this:
--define(IS_DICT(D), (is_list(D))).
--endif.
+-define(PHP_INI_FILE, <<"php.ini">>).
+-define(PHP_VERSION, <<"5.5.0">>).
 
--ifdef(NEW_DICT_TYPE).
--define(DICT_TYPE, (dict:dict())).
--else.
--define(DICT_TYPE, (dict())).
--endif.
+-define(PATH_SEP, <<":">>).
 
--define(SETS, sets).
+-define(FUNC_ANON_NAME, <<"{closure}">>).
+
+-define(IS_ARRAY(A), ((element(1, A) =:= ephp_array))).
 
 % built-in modules
 -define(MODULES, [
-    ephp_func_date,
-    ephp_func_vars,
-    ephp_func_misc,
-    ephp_func_ob,
-    ephp_func_control,
-    ephp_func_array,
-    ephp_func_string,
-    ephp_func_file,
-    ephp_func_func
+    ephp_lib_date,
+    ephp_lib_vars,
+    ephp_lib_misc,
+    ephp_lib_ob,
+    ephp_lib_control,
+    ephp_lib_array,
+    ephp_lib_string,
+    ephp_lib_file,
+    ephp_lib_func,
+    ephp_lib_info,
+    ephp_lib_class
 ]).
 
+% built-in consts
+-define(CONST_MODULES, [
+    ephp_error
+]).
+
+-define(E_ERROR, 1).
+-define(E_WARNING, 2).
+-define(E_PARSE, 4).
+-define(E_NOTICE, 8).
+-define(E_CORE_ERROR, 16).
+-define(E_CORE_WARNING, 32).
+-define(E_COMPILE_ERROR, 64).
+-define(E_COMPILE_WARNING, 128).
+-define(E_USER_ERROR, 256).
+-define(E_USER_WARNING, 512).
+-define(E_USER_NOTICE, 1024).
+-define(E_STRICT, 2048).
+-define(E_RECOVERABLE_ERROR, 4096).
+-define(E_DEPRECATED, 8192).
+-define(E_USER_DEPRECATED, 16384).
+-define(E_ALL, 32767).
+
+-type error_level() :: pos_integer().
+
+-type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.
 
 -type file_name() :: binary().
 
--type mixed() :: 
-    integer() | float() | binary() | boolean() | ?DICT_TYPE | null.
+-record(ephp_array, {
+    size = 0 :: pos_integer(),
+    values = [] :: [any()],
+    last_num_index = 0 :: pos_integer()
+}).
+
+-type ephp_array() :: #ephp_array{}.
+
+-type mixed() ::
+    integer() | float() | binary() | boolean() | ephp_array() | null.
 
 -type var_value() :: {variable(), mixed()}.
 
@@ -166,8 +193,13 @@
     line :: line()
 }).
 
+-type constant_types() :: normal | class | define.
+
 -record(constant, {
     name :: binary(),
+    type = normal :: constant_types(),
+    value :: expression(),
+    class :: class_name() | undefined,
     line :: line()
 }).
 
@@ -180,6 +212,7 @@
     class :: class_name() | undefined,
     name :: binary(),
     idx = [] :: [array_index() | {object, binary()} | {class, binary()}],
+    default_value = null :: mixed(),
     line :: line()
 }).
 
@@ -222,8 +255,9 @@
 -type function_name() :: binary().
 
 -record(function, {
-    name :: function_name(),
+    name :: function_name() | undefined,
     args = [] :: [variable()],
+    use = [] :: [variable()],
     code :: statements(),
     line :: line()
 }).
@@ -262,7 +296,7 @@
     name :: binary(),
     access = public :: access_types(),
     type = normal :: normal | static,
-    init_value = null :: any()
+    init_value = null :: mixed()
 }).
 
 -type class_attr() :: #class_attr{}.
@@ -283,7 +317,7 @@
     type = normal :: class_type(),
     extends :: undefined | class_name(),
     implements = [] :: [class_name()],
-    constants = ?DICT:new() :: ?DICT_TYPE,
+    constants = dict:new(),
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     line :: line(),
@@ -314,7 +348,7 @@
     id :: pos_integer(),
     class :: class(),
     instance :: instance(),
-    context = ?DICT:new() :: ?DICT_TYPE
+    context = ephp_array:new() :: ephp_array()
 }).
 
 -record(ephp_data, {

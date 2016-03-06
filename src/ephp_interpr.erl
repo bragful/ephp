@@ -9,7 +9,7 @@
 
 -include("ephp.hrl").
 
--spec process(Context :: context(), Statements :: [main_statement()]) -> 
+-spec process(Context :: context(), Statements :: [main_statement()]) ->
     {ok, binary(), return() | false}.
 
 process(_Context, []) ->
@@ -37,9 +37,9 @@ run(Context, #print_text{text=Text}) ->
     ephp_context:set_output(Context, Text),
     false;
 
-run(Context, #print{expression=Expr}) ->
+run(Context, #print{expression=Expr, line=Line}) ->
     Result = ephp_context:solve(Context, Expr),
-    ephp_context:set_output(Context, ephp_util:to_bin(Result)),
+    ephp_context:set_output(Context, ephp_util:to_bin(Context, Line, Result)),
     false;
 
 run(Context, #eval{statements=Statements}) ->
@@ -61,10 +61,10 @@ run_depth(Context, #assign{}=Assign, Return) ->
 run_depth(Context, #if_block{conditions=Cond}=IfBlock, false) ->
     case ephp_context:solve(Context, Cond) of
     true ->
-        run(Context, 
+        run(Context,
             #eval{statements=IfBlock#if_block.true_block});
     false when IfBlock#if_block.false_block =/= undefined ->
-        run(Context, 
+        run(Context,
             #eval{statements=IfBlock#if_block.false_block});
     _ ->
         false
@@ -85,7 +85,7 @@ run_depth(Context, #switch{condition=Cond, cases=Cases}, false) ->
                 expression_right=LabelValue},
             case ephp_context:solve(Context, Op) orelse Flow =:= true of
             true ->
-                Break = run(Context, 
+                Break = run(Context,
                     #eval{statements=Case#switch_case.code_block}),
                 Break =/= break;
             false ->
@@ -113,8 +113,8 @@ run_depth(Context, #foreach{
         is_atom(LB) -> [LB];
         LB =:= undefined -> []
     end,
-    Elements = ?DICT:to_list(ephp_context:get(Context, RawElements)),
-    run_foreach(Context, Key,Var,Elements,LoopBlock);
+    Elements = ephp_array:to_list(ephp_context:solve(Context, RawElements)),
+    run_foreach(Context, Key, Var, Elements, LoopBlock);
 
 run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB}, false) ->
     LoopBlock = if
@@ -122,24 +122,24 @@ run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB}, false) ->
         is_list(LB) -> LB;
         is_atom(LB) -> [LB];
         LB =:= undefined -> []
-    end, 
+    end,
     run_loop(Type, Context, Cond, LoopBlock);
 
 run_depth(Context, #print_text{text=Text}, false) ->
     ephp_context:set_output(Context, Text),
     false;
 
-run_depth(Context, #print{expression=Expr}, false) ->
+run_depth(Context, #print{expression=Expr, line=Line}, false) ->
     Result = ephp_context:solve(Context, Expr),
-    ResText = ephp_util:to_bin(Result),
+    ResText = ephp_util:to_bin(Context, Line, Result),
     ephp_context:set_output(Context, ResText),
     false;
 
 run_depth(Context, #call{}=Call, false) ->
     ephp_func:run(Context, Call);
 
-run_depth(Context, {Op, _Var, _Line}=MonoArith, false) when 
-        Op =:= pre_incr orelse 
+run_depth(Context, {Op, _Var, _Line}=MonoArith, false) when
+        Op =:= pre_incr orelse
         Op =:= pre_decr orelse
         Op =:= post_incr orelse
         Op =:= post_decr ->
@@ -188,10 +188,28 @@ run_depth(Context, #text_to_process{}=TP, false) ->
     false;
 
 run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false) ->
-    ephp_context:solve(Context, Var);
+    ephp_context:solve(Context, Var),
+    false;
+
+run_depth(Context, #constant{type=define,name=Name,value=Expr}, false) ->
+    Value = ephp_context:solve(Context, Expr),
+    ephp_context:register_const(Context, Name, Value),
+    false;
+
+run_depth(_Context, #constant{}, false) ->
+    false;
+
+run_depth(Context, {silent, Statement}, false) ->
+    ephp_error:run_quiet(ephp_context:get_errors_id(Context), fun() ->
+        run_depth(Context, Statement, false)
+    end);
+
+run_depth(_Context, die, false) ->
+    throw(die);
 
 run_depth(_Context, Statement, false) ->
-    ephp_error:error({error, eunknownst, undefined, Statement});
+    ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement}),
+    break;
 
 run_depth(_Context, _Statement, Break) ->
     Break.
@@ -205,7 +223,7 @@ run_depth(_Context, _Statement, Break) ->
 
 run_loop(PrePost, Context, Cond, Statements) ->
     case (PrePost =:= post) or ephp_context:solve(Context, Cond) of
-    true -> 
+    true ->
         Break = run(Context, #eval{statements=Statements}),
         case
             (Break =/= break) and
@@ -215,9 +233,9 @@ run_loop(PrePost, Context, Cond, Statements) ->
         true ->
             run_loop(PrePost, Context, Cond, Statements);
         false ->
-            case Break of 
+            case Break of
                 {return,Ret} -> {return,Ret};
-                _ -> false 
+                _ -> false
             end
         end;
     false ->
@@ -235,18 +253,18 @@ run_foreach(_Context, _Key, _Var, [], _Statements) ->
     false;
 
 run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements) ->
-    case Key of 
+    case Key of
         undefined -> ok;
         _ -> ephp_context:set(Context, Key, KeyVal)
     end,
     ephp_context:set(Context, Var, VarVal),
     Break = run(Context, #eval{statements=Statements}),
-    if 
+    if
         Break =/= break andalso not is_tuple(Break) ->
             run_foreach(Context, Key, Var, Elements, Statements);
         true ->
-            case Break of 
+            case Break of
                 {return,Ret} -> {return,Ret};
-                _ -> false 
+                _ -> false
             end
     end.

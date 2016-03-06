@@ -7,3 +7,7 @@
 1
 
 1
+
+Warning: require(no_exists): failed to open stream: No such file or directory in {{CWD}}/test/code/test_require.php on line 9
+
+Fatal error: require(): Failed opening required 'no_exists' (include_path='.:') in {{CWD}}/test/code/test_require.php on line 9

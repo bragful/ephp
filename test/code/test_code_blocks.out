@@ -1,0 +1,11 @@
+if (simple) -> OK
+if -> OK
+loop 0
+loop 1
+for -> OK
+each loop 0
+each loop 1
+foreach -> OK
+while loop 0
+while loop -1
+while -> OK

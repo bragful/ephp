@@ -1,11 +1,11 @@
--module(ephp_func_misc).
+-module(ephp_lib_misc).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     define/4,
     sleep/3,
     usleep/3,
@@ -14,13 +14,13 @@
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     define,
     sleep,
     usleep,
-    {exit, <<"die">>},
+    {exit, [{alias, <<"die">>}]},
     exit
 ]. 
 
@@ -52,7 +52,7 @@ usleep(_Context, _Line, _) ->
     false.
 
 -spec exit(context(), line(), Message :: var_value()) ->
-    null.
+    undefined.
 
 exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),

@@ -4,7 +4,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-
 <a name="index"></a>
 
 ## Function Index ##
@@ -23,13 +22,11 @@
 
 `destroy(Inc) -> any()`
 
-
 <a name="load-2"></a>
 
 ### load/2 ###
 
 `load(Ref, Name) -> any()`
-
 
 <a name="load_once-2"></a>
 
@@ -37,11 +34,9 @@
 
 `load_once(Ref, Name) -> any()`
 
-
 <a name="start_link-0"></a>
 
 ### start_link/0 ###
 
 `start_link() -> any()`
-
 

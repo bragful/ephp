@@ -5,14 +5,21 @@
 -include("ephp.hrl").
 
 -type php_function() :: atom().
--type php_function_alias() :: binary().
+-type php_function_opt() :: atom() | {atom(), any()}.
+-type php_function_opts() :: [php_function_opts()].
+-type php_function_result() ::
+    php_function() | {php_function(), php_function_opts}.
+-type php_function_results() :: [php_function_result()].
 
 -export_type([
     php_function/0,
-    php_function_alias/0
+    php_function_results/0,
+    php_function_result/0,
+    php_function_opts/0,
+    php_function_opt/0
 ]).
 
--callback init() -> [php_function()].
+-callback init_func() -> php_function_results().
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -38,7 +45,7 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, ?DICT:new()),
+    erlang:put(Ref, dict:new()),
     {ok, Ref}.
 
 destroy(Funcs) ->
@@ -47,7 +54,7 @@ destroy(Funcs) ->
 get(Ref, FuncName) ->
     Funcs = erlang:get(Ref),
     IFuncName = ephp_util:to_lower(FuncName),
-    ?DICT:find(IFuncName, Funcs).
+    dict:find(IFuncName, Funcs).
 
 get_functions(Ref) ->
     Funcs = erlang:get(Ref),
@@ -55,13 +62,13 @@ get_functions(Ref) ->
         (#reg_func{name=Name, type=builtin}) -> {Name, <<"internal">>};
         (#reg_func{name=Name, type=php}) -> {Name, <<"user">>}
     end,
-    [ Get(FuncName) || {_,FuncName} <- ?DICT:to_list(Funcs) ].
+    [ Get(FuncName) || {_,FuncName} <- dict:to_list(Funcs) ].
 
 register_func(Ref, PHPFunc, Module, Fun)
         when is_atom(Module) andalso is_atom(Fun) ->
     register_func(Ref, PHPFunc, Module, Fun, false);
 
-register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) -> 
+register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) ->
     Funcs = erlang:get(Ref),
     IPHPFunc = ephp_util:to_lower(PHPFunc),
     RegFunc = #reg_func{
@@ -69,7 +76,7 @@ register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) ->
         type=builtin,
         builtin=Fun,
         pack_args=PackArgs},
-    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
+    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok;
 
 register_func(Ref, PHPFunc, Args, Code) ->
@@ -87,7 +94,7 @@ register_func(Ref, PHPFunc, Module, Fun, PackArgs)
         type=builtin,
         builtin={Module, Fun},
         pack_args=PackArgs},
-    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
+    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok;
 
 register_func(Ref, PHPFunc, Args, Code, PackArgs) ->
@@ -99,23 +106,25 @@ register_func(Ref, PHPFunc, Args, Code, PackArgs) ->
         args=Args,
         code=Code,
         pack_args=PackArgs},
-    erlang:put(Ref, ?DICT:store(IPHPFunc, RegFunc, Funcs)),
+    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok.
 
 
 run(Context, #call{line=Line}=Call) ->
-    try 
+    try
         ephp_context:solve(Context, Call),
         false
     catch
         throw:die ->
-            {return, null};
+            {return, undefined};
         throw:{error, erequired, _, ReqFile} ->
             File = ephp_context:get_active_file(Context),
             Data = {File, ReqFile},
-            ephp_error:handle_error(Context, {error, erequired, Line, Data});
+            ephp_error:handle_error(Context, {error, erequired, Line,
+                ?E_ERROR, Data});
         throw:{error, eundefun, _, Fun} ->
             File = ephp_context:get_active_file(Context),
             Data = {File, Fun},
-            ephp_error:handle_error(Context, {error, eundefun, Line, Data})
+            ephp_error:handle_error(Context, {error, eundefun, Line,
+                ?E_ERROR, Data})
     end.

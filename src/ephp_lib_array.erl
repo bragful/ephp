@@ -1,24 +1,24 @@
--module(ephp_func_array).
+-module(ephp_lib_array).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     in_array/4,
     count/3
 ]).
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     in_array,
     count,
-    {count, <<"sizeof">>}
-]. 
+    {count, [{alias, <<"sizeof">>}]}
+].
 
 -spec in_array(
     context(), line(),
@@ -29,8 +29,8 @@ in_array(_Context, _Line, {_,Value}, {_,Array}) ->
 
 -spec count(context(), line(), Array :: var_value()) -> integer().
 
-count(_Context, _Line, {_,Array}) when ?IS_DICT(Array) ->
-    ?DICT:size(Array);
+count(_Context, _Line, {_,Array}) when ?IS_ARRAY(Array) ->
+    ephp_array:size(Array);
 
 count(_Context, _Line, _Var) ->
     1.
@@ -40,5 +40,5 @@ count(_Context, _Line, _Var) ->
 %% ----------------------------------------------------------------------------
 
 member(Value, Dict) ->
-    List = ?DICT:to_list(Dict),
+    List = ephp_array:to_list(Dict),
     lists:keysearch(Value, 2, List) =/= false.

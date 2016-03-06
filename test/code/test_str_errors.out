@@ -1,0 +1,6 @@
+
+Warning: ord() expects parameter 1 to be string, array given in {{CWD}}/test/code/test_str_errors.php on line 3
+
+Warning: explode() expects parameter 3 to be long, string given in {{CWD}}/test/code/test_str_errors.php on line 4
+
+Warning: strlen() expects parameter 1 to be string, array given in {{CWD}}/test/code/test_str_errors.php on line 5

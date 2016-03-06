@@ -1,11 +1,11 @@
--module(ephp_func_control).
+-module(ephp_lib_control).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     include/3,
     include_once/3,
     require/3,
@@ -14,9 +14,9 @@
 
 -include("ephp.hrl").
 
--spec init() -> [ephp_func:php_function()].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
+init_func() -> [
     include, include_once,
     require, require_once
 ]. 
@@ -28,10 +28,11 @@ include(Context, Line, {_,InclFile}) ->
     {error, _} ->
         File = ephp_context:get_active_file(Context),
         NoFileData = {File, InclFile, <<"include">>},
-        IncludeData = {File, InclFile, <<"include">>},
-        ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
-        ephp_error:handle_error(Context, {error, einclude, Line, IncludeData}),
-        null;
+        ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
+            NoFileData}),
+        ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
+            NoFileData}),
+        undefined;
     Code -> 
         include_file(Context, Code, InclFile)
     end.
@@ -43,10 +44,11 @@ include_once(Context, Line, {_,InclFile}) ->
     {error, _} ->
         File = ephp_context:get_active_file(Context),
         NoFileData = {File, InclFile, <<"include_once">>},
-        IncludeData = {File, InclFile, <<"include_once">>},
-        ephp_error:handle_error(Context, {error, enofile, Line, NoFileData}),
-        ephp_error:handle_error(Context, {error, einclude, Line, IncludeData}),
-        null;
+        ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
+            NoFileData}),
+        ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
+            NoFileData}),
+        undefined;
     {return, true} ->
         true;
     Code -> 
@@ -55,24 +57,32 @@ include_once(Context, Line, {_,InclFile}) ->
 
 -spec require(context(), line(), File :: var_value()) -> any().
 
-require(Context, Line, {_,File}) ->
-    case ephp_context:load(Context, File) of
+require(Context, Line, {_,ReqFile}) ->
+    case ephp_context:load(Context, ReqFile) of
     {error, _} ->
-        throw({error, erequired, Line, File});
+        File = ephp_context:get_active_file(Context),
+        NoFileData = {File, ReqFile, <<"require">>},
+        ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
+            NoFileData}),
+        ephp_error:error({error, erequired, Line, ?E_ERROR, {File, ReqFile}});
     Code -> 
-        include_file(Context, Code, File)
+        include_file(Context, Code, ReqFile)
     end.
 
 -spec require_once(context(), line(), File :: var_value()) -> any().
 
-require_once(Context, Line, {_,File}) ->
-    case ephp_context:load_once(Context, File) of
+require_once(Context, Line, {_,ReqFile}) ->
+    case ephp_context:load_once(Context, ReqFile) of
     {error, _} ->
-        throw({error, erequired, Line, File});
+        File = ephp_context:get_active_file(Context),
+        NoFileData = {File, ReqFile, <<"require_once">>},
+        ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
+            NoFileData}),
+        ephp_error:error({error, erequired, Line, ?E_ERROR, {File, ReqFile}});
     {return, true} ->
         true;
     Code ->
-        include_file(Context, Code, File)
+        include_file(Context, Code, ReqFile)
     end.
 
 %% ----------------------------------------------------------------------------
@@ -86,5 +96,5 @@ include_file(Context, Code, File) ->
     ephp_context:set_active_file(Context, OldValue),
     case Res of
         {return, Value} -> Value;
-        _ -> null
+        _ -> undefined
     end.

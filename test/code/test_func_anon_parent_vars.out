@@ -1,0 +1,10 @@
+
+Notice: Undefined variable: msg in {{CWD}}/test/code/test_func_anon_parent_vars.php on line 5
+NULL
+string(5) "hello"
+string(5) "hello"
+--hello--
+string(5) "hello"
+string(5) "world"
+--world--
+string(11) "hello world"

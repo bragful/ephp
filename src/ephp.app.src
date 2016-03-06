@@ -4,7 +4,9 @@
     {registered, []},
     {applications, [
         kernel,
-        stdlib
+        stdlib,
+        ezic,
+        zucchini
     ]},
     {env, []}
 ]}.

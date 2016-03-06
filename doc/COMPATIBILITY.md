@@ -48,10 +48,11 @@ Features
     - [x] insensitive name of functions
     - [x] call to functions
     - [x] args by reference
+    - [x] default values as params in functions
     - [x] include/require code from other files
 - Error handling
-    - [ ] launch errors
-    - [ ] silent warnings/errors (@)
+    - [x] launch errors
+    - [x] silent warnings/errors (@)
     - [ ] launch exceptions (throw)
     - [ ] catch exceptions (try...catch)
 - Exit functions
@@ -61,17 +62,17 @@ Features
     - [x] define class
     - [x] define methods
     - [x] construct
-    - [ ] destroy (delete)
-    - [ ] check public, private and/or protected for methods
+    - [x] destroy (delete)
+    - [x] check public, private and/or protected for methods
     - [x] define attributes
-    - [ ] check public, private and/or protected for attributes
+    - [x] check public, private and/or protected for attributes
     - [x] define constants
     - [ ] inheritance
     - [ ] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
 - Functional
-    - [ ] closures
+    - [x] closures
 
 
 Functions
@@ -82,7 +83,12 @@ Functions
    * [gettype](http://www.php.net/gettype)
    * [is_array](http://www.php.net/is_array)
    * [is_bool](http://www.php.net/is_bool)
-   * [is_integer](http://www.php.net/is_integer)
+   * [is_float](http://www.php.net/is_float) (and aliases: is_double)
+   * [is_integer](http://www.php.net/is_integer) (and aliases: is_int and is_long)
+   * [is_numeric](http://www.php.net/is_numeric)
+   * [is_null](http://www.php.net/is_null)
+   * [is_object](http://www.php.net/is_object)
+   * [is_string](http://www.php.net/is_string)
    * [isset](http://www.php.net/isset)
    * [print_r](http://www.php.net/print_r)
    * [unset](http://www.php.net/unset)
@@ -94,10 +100,17 @@ Functions
    * [sizeof](http://www.php.net/sizeof)
 
  * String related functions:
+   * [chr](http://www.php.net/chr)
+   * [explode](http://www.php.net/explode)
    * [implode](http://www.php.net/implode)
    * [join](http://www.php.net/join)
    * [ord](http://www.php.net/ord)
+   * [split](http://www.php.net/split)
    * [strlen](http://www.php.net/strlen)
+   * [strtolower](http://www.php.net/strtolower)
+   * [strtoupper](http://www.php.net/strtoupper)
+   * [str_replace](http://www.php.net/str_replace)
+   * [str_split](http://www.php.net/str_split)
 
  * Date/Time related functions:
    * [date](http://www.php.net/date) (not complete)
@@ -106,14 +119,20 @@ Functions
    * [gmdate](http://www.php.net/gmdate)
    * [time](http://www.php.net/time)
 
- * Misc functions:
+* Functions related functions:
+   * [register_shutdown_function](http://www.php.net/register_shutdown_function)
+   * [get_defined_functions](http://www.php.net/get_defined_functions)
+   * [function_exists](http://www.php.net/function_exists)
+   * [func_num_args](http://www.php.net/func_num_args)
+
+* Misc functions:
    * [define](http://www.php.net/define) (not complete)
    * [die](http://www.php.net/die)
    * [exit](http://www.php.net/exit)
    * [sleep](http://www.php.net/sleep)
    * [usleep](http://www.php.net/usleep)
 
- * Output control functions:
+* Output control functions:
    * [flush](http://www.php.net/flush)
    * [ob_clean](http://www.php.net/ob_clean)
    * [ob_end_clean](http://www.php.net/ob_end_clean)
@@ -126,3 +145,6 @@ Functions
 * File related functions:
    * [basename](http://www.php.net/basename)
    * [dirname](http://www.php.net/dirname)
+
+* Class related functions:
+   * [get_class](http://www.php.net/get_class)

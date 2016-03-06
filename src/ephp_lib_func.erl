@@ -1,11 +1,11 @@
--module(ephp_func_func).
+-module(ephp_lib_func).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -behaviour(ephp_func).
 
 -export([
-    init/0,
+    init_func/0,
     register_shutdown_function/3,
     get_defined_functions/2,
     function_exists/3,
@@ -14,13 +14,10 @@
 
 -include("ephp.hrl").
 
--spec init() -> [
-    ephp_func:php_function() |
-    {ephp_func:php_function(), ephp_func:php_function_alias()}
-].
+-spec init_func() -> ephp_func:php_function_results().
 
-init() -> [
-    {register_shutdown_function, true},
+init_func() -> [
+    {register_shutdown_function, [pack_args]},
     get_defined_functions,
     function_exists,
     func_num_args
@@ -38,20 +35,20 @@ register_shutdown_function(Context, _Line, [{_,Callback}|_RawArgs]) ->
 func_num_args(Context, _Line) ->
     ephp_context:get_current_function_arity(Context).
 
--spec get_defined_functions(context(), line()) -> ?DICT_TYPE.
+-spec get_defined_functions(context(), line()) -> ephp_array().
 
 get_defined_functions(Context, _Line) ->
     Append = fun(Type, I, Func, Dict) ->
-        NewTypeDict = case ?DICT:find(Type, Dict) of
+        NewTypeDict = case ephp_array:find(Type, Dict) of
             {ok,TypeDict} ->
-                ?DICT:store(I, Func, TypeDict);
+                ephp_array:store(I, Func, TypeDict);
             error ->
-                ?DICT:store(I, Func, ?DICT:new())
+                ephp_array:store(I, Func, ephp_array:new())
         end,
-        ?DICT:store(Type, NewTypeDict, Dict)
+        ephp_array:store(Type, NewTypeDict, Dict)
     end,
-    BaseDict = ?DICT:store(<<"user">>, ?DICT:new(),
-        ?DICT:store(<<"internal">>, ?DICT:new(), ?DICT:new())),
+    BaseDict = ephp_array:store(<<"user">>, ephp_array:new(),
+        ephp_array:store(<<"internal">>, ephp_array:new(), ephp_array:new())),
     {_,FuncList} = lists:foldl(fun
         ({<<"__",_/binary>>,<<"internal">>}, Result) ->
             Result;
