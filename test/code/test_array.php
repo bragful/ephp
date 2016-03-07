@@ -11,4 +11,5 @@ print "is 5 and 8 in array \$base? " . (in_array(array(5,8), $base) ? "yes" : "n
 print "is 8 and 9 in array \$base? " . (in_array(array(8,9), $base) ? "yes" : "no") . "\n";
 print "how many elementas has \$base? " . count($base) . "\n";
 print "what's the size of \$base? " . sizeof($base) . "\n";
+print "what's the count for an integer? " . count($base[0]) . "\n";
 
