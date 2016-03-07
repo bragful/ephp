@@ -39,29 +39,29 @@ store(Key, Value, #ephp_array{last_num_index=Last, values=Values}=Array) when
         Last =< Key ->
     case lists:keyfind(Key, 1, Values) =/= false of
         {Key,_} ->
-            NewValues = lists:keydelete(Key, 1, Values),
+            NewValues = lists:keyreplace(Key, 1, Values, {Key, Value}),
             Size = Array#ephp_array.size;
         false ->
-            NewValues = Values,
+            NewValues = Values ++ [{Key, Value}],
             Size = Array#ephp_array.size + 1
     end,
     Array#ephp_array{
         last_num_index = Key,
-        values = NewValues ++ [{Key, Value}],
+        values = NewValues,
         size = Size
     };
 
 store(Key, Value, #ephp_array{values=Values}=Array) ->
     case lists:keyfind(Key, 1, Values) =/= false of
         true ->
-            NewValues = lists:keydelete(Key, 1, Values),
+            NewValues = lists:keyreplace(Key, 1, Values, {Key, Value}),
             Size = Array#ephp_array.size;
         false ->
-            NewValues = Values,
+            NewValues = Values ++ [{Key, Value}],
             Size = Array#ephp_array.size + 1
     end,
     Array#ephp_array{
-        values = NewValues ++ [{Key, Value}],
+        values = NewValues,
         size = Size
     }.
 
