@@ -8,7 +8,8 @@
     init_func/0,
     phpinfo/2,
     phpversion/2,
-    ini_get/3
+    ini_get/3,
+    set_include_path/3
 ]).
 
 -spec init_func() -> ephp_func:php_function_results().
@@ -16,7 +17,8 @@
 init_func() -> [
     phpinfo,
     phpversion,
-    ini_get
+    ini_get,
+    set_include_path
 ].
 
 phpinfo(Context, _Line) ->
@@ -55,6 +57,10 @@ phpversion(_Context, _Line) ->
 
 ini_get(_Context, _Line, {_,Key}) ->
     ephp_config:get(Key).
+
+set_include_path(_Context, _Line, {_,NewPath}) ->
+    ephp_config:set(<<"include_path">>, NewPath),
+    NewPath.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

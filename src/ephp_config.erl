@@ -11,6 +11,8 @@
     get/1,
     get/2,
 
+    set/2,
+
     read_config/1,
     get_defaults/0
 ]).
@@ -43,6 +45,12 @@ get(Key) ->
 
 get(Key, Default) ->
     application:get_env(ephp, Key, Default).
+
+-spec set(Key :: binary(), Value :: mixed()) -> ok.
+
+set(Key, Value) ->
+    application:set_env(ephp, Key, Value),
+    ok.
 
 -spec read_config(file_name()) -> proplists:proplists().
 
