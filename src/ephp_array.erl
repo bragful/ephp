@@ -34,18 +34,10 @@ store(auto, Value, #ephp_array{last_num_index=Key, values=Values}=Array) ->
 store(Key, Value, #ephp_array{last_num_index=Last, values=Values}=Array) when
         is_integer(Key) andalso Key >= 0 andalso
         Last =< Key ->
-    case lists:keyfind(Key, 1, Values) =/= false of
-        {Key,_} ->
-            NewValues = lists:keyreplace(Key, 1, Values, {Key, Value}),
-            Size = Array#ephp_array.size;
-        false ->
-            NewValues = Values ++ [{Key, Value}],
-            Size = Array#ephp_array.size + 1
-    end,
     Array#ephp_array{
         last_num_index = Key,
-        values = NewValues,
-        size = Size
+        values = Values ++ [{Key, Value}],
+        size = Array#ephp_array.size + 1
     };
 
 store(Key, Value, #ephp_array{values=Values}=Array) ->
