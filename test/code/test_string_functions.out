@@ -10,3 +10,68 @@ the parts => Array
 the parts == h, e, l, l, o
 ord('A') = 65
 chr(65) = A
+chr('A') = NULL
+implode parts = hello
+
+Notice: Array to string conversion in {{CWD}}/test/code/test_string_functions.php on line 15
+implode parts = hArrayeArraylArraylArrayo
+implode empty = 
+string to lowercase = hello
+string to uppercase = HELLO
+explode word = array(5) {
+  [0]=>
+  string(1) "h"
+  [1]=>
+  string(1) "e"
+  [2]=>
+  string(1) "l"
+  [3]=>
+  string(1) "l"
+  [4]=>
+  string(1) "o"
+}
+explode word (limit less than length) = array(2) {
+  [0]=>
+  string(1) "h"
+  [1]=>
+  string(7) "e,l,l,o"
+}
+explode word (limit equal to length) = array(5) {
+  [0]=>
+  string(1) "h"
+  [1]=>
+  string(1) "e"
+  [2]=>
+  string(1) "l"
+  [3]=>
+  string(1) "l"
+  [4]=>
+  string(1) "o"
+}
+explode word (limit greater than length) = array(5) {
+  [0]=>
+  string(1) "h"
+  [1]=>
+  string(1) "e"
+  [2]=>
+  string(1) "l"
+  [3]=>
+  string(1) "l"
+  [4]=>
+  string(1) "o"
+}
+explode word (limit negative less than length) = array(3) {
+  [0]=>
+  string(1) "h"
+  [1]=>
+  string(1) "e"
+  [2]=>
+  string(1) "l"
+}
+explode word (limit negative equal to length) = array(1) {
+  [0]=>
+  string(1) "h"
+}
+explode word (limit negative greater than length) = array(0) {
+}
+explode word (limit 0) = string(9) "h,e,l,l,o"

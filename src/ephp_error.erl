@@ -40,7 +40,8 @@
     eunknownst |
     eundefvar |
     eundefconst |
-    eassignthis.
+    eassignthis |
+    earrayconv.
 
 -record(state, {
     handler = ?MODULE :: module(),
@@ -219,6 +220,11 @@ get_message(enotostring, Line, _Level, {File, ClassName}) ->
         "~nCatchable fatal error: Object of class ~s could not be converted "
         "to string in ~s on line ~p~n",
         [ClassName, File, Line]);
+
+get_message(earrayconv, Line, _Level, {File, Type}) ->
+    io_lib:format(
+        "~nNotice: Array to ~s conversion in ~s on line ~p~n",
+        [Type, File, Line]);
 
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(

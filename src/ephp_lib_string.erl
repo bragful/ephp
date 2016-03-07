@@ -73,7 +73,10 @@ chr(_Context, _Line, _Var) ->
     Glue :: var_value(), Pieces :: var_value()) -> binary().
 
 implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
-    implode(Context, Line, VarGlue);
+    File = ephp_context:get_active_file(Context),
+    Data = {File, <<"string">>},
+    ephp_error:handle_error(Context, {error, earrayconv, Line, ?E_NOTICE, Data}),
+    implode(Context, Line, {undefined, <<"Array">>}, VarGlue);
 
 implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
     Glue = ephp_util:to_bin(Context, Line, RawGlue),
@@ -88,7 +91,7 @@ implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
 -spec implode(context(), line(), Pieces :: var_value()) -> binary().
 
 implode(Context, Line, Pieces) ->
-    implode(Context, Line, <<>>, Pieces).
+    implode(Context, Line, {undefined, <<>>}, Pieces).
 
 -spec explode(context(), line(), Delimiter :: var_value(), String :: var_value())
     -> ephp_array().
@@ -198,6 +201,20 @@ split_chars(String, Parts, I, Size) when is_integer(Size) ->
 split_chars(_String, _Parts, _I, _Size) ->
     {error, enosize}.
 
+split_limit(Delimiter, String, Parts, Limit, 0) when Limit < 0 ->
+    BinParts = binary:split(String, Delimiter, [global]),
+    case length(BinParts) + Limit of
+        NumParts when NumParts >= 0 ->
+            {_,NewParts} = lists:foldl(fun
+                (Part, {I,NP}) when I =< NumParts ->
+                    {I+1, ephp_array:store(auto, Part, NP)};
+                (_Part, Result) ->
+                    Result
+            end, {0,Parts}, BinParts),
+            NewParts;
+        _ ->
+            Parts
+    end;
 
 split_limit(_Delimiter, String, Parts, Limit, Limit) ->
     ephp_array:store(Limit, String, Parts);
