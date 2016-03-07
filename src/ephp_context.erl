@@ -841,9 +841,9 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
             NewEntry = Var#variable{idx=LIdx},
             Value = case ephp_vars:get(Vars, NewEntry, State#state.ref) of
             undefined ->
-                0;
+                auto;
             Array when ?IS_ARRAY(Array) ->
-                ephp_array:last_index(Array);
+                auto;
             _Array ->
                 ephp_error:handle_error(State#state.ref, {error, enoarray,
                     Var#variable.line, ?E_WARNING, State#state.active_file}),
