@@ -10,7 +10,6 @@
 
 -export([
     start_link/0,
-    get/2,
     get/4,
     set/3,
     set_bulk/2,
@@ -32,9 +31,6 @@ start_link() ->
     erlang:put(Ref, Consts),
     [ set_bulk(Ref, Module:init_consts()) || Module <- ?CONST_MODULES ],
     {ok, Ref}.
-
-get(Ref, Name) ->
-    get(Ref, Name, undefined, undefined).
 
 get(Ref, Name, Line, Context) ->
     Const = erlang:get(Ref),

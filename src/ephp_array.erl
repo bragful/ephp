@@ -7,7 +7,6 @@
 -export([
     new/0,
     size/1,
-    last_index/1,
     find/2,
     store/3,
     erase/2,
@@ -18,8 +17,6 @@
 new() -> #ephp_array{}.
 
 size(#ephp_array{size=Size}) -> Size.
-
-last_index(#ephp_array{last_num_index=LastIndex}) -> LastIndex.
 
 find(Key, #ephp_array{values=Values}) ->
     case lists:keyfind(Key, 1, Values) of
