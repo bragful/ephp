@@ -148,3 +148,10 @@ Functions
 
 * Class related functions:
    * [get_class](http://www.php.net/get_class)
+   * [class_alias](http://www.php.net/class_alias)
+
+* Info related functions:
+   * [ini_get](http://www.php.net/ini_get)
+   * [phpversion](http://www.php.net/phpversion)
+   * [set_include_path](http://www.php.net/set_include_path)
+
