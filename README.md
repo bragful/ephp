@@ -24,14 +24,17 @@ ePHP requires to be run over a Erlang/OTP +R16, but not all the versions are ful
 - R16B01 **OK**
 - R16B02 **OK**
 - R16B03 **OK**
-- R16B03-1 **OK**
+- R16B03-1 **OK** (recommended if you use OTP R16)
 - 17.0 **OK**
 - 17.1 **OK**
 - 17.2 **untested**: is not available in Travis-CI
 - 17.3 **NO**: fail in SSL notification to coveralls, maybe SSL prone to fail.
 - 17.4 **OK**
-- 17.5 **OK** (tested on local environment)
-- 18.0 **OK** (tested on local environment)
+- 17.5 **OK** (recommended if you use OTP 17)
+- 18.0 **OK**
+- 18.1 **OK**
+- 18.2 **OK**
+- 18.2.1 **OK** (recommended if you use OTP 18)
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
