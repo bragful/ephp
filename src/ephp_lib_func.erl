@@ -38,23 +38,17 @@ func_num_args(Context, _Line) ->
 -spec get_defined_functions(context(), line()) -> ephp_array().
 
 get_defined_functions(Context, _Line) ->
-    Append = fun(Type, I, Func, Dict) ->
+    Append = fun({Func,Type}, {I,Dict}) ->
         NewTypeDict = case ephp_array:find(Type, Dict) of
             {ok,TypeDict} ->
-                ephp_array:store(I, Func, TypeDict);
-            error ->
-                ephp_array:store(I, Func, ephp_array:new())
+                ephp_array:store(I, Func, TypeDict)
         end,
-        ephp_array:store(Type, NewTypeDict, Dict)
+        {I+1,ephp_array:store(Type, NewTypeDict, Dict)}
     end,
     BaseDict = ephp_array:store(<<"user">>, ephp_array:new(),
         ephp_array:store(<<"internal">>, ephp_array:new(), ephp_array:new())),
-    {_,FuncList} = lists:foldl(fun
-        ({<<"__",_/binary>>,<<"internal">>}, Result) ->
-            Result;
-        ({Func,Type}, {I,FL}) ->
-            {I+1,Append(Type,I,Func,FL)}
-    end, {0,BaseDict}, ephp_context:get_functions(Context)),
+    Functions = ephp_context:get_functions(Context),
+    {_,FuncList} = lists:foldl(Append, {0,BaseDict}, Functions),
     FuncList.
 
 -spec function_exists(context(), line(), FuncName :: var_value()) -> boolean().
