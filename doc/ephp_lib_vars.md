@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#empty-3">empty/3</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-3">gettype/3</a></td><td></td></tr><tr><td valign="top"><a href="#init-0">init/0</a></td><td></td></tr><tr><td valign="top"><a href="#isset-3">isset/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_array-3">php_is_array/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_bool-3">php_is_bool/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_float-3">php_is_float/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_integer-3">php_is_integer/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_null-3">php_is_null/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_numeric-3">php_is_numeric/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_object-3">php_is_object/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_string-3">php_is_string/3</a></td><td></td></tr><tr><td valign="top"><a href="#print_r-3">print_r/3</a></td><td></td></tr><tr><td valign="top"><a href="#print_r-4">print_r/4</a></td><td></td></tr><tr><td valign="top"><a href="#unset-3">unset/3</a></td><td></td></tr><tr><td valign="top"><a href="#var_dump-3">var_dump/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#empty-3">empty/3</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-3">gettype/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#isset-3">isset/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_array-3">php_is_array/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_bool-3">php_is_bool/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_float-3">php_is_float/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_integer-3">php_is_integer/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_null-3">php_is_null/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_numeric-3">php_is_numeric/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_object-3">php_is_object/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_is_string-3">php_is_string/3</a></td><td></td></tr><tr><td valign="top"><a href="#print_r-3">print_r/3</a></td><td></td></tr><tr><td valign="top"><a href="#print_r-4">print_r/4</a></td><td></td></tr><tr><td valign="top"><a href="#unset-3">unset/3</a></td><td></td></tr><tr><td valign="top"><a href="#var_dump-3">var_dump/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -36,12 +36,12 @@ gettype(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 </code></pre>
 <br />
 
-<a name="init-0"></a>
+<a name="init_func-0"></a>
 
-### init/0 ###
+### init_func/0 ###
 
 <pre><code>
-init() -&gt; [<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a> | {<a href="ephp_func.md#type-php_function">ephp_func:php_function()</a>, <a href="ephp_func.md#type-php_function_alias">ephp_func:php_function_alias()</a>}]
+init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -158,7 +158,7 @@ unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### var_dump/3 ###
 
 <pre><code>
-var_dump(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+var_dump(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>] | <a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 

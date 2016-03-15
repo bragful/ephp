@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2015 Altenwald Solutions, S.L.
+Copyright (c) 2013-2016 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -19,7 +19,7 @@ The port is not 100% complete, please refer to [compatibility table](http://gith
 
 ### <a name="Requirements">Requirements</a> ###
 
-ePHP requires to be run over a Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
+ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
 
 - R16B01 **OK**
 - R16B02 **OK**

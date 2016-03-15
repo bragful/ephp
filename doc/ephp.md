@@ -80,7 +80,7 @@ __abstract datatype__: `shutdown_id()`
 
 
 <pre><code>
-values() = integer() | binary() | float() | '?DICT_TYPE'
+values() = integer() | binary() | float() | <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 
 

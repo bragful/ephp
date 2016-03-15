@@ -74,6 +74,13 @@ Features
 - Functional
     - [x] closures
 
+Main issues / TODO
+------------------
+
+You can check here the main issues (or incompatibilities) with PHP. At this moment
+the goal is do the same as PHP 5.5.
+
+[Issues](https://github.com/altenwald/ephp/issues)
 
 Functions
 ---------

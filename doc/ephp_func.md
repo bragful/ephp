@@ -5,7 +5,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__This module defines the `ephp_func` behaviour.__<br /> Required callback functions: `init/0`.
+__This module defines the `ephp_func` behaviour.__<br /> Required callback functions: `init_func/0`.
 
 <a name="types"></a>
 
@@ -24,11 +24,41 @@ php_function() = atom()
 
 
 
-### <a name="type-php_function_alias">php_function_alias()</a> ###
+### <a name="type-php_function_opt">php_function_opt()</a> ###
 
 
 <pre><code>
-php_function_alias() = binary()
+php_function_opt() = atom() | {atom(), any()}
+</code></pre>
+
+
+
+
+### <a name="type-php_function_opts">php_function_opts()</a> ###
+
+
+<pre><code>
+php_function_opts() = [<a href="#type-php_function_opts">php_function_opts()</a>]
+</code></pre>
+
+
+
+
+### <a name="type-php_function_result">php_function_result()</a> ###
+
+
+<pre><code>
+php_function_result() = <a href="#type-php_function">php_function()</a> | {<a href="#type-php_function">php_function()</a>, php_function_opts}
+</code></pre>
+
+
+
+
+### <a name="type-php_function_results">php_function_results()</a> ###
+
+
+<pre><code>
+php_function_results() = [<a href="#type-php_function_result">php_function_result()</a>]
 </code></pre>
 
 <a name="index"></a>

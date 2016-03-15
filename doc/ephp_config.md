@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_defaults-0">get_defaults/0</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_defaults-0">get_defaults/0</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -49,6 +49,15 @@ get_defaults() -&gt; <a href="proplists.md#type-proplists">proplists:proplists()
 
 <pre><code>
 read_config(File::<a href="#type-file_name">file_name()</a>) -&gt; <a href="proplists.md#type-proplists">proplists:proplists()</a>
+</code></pre>
+<br />
+
+<a name="set-2"></a>
+
+### set/2 ###
+
+<pre><code>
+set(Key::binary(), Value::<a href="#type-mixed">mixed()</a>) -&gt; ok
 </code></pre>
 <br />
 

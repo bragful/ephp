@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2015 Altenwald Solutions, S.L.
+Copyright (c) 2013-2016 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -19,19 +19,22 @@ The port is not 100% complete, please refer to [compatibility table](doc/COMPATI
 
 ### <a name="Requirements">Requirements</a> ###
 
-ePHP requires to be run over a Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
+ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
 
 - R16B01 **OK**
 - R16B02 **OK**
 - R16B03 **OK**
-- R16B03-1 **OK**
+- R16B03-1 **OK** (recommended if you use OTP R16)
 - 17.0 **OK**
 - 17.1 **OK**
 - 17.2 **untested**: is not available in Travis-CI
 - 17.3 **NO**: fail in SSL notification to coveralls, maybe SSL prone to fail.
 - 17.4 **OK**
-- 17.5 **OK** (tested on local environment)
-- 18.0 **OK** (tested on local environment)
+- 17.5 **OK** (recommended if you use OTP 17)
+- 18.0 **OK**
+- 18.1 **OK**
+- 18.2 **OK**
+- 18.2.1 **OK** (recommended if you use OTP 18)
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
