@@ -78,14 +78,8 @@ php_is_object(_Context, _Line, {_,Value}) ->
 
 -spec print_r(context(), line(), var_value()) -> true | binary().
 
-print_r(Context, Line, {_,#reg_instance{}}=Vars) ->
-    print_r(Context, Line, Vars, {false,false});
-
-print_r(Context, Line, {_,Value}) when not ?IS_ARRAY(Value) ->
-    ephp_util:to_bin(Context, Line, Value);
-
-print_r(Context, Line, Value) ->
-    print_r(Context, Line, Value, {false,false}).
+print_r(Context, Line, Vars) ->
+    print_r(Context, Line, Vars, {false,false}).
 
 
 -spec var_dump(context(), line(), [var_value()] | var_value()) -> undefined.
@@ -150,22 +144,22 @@ print_r(Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}}=_Val,
     ephp_context:set_output(Context, Out),
     true;
 
-print_r(Context, Line, {_,Value}, {_,true}) when not ?IS_ARRAY(Value) ->
-    ephp_util:to_bin(Context, Line, Value);
-
-print_r(Context, Line, {_,Value}, {_,false}) when not ?IS_ARRAY(Value) ->
-    ephp_context:set_output(Context, Line, ephp_util:to_bin(Context, Value)),
-    true;
-
-print_r(Context, _Line, {Var,Value}, {_,true}) ->
+print_r(Context, _Line, {Var,Value}, {_,true}) when ?IS_ARRAY(Value) ->
     RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = iolist_to_binary(print_r_fmt(Context, Value, <<?SPACES>>, RecCtl)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, _Line, {Var,Value}, {_,false}) ->
+print_r(Context, _Line, {Var,Value}, {_,false}) when ?IS_ARRAY(Value) ->
     RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = iolist_to_binary(print_r_fmt(Context, Value, <<?SPACES>>, RecCtl)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
+    true;
+
+print_r(Context, Line, {_,Value}, {_,true}) ->
+    ephp_util:to_bin(Context, Line, Value);
+
+print_r(Context, Line, {_,Value}, {_,false}) ->
+    ephp_context:set_output(Context, ephp_util:to_bin(Context, Line, Value)),
     true.
 
 -spec isset(context(), line(), var_value()) -> boolean().

@@ -7,7 +7,7 @@
 
 -define(FUNC_ANON_NAME, <<"{closure}">>).
 
--define(IS_ARRAY(A), ((element(1, A) =:= ephp_array))).
+-define(IS_ARRAY(A), erlang:'=:='(element(1, A), ephp_array)).
 
 % built-in modules
 -define(MODULES, [
