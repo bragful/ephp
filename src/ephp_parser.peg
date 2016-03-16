@@ -277,11 +277,11 @@ code_parse_error <- !'}' .* `
 `;
 
 st_conditions <- conditions space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 st_additive <- additive space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 st_global <- global space var (',' space? var)* space? ';' `
@@ -291,7 +291,7 @@ st_global <- global space var (',' space? var)* space? ';' `
 `;
 
 st_call_function <- call_function space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 include_call <- (include_once / include / require_once / require) space expression `
@@ -300,7 +300,7 @@ include_call <- (include_once / include / require_once / require) space expressi
 `;
 
 st_include <- include_call space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 st_new <- new_object space? ';' `
@@ -314,7 +314,7 @@ st_delete <- delete space (var_complex / var_simple) space? ';' `
 `;
 
 st_print <- (st_print_fun / st_print_old) space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
@@ -322,7 +322,7 @@ st_print_fun <- (print / echo) space? '(' space? expression space? ')' `
 `;
 
 st_die <- die space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 st_print_old <- (print / echo) space expression `
@@ -330,7 +330,7 @@ st_print_old <- (print / echo) space expression `
 `;
 
 st_arith_mono <- arith_mono space? ';' `
-    head(Node)
+    hd(Node)
 `;
 
 st_return <- return (space? ( '(' space? )? expression ( space? ')' )?)? space? ';' `
@@ -1128,11 +1128,7 @@ parse_fixed_string(<<"\\r",Rest/binary>>, Result) ->
 parse_fixed_string(<<C:1/binary,Rest/binary>>, Result) ->
     parse_fixed_string(Rest, <<Result/binary, C/binary>>).
 
-nth(N, [A|_]) when N =< 1 -> A;
-nth(_, []) -> undefined;
-nth(N, [_|List]) -> nth(N-1, List).
-
-head([H|_]) -> H.
+nth(I, L) -> lists:nth(I, L).
 
 get_index([I,_]) -> I;
 get_index([]) -> auto.

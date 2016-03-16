@@ -99,9 +99,7 @@ var_dump(Context, Line, Values) when is_list(Values) ->
 var_dump(Context, Line, {_,Value}) ->
     Result = case var_dump_fmt(Context, Line, Value, <<?SPACES_VD>>) of
     Elements when is_list(Elements) ->
-        Data = lists:foldl(fun(Chunk,Total) ->
-            <<Total/binary, Chunk/binary>>
-        end, <<>>, Elements),
+        Data = iolist_to_binary(Elements),
         Size = case Value of
         V when ?IS_ARRAY(V) ->
             ephp_util:to_bin(ephp_array:size(Value));
