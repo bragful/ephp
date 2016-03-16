@@ -126,21 +126,23 @@ var_dump(Context, Line, {Var,Value}) ->
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
     true | binary().
 
-print_r(_Context, _Line, {_,#reg_instance{class=Class, context=Ctx}},
+print_r(_Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}},
         {_,true}) ->
+    RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
-        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
+        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
         <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
           ValDumped/binary, "\n">>
     end, <<>>, Class#class.attrs),
     <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, _Line, {_,#reg_instance{class=Class, context=Ctx}}=_Val,
+print_r(Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}}=_Val,
         {_,false}) ->
+    RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
-        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>),
+        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
         <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
           ValDumped/binary>>
     end, <<>>, Class#class.attrs),
@@ -155,16 +157,14 @@ print_r(Context, Line, {_,Value}, {_,false}) when not ?IS_ARRAY(Value) ->
     ephp_context:set_output(Context, Line, ephp_util:to_bin(Context, Value)),
     true;
 
-print_r(Context, _Line, {_,Value}, {_,true}) ->
-    Data = lists:foldl(fun(Chunk,Total) ->
-        <<Total/binary, Chunk/binary>>
-    end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
+print_r(Context, _Line, {Var,Value}, {_,true}) ->
+    RecCtl = gb_sets:add(Var, gb_sets:new()),
+    Data = iolist_to_binary(print_r_fmt(Context, Value, <<?SPACES>>, RecCtl)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, _Line, {_,Value}, {_,false}) ->
-    Data = lists:foldl(fun(Chunk,Total) ->
-        <<Total/binary, Chunk/binary>>
-    end, <<>>, print_r_fmt(Context, Value, <<?SPACES>>)),
+print_r(Context, _Line, {Var,Value}, {_,false}) ->
+    RecCtl = gb_sets:add(Var, gb_sets:new()),
+    Data = iolist_to_binary(print_r_fmt(Context, Value, <<?SPACES>>, RecCtl)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     true.
 
@@ -298,29 +298,34 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
         end
     end, [], Value).
 
-print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces) ->
-    %% FIXME add recursion control
-    Var = ephp_vars:get(VarPID, VarRef, Context),
-    print_r_fmt(Context, Var, Spaces);
+print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces, RecCtl) ->
+    case gb_sets:is_member(VarRef, RecCtl) of
+        true ->
+            <<"Array\n *RECURSION*\n">>;
+        false ->
+            NewRecCtl = gb_sets:add(VarRef, RecCtl),
+            Var = ephp_vars:get(VarPID, VarRef, Context),
+            print_r_fmt(Context, Var, Spaces, NewRecCtl)
+    end;
 
-print_r_fmt(Context, Value, Spaces) when ?IS_ARRAY(Value) ->
+print_r_fmt(Context, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
     ephp_array:fold(fun(Key, Val, Res) ->
         KeyBin = ephp_util:to_bin(Key),
-        Res ++ case print_r_fmt(Context, Val, <<Spaces/binary, ?SPACES>>) of
+        Res ++ case print_r_fmt(Context, Val, Spaces, RecCtl) of
             V when is_binary(V) ->
                 [<<Spaces/binary, "[", KeyBin/binary, "] => ", V/binary>>];
             V when is_list(V) ->
                 Content = lists:map(fun(Element) ->
-                    <<Spaces/binary, Element/binary>>
+                    <<?SPACES, Spaces/binary, Element/binary>>
                 end, V),
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "] => Array\n">>,
                     <<Spaces/binary, "    (\n">>
                 ] ++ Content ++ [
-                    <<Spaces/binary, "    )\n">>
+                    <<Spaces/binary, "    )\n\n">>
                 ]
         end
     end, [], Value);
 
-print_r_fmt(_Context, Value, _Spaces) ->
+print_r_fmt(_Context, Value, _Spaces, _RecCtl) ->
     <<(ephp_util:to_bin(Value))/binary, "\n">>.

@@ -10,6 +10,7 @@ $base => Array
             [0] => 8
             [1] => 9
         )
+
 )
 is 1 in array $base? yes
 is 8 in array $base? no
