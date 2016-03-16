@@ -1,0 +1,24 @@
+Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+)
+is array? yes
+is bool? no
+index 1 is integer? yes
+index 0 is numeric? yes
+index 2 is float? no
+is null? no
+null is null? yes
+is string? no
+is object? no
+element 1 using print_r: 2
+element 2 using var_dump: int(3)
+print_r(2) == 2? yes
+isset $data[5]? no
+is empty $data[0]? no
+is empty $data[5]? yes
+is empty '0'? yes
+is empty ''? yes
+is empty a false value? yes
