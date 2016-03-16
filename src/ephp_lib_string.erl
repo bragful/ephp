@@ -188,18 +188,13 @@ str_split(_Context, _Line, {_, Text}, {_, Size}) ->
 split_chars(<<>>, Parts, _I, _Size) ->
     Parts;
 
-split_chars(String, Parts, I, Size) when is_integer(Size) ->
+split_chars(String, Parts, I, Size) ->
     case String of
         <<Text:Size/binary,Rest/binary>> ->
             split_chars(Rest, ephp_array:store(I, Text, Parts), I+1, Size);
         <<Text/binary>> ->
-            ephp_array:store(I, Text, Parts);
-        <<>> ->
-            Parts
-    end;
-
-split_chars(_String, _Parts, _I, _Size) ->
-    {error, enosize}.
+            ephp_array:store(I, Text, Parts)
+    end.
 
 split_limit(Delimiter, String, Parts, Limit, 0) when Limit < 0 ->
     BinParts = binary:split(String, Delimiter, [global]),
