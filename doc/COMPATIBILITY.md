@@ -17,6 +17,7 @@ Features
     - [x] References
     - [ ] Resources
     - [x] Objects
+    - [ ] Casting/Conversion
 - Constants
     - [x] `define` function to define contants
     - [x] text without spaces as constant
