@@ -39,7 +39,7 @@ date(Context, _Line, {_,Format}) ->
 
 -spec date(
     context(), line(),
-    Format :: {variable(),binary()}, 
+    Format :: {variable(),binary()},
     Timestamp :: {variable(),(integer() | float())}) -> binary().
 
 date(Context, _Line, {_,Format}, {_,Timestamp}) ->
@@ -56,7 +56,7 @@ gmdate(Context, _Line, {_,Format}) ->
 
 -spec gmdate(
     context(), line(),
-    Format :: {variable(),binary()}, 
+    Format :: {variable(),binary()},
     Timestamp :: integer() | float()) -> binary().
 
 gmdate(_Context, _Line, Format, Timestamp) ->
@@ -82,14 +82,14 @@ date_default_timezone_set(Context, _Line, {_,TZ}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
--spec date_format(ToAnalyze :: binary(), Result :: binary(), 
+-spec date_format(ToAnalyze :: binary(), Result :: binary(),
     {Timestamp :: integer(), Date :: date()}) -> binary().
 
 date_format(<<>>, Result, _Date) ->
     Result;
 
-date_format(<<"d",R/binary>>, Result, {_,{{_,_,D},_},_}=Date) -> 
-    Day = ephp_util:pad_to_bin(D, 2), 
+date_format(<<"d",R/binary>>, Result, {_,{{_,_,D},_},_}=Date) ->
+    Day = ephp_util:pad_to_bin(D, 2),
     date_format(R,<<Result/binary, Day/binary>>, Date);
 
 date_format(<<"D",R/binary>>, Result, {_,{D,_},_}=Date) ->
@@ -130,9 +130,9 @@ date_format(<<"w",R/binary>>, Result, {_,{D,_},_}=Date) ->
     date_format(R,<<Result/binary, DayBin/binary>>, Date);
 
 date_format(<<"z",R/binary>>, Result, {_,{{Y,M,D},_},_}=Date) ->
-    Days1 = calendar:date_to_gregorian_days(Y,1,1), 
-    Days2 = calendar:date_to_gregorian_days(Y,M,D), 
-    Days = ephp_util:to_bin(Days2 - Days1), 
+    Days1 = calendar:date_to_gregorian_days(Y,1,1),
+    Days2 = calendar:date_to_gregorian_days(Y,M,D),
+    Days = ephp_util:to_bin(Days2 - Days1),
     date_format(R,<<Result/binary, Days/binary>>, Date);
 
 date_format(<<"W",R/binary>>, Result, {_,{{Y,_,_},_},_}=Date) ->
@@ -167,14 +167,14 @@ date_format(<<"L",R/binary>>, Result, {_,{{Y,_,_},_},_}=Date) ->
     date_format(R,<<Result/binary, Leap/binary>>, Date);
 
 date_format(<<"o",R/binary>>, Result, Date) ->
-    %% TODO: ISO-8601 year number. This has the same value as Y, 
-    %% except that if the ISO week number (W) belongs to the previous 
-    %% or next year, that year is used instead. 
+    %% TODO: ISO-8601 year number. This has the same value as Y,
+    %% except that if the ISO week number (W) belongs to the previous
+    %% or next year, that year is used instead.
     Month = <<"o">>,
     date_format(R,<<Result/binary, Month/binary>>, Date);
 
 date_format(<<"Y",R/binary>>, Result, {_,{{Y,_,_},_},_}=Date) ->
-    Year = ephp_util:to_bin(Y), 
+    Year = ephp_util:to_bin(Y),
     date_format(R,<<Result/binary, Year/binary>>, Date);
 
 date_format(<<"y",R/binary>>, Result, {_,{{Y,_,_},_},_}=Date) ->
@@ -216,7 +216,7 @@ date_format(<<"H",R/binary>>, Result, {_,{_,{H,_,_}},_}=Date) ->
     date_format(R, <<Result/binary,Hour/binary>>, Date);
 
 date_format(<<"i",R/binary>>, Result, {_,{_,{_,M,_}},_}=Date) ->
-    Minute = ephp_util:pad_to_bin(M, 2), 
+    Minute = ephp_util:pad_to_bin(M, 2),
     date_format(R, <<Result/binary,Minute/binary>>, Date);
 
 date_format(<<"s",R/binary>>, Result, {_,{_,{_,_,S}},_}=Date) ->

@@ -41,7 +41,7 @@ sleep(_Context, _Line, {_, Seconds}) when is_number(Seconds) ->
 sleep(_Context, _Line, _) ->
     false.
 
--spec usleep(context(), line(), MicroSeconds :: var_value()) -> 
+-spec usleep(context(), line(), MicroSeconds :: var_value()) ->
     false | integer().
 
 usleep(_Context, _Line, {_, MicroSeconds}) when is_number(MicroSeconds) ->

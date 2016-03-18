@@ -33,7 +33,7 @@ include(Context, Line, {_,InclFile}) ->
         ephp_error:handle_error(Context, {error, einclude, Line, ?E_WARNING,
             NoFileData}),
         undefined;
-    Code -> 
+    Code ->
         include_file(Context, Code, InclFile)
     end.
 
@@ -51,7 +51,7 @@ include_once(Context, Line, {_,InclFile}) ->
         undefined;
     {return, true} ->
         true;
-    Code -> 
+    Code ->
         include_file(Context, Code, InclFile)
     end.
 
@@ -65,7 +65,7 @@ require(Context, Line, {_,ReqFile}) ->
         ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
             NoFileData}),
         ephp_error:error({error, erequired, Line, ?E_ERROR, {File, ReqFile}});
-    Code -> 
+    Code ->
         include_file(Context, Code, ReqFile)
     end.
 
@@ -92,7 +92,7 @@ require_once(Context, Line, {_,ReqFile}) ->
 include_file(Context, Code, File) ->
     OldValue = ephp_context:get_active_file(Context),
     ephp_context:set_active_file(Context, File),
-    {ok, Res} = ephp_interpr:process(Context, Code), 
+    {ok, Res} = ephp_interpr:process(Context, Code),
     ephp_context:set_active_file(Context, OldValue),
     case Res of
         {return, Value} -> Value;
