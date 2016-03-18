@@ -55,7 +55,8 @@
 -record(ephp_array, {
     size = 0 :: pos_integer(),
     values = [] :: [any()],
-    last_num_index = 0 :: pos_integer()
+    last_num_index = 0 :: pos_integer(),
+    trigger = undefined :: undefined | {Module :: atom(), Function:: atom()}
 }).
 
 -type ephp_array() :: #ephp_array{}.
