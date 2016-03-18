@@ -934,7 +934,7 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
                 is_record(OpRes1, reg_instance) andalso
                 is_record(OpRes2, reg_instance) ->
             get_class_name(OpRes1) =:= get_class_name(OpRes2);
-        <<"==">> -> ephp_util:to_bin(OpRes1) == ephp_util:to_bin(OpRes2);
+        <<"==">> -> ephp_util:is_equal(OpRes1, OpRes2);
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
