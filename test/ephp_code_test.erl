@@ -5,17 +5,19 @@
 -define(CODE_PATH, "../test/code/").
 
 -include_lib("eunit/include/eunit.hrl").
+-include("ephp.hrl").
 
 eval(Filename) ->
     case file:read_file(Filename) of
     {ok, Content} ->
         AbsFilename = list_to_binary(filename:absname(Filename)),
+        ephp_config:start_link(?PHP_INI_FILE),
         {ok, Ctx} = ephp:context_new(AbsFilename),
         {ok, Output} = ephp_output:start_link(Ctx, false),
         ephp_context:set_output_handler(Ctx, Output),
         ephp:eval(AbsFilename, Ctx, Content),
         Out = ephp_context:get_output(Ctx),
-        ephp_context:destroy_all(Ctx), 
+        ephp_context:destroy_all(Ctx),
         {ok, Out};
     Error ->
         Error
