@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     phpinfo/2,
     phpversion/2,
     ini_get/3,
@@ -20,6 +21,10 @@ init_func() -> [
     ini_get,
     set_include_path
 ].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 phpinfo(Context, _Line) ->
     Version = ?PHP_VERSION,

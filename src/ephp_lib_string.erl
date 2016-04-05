@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     strlen/3,
     ord/3,
     chr/3,
@@ -36,6 +37,10 @@ init_func() -> [
     strtoupper,
     str_split
 ].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
 

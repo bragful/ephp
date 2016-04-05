@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     basename/3,
     dirname/3
 ]).
@@ -16,7 +17,11 @@
 
 init_func() -> [
     basename, dirname
-]. 
+].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 -spec basename(context(), line(), var_value()) -> binary().
 

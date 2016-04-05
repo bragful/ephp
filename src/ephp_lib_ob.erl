@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     flush/2,
     ob_start/2,
     ob_start/3,
@@ -27,7 +28,15 @@ init_func() -> [
     {flush, [{alias, <<"ob_end_flush">>}]},
     ob_clean,
     {ob_clean, [{alias, <<"ob_end_clean">>}]}
-]. 
+].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [
+    {<<"output_buffering">>, 4096},
+    {<<"output_handler">>, undefined},
+    {<<"implicit_flush">>, <<"On">>}
+].
 
 -spec flush(context(), line()) -> undefined.
 

@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     time/2,
     date/3,
     date/4,
@@ -23,7 +24,11 @@ init_func() -> [
     time, date, gmdate,
     date_default_timezone_get,
     date_default_timezone_set
-]. 
+].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 -spec time(context(), line()) -> integer().
 

@@ -11,15 +11,25 @@
     php_function() | {php_function(), php_function_opts}.
 -type php_function_results() :: [php_function_result()].
 
+-type config_section() :: binary().
+-type config_param() :: binary().
+-type php_config_results() :: [{config_section(), [config_param()]}].
+
 -export_type([
     php_function/0,
     php_function_results/0,
     php_function_result/0,
     php_function_opts/0,
-    php_function_opt/0
+    php_function_opt/0,
+
+    config_section/0,
+    config_param/0,
+    php_config_results/0
 ]).
 
 -callback init_func() -> php_function_results().
+
+-callback init_config() -> php_config_results().
 
 %% ------------------------------------------------------------------
 %% API Function Exports

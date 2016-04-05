@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     php_is_array/3,
     php_is_bool/3,
     php_is_integer/3,
@@ -49,6 +50,10 @@ init_func() -> [
     unset,
     {var_dump, [pack_args]}
 ].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 -spec php_is_array(context(), line(), var_value()) -> boolean().
 php_is_array(_Context, _Line, {_,Value}) -> ?IS_ARRAY(Value).

@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     in_array/4,
     count/3
 ]).
@@ -19,6 +20,10 @@ init_func() -> [
     count,
     {count, [{alias, <<"sizeof">>}]}
 ].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 -spec in_array(
     context(), line(),

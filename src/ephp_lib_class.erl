@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     get_class/3,
     class_alias/4
 ]).
@@ -18,6 +19,10 @@ init_func() -> [
     get_class,
     class_alias
 ].
+
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
 
 -spec get_class(context(), line(), Class :: var_value()) -> any().
 

@@ -6,6 +6,7 @@
 
 -export([
     init_func/0,
+    init_config/0,
     define/4,
     sleep/3,
     usleep/3,
@@ -22,9 +23,13 @@ init_func() -> [
     usleep,
     {exit, [{alias, <<"die">>}]},
     exit
-]. 
+].
 
--spec define(context(), line(), Constant :: var_value(), 
+-spec init_config() -> ephp_func:php_config_results().
+
+init_config() -> [].
+
+-spec define(context(), line(), Constant :: var_value(),
     Content :: var_value()) -> boolean().
 
 define(Context, _Line, {#constant{name=Constant},_},

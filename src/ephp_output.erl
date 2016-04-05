@@ -85,6 +85,7 @@ push(Ref, RawText) ->
     #state{flush=true, global_context=Ctx}=State ->
         Text = output_handler(Ctx, RawText, State#state.output_handler),
         flush_handler(Text, State#state.flush_handler);
+    % TODO: implement 'output_buffering' (from config)
     #state{flush=false, output=Output}=State ->
         erlang:put(Ref, State#state{output = <<Output/binary, RawText/binary>>})
     end,
@@ -119,7 +120,7 @@ destroy(Ref) ->
 do_flush(Ref) ->
     #state{output=RawOutput, global_context=Ctx} = State = erlang:get(Ref),
     Output = output_handler(Ctx, RawOutput, State#state.output_handler),
-    if 
+    if
         State#state.flush ->
             flush_handler(Output, State#state.flush_handler),
             State#state{output = <<>>};

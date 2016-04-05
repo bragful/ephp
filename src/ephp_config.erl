@@ -67,22 +67,9 @@ read_config(File) ->
 -spec get_defaults() -> proplists:proplists().
 
 get_defaults() ->
-    [
-        {<<"precision">>, 14},
-        {<<"output_buffering">>, 4096},
-        {<<"implicit_flush">>, <<"On">>},
-        {<<"disable_functions">>, undefined},
-        {<<"disable_classes">>, undefined},
-        {<<"expose_php">>,<<"On">>},
-        {<<"max_execution_time">>,30},
-        {<<"max_input_time">>,60},
-        {<<"memory_limit">>,"128M"},
-        {<<"error_reporting">>,"E_ALL & ~E_DEPRECATED & ~E_STRICT"},
-        {<<"display_errors">>,<<"On">>},
-        {<<"display_startup_errors">>,<<"On">>},
-        {<<"log_errors">>,<<"On">>},
-        {<<"include_path">>, <<".:">>}
-    ].
+    lists:flatmap(fun(Module) ->
+        Module:init_config()
+    end, ?MODULES).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
@@ -91,5 +78,6 @@ get_defaults() ->
 -spec set_defaults() -> ok.
 
 set_defaults() ->
-    [ application:set_env(ephp, K, V) || {K,V} <- get_defaults() ],
-    ok.
+    lists:foreach(fun(Module) ->
+        [ application:set_env(ephp, K, V) || {K,V} <- Module:init_config() ]
+    end, ?MODULES).
