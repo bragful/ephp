@@ -7,9 +7,10 @@
 -export([
     init_func/0,
     init_config/0,
-    round/2,
-    ceil/2,
-    floor/2
+
+    php_round/2,
+    php_ceil/2,
+    php_floor/2
 ]).
 
 -include("ephp.hrl").
@@ -17,28 +18,35 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    ceil,
-    floor,
-    round
+    {php_ceil, [{alias, <<"ceil">>}]},
+    {php_floor, [{alias, <<"floor">>}]},
+    {php_round, [{alias, <<"round">>}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
 
 init_config() -> [].
 
--spec ceil(context(), var_value()) -> integer().
+-spec php_ceil(context(), var_value()) -> integer().
 
-ceil(_Context, {_, Value}) when is_number(Value) ->
+php_ceil(_Context, {_, Value}) when is_number(Value) ->
     ceiling(Value);
-ceil(_Context, {_, Value}) ->
+php_ceil(_Context, {_, Value}) ->
     ceiling(ephp_util:bin_to_float(Value)).
 
--spec floor(context(), var_value()) -> integer().
+-spec php_floor(context(), var_value()) -> integer().
 
-floor(_Context, {_, Value}) when is_number(Value) ->
+php_floor(_Context, {_, Value}) when is_number(Value) ->
     floor(Value);
-floor(_Context, {_, Value}) when is_number(Value) ->
+php_floor(_Context, {_, Value}) ->
     floor(ephp_util:bin_to_float(Value)).
+
+-spec php_round(context(), var_value()) -> integer().
+
+php_round(_Context, {_, Value}) when is_number(Value) ->
+    round(Value);
+php_round(_Context, {_, Value}) ->
+    round(ephp_util:bin_to_float(Value)).
 
 -spec floor(number()) -> integer().
 
