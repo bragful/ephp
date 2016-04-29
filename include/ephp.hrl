@@ -13,6 +13,7 @@
 -define(MODULES, [
     ephp_lib_date,
     ephp_lib_vars,
+    ephp_lib_math,
     ephp_lib_misc,
     ephp_lib_ob,
     ephp_lib_control,
