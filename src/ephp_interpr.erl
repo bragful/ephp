@@ -100,8 +100,8 @@ run_depth(Context, #for{init=Init,conditions=Cond,
     LoopBlock = if
         is_tuple(LB) -> [LB];
         is_list(LB) -> LB;
-        is_atom(LB) -> [LB];
-        LB =:= undefined -> []
+        LB =:= undefined -> [];
+        is_atom(LB) -> [LB]
     end,
     run_loop(pre, Context, Cond, LoopBlock ++ Update);
 
@@ -110,8 +110,8 @@ run_depth(Context, #foreach{
     LoopBlock = if
         is_tuple(LB) -> [LB];
         is_list(LB) -> LB;
-        is_atom(LB) -> [LB];
-        LB =:= undefined -> []
+        LB =:= undefined -> [];
+        is_atom(LB) -> [LB]
     end,
     Elements = ephp_array:to_list(ephp_context:solve(Context, RawElements)),
     run_foreach(Context, Key, Var, Elements, LoopBlock);
@@ -120,8 +120,8 @@ run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB}, false) ->
     LoopBlock = if
         is_tuple(LB) -> [LB];
         is_list(LB) -> LB;
-        is_atom(LB) -> [LB];
-        LB =:= undefined -> []
+        LB =:= undefined -> [];
+        is_atom(LB) -> [LB]
     end,
     run_loop(Type, Context, Cond, LoopBlock);
 
