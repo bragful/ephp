@@ -339,9 +339,9 @@ resolve(#assign{variable=#variable{name = <<"this">>, idx=[]}}=Assign, State) ->
         ?E_ERROR, State#state.active_file});
 
 resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
-    case catch get_var_path(Var, State) of
+    {Value, NState} = resolve(Expr, State),
+    case catch get_var_path(Var, NState) of
         #variable{}=VarPath ->
-            {Value, NState} = resolve(Expr, State),
             ephp_vars:set(NState#state.vars, VarPath, Value),
             {Value, NState};
         {error, _Reason} ->
