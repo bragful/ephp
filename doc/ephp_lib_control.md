@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#include-3">include/3</a></td><td></td></tr><tr><td valign="top"><a href="#include_once-3">include_once/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#require-3">require/3</a></td><td></td></tr><tr><td valign="top"><a href="#require_once-3">require_once/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#include-3">include/3</a></td><td></td></tr><tr><td valign="top"><a href="#include_once-3">include_once/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#require-3">require/3</a></td><td></td></tr><tr><td valign="top"><a href="#require_once-3">require_once/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -33,6 +33,15 @@ include(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 
 <pre><code>
 include_once(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
+</code></pre>
+<br />
+
+<a name="init_config-0"></a>
+
+### init_config/0 ###
+
+<pre><code>
+init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
 </code></pre>
 <br />
 

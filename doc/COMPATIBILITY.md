@@ -163,3 +163,9 @@ Functions
    * [phpversion](http://www.php.net/phpversion)
    * [set_include_path](http://www.php.net/set_include_path)
 
+* Math related functions:
+   * [ceil](http://www.php.net/ceil)
+   * [floor](http://www.php.net/floor)
+   * [round](http://www.php.net/round)
+   * [sqrt](http://www.php.net/sqrt)
+

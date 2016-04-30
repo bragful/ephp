@@ -5,11 +5,41 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__This module defines the `ephp_func` behaviour.__<br /> Required callback functions: `init_func/0`.
+__This module defines the `ephp_func` behaviour.__<br /> Required callback functions: `init_func/0`, `init_config/0`.
 
 <a name="types"></a>
 
 ## Data Types ##
+
+
+
+
+### <a name="type-config_param">config_param()</a> ###
+
+
+<pre><code>
+config_param() = binary()
+</code></pre>
+
+
+
+
+### <a name="type-config_section">config_section()</a> ###
+
+
+<pre><code>
+config_section() = binary()
+</code></pre>
+
+
+
+
+### <a name="type-php_config_results">php_config_results()</a> ###
+
+
+<pre><code>
+php_config_results() = [{<a href="#type-config_section">config_section()</a>, [<a href="#type-config_param">config_param()</a>]}]
+</code></pre>
 
 
 

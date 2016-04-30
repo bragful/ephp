@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#func_num_args-2">func_num_args/2</a></td><td></td></tr><tr><td valign="top"><a href="#function_exists-3">function_exists/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_defined_functions-2">get_defined_functions/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#register_shutdown_function-3">register_shutdown_function/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#func_num_args-2">func_num_args/2</a></td><td></td></tr><tr><td valign="top"><a href="#function_exists-3">function_exists/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_defined_functions-2">get_defined_functions/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#register_shutdown_function-3">register_shutdown_function/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -42,6 +42,15 @@ function_exists(Context::<a href="#type-context">context()</a>, Line::<a href="#
 
 <pre><code>
 get_defined_functions(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+<a name="init_config-0"></a>
+
+### init_config/0 ###
+
+<pre><code>
+init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
 </code></pre>
 <br />
 

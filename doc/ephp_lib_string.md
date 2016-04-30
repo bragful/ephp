@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#chr-3">chr/3</a></td><td></td></tr><tr><td valign="top"><a href="#explode-4">explode/4</a></td><td></td></tr><tr><td valign="top"><a href="#explode-5">explode/5</a></td><td></td></tr><tr><td valign="top"><a href="#implode-3">implode/3</a></td><td></td></tr><tr><td valign="top"><a href="#implode-4">implode/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#ord-3">ord/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-5">str_replace/5</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-6">str_replace/6</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-3">str_split/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-4">str_split/4</a></td><td></td></tr><tr><td valign="top"><a href="#strlen-3">strlen/3</a></td><td></td></tr><tr><td valign="top"><a href="#strtolower-3">strtolower/3</a></td><td></td></tr><tr><td valign="top"><a href="#strtoupper-3">strtoupper/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#chr-3">chr/3</a></td><td></td></tr><tr><td valign="top"><a href="#explode-4">explode/4</a></td><td></td></tr><tr><td valign="top"><a href="#explode-5">explode/5</a></td><td></td></tr><tr><td valign="top"><a href="#implode-3">implode/3</a></td><td></td></tr><tr><td valign="top"><a href="#implode-4">implode/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#ord-3">ord/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-5">str_replace/5</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-6">str_replace/6</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-3">str_split/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-4">str_split/4</a></td><td></td></tr><tr><td valign="top"><a href="#strlen-3">strlen/3</a></td><td></td></tr><tr><td valign="top"><a href="#strtolower-3">strtolower/3</a></td><td></td></tr><tr><td valign="top"><a href="#strtoupper-3">strtoupper/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -60,6 +60,15 @@ implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 
 <pre><code>
 implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Glue::<a href="#type-var_value">var_value()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+</code></pre>
+<br />
+
+<a name="init_config-0"></a>
+
+### init_config/0 ###
+
+<pre><code>
+init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
 </code></pre>
 <br />
 
