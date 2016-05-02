@@ -490,12 +490,17 @@ st_const <- const space key space? '=' space? expression space? ';' `
 %% Assign
 
 composed_assign <- var space? assign_op space? expression `
-    [Var,_,Type,_,Expr] = Node,
-    #assign{variable=Var, expression = #operation{
-        type=Type,
-        expression_left=Var,
-        expression_right=Expr,
-        line=Index}, line=Index}
+    case Node of
+    [Var,_,<<".">>,_,Expr] ->
+        #assign{variable=Var, expression = #concat{
+            texts=[Var,Expr], line=Index}, line=Index};
+    [Var,_,Type,_,Expr] ->
+        #assign{variable=Var, expression = #operation{
+            type=Type,
+            expression_left=Var,
+            expression_right=Expr,
+            line=Index}, line=Index}
+    end
 `;
 
 base_assign <- arith_mono / composed_assign / (var space? '=' space?
@@ -717,13 +722,19 @@ mono_logic <- '~' ~;
 mono_aritmetic <- '++' / '--' ~;
 comparator <- xeq / leq / eq / ne / xne / geq / gt / lt / instanceof ~;
 
-assign_op <- assign_plus / assign_minus / assign_mul / assign_div / assign_mod ~;
+assign_op <- assign_plus /
+             assign_minus /
+             assign_mul /
+             assign_div /
+             assign_mod /
+             assign_concat ~;
 
 assign_plus <- '+=' `<<"+">>`;
 assign_minus <- '-=' `<<"-">>`;
 assign_mul <- '*=' `<<"*">>`;
 assign_div <- '/=' `<<"/">>`;
 assign_mod <- '%=' `<<"%">>`;
+assign_concat <- '.=' `<<".">>`;
 
 eq <- '==' ~;
 xeq <- '===' ~;
