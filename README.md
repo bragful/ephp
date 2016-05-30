@@ -14,7 +14,7 @@ PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give
 
 In the same way, you can use for server PHP pages in an easy way.
 
-The port is not 100% complete, please refer to [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
+The port is not 100% complete, please refer to [compatibility table](http://github.com/altenwald/ephp/blob/rebar3/doc/COMPATIBILITY.md).
 
 
 ### <a name="Requirements">Requirements</a> ###
@@ -63,7 +63,7 @@ Result for $a = 115
 
 ### <a name="Built-in_Libs">Built-in Libs</a> ###
 
-PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
+PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](http://github.com/altenwald/ephp/blob/rebar3/doc/COMPATIBILITY.md).
 
 You can add your own functions specifying the PHP name, and the module and function, as follow:
 

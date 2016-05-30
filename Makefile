@@ -1,25 +1,21 @@
 all: ephp
 
-force-deps:
-	./rebar get-deps
-	./rebar update-deps
-	./rebar compile
-
-deps:
-	./rebar get-deps
-	./rebar compile
-
 doc:
-	./rebar doc skip_deps=true
+	./rebar3 doc
 
-compile: deps
-	./rebar compile skip_deps=true
+clean:
+	./rebar3 clean
 
-test: deps
-	./rebar eunit skip_deps=true
+compile:
+	./rebar3 compile
+
+test:
+	./rebar3 do eunit, cover
+	./covertool -cover _build/test/cover/eunit.coverdata -appname ephp -output cobertura.xml
 
 ephp: compile
-	./rebar escriptize skip_deps=true
+	./rebar3 escriptize
+	cp -f _build/default/bin/ephp .
 
-.PHONY: doc test compile force-deps all
+.PHONY: doc test compile all
 
