@@ -7,7 +7,7 @@ Copyright (c) 2013-2016 Altenwald Solutions, S.L.
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
 [![Build Status](https://img.shields.io/travis/altenwald/ephp/master.svg)](https://travis-ci.org/altenwald/ephp)
-[![Coverage Status](https://img.shields.io/coveralls/altenwald/ephp/master.svg)](https://coveralls.io/r/altenwald/ephp)
+[![Codecov](https://img.shields.io/codecov/c/github/altenwald/ephp.svg)]((https://codecov.io/gh/altenwald/ephp)
 [![License: LGPL 2.1](https://img.shields.io/github/license/altenwald/ephp.svg)](https://raw.githubusercontent.com/altenwald/ephp/master/COPYING)
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
