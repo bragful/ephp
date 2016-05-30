@@ -1,7 +1,7 @@
 all: ephp
 
 doc:
-	./rebar3 doc
+	./rebar3 edown
 
 clean:
 	./rebar3 clean
