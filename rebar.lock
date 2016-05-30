@@ -2,6 +2,7 @@
   {git,"https://github.com/waj/ezic.git",
        {ref,"f27b57e00a9d4aeb75ee7147390a2b2f8812697b"}},
   0},
+ {<<"neotoma">>,{pkg,<<"neotoma">>,<<"1.7.3">>},0},
  {<<"unistring">>,
   {git,"https://github.com/altenwald/unistring.git",
        {ref,"9edbf2afc049d1a7b47d2ec054de04b9bcf5d095"}},
