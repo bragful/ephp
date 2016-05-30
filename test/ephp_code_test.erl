@@ -2,7 +2,7 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors, export_all]).
 
--define(CODE_PATH, "../test/code/").
+-define(CODE_PATH, "test/code/").
 
 -include_lib("eunit/include/eunit.hrl").
 -include("ephp.hrl").
@@ -30,7 +30,7 @@ test_code(File) ->
             {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
             {ok, CWD} = file:get_cwd(),
             OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
-                list_to_binary(CWD ++ "/.."), [global]),
+                list_to_binary(CWD), [global]),
             ?assertEqual(OutFile, iolist_to_binary(OutCode)),
             true
         catch Type:Reason ->

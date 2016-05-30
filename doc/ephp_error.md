@@ -5,8 +5,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__This module defines the `ephp_error` behaviour.__<br /> Required callback functions: `set_output/2`.
-
 <a name="types"></a>
 
 ## Data Types ##

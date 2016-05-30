@@ -5,8 +5,6 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__This module defines the `ephp_func` behaviour.__<br /> Required callback functions: `init_func/0`, `init_config/0`.
-
 <a name="types"></a>
 
 ## Data Types ##
