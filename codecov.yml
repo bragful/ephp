@@ -1,24 +1,26 @@
 codecov:
   branch: master
-  notify:
-    after_n_builds: 5
-    countdown: 50
-    delay: 100
 
 coverage:
   precision: 2
   round: down
-  range: 50...100
+  range: "70...100"
 
   notify:
     slack:
       default:
         url: "https://hooks.slack.com/services/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"
-        branches: master
         threshold: "0.5%"
+        branches: master
         attachments: "sunburst, diff"
-        message: "template string"
 
   ignore:
     - "src/*.peg"
+
+  status:
+    project:
+      default:
+        target: auto
+        threshold: "0.5%"
+        branches: master
 
