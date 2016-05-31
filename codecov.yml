@@ -13,7 +13,7 @@ coverage:
   notify:
     slack:
       default:
-        url: ""
+        url: "https://hooks.slack.com/services/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"
         branches: master
         threshold: "0.5%"
         attachments: "sunburst, diff"
