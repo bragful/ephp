@@ -8,6 +8,8 @@
     init_func/0,
     init_config/0,
     time/2,
+    microtime/2,
+    microtime/3,
     date/3,
     date/4,
     gmdate/3,
@@ -21,7 +23,7 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    time, date, gmdate,
+    time, date, gmdate, microtime,
     date_default_timezone_get,
     date_default_timezone_set
 ].
@@ -35,6 +37,23 @@ init_config() -> [].
 time(_Context, _Line) ->
     {MS,S,_} = os:timestamp(),
     MS * 1000000 + S.
+
+-spec microtime(context(), line(), GetAsFloat :: {variable(),boolean()}) ->
+    float() | binary().
+
+microtime(_Context, _Line, {_, true}) ->
+    {MS,S,US} = os:timestamp(),
+    MS * 1000000 + S + ((US div 1000) / 1000);
+microtime(_Context, _Line, {_, false}) ->
+    {MS,S,US} = os:timestamp(),
+    Posix = ephp_util:to_bin(MS * 1000000 + S),
+    MiliSec = ephp_util:to_bin((US div 1000) / 1000),
+    <<MiliSec/binary, " ", Posix/binary>>.
+
+-spec microtime(context(), line()) -> binary().
+
+microtime(Context, Line) ->
+    microtime(Context, Line, {undefined, false}).
 
 -spec date(context(), line(), Format :: {variable(),binary()}) -> binary().
 
