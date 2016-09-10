@@ -6,7 +6,7 @@
 
 -export([
     new/0,
-    new/2,
+    new/3,
     size/1,
     find/2,
     store/3,
@@ -17,8 +17,8 @@
 
 new() -> #ephp_array{}.
 
-new(Module, Function) ->
-    #ephp_array{trigger = {Module, Function}}.
+new(Module, Function, Args) ->
+    #ephp_array{trigger = {Module, Function, Args}}.
 
 size(#ephp_array{size=Size}) -> Size.
 
@@ -28,8 +28,8 @@ find(Key, #ephp_array{values=Values, trigger=undefined}) ->
         false -> error
     end;
 
-find(Key, #ephp_array{trigger={Module,Function}}=Array) ->
-    Module:Function(Array, {retrieve, Key}).
+find(Key, #ephp_array{trigger={Module,Function,Args}}=Array) ->
+    apply(Module, Function, Args ++ [Array, {retrieve, Key}]).
 
 store(auto, Value, #ephp_array{last_num_index=Key, values=Values}=Array) ->
     report(Array#ephp_array{
@@ -73,14 +73,15 @@ erase(Key, #ephp_array{values=Values}=Array) ->
 fold(Fun, Initial, #ephp_array{values=Values, trigger=undefined}) ->
     lists:foldl(fun({K,V}, Acc) -> Fun(K, V, Acc) end, Initial, Values);
 
-fold(Fun, Initial, #ephp_array{trigger={Module,Function}}=Array) ->
-    Module:Function(Array, {fold, Fun, Initial}).
+fold(Fun, Initial, #ephp_array{trigger={Module,Function,Args}}=Array) ->
+    NewFun = fun({K,V},Acc) -> Fun(K,V,Acc) end,
+    apply(Module, Function, Args ++ [Array, {fold, NewFun, Initial}]).
 
 to_list(#ephp_array{values=Values, trigger=undefined}) ->
     Values;
 
-to_list(#ephp_array{trigger={Module,Function}}=Array) ->
-    Module:Function(Array, to_list).
+to_list(#ephp_array{trigger={Module,Function,Args}}=Array) ->
+    apply(Module, Function, Args ++ [Array, to_list]).
 
 %% -----------------------------------------------------------------------------
 %% Internal functions
@@ -89,5 +90,5 @@ to_list(#ephp_array{trigger={Module,Function}}=Array) ->
 report(#ephp_array{trigger=undefined}=Array, _) ->
     Array;
 
-report(#ephp_array{trigger={Module,Function}}=Array, Action) ->
-    Module:Function(Array, Action).
+report(#ephp_array{trigger={Module,Function,Args}}=Array, Action) ->
+    apply(Module, Function, Args ++ [Array, Action]).
