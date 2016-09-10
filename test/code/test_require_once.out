@@ -1,0 +1,13 @@
+1
+
+1
+1
+
+1
+1
+
+1
+
+Warning: require_once(no_exists): failed to open stream: No such file or directory in {{CWD}}/test/code/test_require_once.php on line 9
+
+Fatal error: require_once(): Failed opening required 'no_exists' (include_path='.:') in {{CWD}}/test/code/test_require_once.php on line 9

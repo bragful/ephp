@@ -71,7 +71,7 @@ require(Context, Line, {_,ReqFile}) ->
         NoFileData = {File, ReqFile, <<"require">>},
         ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
             NoFileData}),
-        ephp_error:error({error, erequired, Line, ?E_ERROR, {File, ReqFile}});
+        ephp_error:error({error, erequired, Line, ?E_ERROR, NoFileData});
     Code ->
         include_file(Context, Code, ReqFile)
     end.
@@ -85,7 +85,7 @@ require_once(Context, Line, {_,ReqFile}) ->
         NoFileData = {File, ReqFile, <<"require_once">>},
         ephp_error:handle_error(Context, {error, enofile, Line, ?E_WARNING,
             NoFileData}),
-        ephp_error:error({error, erequired, Line, ?E_ERROR, {File, ReqFile}});
+        ephp_error:error({error, erequired, Line, ?E_ERROR, NoFileData});
     {return, true} ->
         true;
     Code ->

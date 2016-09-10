@@ -137,12 +137,12 @@ get_message(eparse, Line, _Level, Filename) ->
         "~nParse error: parse error in ~s on line ~p~n",
         [Filename, Line]);
 
-get_message(erequired, Line, _Level, {File, ReqFile}) ->
+get_message(erequired, Line, _Level, {File, ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
-        "~nFatal error: require(): Failed opening required '~s'"
+        "~nFatal error: ~s(): Failed opening required '~s'"
         " (include_path='~s') in ~s on line ~p~n",
-        [ReqFile, IncludePath, File, Line]);
+        [Func, ReqFile, IncludePath, File, Line]);
 
 get_message(einclude, Line, _Level, {File, ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
