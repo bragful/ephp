@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#date-3">date/3</a></td><td></td></tr><tr><td valign="top"><a href="#date-4">date/4</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_get-2">date_default_timezone_get/2</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_set-3">date_default_timezone_set/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-3">gmdate/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-4">gmdate/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#time-2">time/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#date-3">date/3</a></td><td></td></tr><tr><td valign="top"><a href="#date-4">date/4</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_get-2">date_default_timezone_get/2</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_set-3">date_default_timezone_set/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-3">gmdate/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-4">gmdate/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-2">microtime/2</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-3">microtime/3</a></td><td></td></tr><tr><td valign="top"><a href="#time-2">time/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -32,7 +32,7 @@ date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### date/4 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, integer() | float()}) -&gt; binary()
+date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, (integer() | float())}) -&gt; binary()
 </code></pre>
 <br />
 
@@ -87,6 +87,24 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 
 <pre><code>
 init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+</code></pre>
+<br />
+
+<a name="microtime-2"></a>
+
+### microtime/2 ###
+
+<pre><code>
+microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+</code></pre>
+<br />
+
+<a name="microtime-3"></a>
+
+### microtime/3 ###
+
+<pre><code>
+microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, GetAsFloat::{<a href="#type-variable">variable()</a>, boolean()}) -&gt; float() | binary()
 </code></pre>
 <br />
 

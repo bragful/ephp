@@ -35,7 +35,7 @@ handle_array(ArrayID, Array, {Action, Key, Value})
 
 handle_array(ArrayID, Array, {remove, Key}) ->
     _ID = ensure_array_exists(ArrayID),
-    ?debugFmt("remove ~p~n", [Key]),
+    ?debugFmt("remove ~p (no action)~n", [Key]),
     % ignore remove to use the same values for all of the tests
     % ok = dets:delete(ID, Key),
     Array;
