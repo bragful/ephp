@@ -36,7 +36,7 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 - 18.2 **OK**
 - 18.2.1 **OK**
 - 18.3 **OK** (recommended if you use OTP 18)
-- 19.0 *still not tested*
+- 19.0 **OK**
 
 
 ### <a name="Getting_Started">Getting Started</a> ###

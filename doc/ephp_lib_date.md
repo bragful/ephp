@@ -32,7 +32,7 @@ date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### date/4 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, (integer() | float())}) -&gt; binary()
+date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, integer() | float()}) -&gt; binary()
 </code></pre>
 <br />
 
