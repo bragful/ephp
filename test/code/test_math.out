@@ -1,0 +1,26 @@
+sqrt(3) = 1.732050807568877193176604123436845839023590087890625
+
+Warning: sqrt() expects parameter 1 to be double, string given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_math.php on line 4
+sqrt('11.1a') = 
+ceil(sqrt(3)) = 2
+ceil(-10.5) = -10
+ceil('10.5a') = 0
+floor(sqrt(3)) = 1
+floor(-10.5) = -11
+floor(-10) = -10
+floor('45.3a') = 0
+round(sqrt(3)) = 2
+round(-10.5) = -11
+round('5.5a') = 0
+abs(10) = 10
+abs(-10) = 10
+abs('a') = 0
+abs([]) = 
+acos(1.0) = 0.0
+
+Warning: acos() expects parameter 1 to be double, string given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_math.php on line 20
+acos('a') = 
+asin(1.0) = 1.5707963267948965579989817342720925807952880859375
+
+Warning: asin() expects parameter 1 to be double, string given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_math.php on line 22
+asin('a') = 
