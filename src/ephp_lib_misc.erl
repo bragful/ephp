@@ -47,7 +47,11 @@ sleep(_Context, _Line, {_, Seconds}) when is_number(Seconds) ->
     timer:sleep(trunc(Seconds) * 1000),
     0;
 
-sleep(_Context, _Line, _) ->
+sleep(Context, Line, {_, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"sleep">>, 1, <<"long">>, ephp_util:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
     false.
 
 -spec usleep(context(), line(), MicroSeconds :: var_value()) ->
@@ -57,7 +61,11 @@ usleep(_Context, _Line, {_, MicroSeconds}) when is_number(MicroSeconds) ->
     timer:sleep(trunc(MicroSeconds) div 1000),
     0;
 
-usleep(_Context, _Line, _) ->
+usleep(Context, Line, {_, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"usleep">>, 1, <<"long">>, ephp_util:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
     false.
 
 -spec exit(context(), line(), Message :: var_value()) ->
