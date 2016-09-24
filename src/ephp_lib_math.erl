@@ -12,7 +12,10 @@
     php_round/3,
     php_ceil/3,
     php_floor/3,
-    php_sqrt/3
+    php_sqrt/3,
+    php_abs/3,
+    php_asin/3,
+    php_acos/3
 ]).
 
 -include("ephp.hrl").
@@ -23,7 +26,14 @@ init_func() -> [
     {php_ceil, [{alias, <<"ceil">>}]},
     {php_floor, [{alias, <<"floor">>}]},
     {php_round, [{alias, <<"round">>}]},
-    {php_sqrt, [{alias, <<"sqrt">>}]}
+    {php_sqrt, [{alias, <<"sqrt">>}]},
+    {php_abs, [{alias, <<"abs">>}]},
+    {php_acos, [{alias, <<"acos">>}]},
+    {php_asin, [{alias, <<"asin">>}]},
+    {php_atan, [{alias, <<"atan">>}]},
+    {php_exp, [{alias, <<"exp">>}]},
+    {php_max, [{alias, <<"max">>}]},
+    {php_min, [{alias, <<"min">>}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -64,28 +74,32 @@ init_consts() -> [
 php_ceil(_Context, _Line, {_, Value}) when is_number(Value) ->
     ceiling(Value);
 php_ceil(_Context, _Line, {_, Value}) ->
-    ceiling(ephp_util:bin_to_float(Value)).
+    ceiling(ephp_util:bin_to_number(Value)).
 
 -spec php_floor(context(), line(), var_value()) -> integer().
 
 php_floor(_Context, _Line, {_, Value}) when is_number(Value) ->
     floor(Value);
 php_floor(_Context, _Line, {_, Value}) ->
-    floor(ephp_util:bin_to_float(Value)).
+    floor(ephp_util:bin_to_number(Value)).
 
 -spec php_round(context(), line(), var_value()) -> integer().
 
 php_round(_Context, _Line, {_, Value}) when is_number(Value) ->
     round(Value);
 php_round(_Context, _Line, {_, Value}) ->
-    round(ephp_util:bin_to_float(Value)).
+    round(ephp_util:bin_to_number(Value)).
 
 -spec php_sqrt(context(), line(), var_value()) -> float().
 
 php_sqrt(_Context, _Line, {_, Value}) when is_number(Value) ->
     math:sqrt(float(Value));
-php_sqrt(_Context, _Line, {_, Value}) ->
-    math:sqrt(ephp_util:bin_to_float(Value)).
+php_sqrt(Context, Line, {_, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"sqrt">>, 1, <<"double">>, ephp_util:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
 
 -spec floor(number()) -> integer().
 
@@ -108,3 +122,38 @@ ceiling(X) ->
         true -> T;
         false -> T + 1
     end.
+
+-spec php_abs(context(), line(), number()) -> number().
+
+php_abs(_Context, _Line, {_, Number}) when is_number(Number)  ->
+    abs(Number);
+
+php_abs(_Context, _Line, {_, String}) when is_binary(String) ->
+    abs(ephp_util:bin_to_number(String));
+
+php_abs(_Context, _Line, _NotANumber) ->
+    false.
+
+-spec php_acos(context(), line(), number()) -> float().
+
+php_acos(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:acos(Number);
+
+php_acos(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"acos">>, 1, <<"double">>, ephp_util:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
+
+-spec php_asin(context(), line(), number()) -> float().
+
+php_asin(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:asin(Number);
+
+php_asin(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"asin">>, 1, <<"double">>, ephp_util:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.

@@ -7,6 +7,7 @@
     is_equal/2,
     to_bin/1,
     to_bin/3,
+    bin_to_number/1,
     to_lower/1,
     increment_code/1,
     to_bool/1,
@@ -45,64 +46,25 @@ is_equal(A, B) ->
             A == B;
         false ->
             case {At,Bt} of
-                {<<"integer">>,<<"string">>} -> A == bin_to_int(B);
-                {<<"string">>,<<"integer">>} -> bin_to_int(A) == B;
-                {<<"float">>,<<"string">>} -> A == bin_to_float(B);
-                {<<"string">>,<<"float">>} -> bin_to_float(A) == B;
+                {<<"integer">>,<<"string">>} -> A == bin_to_number(B);
+                {<<"string">>,<<"integer">>} -> bin_to_number(A) == B;
+                {<<"float">>,<<"string">>} -> A == bin_to_number(B);
+                {<<"string">>,<<"float">>} -> bin_to_number(A) == B;
                 {<<"boolean">>,_} -> A == to_bool(B);
                 {_,<<"boolean">>} -> to_bool(A) == B;
                 _ -> A == B
             end
     end.
 
--spec bin_to_int(binary()) -> integer().
+-spec bin_to_number(binary()) -> integer() | float().
 
-bin_to_int(Bin) when is_binary(Bin) ->
-    bin_to_int(Bin, <<>>).
-
-bin_to_int(<<>>, <<>>) ->
-    0;
-
-bin_to_int(<<>>, I) ->
-    binary_to_integer(I);
-
-bin_to_int(<<"-",Rest/binary>>, <<>>) ->
-    bin_to_int(Rest, <<"-">>);
-
-bin_to_int(<<A:8/integer,Rest/binary>>, I) when A >= $0 andalso A =< $9 ->
-    bin_to_int(Rest, <<I/binary, A:8/integer>>);
-
-bin_to_int(_, <<>>) ->
-    0;
-
-bin_to_int(_, I) ->
-    binary_to_integer(I).
-
-
--spec bin_to_float(binary()) -> float().
-
-bin_to_float(Bin) when is_binary(Bin) ->
-    bin_to_float(Bin, <<>>).
-
-bin_to_float(<<>>, <<>>) ->
-    0.0;
-
-bin_to_float(<<>>, F) ->
-    binary_to_float(F);
-
-bin_to_float(<<"-",Rest/binary>>, <<>>) ->
-    bin_to_float(Rest, <<"-">>);
-
-bin_to_float(<<A:8/integer,Rest/binary>>, F) when
-        (A >= $0 andalso A =< $9) orelse A == $. orelse A == $e ->
-    bin_to_float(Rest, <<F/binary, A:8/integer>>);
-
-bin_to_float(_, <<>>) ->
-    0.0;
-
-bin_to_float(_, F) ->
-    binary_to_float(F).
-
+bin_to_number(Bin) when is_binary(Bin) ->
+    {ok, R} = re:compile("^[+-]?[0-9]*(\.[0-9]+(e[+-]?[1-9][0-9]*)?)?"),
+    case re:run(Bin, R, [{capture, first, binary}]) of
+        {match, [<<>>]} -> 0;
+        {match, [Num]} -> binary_to_integer(Num);
+        {match, [Num|_]} -> binary_to_float(Num)
+    end.
 
 -spec to_bin(A :: binary() | string() | integer() | undefined) -> binary().
 
