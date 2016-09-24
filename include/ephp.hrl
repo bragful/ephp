@@ -27,7 +27,8 @@
 
 % built-in consts
 -define(CONST_MODULES, [
-    ephp_error
+    ephp_error,
+    ephp_lib_math
 ]).
 
 -define(E_ERROR, 1).
