@@ -5,9 +5,9 @@
 5/(2+10) = 0.416666666666666685170383743752609007060527801513671875...
 
 
-Warning: sleep() expects parameter 1 to be long, string given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_arith.php on line 10
+Warning: sleep() expects parameter 1 to be long, string given in {{CWD}}/test/code/test_arith.php on line 10
 sleep tested: OK!
 
-Warning: usleep() expects parameter 1 to be long, string given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_arith.php on line 14
+Warning: usleep() expects parameter 1 to be long, string given in {{CWD}}/test/code/test_arith.php on line 14
 usleep tested: OK!
 OK!

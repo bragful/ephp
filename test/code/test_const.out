@@ -1,5 +1,5 @@
 hello world
 
-Notice: Use of undefined constant DATA2 - assumed 'DATA2' in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_const.php on line 6
+Notice: Use of undefined constant DATA2 - assumed 'DATA2' in {{CWD}}/test/code/test_const.php on line 6
 hello again!
 good-bye!
