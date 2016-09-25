@@ -8,7 +8,6 @@
     register_var/3,
     register_func/5,
     register_module/2,
-    run/2,
     eval/2,
     eval/3,
 
@@ -40,25 +39,19 @@
 
 -include("ephp.hrl").
 
--spec context_new() ->
-    {ok, context()} | {error, Reason::term()}.
+-spec context_new() -> {ok, context()}.
 
 context_new() ->
-    context_new(undefined).
+    context_new(<<"-">>).
 
--spec context_new(Filename :: binary()) ->
-    {ok, context()} | {error, Reason::term()}.
+-spec context_new(Filename :: binary()) -> {ok, context()}.
 
 context_new(Filename) ->
     Modules = ?MODULES,
-    case ephp_context:start_link() of
-        {ok, Ctx} ->
-            [ register_module(Ctx, Module) || Module <- Modules ],
-            ephp_context:set_active_file(Ctx, Filename),
-            {ok, Ctx};
-        Error ->
-            Error
-    end.
+    {ok, Ctx} = ephp_context:start_link(),
+    [ register_module(Ctx, Module) || Module <- Modules ],
+    ephp_context:set_active_file(Ctx, Filename),
+    {ok, Ctx}.
 
 -type values() :: integer() | binary() | float() | ephp_array().
 
@@ -97,12 +90,6 @@ register_module(Ctx, Module) ->
             ephp:register_func(Ctx, Name, Module, Func, false)
     end, Module:init_func()).
 
--spec run(Context :: context(), Compiled :: [statement()]) ->
-    {ok, binary()} | {error, Reason::reason()}.
-
-run(Context, Compiled) ->
-    ephp_interpr:process(Context, Compiled).
-
 -spec eval(Context :: context(), PHP :: string() | binary()) ->
     {ok, Result :: binary()} | {error, Reason :: reason()} |
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
@@ -125,8 +112,6 @@ eval(Filename, Context, PHP) ->
             case catch ephp_interpr:process(Context, Compiled) of
                 {ok, Return} ->
                     {ok, Return};
-                die ->
-                    {ok, undefined};
                 {error, Reason, _, _, _}=Error ->
                     ephp_error:handle_error(Context, Error),
                     {error, Reason}

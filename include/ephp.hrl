@@ -174,7 +174,7 @@
 -type post_incr() :: {post_incr, variable(), line()}.
 -type pre_incr() :: {pre_incr, variable(), line()}.
 
--type return() :: {return, expression(), line()}.
+-type return() :: {return, mixed()}.
 
 -record(int, {
     int :: integer(),

@@ -18,11 +18,11 @@ setup_test_() ->
     ]}.
 
 start() ->
-    {ok, Ctx} = ephp_context:start_link(),
+    {ok, Ctx} = ephp:context_new(),
     Ctx.
 
 stop(Ctx) ->
-    ephp_context:destroy(Ctx). 
+    ephp_context:destroy(Ctx).
 
 set_and_get_test(Ctx) -> [
     ?_assertEqual(ok, ephp_context:set(Ctx,#variable{name = <<"a">>},10)),

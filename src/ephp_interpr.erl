@@ -10,21 +10,14 @@
 -include("ephp.hrl").
 
 -spec process(Context :: context(), Statements :: [main_statement()]) ->
-    {ok, binary(), return() | false}.
+    {ok, binary() | return() | false}.
 
 process(_Context, []) ->
     {ok, <<>>};
 
 process(Context, Statements) ->
-    Value = lists:foldl(fun
-        (Statement, false) ->
-            run(Context, Statement);
-        (_Statement, break) ->
-            throw(enobreak);
-        (_Statement, continue) ->
-            throw(enobreak);
-        (_Statement, {return, Value}) ->
-            {return, Value}
+    Value = lists:foldl(fun(Statement, false) ->
+        run(Context, Statement)
     end, false, Statements),
     ephp_shutdown:shutdown(Context),
     {ok, Value}.
