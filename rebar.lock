@@ -1,3 +1,4 @@
+{"1.1.0",
 [{<<"ezic">>,
   {git,"https://github.com/waj/ezic.git",
        {ref,"f27b57e00a9d4aeb75ee7147390a2b2f8812697b"}},
@@ -10,4 +11,8 @@
  {<<"zucchini">>,
   {git,"https://github.com/altenwald/zucchini.git",
        {ref,"d758d811f5b2952ce4799180306f7883c294f911"}},
-  0}].
+  0}]}.
+[
+{pkg_hash,[
+ {<<"neotoma">>, <<"D8BD5404B73273989946E4F4F6D529E5C2088F5FA1CA790B4DBE81F4BE408E61">>}]}
+].

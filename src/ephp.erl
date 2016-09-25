@@ -157,23 +157,32 @@ main([Filename]) ->
                 io:format("~s", [Result]),
                 ephp_context:destroy_all(Ctx),
                 stop_profiling(),
-                halt(0);
+                quit(0);
             {error, _Reason} ->
                 stop_profiling(),
-                halt(-1)
+                quit(-1)
         end;
     {error, enoent} ->
         io:format("File not found: ~s~n", [Filename]),
-        halt(-2);
+        quit(-2);
     {error, Reason} ->
         io:format("Error: ~p~n", [Reason]),
-        halt(-3)
+        quit(-3)
     end;
 
 main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
-    halt(-1).
+    quit(-1).
 
+-spec quit(integer()) -> no_return().
+
+-ifndef(TEST).
+quit(Code) ->
+    erlang:halt(Code).
+-else.
+quit(Code) ->
+    Code.
+-endif.
 
 -ifdef(PROFILING).
 

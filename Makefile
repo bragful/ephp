@@ -13,7 +13,6 @@ compile:
 	./rebar3 compile
 
 test:
-	-rm -rf _build/test
 	./rebar3 do eunit, cover
 	./covertool -cover _build/test/cover/eunit.coverdata -appname ephp -output cobertura.xml
 

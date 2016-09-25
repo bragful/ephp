@@ -20,7 +20,6 @@ ensure_array_exists(_ID) ->
 
 handle_array(ArrayID, _Array, {retrieve, Key}) ->
     ID = ensure_array_exists(ArrayID),
-    ?debugFmt("get ~p~n", [Key]),
     case dets:lookup(ID, Key) of
         [{Key,Value}] -> {ok, Value};
         [] -> error
@@ -29,26 +28,19 @@ handle_array(ArrayID, _Array, {retrieve, Key}) ->
 handle_array(ArrayID, Array, {Action, Key, Value})
         when Action =:= add; Action =:= update ->
     ID = ensure_array_exists(ArrayID),
-    ?debugFmt("add/update ~p with value => ~p~n", [Key, Value]),
     ok = dets:insert(ID, {Key, Value}),
     Array;
 
-handle_array(ArrayID, Array, {remove, Key}) ->
+handle_array(ArrayID, Array, {remove, _Key}) ->
     _ID = ensure_array_exists(ArrayID),
-    ?debugFmt("remove ~p (no action)~n", [Key]),
     % ignore remove to use the same values for all of the tests
     % ok = dets:delete(ID, Key),
     Array;
 
 handle_array(ArrayID, _Array, {fold, Fun, Initial}) ->
     ID = ensure_array_exists(ArrayID),
-    ?debugFmt("foldl ~p~n", [{Fun, Initial}]),
     dets:foldl(Fun, Initial, ID);
 
 handle_array(ArrayID, _Array, to_list) ->
     ID = ensure_array_exists(ArrayID),
-    Tab = ets:new(temporal, [set, public]),
-    Res = ets:tab2list(dets:to_ets(ID, Tab)),
-    ?debugFmt("to_list ~p~n", [Res]),
-    ets:delete(Tab),
-    lists:sort(Res).
+    dets:foldl(fun(D, Acc) -> Acc ++ [D] end, [], ID).
