@@ -13,12 +13,7 @@
     to_bool/1,
     zero_if_undef/1,
     pad_to_bin/2,
-    get_line/1,
-    get_abbr_weekday/1,
-    get_abbr_month/1,
-    get_timestamp/1,
-    get_month/1,
-    get_weekday/1
+    get_line/1
 ]).
 
 -include("ephp.hrl").
@@ -191,63 +186,3 @@ get_line(undefined) ->
 
 get_line({{line, Line}, {column, _Column}}) ->
     Line.
-
--spec get_timestamp(TS::integer() | float()) -> timer:timestamp().
-
-get_timestamp(Timestamp) ->
-    M = trunc(Timestamp) div 1000000,
-    S = trunc(Timestamp) rem 1000000,
-    U = trunc(Timestamp * 1000000) rem 1000000,
-    {M,S,U}.
-
--spec get_abbr_month(M :: integer()) -> binary().
-
-get_abbr_month(1) -> <<"Jan">>;
-get_abbr_month(2) -> <<"Feb">>;
-get_abbr_month(3) -> <<"Mar">>;
-get_abbr_month(4) -> <<"Apr">>;
-get_abbr_month(5) -> <<"May">>;
-get_abbr_month(6) -> <<"Jun">>;
-get_abbr_month(7) -> <<"Jul">>;
-get_abbr_month(8) -> <<"Aug">>;
-get_abbr_month(9) -> <<"Sep">>;
-get_abbr_month(10) -> <<"Oct">>;
-get_abbr_month(11) -> <<"Nov">>;
-get_abbr_month(12) -> <<"Dec">>.
-
--spec get_month(M :: integer()) -> binary().
-
-get_month(1) -> <<"January">>;
-get_month(2) -> <<"February">>;
-get_month(3) -> <<"March">>;
-get_month(4) -> <<"April">>;
-get_month(5) -> <<"May">>;
-get_month(6) -> <<"June">>;
-get_month(7) -> <<"July">>;
-get_month(8) -> <<"August">>;
-get_month(9) -> <<"September">>;
-get_month(10) -> <<"October">>;
-get_month(11) -> <<"November">>;
-get_month(12) -> <<"December">>.
-
--spec get_abbr_weekday(D :: date()) -> binary().
-
-get_abbr_weekday(0) -> <<"Sun">>;
-get_abbr_weekday(1) -> <<"Mon">>;
-get_abbr_weekday(2) -> <<"Tue">>;
-get_abbr_weekday(3) -> <<"Wed">>;
-get_abbr_weekday(4) -> <<"Thu">>;
-get_abbr_weekday(5) -> <<"Fri">>;
-get_abbr_weekday(6) -> <<"Sat">>;
-get_abbr_weekday(7) -> <<"Sun">>.
-
--spec get_weekday(D :: date()) -> binary().
-
-get_weekday(0) -> <<"Sunday">>;
-get_weekday(1) -> <<"Monday">>;
-get_weekday(2) -> <<"Tuesday">>;
-get_weekday(3) -> <<"Wednesday">>;
-get_weekday(4) -> <<"Thursday">>;
-get_weekday(5) -> <<"Friday">>;
-get_weekday(6) -> <<"Saturday">>;
-get_weekday(7) -> <<"Sunday">>.
