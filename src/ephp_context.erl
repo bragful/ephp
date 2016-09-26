@@ -111,7 +111,7 @@ start_link(#state{ref=Ref, global=Ref}) when is_reference(Ref) ->
 
 start_link(#state{ref=Ref}=State) when is_reference(Ref) ->
     {ok, Vars} = ephp_vars:start_link(),
-    erlang:put(Ref, State#state{
+    save_state(State#state{
         ref = Ref,
         vars = Vars
     }),
@@ -119,29 +119,29 @@ start_link(#state{ref=Ref}=State) when is_reference(Ref) ->
 
 start_mirror(#state{}=State) ->
     Ref = make_ref(),
-    erlang:put(Ref, State#state{ref=Ref}),
+    save_state(State#state{ref=Ref}),
     {ok, Ref}.
 
 get(Context, VarPath) ->
-    #state{vars=Vars} = erlang:get(Context),
+    #state{vars=Vars} = load_state(Context),
     ephp_vars:get(Vars, VarPath, Context).
 
 set(Context, VarPath, Value) ->
-    State = erlang:get(Context),
+    State = load_state(Context),
     ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value),
     ok.
 
 solve(Context, Expression) ->
-    State = erlang:get(Context),
+    State = load_state(Context),
     {Value, NewState} = resolve(Expression, State),
-    erlang:put(Context, NewState),
+    save_state(NewState),
     Value.
 
 destroy(Context) ->
     erlang:erase(Context).
 
 destroy_all(Context) ->
-    State = erlang:get(Context),
+    State = load_state(Context),
     ephp_output:destroy(State#state.output),
     ephp_const:destroy(State#state.const),
     ephp_include:destroy(State#state.include),
@@ -154,83 +154,83 @@ get_state(Context) ->
 
 register_func(Context, PHPFunc, Module, Fun, PackArgs)
         when is_atom(Module) andalso is_atom(Fun) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:register_func(Funcs, PHPFunc, Module, Fun, PackArgs),
     ok;
 
 register_func(Context, PHPFunc, Args, Code, PackArgs) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:register_func(Funcs, PHPFunc, Args, Code, PackArgs),
     ok.
 
 register_func(Context, PHPFunc, Module, Fun)
         when is_atom(Module) andalso is_atom(Fun) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
     ok;
 
 register_func(Context, PHPFunc, Args, Code) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:register_func(Funcs, PHPFunc, Args, Code),
     ok.
 
 register_func(Context, PHPFunc, Fun) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:register_func(Funcs, PHPFunc, Fun),
     ok.
 
 get_functions(Context) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:get_functions(Funcs).
 
 get_function(Context, FuncName) ->
-    #state{funcs=Funcs} = erlang:get(Context),
+    #state{funcs=Funcs} = load_state(Context),
     ephp_func:get(Funcs, FuncName).
 
 get_current_function(Context) ->
-    #state{active_fun=ActiveFun} = erlang:get(Context),
+    #state{active_fun=ActiveFun} = load_state(Context),
     ActiveFun.
 
 get_current_function_arity(Context) ->
-    #state{active_fun_args=ActiveFunArgs} = erlang:get(Context),
+    #state{active_fun_args=ActiveFunArgs} = load_state(Context),
     ActiveFunArgs.
 
 get_current_class(Context) ->
-    #state{active_class=ActiveClass} = erlang:get(Context),
+    #state{active_class=ActiveClass} = load_state(Context),
     ActiveClass.
 
 get_errors_id(Context) ->
-    #state{errors=Errors} = erlang:get(Context),
+    #state{errors=Errors} = load_state(Context),
     Errors.
 
 set_errors_id(Context, Errors) ->
-    State = erlang:get(Context),
-    erlang:put(Context, State#state{errors=Errors}),
+    State = load_state(Context),
+    save_state(State#state{errors=Errors}),
     ok.
 
 get_const(Context, Name, Index) ->
-    #state{const=Const} = erlang:get(Context),
+    #state{const=Const} = load_state(Context),
     ephp_const:get(Const, Name, Index, Context).
 
 register_const(Context, Name, Value) ->
-    #state{const=Const} = erlang:get(Context),
+    #state{const=Const} = load_state(Context),
     ephp_const:set(Const, Name, Value),
     ok.
 
 call_method(Context, Instance, Call) ->
-    {Val, NS} = run_method(Instance, Call, erlang:get(Context)),
-    erlang:put(Context, NS),
+    {Val, NS} = run_method(Instance, Call, load_state(Context)),
+    save_state(NS),
     Val.
 
 get_active_file(Context) ->
-    #state{active_file=Filename} = erlang:get(Context),
+    #state{active_file=Filename} = load_state(Context),
     Filename.
 
 set_active_file(Context, undefined) ->
     Filename = <<"php shell code">>,
     {ok, Cwd} = file:get_cwd(),
-    #state{const=Const} = State = erlang:get(Context),
-    erlang:put(Context, State#state{active_file=Filename}),
+    #state{const=Const} = State = load_state(Context),
+    save_state(State#state{active_file=Filename}),
     ephp_const:set_bulk(Const, [
         {<<"__FILE__">>, Filename},
         {<<"__DIR__">>, list_to_binary(Cwd)}
@@ -238,8 +238,8 @@ set_active_file(Context, undefined) ->
     ok;
 
 set_active_file(Context, Filename) ->
-    #state{const=Const} = State = erlang:get(Context),
-    erlang:put(Context, State#state{active_file=Filename}),
+    #state{const=Const} = State = load_state(Context),
+    save_state(State#state{active_file=Filename}),
     ephp_const:set_bulk(Const, [
         {<<"__FILE__">>, Filename},
         {<<"__DIR__">>, filename:dirname(Filename)}
@@ -247,71 +247,71 @@ set_active_file(Context, Filename) ->
     ok.
 
 get_tz(Context) ->
-    #state{timezone=TZ} = erlang:get(Context),
+    #state{timezone=TZ} = load_state(Context),
     TZ.
 
 set_tz(Context, TZ) ->
-    State = erlang:get(Context),
-    erlang:put(Context, State#state{timezone=TZ}),
+    State = load_state(Context),
+    save_state(State#state{timezone=TZ}),
     ok.
 
 get_output(Context) ->
-    #state{output=Output} = erlang:get(Context),
+    #state{output=Output} = load_state(Context),
     ephp_output:pop(Output).
 
 set_output(Context, Text) ->
-    #state{output=Output} = erlang:get(Context),
+    #state{output=Output} = load_state(Context),
     ephp_output:push(Output, Text),
     ok.
 
 set_output_handler(Context, Output) ->
-    State = erlang:get(Context),
+    State = load_state(Context),
     ephp_output:destroy(State#state.output),
-    erlang:put(Context, State#state{output=Output}),
+    save_state(State#state{output=Output}),
     ok.
 
 get_output_handler(Context) ->
-    #state{output=Output} = erlang:get(Context),
+    #state{output=Output} = load_state(Context),
     Output.
 
 load(Context, File) ->
-    #state{include=Inc} = erlang:get(Context),
+    #state{include=Inc} = load_state(Context),
     ephp_include:load(Inc, File).
 
 load_once(Context, File) ->
-    #state{include=Inc} = erlang:get(Context),
+    #state{include=Inc} = load_state(Context),
     ephp_include:load_once(Inc, File).
 
 register_class(Context, Class) ->
-    #state{class=Classes, global=GlobalCtx} = erlang:get(Context),
+    #state{class=Classes, global=GlobalCtx} = load_state(Context),
     ephp_class:register_class(Classes, GlobalCtx, Class),
     ok.
 
 set_class_alias(Context, ClassName, ClassAlias) ->
-    #state{class=Classes} = erlang:get(Context),
+    #state{class=Classes} = load_state(Context),
     ephp_class:set_alias(Classes, ClassName, ClassAlias).
 
 set_global(Context, GlobalContext) ->
-    State = erlang:get(Context),
-    erlang:put(Context, State#state{global=GlobalContext}),
+    State = load_state(Context),
+    save_state(State#state{global=GlobalContext}),
     ok.
 
 generate_subcontext(Context) ->
-    State = erlang:get(Context),
+    State = load_state(Context),
     start_link(State#state{
         ref=undefined,
         global=Context}).
 
 register_shutdown_func(Context, FuncName) ->
-    #state{shutdown=Ref} = erlang:get(Context),
+    #state{shutdown=Ref} = load_state(Context),
     ephp_shutdown:register_func(Ref, FuncName).
 
 unregister_shutdown_func(Context, FuncName) ->
-    #state{shutdown=Ref} = erlang:get(Context),
+    #state{shutdown=Ref} = load_state(Context),
     ephp_shutdown:unregister_func(Ref, FuncName).
 
 get_shutdown_funcs(Context) ->
-    #state{shutdown=Ref} = erlang:get(Context),
+    #state{shutdown=Ref} = load_state(Context),
     ephp_shutdown:get_funcs(Ref).
 
 %% ------------------------------------------------------------------
@@ -554,23 +554,21 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F}}}
             when is_atom(M) andalso is_atom(F) ->
         {Args, NState} = resolve_args(RawArgs, State),
-        {ok, Mirror} = start_mirror(NState#state{global=Ref}),
+        save_state(NState),
         Value = if
-            PackArgs -> erlang:apply(M,F,[Mirror,Index,Args]);
-            true -> erlang:apply(M,F,[Mirror,Index|Args])
+            PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
+            true -> erlang:apply(M,F,[Ref,Index|Args])
         end,
-        destroy(Mirror),
-        {Value, NState};
+        {Value, load_state(Ref)};
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin=F}}
             when is_function(F) ->
         {Args, NState} = resolve_args(RawArgs, State),
-        {ok, Mirror} = start_mirror(NState#state{global=Ref}),
+        save_state(NState),
         Value = if
-            PackArgs -> F([Mirror,Index,Args]);
-            true -> F([Mirror,Index|Args])
+            PackArgs -> F([Ref,Index,Args]);
+            true -> F([Ref,Index|Args])
         end,
-        destroy(Mirror),
-        {Value, NState};
+        {Value, load_state(Ref)};
     {ok,#reg_func{type=php, args=RawFuncArgs, code=Code}} ->
         {Args, NStatePrev} = resolve_args(RawArgs, State),
         {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
@@ -628,7 +626,7 @@ resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
 resolve({global, GVars,_Line}, #state{
         global=GlobalCtx,
         vars=Vars}=State) ->
-    #state{vars=GlobalVars} = erlang:get(GlobalCtx),
+    #state{vars=GlobalVars} = load_state(GlobalCtx),
     lists:foreach(fun(GlobalVar) ->
         ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
     end, GVars),
@@ -950,3 +948,13 @@ resolve_op(Cond, State) ->
     {BoolValue, NewState}.
 
 get_class_name(#reg_instance{class=#class{name=Name}}) -> Name.
+
+-spec load_state(context()) -> #state{}.
+
+load_state(Context) ->
+    erlang:get(Context).
+
+-spec save_state(#state{}) -> #state{} | undefined.
+
+save_state(#state{ref=Ref} = State) ->
+    erlang:put(Ref, State).
