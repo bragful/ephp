@@ -36,7 +36,7 @@ flow_status() = break | continue | <a href="#type-return">return()</a> | false
 ### process/2 ###
 
 <pre><code>
-process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>]) -&gt; {ok, binary(), <a href="#type-return">return()</a> | false}
+process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>]) -&gt; {ok, binary() | <a href="#type-return">return()</a> | false}
 </code></pre>
 <br />
 

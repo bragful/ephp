@@ -69,7 +69,7 @@ PHP has a lot of built-in libraries. This interpreter has a little implementatio
 You can add your own functions specifying the PHP name, and the module and function, as follow:
 
 ```erlang
-ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
+ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 ```
 
 
@@ -84,6 +84,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <tr><td><a href="ephp_config.md" class="module">ephp_config</a></td></tr>
 <tr><td><a href="ephp_const.md" class="module">ephp_const</a></td></tr>
 <tr><td><a href="ephp_context.md" class="module">ephp_context</a></td></tr>
+<tr><td><a href="ephp_datetime.md" class="module">ephp_datetime</a></td></tr>
 <tr><td><a href="ephp_error.md" class="module">ephp_error</a></td></tr>
 <tr><td><a href="ephp_func.md" class="module">ephp_func</a></td></tr>
 <tr><td><a href="ephp_include.md" class="module">ephp_include</a></td></tr>

@@ -9,28 +9,19 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get_abbr_month-1">get_abbr_month/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_abbr_weekday-1">get_abbr_weekday/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_month-1">get_month/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_timestamp-1">get_timestamp/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_weekday-1">get_weekday/1</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-1">gettype/1</a></td><td></td></tr><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_equal-2">is_equal/2</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-3">to_bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin_to_number-1">bin_to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-1">gettype/1</a></td><td></td></tr><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_equal-2">is_equal/2</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-3">to_bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
 
-<a name="get_abbr_month-1"></a>
+<a name="bin_to_number-1"></a>
 
-### get_abbr_month/1 ###
-
-<pre><code>
-get_abbr_month(M::integer()) -&gt; binary()
-</code></pre>
-<br />
-
-<a name="get_abbr_weekday-1"></a>
-
-### get_abbr_weekday/1 ###
+### bin_to_number/1 ###
 
 <pre><code>
-get_abbr_weekday(D::<a href="#type-date">date()</a>) -&gt; binary()
+bin_to_number(Bin::binary()) -&gt; integer() | float()
 </code></pre>
 <br />
 
@@ -40,33 +31,6 @@ get_abbr_weekday(D::<a href="#type-date">date()</a>) -&gt; binary()
 
 <pre><code>
 get_line(X1::<a href="#type-line">line()</a> | undefined) -&gt; non_neg_integer() | undefined
-</code></pre>
-<br />
-
-<a name="get_month-1"></a>
-
-### get_month/1 ###
-
-<pre><code>
-get_month(M::integer()) -&gt; binary()
-</code></pre>
-<br />
-
-<a name="get_timestamp-1"></a>
-
-### get_timestamp/1 ###
-
-<pre><code>
-get_timestamp(TS::integer() | float()) -&gt; <a href="timer.md#type-timestamp">timer:timestamp()</a>
-</code></pre>
-<br />
-
-<a name="get_weekday-1"></a>
-
-### get_weekday/1 ###
-
-<pre><code>
-get_weekday(D::<a href="#type-date">date()</a>) -&gt; binary()
 </code></pre>
 <br />
 
