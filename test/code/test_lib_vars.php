@@ -43,6 +43,9 @@ print(((print_r(2, true) == 2) ? "yes" : "no") . "\n");
 print "isset \$data[5]? ";
 print(((isset($data[5])) ? "yes" : "no") . "\n");
 
+print "isset \$data[2]? ";
+print(((isset($data[2])) ? "yes" : "no") . "\n");
+
 print "is empty \$data[0]? ";
 print(((empty($data[0])) ? "yes" : "no") . "\n");
 

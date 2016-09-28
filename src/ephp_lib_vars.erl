@@ -100,21 +100,16 @@ var_dump(Context, Line, {Var,Value}) ->
     Result = case var_dump_fmt(Context, Line, Value, <<?SPACES_VD>>, RecCtl) of
     Elements when is_list(Elements) ->
         Data = iolist_to_binary(Elements),
-        Size = case Value of
-        V when ?IS_ARRAY(V) ->
-            ephp_util:to_bin(ephp_array:size(Value));
-        #reg_instance{class=#class{attrs=Attrs}} ->
-            ephp_util:to_bin(length(Attrs))
-        end,
-        if ?IS_ARRAY(Value) ->
-            <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-        is_record(Value, reg_instance) ->
-            #reg_instance{id=InstanceID,class=Class} = Value,
-            ID = integer_to_binary(InstanceID),
-            <<"object(", (Class#class.name)/binary, ")#", ID/binary,
-              " (", Size/binary, ") {\n", Data/binary, "}\n">>;
-        true ->
-            Data
+        case Value of
+            Value when ?IS_ARRAY(Value) ->
+                Size = ephp_util:to_bin(ephp_array:size(Value)),
+                <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
+            #reg_instance{class=#class{attrs=Attrs}} ->
+                Size = ephp_util:to_bin(length(Attrs)),
+                #reg_instance{id=InstanceID,class=Class} = Value,
+                ID = integer_to_binary(InstanceID),
+                <<"object(", (Class#class.name)/binary, ")#", ID/binary,
+                  " (", Size/binary, ") {\n", Data/binary, "}\n">>
         end;
     Element ->
         Element
@@ -132,7 +127,7 @@ print_r(_Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}},
         Value = ephp_context:get(Ctx, #variable{name=Name}),
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
         <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
-          ValDumped/binary, "\n">>
+          ValDumped/binary>>
     end, <<>>, Class#class.attrs),
     <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
 
