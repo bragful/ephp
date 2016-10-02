@@ -1,8 +1,9 @@
 %% encoding: UTF-8
 {application,ephp}.
 {modules,[ephp,ephp_array,ephp_class,ephp_config,ephp_const,ephp_context,
-          ephp_error,ephp_func,ephp_include,ephp_interpr,ephp_lib_array,
-          ephp_lib_class,ephp_lib_control,ephp_lib_date,ephp_lib_file,
-          ephp_lib_func,ephp_lib_info,ephp_lib_math,ephp_lib_misc,ephp_lib_ob,
-          ephp_lib_string,ephp_lib_vars,ephp_output,ephp_parser,ephp_shutdown,
-          ephp_util,ephp_vars]}.
+          ephp_data,ephp_datetime,ephp_error,ephp_func,ephp_include,
+          ephp_interpr,ephp_lib_array,ephp_lib_class,ephp_lib_control,
+          ephp_lib_date,ephp_lib_file,ephp_lib_func,ephp_lib_info,
+          ephp_lib_math,ephp_lib_misc,ephp_lib_ob,ephp_lib_string,
+          ephp_lib_vars,ephp_output,ephp_parser,ephp_shutdown,ephp_string,
+          ephp_timezone,ephp_vars]}.

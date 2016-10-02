@@ -34,7 +34,7 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_consts-0">init_consts/0</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_consts-0">init_consts/0</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -53,6 +53,15 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 
 <pre><code>
 error(X1::<a href="#type-throw_error">throw_error()</a>) -&gt; ok
+</code></pre>
+<br />
+
+<a name="get_line-1"></a>
+
+### get_line/1 ###
+
+<pre><code>
+get_line(X1::<a href="#type-line">line()</a> | undefined) -&gt; non_neg_integer() | undefined
 </code></pre>
 <br />
 

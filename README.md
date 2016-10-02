@@ -84,6 +84,8 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_config.md" class="module">ephp_config</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_const.md" class="module">ephp_const</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_context.md" class="module">ephp_context</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_data.md" class="module">ephp_data</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_datetime.md" class="module">ephp_datetime</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_error.md" class="module">ephp_error</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func.md" class="module">ephp_func</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_include.md" class="module">ephp_include</a></td></tr>
@@ -103,6 +105,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_func_date, time).
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_output.md" class="module">ephp_output</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser.md" class="module">ephp_parser</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_util.md" class="module">ephp_util</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_string.md" class="module">ephp_string</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_timezone.md" class="module">ephp_timezone</a></td></tr>
 <tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
 

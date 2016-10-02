@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#date-3">date/3</a></td><td></td></tr><tr><td valign="top"><a href="#date-4">date/4</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_get-2">date_default_timezone_get/2</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_set-3">date_default_timezone_set/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-3">gmdate/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-4">gmdate/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-2">microtime/2</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-3">microtime/3</a></td><td></td></tr><tr><td valign="top"><a href="#time-2">time/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#date-3">date/3</a></td><td></td></tr><tr><td valign="top"><a href="#date-4">date/4</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_get-2">date_default_timezone_get/2</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_set-3">date_default_timezone_set/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-3">gmdate/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-4">gmdate/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-2">microtime/2</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-3">microtime/3</a></td><td></td></tr><tr><td valign="top"><a href="#time-2">time/2</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_abbreviations_list-2">timezone_abbreviations_list/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -114,6 +114,15 @@ microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 
 <pre><code>
 time(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; integer()
+</code></pre>
+<br />
+
+<a name="timezone_abbreviations_list-2"></a>
+
+### timezone_abbreviations_list/2 ###
+
+<pre><code>
+timezone_abbreviations_list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; [<a href="#type-ephp_array">ephp_array()</a>]
 </code></pre>
 <br />
 
