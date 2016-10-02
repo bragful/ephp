@@ -16,8 +16,7 @@
     to_zone/2,
     get_datetime/1,
     to_bmt/1,
-    get_tz_time/3,
-    tz/1
+    get_tz_time/3
 ]).
 
 -spec get_timestamp(TS::integer() | float()) -> timer:timestamp().
@@ -106,17 +105,6 @@ normalize_tz("GMT") ->
 normalize_tz(Zone) ->
     Zone.
 
--spec tz(string() | binary()) -> binary().
-
-tz(TZ) when is_list(TZ) ->
-    tz(list_to_binary(TZ));
-tz(<<"Etc/UTC">>) ->
-    <<"UTC">>;
-tz(<<"Etc/GMT">>) ->
-    <<"GMT">>;
-tz(Other) ->
-    Other.
-
 -spec is_dst(calendar:date(), string() | binary()) -> boolean().
 
 is_dst(Date, RawTZ) ->
@@ -150,10 +138,10 @@ get_tz_time(DateTime, TZ, Sep) ->
     case UTCTime - Time of
         Diff when Diff =< 0 ->
             <<"+",
-              (ephp_util:pad_to_bin(abs(Diff div 3600),2))/binary, Sep/binary,
-              (ephp_util:pad_to_bin(abs(Diff rem 3600),2))/binary>>;
+              (ephp_data:pad_to_bin(abs(Diff div 3600),2))/binary, Sep/binary,
+              (ephp_data:pad_to_bin(abs(Diff rem 3600),2))/binary>>;
         Diff when Diff > 0 ->
             <<"-",
-              (ephp_util:pad_to_bin(Diff div 3600, 2))/binary, Sep/binary,
-              (ephp_util:pad_to_bin(Diff rem 3600, 2))/binary>>
+              (ephp_data:pad_to_bin(Diff div 3600, 2))/binary, Sep/binary,
+              (ephp_data:pad_to_bin(Diff rem 3600, 2))/binary>>
     end.

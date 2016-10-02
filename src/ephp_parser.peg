@@ -828,7 +828,7 @@ integer <- '-'? space? [0-9]+ `
 constant <- (key space? '::')? space? key `
     case Node of
         [[],_,<<"__LINE__">>] ->
-            #int{int=ephp_util:get_line(Index), line=Index};
+            #int{int=ephp_error:get_line(Index), line=Index};
         [[],_,Key] ->
             #constant{name=Key, line=Index};
         [[Class,_,_],_,<<"class">>] ->
@@ -1069,9 +1069,9 @@ throw_error(Error, Index, Data) ->
 
 get_print({Type, Value, _}, Index) when
         Type =:= int; Type =:= float; Type =:= text ->
-    #print_text{text=ephp_util:to_bin(Value), line=Index};
+    #print_text{text=ephp_data:to_bin(Value), line=Index};
 get_print(Value, Index) when is_atom(Value) ->
-    #print_text{text=ephp_util:to_bin(Value), line=Index};
+    #print_text{text=ephp_data:to_bin(Value), line=Index};
 get_print(Expr, Index) ->
     #print{expression=Expr, line=Index}.
 

@@ -13,7 +13,8 @@
     run_quiet/2,
 
     error/1,
-    handle_error/2
+    handle_error/2,
+    get_line/1
 ]).
 
 -callback set_output(context(), string()) -> ok.
@@ -91,7 +92,7 @@ error({error, Type, Index, Level, Data}) ->
     error_level(), any()}) -> ok.
 
 handle_error(Context, {error, Type, Index, Level, Data}) ->
-    Line = ephp_util:get_line(Index),
+    Line = get_line(Index),
     ErrorText = get_message(Type, Line, get_level(Level), Data),
     case erlang:get(ephp_context:get_errors_id(Context)) of
         #state{silent=true} ->
@@ -254,3 +255,11 @@ get_level(?E_RECOVERABLE_ERROR) -> <<"Catchable fatal error">>;
 get_level(?E_DEPRECATED) -> <<"Deprecated">>;
 get_level(?E_USER_DEPRECATED) -> <<"Deprecated">>;
 get_level(_) -> <<"Unknown">>.
+
+-spec get_line(line() | undefined) -> non_neg_integer() | undefined.
+
+get_line(undefined) ->
+    undefined;
+
+get_line({{line, Line}, {column, _Column}}) ->
+    Line.

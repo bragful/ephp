@@ -86,14 +86,14 @@ date('z', 1422959410) -> 33
 // day of year in America/Mexico_City
 date('z', 1422959410) -> 33
 
-// week of year in UTC
-date('W', 1422959410) -> 06
+// week of year / year of week in UTC
+date('W - o', 1422959410) -> 06 - 2015
 
-// week of year in Europe/Madrid
-date('W', 1422959410) -> 06
+// week of year / year of week in Europe/Madrid
+date('W - o', 1422959410) -> 06 - 2015
 
-// week of year in America/Mexico_City
-date('W', 1422959410) -> 06
+// week of year / year of week in America/Mexico_City
+date('W - o', 1422959410) -> 06 - 2015
 
 // hours in UTC
 date('h H g G [A] B', 1422959410) -> 10 10 10 10 [AM] 479
@@ -117,10 +117,10 @@ date('e (I)', 1422959410) -> America/Mexico_City (0)
 date('Z T P O', 1422959410) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1422959410) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1422959410) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1422959410) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1422959410) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1451640610) -> 2016-01-01 09:30:10.000000
@@ -194,14 +194,14 @@ date('z', 1451640610) -> 0
 // day of year in America/Mexico_City
 date('z', 1451640610) -> 0
 
-// week of year in UTC
-date('W', 1451640610) -> 53
+// week of year / year of week in UTC
+date('W - o', 1451640610) -> 53 - 2015
 
-// week of year in Europe/Madrid
-date('W', 1451640610) -> 53
+// week of year / year of week in Europe/Madrid
+date('W - o', 1451640610) -> 53 - 2015
 
-// week of year in America/Mexico_City
-date('W', 1451640610) -> 53
+// week of year / year of week in America/Mexico_City
+date('W - o', 1451640610) -> 53 - 2015
 
 // hours in UTC
 date('h H g G [A] B', 1451640610) -> 09 09 9 9 [AM] 437
@@ -225,10 +225,10 @@ date('e (I)', 1451640610) -> America/Mexico_City (0)
 date('Z T P O', 1451640610) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1451640610) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1451640610) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1451640610) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1451640610) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1454409010) -> 2016-02-02 10:30:10.000000
@@ -302,14 +302,14 @@ date('z', 1454409010) -> 32
 // day of year in America/Mexico_City
 date('z', 1454409010) -> 32
 
-// week of year in UTC
-date('W', 1454409010) -> 05
+// week of year / year of week in UTC
+date('W - o', 1454409010) -> 05 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1454409010) -> 05
+// week of year / year of week in Europe/Madrid
+date('W - o', 1454409010) -> 05 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1454409010) -> 05
+// week of year / year of week in America/Mexico_City
+date('W - o', 1454409010) -> 05 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1454409010) -> 10 10 10 10 [AM] 479
@@ -333,10 +333,10 @@ date('e (I)', 1454409010) -> America/Mexico_City (0)
 date('Z T P O', 1454409010) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1454409010) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1454409010) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1454409010) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1454409010) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1454495410) -> 2016-02-03 10:30:10.000000
@@ -410,14 +410,14 @@ date('z', 1454495410) -> 33
 // day of year in America/Mexico_City
 date('z', 1454495410) -> 33
 
-// week of year in UTC
-date('W', 1454495410) -> 05
+// week of year / year of week in UTC
+date('W - o', 1454495410) -> 05 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1454495410) -> 05
+// week of year / year of week in Europe/Madrid
+date('W - o', 1454495410) -> 05 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1454495410) -> 05
+// week of year / year of week in America/Mexico_City
+date('W - o', 1454495410) -> 05 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1454495410) -> 10 10 10 10 [AM] 479
@@ -441,10 +441,10 @@ date('e (I)', 1454495410) -> America/Mexico_City (0)
 date('Z T P O', 1454495410) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1454495410) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1454495410) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1454495410) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1454495410) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1457004610) -> 2016-03-03 11:30:10.000000
@@ -518,14 +518,14 @@ date('z', 1457004610) -> 62
 // day of year in America/Mexico_City
 date('z', 1457004610) -> 62
 
-// week of year in UTC
-date('W', 1457004610) -> 09
+// week of year / year of week in UTC
+date('W - o', 1457004610) -> 09 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1457004610) -> 09
+// week of year / year of week in Europe/Madrid
+date('W - o', 1457004610) -> 09 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1457004610) -> 09
+// week of year / year of week in America/Mexico_City
+date('W - o', 1457004610) -> 09 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1457004610) -> 11 11 11 11 [AM] 520
@@ -549,10 +549,10 @@ date('e (I)', 1457004610) -> America/Mexico_City (0)
 date('Z T P O', 1457004610) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1457004610) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1457004610) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1457004610) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1457004610) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1459773010) -> 2016-04-04 12:30:10.000000
@@ -626,14 +626,14 @@ date('z', 1459773010) -> 94
 // day of year in America/Mexico_City
 date('z', 1459773010) -> 94
 
-// week of year in UTC
-date('W', 1459773010) -> 14
+// week of year / year of week in UTC
+date('W - o', 1459773010) -> 14 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1459773010) -> 14
+// week of year / year of week in Europe/Madrid
+date('W - o', 1459773010) -> 14 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1459773010) -> 14
+// week of year / year of week in America/Mexico_City
+date('W - o', 1459773010) -> 14 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1459773010) -> 12 12 12 12 [PM] 562
@@ -657,10 +657,10 @@ date('e (I)', 1459773010) -> America/Mexico_City (1)
 date('Z T P O', 1459773010) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1459773010) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1459773010) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1459773010) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1459773010) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1462455010) -> 2016-05-05 13:30:10.000000
@@ -734,14 +734,14 @@ date('z', 1462455010) -> 125
 // day of year in America/Mexico_City
 date('z', 1462455010) -> 125
 
-// week of year in UTC
-date('W', 1462455010) -> 18
+// week of year / year of week in UTC
+date('W - o', 1462455010) -> 18 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1462455010) -> 18
+// week of year / year of week in Europe/Madrid
+date('W - o', 1462455010) -> 18 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1462455010) -> 18
+// week of year / year of week in America/Mexico_City
+date('W - o', 1462455010) -> 18 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1462455010) -> 01 13 1 13 [PM] 604
@@ -765,10 +765,10 @@ date('e (I)', 1462455010) -> America/Mexico_City (1)
 date('Z T P O', 1462455010) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1462455010) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1462455010) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1462455010) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1462455010) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1465223410) -> 2016-06-06 14:30:10.000000
@@ -842,14 +842,14 @@ date('z', 1465223410) -> 157
 // day of year in America/Mexico_City
 date('z', 1465223410) -> 157
 
-// week of year in UTC
-date('W', 1465223410) -> 23
+// week of year / year of week in UTC
+date('W - o', 1465223410) -> 23 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1465223410) -> 23
+// week of year / year of week in Europe/Madrid
+date('W - o', 1465223410) -> 23 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1465223410) -> 23
+// week of year / year of week in America/Mexico_City
+date('W - o', 1465223410) -> 23 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1465223410) -> 02 14 2 14 [PM] 645
@@ -873,10 +873,10 @@ date('e (I)', 1465223410) -> America/Mexico_City (1)
 date('Z T P O', 1465223410) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1465223410) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1465223410) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1465223410) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1465223410) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1467905410) -> 2016-07-07 15:30:10.000000
@@ -950,14 +950,14 @@ date('z', 1467905410) -> 188
 // day of year in America/Mexico_City
 date('z', 1467905410) -> 188
 
-// week of year in UTC
-date('W', 1467905410) -> 27
+// week of year / year of week in UTC
+date('W - o', 1467905410) -> 27 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1467905410) -> 27
+// week of year / year of week in Europe/Madrid
+date('W - o', 1467905410) -> 27 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1467905410) -> 27
+// week of year / year of week in America/Mexico_City
+date('W - o', 1467905410) -> 27 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1467905410) -> 03 15 3 15 [PM] 687
@@ -981,10 +981,10 @@ date('e (I)', 1467905410) -> America/Mexico_City (1)
 date('Z T P O', 1467905410) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1467905410) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1467905410) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1467905410) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1467905410) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1470673810) -> 2016-08-08 16:30:10.000000
@@ -1058,14 +1058,14 @@ date('z', 1470673810) -> 220
 // day of year in America/Mexico_City
 date('z', 1470673810) -> 220
 
-// week of year in UTC
-date('W', 1470673810) -> 32
+// week of year / year of week in UTC
+date('W - o', 1470673810) -> 32 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1470673810) -> 32
+// week of year / year of week in Europe/Madrid
+date('W - o', 1470673810) -> 32 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1470673810) -> 32
+// week of year / year of week in America/Mexico_City
+date('W - o', 1470673810) -> 32 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1470673810) -> 04 16 4 16 [PM] 729
@@ -1089,10 +1089,10 @@ date('e (I)', 1470673810) -> America/Mexico_City (1)
 date('Z T P O', 1470673810) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1470673810) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1470673810) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1470673810) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1470673810) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1473442210) -> 2016-09-09 17:30:10.000000
@@ -1166,14 +1166,14 @@ date('z', 1473442210) -> 252
 // day of year in America/Mexico_City
 date('z', 1473442210) -> 252
 
-// week of year in UTC
-date('W', 1473442210) -> 36
+// week of year / year of week in UTC
+date('W - o', 1473442210) -> 36 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1473442210) -> 36
+// week of year / year of week in Europe/Madrid
+date('W - o', 1473442210) -> 36 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1473442210) -> 36
+// week of year / year of week in America/Mexico_City
+date('W - o', 1473442210) -> 36 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1473442210) -> 05 17 5 17 [PM] 770
@@ -1197,10 +1197,10 @@ date('e (I)', 1473442210) -> America/Mexico_City (1)
 date('Z T P O', 1473442210) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1473442210) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1473442210) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1473442210) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1473442210) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1476124210) -> 2016-10-10 18:30:10.000000
@@ -1274,14 +1274,14 @@ date('z', 1476124210) -> 283
 // day of year in America/Mexico_City
 date('z', 1476124210) -> 283
 
-// week of year in UTC
-date('W', 1476124210) -> 41
+// week of year / year of week in UTC
+date('W - o', 1476124210) -> 41 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1476124210) -> 41
+// week of year / year of week in Europe/Madrid
+date('W - o', 1476124210) -> 41 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1476124210) -> 41
+// week of year / year of week in America/Mexico_City
+date('W - o', 1476124210) -> 41 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1476124210) -> 06 18 6 18 [PM] 812
@@ -1305,10 +1305,10 @@ date('e (I)', 1476124210) -> America/Mexico_City (1)
 date('Z T P O', 1476124210) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1476124210) -> 7200 Europe/Madrid +02:00 +0200
+date('Z T P O', 1476124210) -> 7200 CEST +02:00 +0200
 
 // 0 in America/Mexico_City
-date('Z T P O', 1476124210) -> -18000 America/Mexico_City -05:00 -0500
+date('Z T P O', 1476124210) -> -18000 CDT -05:00 -0500
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1478892610) -> 2016-11-11 19:30:10.000000
@@ -1382,14 +1382,14 @@ date('z', 1478892610) -> 315
 // day of year in America/Mexico_City
 date('z', 1478892610) -> 315
 
-// week of year in UTC
-date('W', 1478892610) -> 45
+// week of year / year of week in UTC
+date('W - o', 1478892610) -> 45 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1478892610) -> 45
+// week of year / year of week in Europe/Madrid
+date('W - o', 1478892610) -> 45 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1478892610) -> 45
+// week of year / year of week in America/Mexico_City
+date('W - o', 1478892610) -> 45 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1478892610) -> 07 19 7 19 [PM] 854
@@ -1413,10 +1413,10 @@ date('e (I)', 1478892610) -> America/Mexico_City (0)
 date('Z T P O', 1478892610) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1478892610) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1478892610) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1478892610) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1478892610) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1481401810) -> 2016-12-10 20:30:10.000000
@@ -1490,14 +1490,14 @@ date('z', 1481401810) -> 344
 // day of year in America/Mexico_City
 date('z', 1481401810) -> 344
 
-// week of year in UTC
-date('W', 1481401810) -> 49
+// week of year / year of week in UTC
+date('W - o', 1481401810) -> 49 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1481401810) -> 49
+// week of year / year of week in Europe/Madrid
+date('W - o', 1481401810) -> 49 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1481401810) -> 49
+// week of year / year of week in America/Mexico_City
+date('W - o', 1481401810) -> 49 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1481401810) -> 08 20 8 20 [PM] 895
@@ -1521,10 +1521,10 @@ date('e (I)', 1481401810) -> America/Mexico_City (0)
 date('Z T P O', 1481401810) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1481401810) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1481401810) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1481401810) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1481401810) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1481488210) -> 2016-12-11 20:30:10.000000
@@ -1598,14 +1598,14 @@ date('z', 1481488210) -> 345
 // day of year in America/Mexico_City
 date('z', 1481488210) -> 345
 
-// week of year in UTC
-date('W', 1481488210) -> 49
+// week of year / year of week in UTC
+date('W - o', 1481488210) -> 49 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1481488210) -> 49
+// week of year / year of week in Europe/Madrid
+date('W - o', 1481488210) -> 49 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1481488210) -> 49
+// week of year / year of week in America/Mexico_City
+date('W - o', 1481488210) -> 49 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1481488210) -> 08 20 8 20 [PM] 895
@@ -1629,10 +1629,10 @@ date('e (I)', 1481488210) -> America/Mexico_City (0)
 date('Z T P O', 1481488210) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1481488210) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1481488210) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1481488210) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1481488210) -> -21600 CST -06:00 -0600
 
 // easy in UTC
 date('Y-m-d H:i:s.u', 1481574610) -> 2016-12-12 20:30:10.000000
@@ -1706,14 +1706,14 @@ date('z', 1481574610) -> 346
 // day of year in America/Mexico_City
 date('z', 1481574610) -> 346
 
-// week of year in UTC
-date('W', 1481574610) -> 50
+// week of year / year of week in UTC
+date('W - o', 1481574610) -> 50 - 2016
 
-// week of year in Europe/Madrid
-date('W', 1481574610) -> 50
+// week of year / year of week in Europe/Madrid
+date('W - o', 1481574610) -> 50 - 2016
 
-// week of year in America/Mexico_City
-date('W', 1481574610) -> 50
+// week of year / year of week in America/Mexico_City
+date('W - o', 1481574610) -> 50 - 2016
 
 // hours in UTC
 date('h H g G [A] B', 1481574610) -> 08 20 8 20 [PM] 895
@@ -1737,7 +1737,7 @@ date('e (I)', 1481574610) -> America/Mexico_City (0)
 date('Z T P O', 1481574610) -> 0 UTC +00:00 +0000
 
 // 0 in Europe/Madrid
-date('Z T P O', 1481574610) -> 3600 Europe/Madrid +01:00 +0100
+date('Z T P O', 1481574610) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
-date('Z T P O', 1481574610) -> -21600 America/Mexico_City -06:00 -0600
+date('Z T P O', 1481574610) -> -21600 CST -06:00 -0600

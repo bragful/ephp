@@ -49,7 +49,7 @@ strlen(_Context, _Line, {_,String}) when is_binary(String) ->
 
 strlen(Context, Line, {_, Var}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strlen">>, 1, <<"string">>, ephp_util:gettype(Var), File},
+    Data = {<<"strlen">>, 1, <<"string">>, ephp_data:gettype(Var), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.
@@ -61,7 +61,7 @@ ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
 
 ord(Context, Line, {_, Var}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"ord">>, 1, <<"string">>, ephp_util:gettype(Var), File},
+    Data = {<<"ord">>, 1, <<"string">>, ephp_data:gettype(Var), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.
@@ -84,9 +84,9 @@ implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
     implode(Context, Line, {undefined, <<"Array">>}, VarGlue);
 
 implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
-    Glue = ephp_util:to_bin(Context, Line, RawGlue),
+    Glue = ephp_data:to_bin(Context, Line, RawGlue),
     ListOfPieces = ephp_array:fold(fun(_Key, Piece, SetOfPieces) ->
-        SetOfPieces ++ [ephp_util:to_bin(Context, Line, Piece)]
+        SetOfPieces ++ [ephp_data:to_bin(Context, Line, Piece)]
     end, [], Pieces),
     case ListOfPieces of
         [] -> <<>>;
@@ -116,7 +116,7 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
 explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"explode">>, 3, <<"long">>, ephp_util:gettype(Limit), File},
+    Data = {<<"explode">>, 3, <<"long">>, ephp_data:gettype(Limit), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined;
@@ -160,12 +160,12 @@ str_replace(Context, _Line, {_, Search}, {_, Replace}, {_, Subject}, {Count,_}) 
 -spec strtolower(context(), line(), Text :: var_value()) -> binary().
 
 strtolower(Context, Line, {_, Text}) ->
-    unistring:to_lower(ephp_util:to_bin(Context, Line, Text)).
+    unistring:to_lower(ephp_data:to_bin(Context, Line, Text)).
 
 -spec strtoupper(context(), line(), Text :: var_value()) -> binary().
 
 strtoupper(Context, Line, {_, Text}) ->
-    unistring:to_upper(ephp_util:to_bin(Context, Line, Text)).
+    unistring:to_upper(ephp_data:to_bin(Context, Line, Text)).
 
 -spec str_split(context(), line(), Text :: var_value()) -> ephp_array().
 
@@ -177,7 +177,7 @@ str_split(Context, Line, Text) ->
 
 str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"str_split">>, 2, <<"long">>, ephp_util:gettype(Size), File},
+    Data = {<<"str_split">>, 2, <<"long">>, ephp_data:gettype(Size), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined;

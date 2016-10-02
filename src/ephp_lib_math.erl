@@ -74,21 +74,21 @@ init_consts() -> [
 php_ceil(_Context, _Line, {_, Value}) when is_number(Value) ->
     ceiling(Value);
 php_ceil(_Context, _Line, {_, Value}) ->
-    ceiling(ephp_util:bin_to_number(Value)).
+    ceiling(ephp_data:bin_to_number(Value)).
 
 -spec php_floor(context(), line(), var_value()) -> integer().
 
 php_floor(_Context, _Line, {_, Value}) when is_number(Value) ->
     floor(Value);
 php_floor(_Context, _Line, {_, Value}) ->
-    floor(ephp_util:bin_to_number(Value)).
+    floor(ephp_data:bin_to_number(Value)).
 
 -spec php_round(context(), line(), var_value()) -> integer().
 
 php_round(_Context, _Line, {_, Value}) when is_number(Value) ->
     round(Value);
 php_round(_Context, _Line, {_, Value}) ->
-    round(ephp_util:bin_to_number(Value)).
+    round(ephp_data:bin_to_number(Value)).
 
 -spec php_sqrt(context(), line(), var_value()) -> float().
 
@@ -96,7 +96,7 @@ php_sqrt(_Context, _Line, {_, Value}) when is_number(Value) ->
     math:sqrt(float(Value));
 php_sqrt(Context, Line, {_, Val}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"sqrt">>, 1, <<"double">>, ephp_util:gettype(Val), File},
+    Data = {<<"sqrt">>, 1, <<"double">>, ephp_data:gettype(Val), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.
@@ -129,7 +129,7 @@ php_abs(_Context, _Line, {_, Number}) when is_number(Number)  ->
     abs(Number);
 
 php_abs(_Context, _Line, {_, String}) when is_binary(String) ->
-    abs(ephp_util:bin_to_number(String));
+    abs(ephp_data:bin_to_number(String));
 
 php_abs(_Context, _Line, _NotANumber) ->
     false.
@@ -141,7 +141,7 @@ php_acos(_Context, _Line, {_, Number}) when is_number(Number) ->
 
 php_acos(Context, Line, {_Var, Val}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"acos">>, 1, <<"double">>, ephp_util:gettype(Val), File},
+    Data = {<<"acos">>, 1, <<"double">>, ephp_data:gettype(Val), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.
@@ -153,7 +153,7 @@ php_asin(_Context, _Line, {_, Number}) when is_number(Number) ->
 
 php_asin(Context, Line, {_Var, Val}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"asin">>, 1, <<"double">>, ephp_util:gettype(Val), File},
+    Data = {<<"asin">>, 1, <<"double">>, ephp_data:gettype(Val), File},
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.

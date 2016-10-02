@@ -98,8 +98,8 @@ $formats = [
     // 252
     "day of year" => "z",
 
-    // 36
-    "week of year" => "W",
+    // 36 - 2016
+    "week of year / year of week" => "W - o",
 
     // 17 17 5 05 770
     "hours" => "h H g G [A] B",

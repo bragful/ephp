@@ -1,6 +1,8 @@
--module(ephp_util).
+-module(ephp_data).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
+
+-include("ephp.hrl").
 
 -export([
     gettype/1,
@@ -8,15 +10,11 @@
     to_bin/1,
     to_bin/3,
     bin_to_number/1,
-    to_lower/1,
     increment_code/1,
     to_bool/1,
     zero_if_undef/1,
-    pad_to_bin/2,
-    get_line/1
+    pad_to_bin/2
 ]).
-
--include("ephp.hrl").
 
 -spec gettype(mixed()) -> binary().
 
@@ -100,11 +98,6 @@ to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
 to_bin(_Context, _Line, Val) ->
     to_bin(Val).
 
--spec to_lower(binary()) -> binary().
-
-to_lower(Text) ->
-    unistring:to_lower(Text).
-
 -spec increment_code(Code :: binary()) -> integer() | binary().
 
 increment_code(<<>>) ->
@@ -179,10 +172,3 @@ pad_to_bin(Num, Pad) when not is_binary(Num) ->
 pad_to_bin(Num, Pad) ->
     pad_to_bin(<<"0",Num/binary>>, Pad-1).
 
--spec get_line(line() | undefined) -> non_neg_integer() | undefined.
-
-get_line(undefined) ->
-    undefined;
-
-get_line({{line, Line}, {column, _Column}}) ->
-    Line.

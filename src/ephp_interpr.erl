@@ -32,7 +32,7 @@ run(Context, #print_text{text=Text}) ->
 
 run(Context, #print{expression=Expr, line=Line}) ->
     Result = ephp_context:solve(Context, Expr),
-    ephp_context:set_output(Context, ephp_util:to_bin(Context, Line, Result)),
+    ephp_context:set_output(Context, ephp_data:to_bin(Context, Line, Result)),
     false;
 
 run(Context, #eval{statements=Statements}) ->
@@ -124,7 +124,7 @@ run_depth(Context, #print_text{text=Text}, false) ->
 
 run_depth(Context, #print{expression=Expr, line=Line}, false) ->
     Result = ephp_context:solve(Context, Expr),
-    ResText = ephp_util:to_bin(Context, Line, Result),
+    ResText = ephp_data:to_bin(Context, Line, Result),
     ephp_context:set_output(Context, ResText),
     false;
 

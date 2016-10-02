@@ -102,9 +102,9 @@ var_dump(Context, Line, {Var,Value}) ->
         Data = iolist_to_binary(Elements),
         Size = case Value of
         V when ?IS_ARRAY(V) ->
-            ephp_util:to_bin(ephp_array:size(Value));
+            ephp_data:to_bin(ephp_array:size(Value));
         #reg_instance{class=#class{attrs=Attrs}} ->
-            ephp_util:to_bin(length(Attrs))
+            ephp_data:to_bin(length(Attrs))
         end,
         if ?IS_ARRAY(Value) ->
             <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
@@ -161,10 +161,10 @@ print_r(Context, _Line, {Var,Value}, {_,false}) when ?IS_ARRAY(Value) ->
     true;
 
 print_r(Context, Line, {_,Value}, {_,true}) ->
-    ephp_util:to_bin(Context, Line, Value);
+    ephp_data:to_bin(Context, Line, Value);
 
 print_r(Context, Line, {_,Value}, {_,false}) ->
-    ephp_context:set_output(Context, ephp_util:to_bin(Context, Line, Value)),
+    ephp_context:set_output(Context, ephp_data:to_bin(Context, Line, Value)),
     true.
 
 -spec isset(context(), line(), var_value()) -> boolean().
@@ -189,7 +189,7 @@ empty(_Context, _Line, {_,Value}) ->
 -spec gettype(context(), line(), var_value()) -> binary().
 
 gettype(_Context, _Line, {_,Value}) ->
-    ephp_util:gettype(Value).
+    ephp_data:gettype(Value).
 
 -spec unset(context(), line(), var_value()) -> undefined.
 
@@ -250,13 +250,13 @@ var_dump_fmt(_Context, _Line, false, _Spaces, _RecCtl) ->
     <<"bool(false)\n">>;
 
 var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_integer(Value) ->
-    <<"int(",(ephp_util:to_bin(Value))/binary, ")\n">>;
+    <<"int(",(ephp_data:to_bin(Value))/binary, ")\n">>;
 
 var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_float(Value) ->
-    <<"float(",(ephp_util:to_bin(Value))/binary, ")\n">>;
+    <<"float(",(ephp_data:to_bin(Value))/binary, ")\n">>;
 
 var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_binary(Value) ->
-    Size = ephp_util:to_bin(byte_size(Value)),
+    Size = ephp_data:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",Value/binary, "\"\n">>;
 
 var_dump_fmt(Context, Line, #reg_instance{class=Class, context=Ctx},
@@ -276,7 +276,7 @@ var_dump_fmt(_Context, _Line, undefined, _Spaces, _RecCtl) ->
 var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
     ephp_array:fold(fun(Key, Val, Res) ->
         KeyBin = if
-            not is_binary(Key) -> ephp_util:to_bin(Context, Line, Key);
+            not is_binary(Key) -> ephp_data:to_bin(Context, Line, Key);
             true -> <<"\"", Key/binary, "\"">>
         end,
         Res ++ case var_dump_fmt(Context, Line, Val,
@@ -287,7 +287,7 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                       Spaces/binary, V/binary>>
                 ];
             V when is_list(V) ->
-                Elements = ephp_util:to_bin(Context, Line, ephp_array:size(Val)),
+                Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Val)),
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
                     <<Spaces/binary,"array(", Elements/binary, ") {\n">>
@@ -309,7 +309,7 @@ print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces, RecCtl) ->
 
 print_r_fmt(Context, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
     ephp_array:fold(fun(Key, Val, Res) ->
-        KeyBin = ephp_util:to_bin(Key),
+        KeyBin = ephp_data:to_bin(Key),
         Res ++ case print_r_fmt(Context, Val, Spaces, RecCtl) of
             V when is_binary(V) ->
                 [<<Spaces/binary, "[", KeyBin/binary, "] => ", V/binary>>];
@@ -327,4 +327,4 @@ print_r_fmt(Context, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
     end, [], Value);
 
 print_r_fmt(_Context, Value, _Spaces, _RecCtl) ->
-    <<(ephp_util:to_bin(Value))/binary, "\n">>.
+    <<(ephp_data:to_bin(Value))/binary, "\n">>.

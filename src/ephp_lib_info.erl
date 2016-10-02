@@ -35,7 +35,7 @@ phpinfo(Context, _Line) ->
     Directives = lists:foldl(fun
         ({_K,<<>>},R) -> R;
         ({K,V},R) when is_binary(K) ->
-            <<R/binary, K/binary, " => ", (ephp_util:to_bin(V))/binary, "\n">>;
+            <<R/binary, K/binary, " => ", (ephp_data:to_bin(V))/binary, "\n">>;
         (_,R) -> R
     end, <<>>, application:get_all_env(ephp)),
     Output = <<
@@ -79,12 +79,12 @@ get_build_date() ->
     Info = ephp:module_info(),
     Compile = proplists:get_value(compile, Info),
     {Y,M,D,H,I,S} = proplists:get_value(time, Compile),
-    Month = ephp_util:get_abbr_month(M),
-    Day = ephp_util:pad_to_bin(D,2),
+    Month = ephp_datetime:get_abbr_month(M),
+    Day = ephp_data:pad_to_bin(D,2),
     Year = integer_to_binary(Y),
-    Hour = ephp_util:pad_to_bin(H,2),
-    Min = ephp_util:pad_to_bin(I,2),
-    Sec = ephp_util:pad_to_bin(S,2),
+    Hour = ephp_data:pad_to_bin(H,2),
+    Min = ephp_data:pad_to_bin(I,2),
+    Sec = ephp_data:pad_to_bin(S,2),
     <<
         Month/binary, " ", Day/binary, " ", Year/binary, " ",
         Hour/binary, ":", Min/binary, ":", Sec/binary

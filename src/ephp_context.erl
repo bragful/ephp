@@ -413,7 +413,7 @@ resolve({pre_incr, Var, _Line}, State) ->
                     NewVal = try
                         binary_to_integer(V) + 1
                     catch error:badarg ->
-                        ephp_util:increment_code(V)
+                        ephp_data:increment_code(V)
                     end,
                     ephp_vars:set(State#state.vars, VarPath, NewVal),
                     {NewVal, State};
@@ -449,7 +449,7 @@ resolve({post_incr, Var, _Line}, State) ->
             NewVal = try
                 binary_to_integer(V) + 1
             catch error:badarg ->
-                ephp_util:increment_code(V)
+                ephp_data:increment_code(V)
             end,
             ephp_vars:set(State#state.vars, VarPath, NewVal),
             {V, State};
@@ -867,7 +867,7 @@ resolve_txt(Texts, Line, State) ->
             {<<Data/binary,ResultTxt/binary>>,NS};
         (Data, {ResultTxt,NS}) when is_tuple(Data) ->
             {TextRaw,NewState} = resolve(Data, NS),
-            Text = ephp_util:to_bin(NS#state.ref, Line, TextRaw),
+            Text = ephp_data:to_bin(NS#state.ref, Line, TextRaw),
             {<<Text/binary,ResultTxt/binary>>,NewState}
     end, {<<>>,State}, Texts).
 
@@ -876,18 +876,18 @@ resolve_op(#operation{
     type=Type, expression_left=Op1, expression_right=Op2}, State)
         when Type =:= 'and'; Type =:= 'or'->
     {RawOpRes1, State1} = resolve(Op1, State),
-    OpRes1 = ephp_util:to_bool(RawOpRes1),
+    OpRes1 = ephp_data:to_bool(RawOpRes1),
     case Type of
         'and' when OpRes1 =:= false ->
             {false, State1};
         'and' ->
             {OpRes2, State2} = resolve(Op2, State1),
-            {ephp_util:to_bool(OpRes2), State2};
+            {ephp_data:to_bool(OpRes2), State2};
         'or' when OpRes1 =:= true ->
             {true, State1};
         'or' ->
             {OpRes2, State2} = resolve(Op2, State1),
-            {ephp_util:to_bool(OpRes2), State2}
+            {ephp_data:to_bool(OpRes2), State2}
     end;
 
 resolve_op(#operation{type=instanceof, expression_left=Op1,
@@ -907,14 +907,14 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
     {OpRes2, State2} = resolve(Op2, State1),
     {case Type of
         <<"+">> ->
-            ephp_util:zero_if_undef(OpRes1) + ephp_util:zero_if_undef(OpRes2);
+            ephp_data:zero_if_undef(OpRes1) + ephp_data:zero_if_undef(OpRes2);
         <<"-">> ->
-            ephp_util:zero_if_undef(OpRes1) - ephp_util:zero_if_undef(OpRes2);
+            ephp_data:zero_if_undef(OpRes1) - ephp_data:zero_if_undef(OpRes2);
         <<"*">> ->
-            ephp_util:zero_if_undef(OpRes1) * ephp_util:zero_if_undef(OpRes2);
+            ephp_data:zero_if_undef(OpRes1) * ephp_data:zero_if_undef(OpRes2);
         <<"/">> ->
-            A = ephp_util:zero_if_undef(OpRes1),
-            B = ephp_util:zero_if_undef(OpRes2),
+            A = ephp_data:zero_if_undef(OpRes1),
+            B = ephp_data:zero_if_undef(OpRes2),
             if
                 B == 0 ->
                     ephp_error:error({error, edivzero, Index, ?E_ERROR, <<>>});
@@ -922,8 +922,8 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
                     A / B
             end;
         <<"%">> ->
-            trunc(ephp_util:zero_if_undef(OpRes1)) rem
-            trunc(ephp_util:zero_if_undef(OpRes2));
+            trunc(ephp_data:zero_if_undef(OpRes1)) rem
+            trunc(ephp_data:zero_if_undef(OpRes2));
         <<"<">> -> OpRes1 < OpRes2;
         <<">">> -> OpRes1 > OpRes2;
         <<">=">> -> OpRes1 >= OpRes2;
@@ -932,19 +932,19 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
                 is_record(OpRes1, reg_instance) andalso
                 is_record(OpRes2, reg_instance) ->
             get_class_name(OpRes1) =:= get_class_name(OpRes2);
-        <<"==">> -> ephp_util:is_equal(OpRes1, OpRes2);
+        <<"==">> -> ephp_data:is_equal(OpRes1, OpRes2);
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
-        <<"^">> -> ephp_util:zero_if_undef(OpRes1) bxor ephp_util:zero_if_undef(OpRes2);
-        <<"|">> -> ephp_util:zero_if_undef(OpRes1) bor ephp_util:zero_if_undef(OpRes2);
-        <<"&">> -> ephp_util:zero_if_undef(OpRes1) band ephp_util:zero_if_undef(OpRes2);
+        <<"^">> -> ephp_data:zero_if_undef(OpRes1) bxor ephp_data:zero_if_undef(OpRes2);
+        <<"|">> -> ephp_data:zero_if_undef(OpRes1) bor ephp_data:zero_if_undef(OpRes2);
+        <<"&">> -> ephp_data:zero_if_undef(OpRes1) band ephp_data:zero_if_undef(OpRes2);
         instanceof -> get_class_name(OpRes1) =:= get_class_name(OpRes2)
     end, State2};
 
 resolve_op(Cond, State) ->
     {Value, NewState} = resolve(Cond, State),
-    BoolValue = ephp_util:to_bool(Value),
+    BoolValue = ephp_data:to_bool(Value),
     {BoolValue, NewState}.
 
 get_class_name(#reg_instance{class=#class{name=Name}}) -> Name.

@@ -63,7 +63,7 @@ destroy(Funcs) ->
 
 get(Ref, FuncName) ->
     Funcs = erlang:get(Ref),
-    IFuncName = ephp_util:to_lower(FuncName),
+    IFuncName = ephp_string:to_lower(FuncName),
     dict:find(IFuncName, Funcs).
 
 get_functions(Ref) ->
@@ -80,7 +80,7 @@ register_func(Ref, PHPFunc, Module, Fun)
 
 register_func(Ref, PHPFunc, Fun, PackArgs) when is_function(Fun) ->
     Funcs = erlang:get(Ref),
-    IPHPFunc = ephp_util:to_lower(PHPFunc),
+    IPHPFunc = ephp_string:to_lower(PHPFunc),
     RegFunc = #reg_func{
         name=IPHPFunc,
         type=builtin,
@@ -98,7 +98,7 @@ register_func(Ref, PHPFunc, Fun) ->
 register_func(Ref, PHPFunc, Module, Fun, PackArgs)
         when is_atom(Module) andalso is_atom(Fun) ->
     Funcs = erlang:get(Ref),
-    IPHPFunc = ephp_util:to_lower(PHPFunc),
+    IPHPFunc = ephp_string:to_lower(PHPFunc),
     RegFunc = #reg_func{
         name=IPHPFunc,
         type=builtin,
@@ -109,7 +109,7 @@ register_func(Ref, PHPFunc, Module, Fun, PackArgs)
 
 register_func(Ref, PHPFunc, Args, Code, PackArgs) ->
     Funcs = erlang:get(Ref),
-    IPHPFunc = ephp_util:to_lower(PHPFunc),
+    IPHPFunc = ephp_string:to_lower(PHPFunc),
     RegFunc = #reg_func{
         name=IPHPFunc,
         type=php,
