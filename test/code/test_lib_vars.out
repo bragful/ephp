@@ -17,6 +17,7 @@ element 1 using print_r: 2
 element 2 using var_dump: int(3)
 print_r(2) == 2? yes
 isset $data[5]? no
+isset $data[2]? yes
 is empty $data[0]? no
 is empty $data[5]? yes
 is empty '0'? yes

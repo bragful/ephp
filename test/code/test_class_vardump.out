@@ -9,4 +9,10 @@ User Object
     [name] => John
     [surname] => Smith
 )
+print_r => User Object
+(
+    [name] => John
+    [surname] => Smith
+)
+
 type => object

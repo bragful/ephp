@@ -56,4 +56,4 @@ PHP has a lot of built-in libraries. This interpreter has a little implementatio
 
 You can add your own functions specifying the PHP name, and the module and function, as follow:
 
-<pre lang="erlang">ephp_context:register_func(Ctx, &lt;&lt;"time"&gt;&gt;, ephp_func_date, time).</pre>
+<pre lang="erlang">ephp_context:register_func(Ctx, &lt;&lt;"time"&gt;&gt;, ephp_lib_date, time).</pre>
