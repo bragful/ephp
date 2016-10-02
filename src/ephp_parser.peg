@@ -1008,6 +1008,8 @@ string_parsed <- '"' (!'"' ("\\\\" / '\\"' / '\\$' / enclosed_var / var / .))* '
             {<<L/binary,Text/binary>>,Total};
         ([[], <<"\\$">>], {Text, Total}) ->
             {<<"$",Text/binary>>, Total};
+        ([[], <<"\\\"">>], {Text, Total}) ->
+            {<<"\"",Text/binary>>, Total};
         ([[], Other], {Text,Total}) ->
             {<<>>, case Text of
                 <<>> -> [Other|Total];
