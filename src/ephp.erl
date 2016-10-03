@@ -145,19 +145,19 @@ main([Filename]) ->
                 quit(0);
             {error, _Reason} ->
                 stop_profiling(),
-                quit(-1)
+                quit(1)
         end;
     {error, enoent} ->
         io:format("File not found: ~s~n", [Filename]),
-        quit(-2);
+        quit(2);
     {error, Reason} ->
         io:format("Error: ~p~n", [Reason]),
-        quit(-3)
+        quit(3)
     end;
 
 main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
-    quit(-1).
+    quit(1).
 
 -spec quit(integer()) -> no_return().
 
