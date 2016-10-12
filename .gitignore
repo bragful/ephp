@@ -1,6 +1,5 @@
 .eunit/
 ebin/
-src/ephp_parser.erl
 deps/
 ephp
 cobertura.xml
