@@ -101,7 +101,7 @@
 % blocks
 
 -record(if_block, {
-    conditions :: conditions(),
+    conditions :: condition(),
     true_block :: statements(),
     false_block :: statements(),
     line :: line()
@@ -109,7 +109,7 @@
 
 -record(for, {
     init :: expression(),
-    conditions :: conditions(),
+    conditions :: condition(),
     update :: expression(),
     loop_block :: statements(),
     line :: line()
@@ -117,7 +117,7 @@
 
 -record(while, {
     type :: (pre | post),
-    conditions :: conditions(),
+    conditions :: condition(),
     loop_block :: statements(),
     line :: line()
 }).
