@@ -146,28 +146,28 @@ code(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, S} = string(Rest,Pos,[]),
     code(Rest0, Pos0, [S|Parsed]);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) ->
-    {Rest0, Pos0, Parsed0} = constant(Rest,Pos,Parsed),
-    code(Rest0, Pos0, Parsed0);
+    {Rest0, Pos0, Parsed0} = constant(Rest,Pos,[]),
+    code(Rest0, Pos0, Parsed0 ++ Parsed);
+code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A)
+                                           orelse A =:= $(
+                                           orelse A =:= $$ ->
+    {Rest0, Pos0, Exp} = expression(Rest, print_level(Pos), []),
+    Print = add_line(#print{expression=[Exp]}, Pos),
+    code(Rest0, Pos0, [Print|Parsed]);
 code(<<Space:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(Space) ->
     code(Rest, add_pos(Pos,1), Parsed);
 code(<<NewLine:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(NewLine) ->
     code(Rest, new_line(Pos), Parsed);
-%% TODO: this should be handle via expression call inside of each function
-% code(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
-%     code(Rest, add_pos(Pos,3), add_op({Op,precedence0(Op)}, Parsed));
-% code(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
-%     code(Rest, add_pos(Pos,2), add_op({Op,precedence0(Op)}, Parsed));
-% code(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
-%     code(Rest, add_pos(Pos,1), add_op({Op,precedence(Op)}, Parsed));
-code(<<";",Rest/binary>>, Pos, Parser) ->
-    code(Rest, add_pos(Pos,1), Parser);
-code(<<_/utf8,_>> = Text, Pos, _) ->
-    throw({error, {parse, Pos, sample_text(Text)}}).
+code(<<";",Rest/binary>>, Pos, Parsed) ->
+    code(Rest, add_pos(Pos,1), Parsed);
+code(<<_/utf8,_>> = Text, Pos, Parsed) ->
+    throw({error, {parse, Pos, {sample_text(Text), Parsed}}}).
 
 code_value(Text, Pos, Parsed) ->
     {Rest, NewPos, Code} = code(Text, code_value_level(Pos), []),
     document(Rest, NewPos, [add_line(#print{expression=Code},Pos)|Parsed]).
 
+%% TODO check statements, block and block+document
 code_block(<<"{",Rest/binary>>, Pos, Parsed) ->
     code(Rest, code_block_level(add_pos(Pos,1)), Parsed);
 code_block(<<SP:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
@@ -201,6 +201,8 @@ expression(<<")",_/binary>> = Rest, {100,_Row,_Col}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 expression(<<")",Rest/binary>>, {1,_Row,_Col}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+expression(<<"?>\n",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest, Pos, add_op('end', Parsed)};
 expression(<<"?>",_/binary>> = Rest, Pos, Parsed) ->
     {Rest, Pos, add_op('end', Parsed)};
 expression(<<")",Rest/binary>>, {Level,Row,Col}, Parsed) ->
@@ -223,6 +225,12 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) ->
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' ->
     {Rest0, Pos0, String} = string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
+%% TODO support for list(...) = ...
+expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_]) ->
+    NewPos = code_statement_level(add_pos(Pos,1)),
+    {Rest0, Pos0, [Exp]} = expression(Rest, NewPos, []),
+    Assign = add_line(#assign{variable=V, expression=Exp}, Pos),
+    {Rest0, Pos0, Assign};
 expression(<<>>, Pos, _Parsed) ->
     throw({error, {parse, Pos, incomplete_expression}}).
 
@@ -600,4 +608,5 @@ add_line(#int{}=I, {_,R,C}) -> I#int{line={{line,R},{column,C}}};
 add_line(#text_to_process{}=T, {_,R,C}) ->
     T#text_to_process{line={{line,R},{column,C}}};
 add_line(#text{}=T, {_,R,C}) -> T#text{line={{line,R},{column,C}}};
-add_line(#if_block{}=I, {_,R,C}) -> I#if_block{line={{line,R},{column,C}}}.
+add_line(#if_block{}=I, {_,R,C}) -> I#if_block{line={{line,R},{column,C}}};
+add_line(#assign{}=A, {_,R,C}) -> A#assign{line={{line,R},{column,C}}}.
