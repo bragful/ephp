@@ -86,14 +86,14 @@ parse(Document) ->
 document(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
 document(<<"<?php",Rest/binary>>, Pos, Parsed) ->
-    {Rest0,Pos0,NParsed} = code(Rest, add_pos(Pos,5), Parsed),
-    {Rest0,Pos0,[add_line(#eval{statements=NParsed},Pos)]};
+    {Rest0,Pos0,NParsed} = code(Rest, add_pos(Pos,5), []),
+    document(Rest0,Pos0,[add_line(#eval{statements=NParsed},Pos)|Parsed]);
 document(<<"<?=",Rest/binary>>, Pos, Parsed) ->
     code_value(Rest, code_value_level(add_pos(Pos,3)), Parsed);
 document(<<"<?",Rest/binary>>, Pos, Parsed) ->
     %% TODO: if short is not permitted, use as text
-    {Rest0,Pos0,NParsed} = code(Rest, add_pos(Pos,2), Parsed),
-    {Rest0,Pos0,[add_line(#eval{statements=NParsed},Pos)]};
+    {Rest0,Pos0,NParsed} = code(Rest, add_pos(Pos,2), []),
+    document(Rest0,Pos0,[add_line(#eval{statements=NParsed},Pos)|Parsed]);
 document(<<"\n",Rest/binary>>, Pos, Parsed) ->
     document(Rest, new_line(Pos), add_to_text(<<"\n">>, Pos, Parsed));
 document(<<L:1/binary,Rest/binary>>, Pos, Parsed) ->
@@ -127,10 +127,14 @@ code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
                                      print_level(add_pos(Pos,6)), []),
     Print = add_line(#print{expression=[Exp]}, Pos),
     code(Rest0, Pos0, [Print|Parsed]);
+code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, Parsed) ->
+    {Rest, normal_level(add_pos(Pos,3)), Parsed};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, Parsed) ->
     {Rest, normal_level(add_pos(Pos,2)), Parsed};
+code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
+    {Rest, add_pos(Pos,3), Parsed};
 code(<<"?>",Rest/binary>>, Pos, Parsed) ->
-    document(Rest, add_pos(Pos,2), Parsed);
+    {Rest, add_pos(Pos,2), Parsed};
 code(<<"//",Rest/binary>>, Pos, Parsed) ->
     comment_line(Rest, Pos, Parsed);
 code(<<"/*",Rest/binary>>, Pos, Parsed) ->
