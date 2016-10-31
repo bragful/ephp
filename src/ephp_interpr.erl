@@ -167,6 +167,9 @@ run_depth(Context, {return,Value,_Line}, false) ->
 run_depth(_Context, {return,Value}, false) ->
     {return, Value};
 
+run_depth(_Context, Boolean, false) when is_boolean(Boolean) ->
+    false;
+
 run_depth(_Context, #int{}, false) ->
     false;
 

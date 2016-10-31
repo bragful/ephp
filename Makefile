@@ -20,5 +20,8 @@ ephp: compile
 	./rebar3 escriptize
 	cp -f _build/default/bin/ephp .
 
-.PHONY: doc test compile all
+shell:
+	./rebar3 shell
+
+.PHONY: doc test compile all shell
 
