@@ -162,6 +162,12 @@ code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
                                      arg_level(add_pos(Pos,6)), []),
     Print = get_print(Exp, Pos),
     code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
+code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N)
+        andalso ?OR(S,$s,$S) andalso ?OR(T,$t,$T) andalso ?IS_SPACE(SP) ->
+    {Rest0, Pos0, #constant{}=Constant} =
+        expression(Rest, add_pos(Pos,6), []),
+    code(Rest0, copy_level(Pos, Pos0), [Constant|Parsed]);
 code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,3), #text_to_process{text=Parsed}};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, Parsed) ->
@@ -282,6 +288,11 @@ expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_]) ->
     {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
     Assign = add_line(#assign{variable=V, expression=Exp}, Pos),
     {Rest0, Pos0, Assign};
+expression(<<"=",Rest/binary>>, Pos, [{op,[#constant{}=C]}|_]) ->
+    NewPos = code_statement_level(add_pos(Pos,1)),
+    {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
+    Constant = add_line(C#constant{type=define, value=Exp}, Pos),
+    {Rest0, Pos0, Constant};
 expression(<<>>, Pos, _Parsed) ->
     throw({error, {parse, Pos, incomplete_expression}}).
 
