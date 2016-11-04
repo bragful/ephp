@@ -811,6 +811,10 @@ gen_op([], Stack) ->
     Stack;
 gen_op([{<<126>>,{_,_}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,0},{column,0}}}|Stack]);
+gen_op([{<<"++">>,{_,_}}|Rest], [A|Stack]) ->
+    gen_op(Rest, [{pre_incr, A, {{line,0},{column,0}}}|Stack]);
+gen_op([{<<"--">>,{_,_}}|Rest], [A|Stack]) ->
+    gen_op(Rest, [{pre_decr, A, {{line,0},{column,0}}}|Stack]);
 gen_op([{<<"!">>,{_,_}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_not, A, {{line,0},{column,0}}}|Stack]);
 gen_op([{Op,{_,_}}|Rest], [B,A|Stack]) ->
