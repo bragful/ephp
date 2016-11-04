@@ -366,14 +366,14 @@ function(Rest, Pos, [#call{args=Args}=C|Parsed]) when Rest =/= <<>> ->
         {<<")",Rest0/binary>>, Pos0, []} ->
             {Rest0, add_pos(Pos0,1), [C|Parsed]};
         {<<")",Rest0/binary>>, Pos0, Arg} ->
-            {Rest0, add_pos(Pos0,1), [C#call{args=[Arg|Args]}|Parsed]};
+            {Rest0, add_pos(Pos0,1), [C#call{args=Args ++ [Arg]}|Parsed]};
         {<<",",Rest0/binary>>, Pos0, Arg} ->
-            NewCall = C#call{args=[Arg|Args]},
+            NewCall = C#call{args=Args ++ [Arg]},
             function(Rest0, add_pos(Pos0, 1), [NewCall|Parsed]);
         {Rest0, Pos0, []} ->
             function(Rest0, Pos0, [C|Parsed]);
         {Rest0, Pos0, Arg} ->
-            function(Rest0, Pos0, [C#call{args=[Arg|Args]}|Parsed])
+            function(Rest0, Pos0, [C#call{args=Args ++ [Arg]}|Parsed])
     end.
 
 string(<<"\"",Rest/binary>>, Pos, []) ->
