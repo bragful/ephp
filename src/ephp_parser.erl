@@ -223,8 +223,14 @@ code_block(Rest, Pos, Parsed) ->
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
-    {Rest1, Pos1, Content} = array_def(<<SP:8,Rest/binary>>, add_pos(Pos, 5), []),
+    NewPos = array_def_level(add_pos(Pos, 5)),
+    {Rest1, Pos1, Content} = array_def(<<SP:8,Rest/binary>>, NewPos, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
+    expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+expression(<<"[",Rest/binary>>, Pos, []) ->
+    NewPos = array_def_54_level(add_pos(Pos, 1)),
+    {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
+    NewParsed = add_op(add_line(#array{elements=Content}, Pos), []),
     expression(Rest1, copy_level(Pos, Pos1), NewParsed);
 expression(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(T,$t,$T) andalso ?OR(R,$r,$R) andalso ?OR(U,$u,$U)
@@ -256,11 +262,18 @@ expression(<<";",_/binary>> = Rest, {L,_,_}=Pos, Parsed) when not is_number(L) -
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed) when A =:= $,
                                                            orelse A =:= $) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
-expression(<<A:8,_/binary>> = Rest, {array_def,_,_}=Pos, [Parsed]) when A =:= $,
-                                                                 orelse A =:= $) ->
+expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, [Parsed])
+        when A =:= $, orelse A =:= $) ->
     {Rest, add_pos(Pos,1), add_op('end', [Parsed])};
-expression(<<A:8,_/binary>> = Rest, {array_def,_,_}=Pos, Parsed) when A =:= $,
-                                                                 orelse A =:= $) ->
+expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, Parsed)
+        when A =:= $, orelse A =:= $) ->
+    [Arg,Idx] = Parsed,
+    {Rest, add_pos(Pos,1), [Idx,add_op('end', [Arg])]};
+expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, [Parsed])
+        when A =:= $, orelse A =:= $] ->
+    {Rest, add_pos(Pos,1), add_op('end', [Parsed])};
+expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, Parsed)
+        when A =:= $, orelse A =:= $] ->
     [Arg,Idx] = Parsed,
     {Rest, add_pos(Pos,1), [Idx,add_op('end', [Arg])]};
 expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
@@ -294,7 +307,7 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' -
     {Rest0, Pos0, String} = string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
 %% TODO support for list(...) = ...
-expression(<<"=>",Rest/binary>>, {array_def,_,_}=Pos, [{op,_}=Op]) ->
+expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op]) ->
     expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])]);
 expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_]) ->
     NewPos = code_statement_level(add_pos(Pos,1)),
@@ -389,19 +402,29 @@ array_def(<<SP:8,Rest/binary>>, Pos, Args) when ?IS_SPACE(SP) ->
     array_def(Rest, add_pos(Pos,1), Args);
 array_def(<<SP:8,Rest/binary>>, Pos, Args) when ?IS_NEWLINE(SP) ->
     array_def(Rest, new_line(Pos), Args);
-array_def(<<")",Rest/binary>>, Pos, Args) ->
+array_def(<<")",Rest/binary>>, {{array_def,0},_,_}=Pos, Args) ->
+    {Rest,add_pos(Pos,1),Args};
+array_def(<<"]",Rest/binary>>, {{array_def,54},_,_}=Pos, Args) ->
     {Rest,add_pos(Pos,1),Args};
 %% TODO add error missing closing params
 array_def(<<"(",Rest/binary>>, Pos, []) ->
     array_def(Rest, add_pos(Pos,1), []);
 array_def(Rest, Pos, Args) when Rest =/= <<>> ->
-    case expression(Rest, array_def_level(Pos), []) of
-        {<<")",Rest0/binary>>, Pos0, []} ->
+    case expression(Rest, Pos, []) of
+        {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, []} ->
             {Rest0, add_pos(Pos0,1), Args};
-        {<<")",Rest0/binary>>, Pos0, [Idx,Arg]} ->
+        {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx=Idx, element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
-        {<<")",Rest0/binary>>, Pos0, Arg} ->
+        {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, Arg} ->
+            NewArg = add_line(#array_element{element=Arg}, Pos),
+            {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
+        {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, []} ->
+            {Rest0, add_pos(Pos0,1), Args};
+        {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, [Idx,Arg]} ->
+            NewArg = add_line(#array_element{idx=Idx, element=Arg}, Pos),
+            {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
+        {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, Arg} ->
             NewArg = add_line(#array_element{element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
         {<<",",Rest0/binary>>, Pos0, [Idx,Arg]} ->
@@ -432,6 +455,7 @@ function(Rest, Pos, [#call{args=Args}=C|Parsed]) when Rest =/= <<>> ->
         {<<",",Rest0/binary>>, Pos0, Arg} ->
             NewCall = C#call{args=Args ++ [Arg]},
             function(Rest0, add_pos(Pos0, 1), [NewCall|Parsed]);
+        %% TODO error missing closing params
         {Rest0, Pos0, []} ->
             function(Rest0, Pos0, [C|Parsed]);
         {Rest0, Pos0, Arg} ->
@@ -623,7 +647,8 @@ code_value_level({_,Row,Col}) -> {code_value,Row,Col}.
 code_statement_level({_,Row,Col}) -> {code_statement,Row,Col}.
 arg_level({_,Row,Col}) -> {arg,Row,Col}.
 array_level({_,Row,Col}) -> {array,Row,Col}.
-array_def_level({_,Row,Col}) -> {array_def,Row,Col}.
+array_def_level({_,Row,Col}) -> {{array_def,0},Row,Col}.
+array_def_54_level({_,Row,Col}) -> {{array_def,54},Row,Col}.
 
 add_op('end', []) ->
     [];
@@ -643,7 +668,7 @@ add_op(Add, Parsed) ->
 
 precedence(<<"clone">>) -> {no_assoc, 1};
 precedence(<<"new">>) -> {no_assoc, 1};
-precedence(<<"[">>) -> {left, 2}; %% array
+%precedence(<<"[">>) -> {left, 2}; %% array
 precedence(<<"**">>) -> {right, 3}; %% arith
 precedence(<<"++">>) -> {right, 4};
 precedence(<<"--">>) -> {right, 4};
