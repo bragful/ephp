@@ -492,9 +492,13 @@ string_parsed(<<"\\\\",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
     NewText = S#text_to_process{text = [<<C/binary, "\\\\">>|R]},
     string_parsed(Rest, add_pos(Pos,1), NewText);
 string_parsed(<<"\\\"",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
-        when is_binary(C)  ->
+        when is_binary(C) ->
     NewText = S#text_to_process{text = [<<C/binary, "\\\"">>|R]},
     string_parsed(Rest, add_pos(Pos,1), NewText);
+string_parsed(<<"\\$",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
+        when is_binary(C) ->
+    NewText = S#text_to_process{text = [<<C/binary, "$">>|R]},
+    string_parsed(Rest, add_pos(Pos,2), NewText);
 string_parsed(<<"\"",Rest/binary>>, Pos, #text_to_process{text=[C]}=S)
         when is_binary(C) ->
     {Rest, add_pos(Pos,1), #text{text=C, line=S#text_to_process.line}};
