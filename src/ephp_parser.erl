@@ -141,6 +141,12 @@ code(<<I:8,F:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, NewParsed} = st_if(Rest0, Pos0, Parsed),
     code(Rest1, copy_level(Pos,Pos1), NewParsed);
+code(<<F:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(F,$f,$F) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
+        andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>,Pos),
+    {Rest1, Pos1, NewParsed} = st_for(Rest0, Pos0, Parsed),
+    code(Rest1, copy_level(Pos, Pos1), NewParsed);
 code(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>,
      Pos, [#if_block{}|_]=Parsed)
         when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
@@ -604,9 +610,39 @@ st_else(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
 st_else(Rest0, {Level,_,_}=Pos0, [#if_block{}=If|Parsed]) ->
     {Rest1, {_,Row1,Col1}, CodeBlock} = code_block(Rest0, add_pos(Pos0,4), []),
     IfWithElse = If#if_block{false_block=CodeBlock},
-    code(Rest1, {Level,Row1,Col1}, [IfWithElse|Parsed]);
+    {Rest1, {Level,Row1,Col1}, [IfWithElse|Parsed]};
 st_else(<<>>, Pos, _Parsed) ->
     throw({error, {parse, Pos, incomplete_else_statement}}).
+
+args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    args(Rest, add_pos(Pos,1), Parsed);
+args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    args(Rest, new_line(Pos), Parsed);
+args(Rest, Pos, Args) when Rest =/= <<>> ->
+    case expression(Rest, arg_level(Pos), []) of
+        {<<")",_/binary>> = Rest0, Pos0, Arg} ->
+            {Rest0, add_pos(Pos0,1), Args ++ [Arg]};
+        {<<";",_/binary>> = Rest0, Pos0, Arg} ->
+            {Rest0, add_pos(Pos0,1), Args ++ [Arg]};
+        {<<",", Rest0/binary>>, Pos0, Arg} ->
+            args(Rest0, add_pos(Pos0, 1), Args ++ [Arg]);
+        {Rest0, Pos0, Arg} ->
+            args(Rest0, Pos0, Args ++ [Arg])
+    end.
+
+st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_for(Rest, add_pos(Pos,1), Parsed);
+st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_for(Rest, new_line(Pos), Parsed);
+st_for(<<"(",Rest/binary>>, Pos, Parsed) ->
+    {<<";",Rest0/binary>>, Pos0, Init} = args(Rest, arg_level(add_pos(Pos,1)), []),
+    {<<";",Rest1/binary>>, Pos1, Cond} = args(Rest0, arg_level(add_pos(Pos0,1)), []),
+    {<<")",Rest2/binary>>, Pos2, Upda} = args(Rest1, arg_level(add_pos(Pos1,1)), []),
+    {Rest3, Pos3, CodeBlock} = code_block(Rest2, add_pos(Pos2,1), []),
+    For = add_line(#for{
+        init=Init, conditions=Cond, update=Upda, loop_block=CodeBlock
+    }, Pos),
+    {Rest3, copy_level(Pos, Pos3), [For|Parsed]}.
 
 comment_line(<<>>, _Pos, Parsed) ->
     Parsed;
@@ -827,7 +863,8 @@ add_line(#text{}=T, {_,R,C}) -> T#text{line={{line,R},{column,C}}};
 add_line(#if_block{}=I, {_,R,C}) -> I#if_block{line={{line,R},{column,C}}};
 add_line(#assign{}=A, {_,R,C}) -> A#assign{line={{line,R},{column,C}}};
 add_line(#array_element{}=A, {_,R,C}) ->
-    A#array_element{line={{line,R},{column,C}}}.
+    A#array_element{line={{line,R},{column,C}}};
+add_line(#for{}=F, {_,R,C}) -> F#for{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));
