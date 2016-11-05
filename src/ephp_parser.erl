@@ -103,12 +103,19 @@ parse(Document) ->
 
 document(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
+document(<<"<?php",Rest/binary>>, {literal,_,_}=Pos, Parsed) ->
+    {Rest, add_pos(Pos,5), Parsed};
 document(<<"<?php",Rest/binary>>, Pos, Parsed) ->
     {Rest0,Pos0,NParsed} = code(Rest, normal_level(add_pos(Pos,5)), []),
     RParsed = lists:reverse(NParsed),
     document(Rest0,Pos0,[add_line(#eval{statements=RParsed},Pos)|Parsed]);
 document(<<"<?=",Rest/binary>>, Pos, Parsed) ->
-    code_value(Rest, code_value_level(add_pos(Pos,3)), Parsed);
+    NewPos = code_value_level(add_pos(Pos,3)),
+    {Rest0,Pos0,Text} = code(Rest, NewPos, []),
+    document(Rest0, copy_level(Pos,Pos0), [get_print(Text,NewPos)|Parsed]);
+document(<<"<?",Rest/binary>>, {literal,_,_}=Pos, Parsed) ->
+    %% TODO: if short is not permitted, use as text
+    {Rest, add_pos(Pos,2), Parsed};
 document(<<"<?",Rest/binary>>, Pos, Parsed) ->
     %% TODO: if short is not permitted, use as text
     {Rest0,Pos0,NParsed} = code(Rest, normal_level(add_pos(Pos,2)), []),
@@ -117,11 +124,6 @@ document(<<"\n",Rest/binary>>, Pos, Parsed) ->
     document(Rest, new_line(Pos), add_to_text(<<"\n">>, Pos, Parsed));
 document(<<L:1/binary,Rest/binary>>, Pos, Parsed) ->
     document(Rest, add_pos(Pos,1), add_to_text(L, Pos, Parsed)).
-
-code_value(Text, Pos, Parsed) ->
-    {Rest, NewPos, Code} = code(Text, code_value_level(Pos), []),
-    document(Rest, copy_level(Pos, NewPos),
-             [get_print(Code,Pos)|Parsed]).
 
 copy_level({Level,_,_}, {_,Row,Col}) -> {Level,Row,Col}.
 
@@ -147,6 +149,17 @@ code(<<I:8,F:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, NewParsed} = st_if(Rest0, Pos0, Parsed),
     code(Rest1, copy_level(Pos,Pos1), NewParsed);
+code(<<W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(W,$w,$W) andalso ?OR(H,$h,$H) andalso ?OR(I,$i,$I)
+        andalso ?OR(L,$l,$L) andalso ?OR(E,$e,$E) andalso ?OR(SP,32,$() ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)),
+    {Rest1, Pos1, NewParsed} = st_while(Rest0, Pos0, Parsed),
+    code(Rest1, copy_level(Pos,Pos1), NewParsed);
+code(<<D:8,O:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(D,$d,$D) andalso ?OR(O,$o,$O) andalso
+        (?IS_SPACE(SP) orelse SP =:= ${) ->
+    {Rest0, Pos0, [DoWhile]} = st_do_while(Rest, add_pos(Pos,3), []),
+    code(Rest0, copy_level(Pos,Pos0), [DoWhile|Parsed]);
 code(<<F:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
@@ -180,10 +193,16 @@ code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest0, Pos0, #constant{}=Constant} =
         expression(Rest, add_pos(Pos,6), []),
     code(Rest0, copy_level(Pos, Pos0), [Constant|Parsed]);
-code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, Parsed) ->
-    {Rest, add_pos(Pos,3), #text_to_process{text=Parsed}};
-code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, Parsed) ->
-    {Rest, add_pos(Pos,2), #text_to_process{text=Parsed}};
+code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
+    {Rest, add_pos(Pos,3), Parsed};
+code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
+    {Rest, add_pos(Pos,2), Parsed};
+code(<<"?>\n",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
+    {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,3)), []),
+    code(Rest0, copy_level(Pos,Pos0), Parsed ++ lists:reverse(Text));
+code(<<"?>",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
+    {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
+    code(Rest0, copy_level(Pos,Pos0), Parsed ++ lists:reverse(Text));
 code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,3), Parsed};
 code(<<"?>",Rest/binary>>, Pos, Parsed) ->
@@ -194,33 +213,27 @@ code(<<"//",Rest/binary>>, Pos, Parsed) ->
 code(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     code(Rest0, Pos0, Parsed);
-code(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $' orelse A =:= $" ->
-    {Rest0, Pos0, S} = string(Rest,Pos,[]),
-    code(Rest0, Pos0, [S|Parsed]);
 code(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, S} = string(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), [S|Parsed]);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) ->
     {Rest0, Pos0, Parsed0} = constant(Rest,Pos,[]),
-    %% TODO: concrete if constant is alone (;) or at beginning of an expression
     code(Rest0, copy_level(Pos, Pos0), Parsed0 ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A)
-                                           orelse A =:= $(
-                                           orelse A =:= $$ ->
+                                           orelse A =:= $- orelse A =:= $(
+                                           orelse A =:= $" orelse A =:= $'
+                                           orelse A =:= $$ orelse A =:= $+ ->
     {Rest0, Pos0, Exp} = expression(Rest, Pos, []),
     code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<Space:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(Space) ->
     code(Rest, add_pos(Pos,1), Parsed);
 code(<<NewLine:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(NewLine) ->
     code(Rest, new_line(Pos), Parsed);
-code(<<";",Rest/binary>>, {code_statement,_,_}=Pos, Parsed) ->
-    {Rest, add_pos(Pos,1), Parsed};
 code(<<";",Rest/binary>>, Pos, Parsed) ->
     code(Rest, add_pos(Pos,1), Parsed);
 code(Text, Pos, _Parsed) ->
     throw_error(eparse, Pos, Text).
 
-%% TODO check statements, block and block+document
 code_block(<<"{",Rest/binary>>, Pos, Parsed) ->
     code(Rest, code_block_level(add_pos(Pos,1)), Parsed);
 code_block(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
@@ -269,10 +282,11 @@ expression(<<";",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
         true_block = add_op('end', [Exp])
     },
     {Rest, add_pos(Pos,1), IfBlock};
-expression(<<";",_/binary>> = Rest, {L,_,_}=Pos, Parsed) when not is_number(L) ->
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
+        when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
-expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed) when A =:= $,
-                                                           orelse A =:= $) ->
+expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed)
+        when A =:= $, orelse A =:= $) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, [Parsed])
         when A =:= $, orelse A =:= $) ->
@@ -301,6 +315,12 @@ expression(<<"?>",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
 expression(<<"$",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,1), []),
     expression(Rest0, Pos0, add_op(Var, Parsed));
+expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
+    {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
+    expression(Rest0, Pos0, add_op(Number, Parsed));
+expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' ->
+    {Rest0, Pos0, String} = string(Rest, Pos, []),
+    expression(Rest0, Pos0, add_op(String, Parsed));
 expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
     OpL = ephp_string:to_lower(Op),
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL)}, Parsed));
@@ -309,18 +329,12 @@ expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL)}, Parsed));
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op)}, Parsed));
-expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
-    {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
-    expression(Rest0, Pos0, add_op(Number, Parsed));
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when ?IS_ALPHA(A) ->
     {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
     expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
-expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' ->
-    {Rest0, Pos0, String} = string(Rest, Pos, []),
-    expression(Rest0, Pos0, add_op(String, Parsed));
-%% TODO support for list(...) = ...
 expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op]) ->
     expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])]);
+%% TODO support for list(...) = ...
 expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_]) ->
     NewPos = code_statement_level(add_pos(Pos,1)),
     {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
@@ -341,7 +355,7 @@ expression(<<":",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
     },
     {Rest1, copy_level(Pos, Pos1), IfBlock};
 expression(<<>>, Pos, _Parsed) ->
-    throw({error, {parse, Pos, incomplete_expression}}).
+    throw_error(eparse, Pos, <<>>).
 
 variable(<<A:8,Rest/binary>>, Pos, [])
         when ?IS_ALPHA(A) orelse A =:= $_ orelse A >= 16#7f ->
@@ -367,7 +381,7 @@ variable(<<"[",Rest/binary>>, Pos, [#variable{idx=Indexes}=Var]) ->
 variable(Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
 
-number(<<A:8,Rest/binary>>, Pos, []) when ?IS_NUMBER(A) ->
+number(<<A:8,Rest/binary>>, Pos, []) when ?IS_NUMBER(A) orelse A =:= $- ->
     number(Rest, add_pos(Pos,1), [add_line(#int{int = <<A:8>>}, Pos)]);
 number(<<A:8,Rest/binary>>, Pos, [#int{int=N}=I]) when ?IS_NUMBER(A) ->
     number(Rest, add_pos(Pos,1), [I#int{int = <<N/binary,A:8>>}]);
@@ -592,6 +606,38 @@ string_parsed(Rest, Pos, #text_to_process{text=C}=S)
     string_parsed(Rest, Pos, S#text_to_process{text=[<<>>|C]}).
 
 
+st_while(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_while(Rest, add_pos(Pos,1), Parsed);
+st_while(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_while(Rest, new_line(Pos), Parsed);
+st_while(<<"(",Rest/binary>>, Pos, Parsed) ->
+    NewPos = add_pos(Pos,1),
+    {<<")",Rest1/binary>>, Pos1, Conditions} =
+        expression(Rest, arg_level(NewPos), []),
+    {Rest2, Pos2, CodeBlock} = code_block(Rest1, Pos1, []),
+    While = add_line(#while{
+        type=pre,
+        conditions=Conditions,
+        loop_block=CodeBlock
+    }, Pos),
+    {Rest2, copy_level(Pos, Pos2), [While|Parsed]};
+st_while(<<>>, Pos, _Parsed) ->
+    throw_error(eparse, Pos, <<>>).
+
+st_do_while(Rest, Pos, Parsed) ->
+    case code_block(Rest, Pos, []) of
+        {<<";",Rest0/binary>>, Pos0, CodeBlock} -> ok;
+        {Rest0, Pos0, CodeBlock} -> ok
+    end,
+    {<<WhileRaw:5/binary,Rest1/binary>>, Pos1} = remove_spaces(Rest0, Pos0),
+    <<"while">> = ephp_string:to_lower(WhileRaw),
+    {Rest2, Pos2, [While]} = st_while(Rest1, Pos1, []),
+    DoWhile = add_line(While#while{
+        type=post,
+        loop_block=CodeBlock
+    }, Pos),
+    {Rest2, copy_level(Pos, Pos2), [DoWhile|Parsed]}.
+
 st_if(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_if(Rest, add_pos(Pos,1), Parsed);
 st_if(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
@@ -607,7 +653,7 @@ st_if(<<"(",Rest/binary>>, Pos, Parsed) ->
     }, Pos),
     {Rest2, copy_level(Pos, Pos2), [If|Parsed]};
 st_if(<<>>, Pos, _Parsed) ->
-    throw({error, {parse, Pos, incomplete_if_statement}}).
+    throw_error(eparse, Pos, <<>>).
 
 st_else(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_else(Rest, add_pos(Pos,1), Parsed);
@@ -618,7 +664,7 @@ st_else(Rest0, {Level,_,_}=Pos0, [#if_block{}=If|Parsed]) ->
     IfWithElse = If#if_block{false_block=CodeBlock},
     {Rest1, {Level,Row1,Col1}, [IfWithElse|Parsed]};
 st_else(<<>>, Pos, _Parsed) ->
-    throw({error, {parse, Pos, incomplete_else_statement}}).
+    throw_error(eparse, Pos, <<>>).
 
 args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     args(Rest, add_pos(Pos,1), Parsed);
@@ -641,9 +687,9 @@ st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
 st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_for(Rest, new_line(Pos), Parsed);
 st_for(<<"(",Rest/binary>>, Pos, Parsed) ->
-    {<<";",Rest0/binary>>, Pos0, Init} = args(Rest, arg_level(add_pos(Pos,1)), []),
-    {<<";",Rest1/binary>>, Pos1, Cond} = args(Rest0, arg_level(add_pos(Pos0,1)), []),
-    {<<")",Rest2/binary>>, Pos2, Upda} = args(Rest1, arg_level(add_pos(Pos1,1)), []),
+    {<<";",Rest0/binary>>, Pos0, Init} = args(Rest, add_pos(Pos,1), []),
+    {<<";",Rest1/binary>>, Pos1, [Cond]} = args(Rest0, add_pos(Pos0,1), []),
+    {<<")",Rest2/binary>>, Pos2, Upda} = args(Rest1, add_pos(Pos1,1), []),
     {Rest3, Pos3, CodeBlock} = code_block(Rest2, add_pos(Pos2,1), []),
     For = add_line(#for{
         init=Init, conditions=Cond, update=Upda, loop_block=CodeBlock
@@ -691,17 +737,34 @@ arg_level({_,Row,Col}) -> {arg,Row,Col}.
 array_level({_,Row,Col}) -> {array,Row,Col}.
 array_def_level({_,Row,Col}) -> {{array_def,0},Row,Col}.
 array_def_54_level({_,Row,Col}) -> {{array_def,54},Row,Col}.
+literal_level({_,Row,Col}) -> {literal,Row,Col}.
 
 add_op('end', []) ->
     [];
 add_op('end', [{op,Content}]) ->
-    solve(Content);
+    solve(process_incr_decr(Content));
 add_op('end', Parsed) ->
     Parsed;
 add_op(Add, [{op,Content}|Parsed]) ->
     [{op, Content ++ [Add]}|Parsed];
 add_op(Add, Parsed) ->
     [{op,[Add]}|Parsed].
+
+process_incr_decr(Content) ->
+    process_incr_decr(Content, []).
+
+process_incr_decr([], Processed) ->
+    Processed;
+process_incr_decr([{<<"++">>,_},#variable{}=V|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{pre_incr, V}]);
+process_incr_decr([{<<"--">>,_},#variable{}=V|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{pre_decr, V}]);
+process_incr_decr([#variable{}=V,{<<"++">>,_}|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{post_incr, V}]);
+process_incr_decr([#variable{}=V,{<<"--">>,_}|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{post_decr, V}]);
+process_incr_decr([A|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [A]).
 
 %% took from http://php.net/manual/en/language.operators.precedence.php
 
@@ -804,9 +867,14 @@ operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
 operator(<<".">>,#text{text=T1},#text{text=T2}) ->
     #text{text = <<T1/binary,T2/binary>>};
 operator(<<".">>,Left,Right) ->
-    #concat{texts=[Left,Right]};
+    ProcessedLeft = concat(Left),
+    ProcessedRight = concat(Right),
+    #concat{texts=ProcessedLeft ++ ProcessedRight};
 operator(Op,Left,Right) ->
     #operation{type=Op, expression_left=Left, expression_right=Right}.
+
+concat(#concat{texts=T}) -> T;
+concat(T) -> [T].
 
 solve(Expression) ->
     Postfix = shunting_yard(Expression, [], []),
@@ -817,14 +885,14 @@ gen_op([], Stack) ->
     Stack;
 gen_op([{<<126>>,{_,_}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,0},{column,0}}}|Stack]);
-gen_op([{<<"++">>,{_,_}}|Rest], [A|Stack]) ->
-    gen_op(Rest, [{pre_incr, A, {{line,0},{column,0}}}|Stack]);
-gen_op([{<<"--">>,{_,_}}|Rest], [A|Stack]) ->
-    gen_op(Rest, [{pre_decr, A, {{line,0},{column,0}}}|Stack]);
 gen_op([{<<"!">>,{_,_}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_not, A, {{line,0},{column,0}}}|Stack]);
 gen_op([{Op,{_,_}}|Rest], [B,A|Stack]) ->
     gen_op(Rest, [operator(Op,A,B)|Stack]);
+gen_op([{<<"-">>,{_,_}}|Rest], [#int{}=I]) ->
+    gen_op(Rest, [#int{int=-I#int.int}]);
+gen_op([{<<"-">>,{_,_}}|Rest], [#float{}=F]) ->
+    gen_op(Rest, [#float{float=-F#float.float}]);
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).
 
@@ -874,7 +942,8 @@ add_line(#if_block{}=I, {_,R,C}) -> I#if_block{line={{line,R},{column,C}}};
 add_line(#assign{}=A, {_,R,C}) -> A#assign{line={{line,R},{column,C}}};
 add_line(#array_element{}=A, {_,R,C}) ->
     A#array_element{line={{line,R},{column,C}}};
-add_line(#for{}=F, {_,R,C}) -> F#for{line={{line,R},{column,C}}}.
+add_line(#for{}=F, {_,R,C}) -> F#for{line={{line,R},{column,C}}};
+add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));
