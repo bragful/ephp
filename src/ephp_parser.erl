@@ -1,5 +1,5 @@
 -module(ephp_parser).
--export([parse/1]).
+-export([parse/1, file/1]).
 
 -include("ephp.hrl").
 
@@ -91,6 +91,12 @@
     X =:= <<"xOR">> orelse X =:= <<"XOR">>
 ).
 
+file(File) ->
+    {ok, Content} = file:read_file(File),
+    parse(Content).
+
+parse(Document) when is_list(Document) ->
+    parse(list_to_binary(Document));
 parse(Document) ->
     {_, _, Parsed} = document(Document, {root,1,1}, []),
     lists:reverse(Parsed).
