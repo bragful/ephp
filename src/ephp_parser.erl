@@ -282,9 +282,6 @@ expression(<<";",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
         true_block = add_op('end', [Exp])
     },
     {Rest, add_pos(Pos,1), IfBlock};
-expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
-        when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
-    {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
@@ -302,6 +299,9 @@ expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $] ->
     [Arg,Idx] = Parsed,
     {Rest, add_pos(Pos,1), [Idx,add_op('end', [Arg])]};
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
+        when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
+    {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 expression(<<"]",Rest/binary>>, {array,_,_}=Pos, Parsed) ->
@@ -323,17 +323,17 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' -
     expression(Rest0, Pos0, add_op(String, Parsed));
 expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
     OpL = ephp_string:to_lower(Op),
-    expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL)}, Parsed));
+    expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     OpL = ephp_string:to_lower(Op),
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL)}, Parsed));
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
-    expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op)}, Parsed));
+    expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when ?IS_ALPHA(A) ->
     {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
     expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
-expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op]) ->
-    expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])]);
+expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
+    expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])|Parser]);
 %% TODO support for list(...) = ...
 expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_]) ->
     NewPos = code_statement_level(add_pos(Pos,1)),
@@ -755,13 +755,13 @@ process_incr_decr(Content) ->
 
 process_incr_decr([], Processed) ->
     Processed;
-process_incr_decr([{<<"++">>,_},#variable{}=V|Rest], Processed) ->
+process_incr_decr([{<<"++">>,_,_Pos},#variable{}=V|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [{pre_incr, V}]);
-process_incr_decr([{<<"--">>,_},#variable{}=V|Rest], Processed) ->
+process_incr_decr([{<<"--">>,_,_Pos},#variable{}=V|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [{pre_decr, V}]);
-process_incr_decr([#variable{}=V,{<<"++">>,_}|Rest], Processed) ->
+process_incr_decr([#variable{}=V,{<<"++">>,_,_Pos}|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [{post_incr, V}]);
-process_incr_decr([#variable{}=V,{<<"--">>,_}|Rest], Processed) ->
+process_incr_decr([#variable{}=V,{<<"--">>,_,_Pos}|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [{post_decr, V}]);
 process_incr_decr([A|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [A]).
@@ -883,16 +883,16 @@ solve(Expression) ->
 
 gen_op([], Stack) ->
     Stack;
-gen_op([{<<126>>,{_,_}}|Rest], [A|Stack]) ->
-    gen_op(Rest, [{operation_bnot, A, {{line,0},{column,0}}}|Stack]);
-gen_op([{<<"!">>,{_,_}}|Rest], [A|Stack]) ->
-    gen_op(Rest, [{operation_not, A, {{line,0},{column,0}}}|Stack]);
-gen_op([{Op,{_,_}}|Rest], [B,A|Stack]) ->
-    gen_op(Rest, [operator(Op,A,B)|Stack]);
-gen_op([{<<"-">>,{_,_}}|Rest], [#int{}=I]) ->
-    gen_op(Rest, [#int{int=-I#int.int}]);
-gen_op([{<<"-">>,{_,_}}|Rest], [#float{}=F]) ->
-    gen_op(Rest, [#float{float=-F#float.float}]);
+gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
+    gen_op(Rest, [{operation_bnot, A, {{line,R},{column,C}}}|Stack]);
+gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
+    gen_op(Rest, [{operation_not, A, {{line,R},{column,C}}}|Stack]);
+gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
+    gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
+gen_op([{<<"-">>,{_,_},Pos}|Rest], [#int{}=I]) ->
+    gen_op(Rest, [add_line(#int{int=-I#int.int},Pos)]);
+gen_op([{<<"-">>,{_,_},Pos}|Rest], [#float{}=F]) ->
+    gen_op(Rest, [add_line(#float{float=-F#float.float},Pos)]);
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).
 
@@ -900,7 +900,7 @@ shunting_yard([], [], Postfix) ->
     Postfix;
 shunting_yard([], OpS, Postfix) ->
     Postfix ++ OpS;
-shunting_yard([{_,{_,_}}=Op|Rest], [], Postfix) ->
+shunting_yard([{_,{_,_},_}=Op|Rest], [], Postfix) ->
     shunting_yard(Rest, [Op], Postfix);
 shunting_yard([open|Rest], OpS, Postfix) ->
     shunting_yard(Rest, [open|OpS], Postfix);
@@ -922,11 +922,13 @@ shunting_yard([{_,{left,P1}}=Op|Rest], [{_,{_,P2}}|_]=OpS, Postfix)
 shunting_yard([{_,{_,P1}}=Op|Rest], [{_,{_,P2}}|_]=OpS, Postfix)
         when P1 < P2 ->
     shunting_yard(Rest, [Op|OpS], Postfix);
-shunting_yard([{_,{_,_}}=Op|Rest], [open|_]=OpS, Postfix) ->
+shunting_yard([{_,{_,_},_}=Op|Rest], [open|_]=OpS, Postfix) ->
     shunting_yard(Rest, [Op|OpS], Postfix);
 shunting_yard([A|Rest], OpS, Postfix) ->
     shunting_yard(Rest, OpS, Postfix ++ [A]).
 
+add_line(true, _) -> true;
+add_line(false, _) -> false;
 add_line(#array{}=A, {_,Row,Col}) -> A#array{line={{line,Row},{column,Col}}};
 add_line(#eval{}=E, {_,Row,Col}) -> E#eval{line={{line,Row},{column,Col}}};
 add_line(#print{}=P, {_,Row,Col}) -> P#print{line={{line,Row},{column,Col}}};
@@ -935,6 +937,7 @@ add_line(#print_text{}=P, {_,Row,Col}) ->
 add_line(#variable{}=V, {_,R,C}) -> V#variable{line={{line,R},{column,C}}};
 add_line(#constant{}=O, {_,R,C}) -> O#constant{line={{line,R},{column,C}}};
 add_line(#int{}=I, {_,R,C}) -> I#int{line={{line,R},{column,C}}};
+add_line(#float{}=F, {_,R,C}) -> F#float{line={{line,R},{column,C}}};
 add_line(#text_to_process{}=T, {_,R,C}) ->
     T#text_to_process{line={{line,R},{column,C}}};
 add_line(#text{}=T, {_,R,C}) -> T#text{line={{line,R},{column,C}}};
@@ -943,6 +946,8 @@ add_line(#assign{}=A, {_,R,C}) -> A#assign{line={{line,R},{column,C}}};
 add_line(#array_element{}=A, {_,R,C}) ->
     A#array_element{line={{line,R},{column,C}}};
 add_line(#for{}=F, {_,R,C}) -> F#for{line={{line,R},{column,C}}};
+add_line(#operation{}=O, {_,R,C}) -> O#operation{line={{line,R},{column,C}}};
+add_line(#concat{}=O, {_,R,C}) -> O#concat{line={{line,R},{column,C}}};
 add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
