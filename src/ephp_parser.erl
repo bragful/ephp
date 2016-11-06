@@ -160,6 +160,14 @@ code(<<D:8,O:8,SP:8,Rest/binary>>, Pos, Parsed)
         (?IS_SPACE(SP) orelse SP =:= ${) ->
     {Rest0, Pos0, [DoWhile]} = st_do_while(Rest, add_pos(Pos,3), []),
     code(Rest0, copy_level(Pos,Pos0), [DoWhile|Parsed]);
+code(<<F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(F,$f,$F) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
+        andalso ?OR(E,$e,$E) andalso ?OR(A,$a,$A) andalso ?OR(C,$c,$C)
+        andalso ?OR(H,$h,$H)
+        andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>,Pos),
+    {Rest1, Pos1, NewParsed} = st_foreach(Rest0, Pos0, Parsed),
+    code(Rest1, copy_level(Pos, Pos1), NewParsed);
 code(<<F:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
@@ -357,6 +365,12 @@ expression(<<":",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
 expression(<<>>, Pos, _Parsed) ->
     throw_error(eparse, Pos, <<>>).
 
+variable(<<SP:8,Rest/binary>>, Pos, []) when ?IS_SPACE(SP) ->
+    variable(Rest, add_pos(Pos,1), []);
+variable(<<SP:8,Rest/binary>>, Pos, []) when ?IS_NEWLINE(SP) ->
+    variable(Rest, new_line(Pos), []);
+variable(<<"$",Rest/binary>>, Pos, []) ->
+    variable(Rest, add_pos(Pos,1), []);
 variable(<<A:8,Rest/binary>>, Pos, [])
         when ?IS_ALPHA(A) orelse A =:= $_ orelse A >= 16#7f ->
     Var = add_line(#variable{name = <<A:8>>}, Pos),
@@ -682,6 +696,31 @@ args(Rest, Pos, Args) when Rest =/= <<>> ->
             args(Rest0, Pos0, Args ++ [Arg])
     end.
 
+st_foreach(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_foreach(Rest, add_pos(Pos,1), Parsed);
+st_foreach(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_foreach(Rest, new_line(Pos), Parsed);
+st_foreach(<<"(",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, Var} = variable(Rest, Pos, []),
+    {<<AS:2/binary,Rest1/binary>>, Pos1} = remove_spaces(Rest0, Pos0),
+    <<"as">> = ephp_string:to_lower(AS),
+    NewPos = array_def_level(add_pos(Pos1,2)),
+    {<<")",Rest2/binary>>, Pos2, Exp} = expression(Rest1, NewPos, []),
+    {Rest3, Pos3, CodeBlock} = code_block(Rest2, add_pos(Pos2,1), []),
+    RawFor = add_line(#foreach{
+        iter=Exp,
+        elements=Var,
+        loop_block=CodeBlock
+    }, Pos),
+    For = case Exp of
+        #variable{} ->
+            RawFor;
+        [KIter,Iter] ->
+            RawFor#foreach{kiter=KIter, iter=Iter}
+    end,
+    {Rest3, copy_level(Pos, Pos3), [For|Parsed]}.
+
+
 st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_for(Rest, add_pos(Pos,1), Parsed);
 st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
@@ -946,6 +985,7 @@ add_line(#assign{}=A, {_,R,C}) -> A#assign{line={{line,R},{column,C}}};
 add_line(#array_element{}=A, {_,R,C}) ->
     A#array_element{line={{line,R},{column,C}}};
 add_line(#for{}=F, {_,R,C}) -> F#for{line={{line,R},{column,C}}};
+add_line(#foreach{}=F, {_,R,C}) -> F#foreach{line={{line,R},{column,C}}};
 add_line(#operation{}=O, {_,R,C}) -> O#operation{line={{line,R},{column,C}}};
 add_line(#concat{}=O, {_,R,C}) -> O#concat{line={{line,R},{column,C}}};
 add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}}.
