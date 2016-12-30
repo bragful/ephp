@@ -141,7 +141,7 @@ copy_level({Level,_,_}, {_,Row,Col}) -> {Level,Row,Col}.
 code(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
 code(<<"}",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
-    {Rest, add_pos(Pos,1), Parsed};
+    {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
 code(<<";",_/binary>> = Rest, {code_statement,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), Parsed};
 code(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
@@ -719,7 +719,7 @@ st_foreach(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
 st_foreach(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_foreach(Rest, new_line(Pos), Parsed);
 st_foreach(<<"(",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, Var} = variable(Rest, Pos, []),
+    {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
     {<<AS:2/binary,Rest1/binary>>, Pos1} = remove_spaces(Rest0, Pos0),
     <<"as">> = ephp_string:to_lower(AS),
     NewPos = array_def_level(add_pos(Pos1,2)),
