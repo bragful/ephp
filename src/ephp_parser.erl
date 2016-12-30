@@ -34,6 +34,17 @@
     )
 ).
 -define(OR(I,X,Y), erlang:'or'(I =:= X,I =:= Y)).
+-define(IS_OP1_ARITH(X),
+    X =:= <<"*">> orelse
+    X =:= <<"/">> orelse
+    X =:= <<"%">> orelse
+    X =:= <<"+">> orelse
+    X =:= <<"-">> orelse
+    X =:= <<".">> orelse
+    X =:= <<"&">> orelse
+    X =:= <<"^">> orelse
+    X =:= <<"|">>
+).
 -define(IS_OP1(X),
     X =:= <<126>> orelse
     X =:= <<"@">> orelse
@@ -329,6 +340,13 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' ->
     {Rest0, Pos0, String} = string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
+expression(<<A:1/binary,"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_])
+        when ?IS_OP1_ARITH(A) ->
+    NewPos = code_statement_level(add_pos(Pos,2)),
+    {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
+    Op = add_line(operator(A,V,Exp), Pos),
+    Assign = add_line(#assign{variable=V, expression=Op}, Pos),
+    {Rest0, Pos0, Assign};
 expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
     OpL = ephp_string:to_lower(Op),
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
@@ -794,14 +812,14 @@ process_incr_decr(Content) ->
 
 process_incr_decr([], Processed) ->
     Processed;
-process_incr_decr([{<<"++">>,_,_Pos},#variable{}=V|Rest], Processed) ->
-    process_incr_decr(Rest, Processed ++ [{pre_incr, V}]);
-process_incr_decr([{<<"--">>,_,_Pos},#variable{}=V|Rest], Processed) ->
-    process_incr_decr(Rest, Processed ++ [{pre_decr, V}]);
-process_incr_decr([#variable{}=V,{<<"++">>,_,_Pos}|Rest], Processed) ->
-    process_incr_decr(Rest, Processed ++ [{post_incr, V}]);
-process_incr_decr([#variable{}=V,{<<"--">>,_,_Pos}|Rest], Processed) ->
-    process_incr_decr(Rest, Processed ++ [{post_decr, V}]);
+process_incr_decr([{<<"++">>,_,Pos},#variable{}=V|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{pre_incr, V, Pos}]);
+process_incr_decr([{<<"--">>,_,Pos},#variable{}=V|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{pre_decr, V, Pos}]);
+process_incr_decr([#variable{}=V,{<<"++">>,_,Pos}|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{post_incr, V, Pos}]);
+process_incr_decr([#variable{}=V,{<<"--">>,_,Pos}|Rest], Processed) ->
+    process_incr_decr(Rest, Processed ++ [{post_decr, V, Pos}]);
 process_incr_decr([A|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [A]).
 
