@@ -290,6 +290,12 @@ expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     expression(Rest, add_pos(Pos,1), Parsed);
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     expression(Rest, new_line(Pos), Parsed);
+expression(<<"//",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    expression(Rest0, Pos0, Parsed);
+expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
+    expression(Rest0, Pos0, Parsed);
 expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) when not is_number(L) ->
     {Rest0, Pos0, Op} = expression(Rest, {1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
