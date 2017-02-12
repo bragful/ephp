@@ -83,9 +83,7 @@
     X =:= <<"%=">> orelse
     X =:= <<"&=">> orelse
     X =:= <<"|=">> orelse
-    X =:= <<"^=">> orelse
-    X =:= <<"or">> orelse X =:= <<"OR">> orelse
-    X =:= <<"Or">> orelse X =:= <<"oR">>
+    X =:= <<"^=">>
 ).
 -define(IS_OP3(X),
     X =:= <<"===">> orelse
@@ -93,13 +91,7 @@
     X =:= <<"<=>">> orelse
     X =:= <<"**=">> orelse
     X =:= <<"<<=">> orelse
-    X =:= <<">>=">> orelse
-    X =:= <<"and">> orelse X =:= <<"And">> orelse X =:= <<"aNd">> orelse
-    X =:= <<"ANd">> orelse X =:= <<"anD">> orelse X =:= <<"AnD">> orelse
-    X =:= <<"aND">> orelse X =:= <<"AND">> orelse
-    X =:= <<"xor">> orelse X =:= <<"Xor">> orelse X =:= <<"xOr">> orelse
-    X =:= <<"XOr">> orelse X =:= <<"xoR">> orelse X =:= <<"XoR">> orelse
-    X =:= <<"xOR">> orelse X =:= <<"XOR">>
+    X =:= <<">>=">>
 ).
 
 file(File) ->
@@ -408,9 +400,24 @@ expression(<<A:1/binary,"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_])
     Op = add_line(operator(A,V,Exp), Pos),
     Assign = add_line(#assign{variable=V, expression=Op}, Pos),
     {Rest0, Pos0, Assign};
+expression(<<A:8,N:8,D:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(A,$a,$A) andalso ?OR(N,$n,$N) andalso ?OR(D,$d,$D)
+        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
+    OpL = <<"and">>,
+    expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<X:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(X,$x,$X) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
+        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
+    OpL = <<"xor">>,
+    expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
     OpL = ephp_string:to_lower(Op),
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
+        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
+    OpL = <<"or">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     OpL = ephp_string:to_lower(Op),
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
