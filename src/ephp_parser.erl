@@ -142,6 +142,31 @@ code(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
 code(<<"}",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,I:8,F:8,Rest/binary>>, {if_old_block,_,_}=Pos, Parsed) when
+        ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
+        ?OR(I,$I,$i) andalso ?OR(F,$F,$f) ->
+    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,5)),
+    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,F:8,O:8,R:8,E:8,A:8,C:8,H:8,Rest/binary>>,
+     {foreach_old_block,_,_}=Pos, Parsed) when
+        ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
+        ?OR(F,$F,$f) andalso ?OR(O,$O,$o) andalso ?OR(R,$R,$r) andalso
+        ?OR(A,$A,$a) andalso ?OR(C,$C,$c) andalso ?OR(H,$H,$h) ->
+    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,10)),
+    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,F:8,O:8,R:8,Rest/binary>>,
+     {for_old_block,_,_}=Pos, Parsed) when
+        ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
+        ?OR(F,$F,$f) andalso ?OR(O,$O,$o) andalso ?OR(R,$R,$r) ->
+    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,6)),
+    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,W:8,H:8,I:8,L:8,E:8,Rest/binary>>,
+     {while_old_block,_,_}=Pos, Parsed) when
+        ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
+        ?OR(W,$W,$w) andalso ?OR(H,$H,$h) andalso ?OR(I,$I,$i) andalso
+        ?OR(L,$L,$l) ->
+    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,8)),
+    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
 code(<<";",_/binary>> = Rest, {code_statement,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), Parsed};
 code(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
@@ -168,7 +193,7 @@ code(<<W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
     code(Rest1, copy_level(Pos,Pos1), NewParsed);
 code(<<D:8,O:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(D,$d,$D) andalso ?OR(O,$o,$O) andalso
-        (?IS_SPACE(SP) orelse SP =:= ${) ->
+        (?IS_SPACE(SP) orelse ?OR(SP,${,$:)) ->
     {Rest0, Pos0, [DoWhile]} = st_do_while(Rest, add_pos(Pos,3), []),
     code(Rest0, copy_level(Pos,Pos0), [DoWhile|Parsed]);
 code(<<F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>, Pos, Parsed)
@@ -185,10 +210,13 @@ code(<<F:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>,Pos),
     {Rest1, Pos1, NewParsed} = st_for(Rest0, Pos0, Parsed),
     code(Rest1, copy_level(Pos, Pos1), NewParsed);
-code(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>,
-     Pos, [#if_block{}|_]=Parsed)
+code(<<E:8,L:8,S:8,E:8,SP:8,_/binary>> = Rest, {if_old_block,_,_}=Pos, Parsed)
         when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
-        andalso (?OR(SP,32,${) orelse ?OR(SP,$i,$I)) ->
+        andalso (SP =:= $: orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I)) ->
+    {Rest, Pos, Parsed};
+code(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, [#if_block{}|_]=Parsed)
+        when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
+        andalso (?OR(SP,${,$:) orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I)) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, NewParsed} = st_else(Rest0, Pos0, Parsed),
     code(Rest1, copy_level(Pos, Pos1), NewParsed);
@@ -255,6 +283,14 @@ code(Text, Pos, _Parsed) ->
 
 code_block(<<"{",Rest/binary>>, Pos, Parsed) ->
     code(Rest, code_block_level(add_pos(Pos,1)), Parsed);
+code_block(<<":",Rest/binary>>, {if_block,_,_}=Pos, Parsed) ->
+    code(Rest, if_old_block_level(add_pos(Pos,1)), Parsed);
+code_block(<<":",Rest/binary>>, {foreach_block,_,_}=Pos, Parsed) ->
+    code(Rest, foreach_old_block_level(add_pos(Pos,1)), Parsed);
+code_block(<<":",Rest/binary>>, {for_block,_,_}=Pos, Parsed) ->
+    code(Rest, for_old_block_level(add_pos(Pos,1)), Parsed);
+code_block(<<":",Rest/binary>>, {while_block,_,_}=Pos, Parsed) ->
+    code(Rest, while_old_block_level(add_pos(Pos,1)), Parsed);
 code_block(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     code_block(Rest, add_pos(Pos,1), Parsed);
 code_block(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
@@ -652,7 +688,7 @@ st_while(<<"(",Rest/binary>>, Pos, Parsed) ->
     NewPos = add_pos(Pos,1),
     {<<")",Rest1/binary>>, Pos1, Conditions} =
         expression(Rest, arg_level(NewPos), []),
-    {Rest2, Pos2, CodeBlock} = code_block(Rest1, Pos1, []),
+    {Rest2, Pos2, CodeBlock} = code_block(Rest1, while_block_level(Pos1), []),
     While = add_line(#while{
         type=pre,
         conditions=Conditions,
@@ -684,7 +720,7 @@ st_if(<<"(",Rest/binary>>, Pos, Parsed) ->
     NewPos = add_pos(Pos,1),
     {<<")",Rest1/binary>>, Pos1, Conditions} =
         expression(Rest, arg_level(NewPos), []),
-    {Rest2, Pos2, CodeBlock} = code_block(Rest1, Pos1, []),
+    {Rest2, Pos2, CodeBlock} = code_block(Rest1, if_block_level(Pos1), []),
     If = add_line(#if_block{
         conditions=Conditions,
         true_block=CodeBlock
@@ -698,7 +734,8 @@ st_else(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
 st_else(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_else(Rest, new_line(Pos), Parsed);
 st_else(Rest0, {Level,_,_}=Pos0, [#if_block{}=If|Parsed]) ->
-    {Rest1, {_,Row1,Col1}, CodeBlock} = code_block(Rest0, add_pos(Pos0,4), []),
+    BlockPos = if_block_level(add_pos(Pos0,4)),
+    {Rest1, {_,Row1,Col1}, CodeBlock} = code_block(Rest0, BlockPos, []),
     IfWithElse = If#if_block{false_block=CodeBlock},
     {Rest1, {Level,Row1,Col1}, [IfWithElse|Parsed]};
 st_else(<<>>, Pos, _Parsed) ->
@@ -753,7 +790,8 @@ st_for(<<"(",Rest/binary>>, Pos, Parsed) ->
     {<<";",Rest0/binary>>, Pos0, Init} = args(Rest, add_pos(Pos,1), []),
     {<<";",Rest1/binary>>, Pos1, [Cond]} = args(Rest0, add_pos(Pos0,1), []),
     {<<")",Rest2/binary>>, Pos2, Upda} = args(Rest1, add_pos(Pos1,1), []),
-    {Rest3, Pos3, CodeBlock} = code_block(Rest2, add_pos(Pos2,1), []),
+    {Rest3, Pos3, CodeBlock} = code_block(Rest2,
+                                          for_block_level(add_pos(Pos2,1)), []),
     For = add_line(#for{
         init=Init, conditions=Cond, update=Upda, loop_block=CodeBlock
     }, Pos),
@@ -791,6 +829,16 @@ add_pos({Level,Row,Col}, Offset) ->
 
 new_line({Level,Row,_Col}) ->
     {Level,Row+1,1}.
+
+if_old_block_level({_,Row,Col}) -> {if_old_block,Row,Col}.
+for_old_block_level({_,Row,Col}) -> {for_old_block,Row,Col}.
+foreach_old_block_level({_,Row,Col}) -> {foreach_old_block,Row,Col}.
+while_old_block_level({_,Row,Col}) -> {while_old_block,Row,Col}.
+
+if_block_level({_,Row,Col}) -> {if_block,Row,Col}.
+for_block_level({_,Row,Col}) -> {for_block,Row,Col}.
+foreach_block_level({_,Row,Col}) -> {foreach_block,Row,Col}.
+while_block_level({_,Row,Col}) -> {while_block,Row,Col}.
 
 normal_level({_,Row,Col}) -> {code,Row,Col}.
 code_block_level({_,Row,Col}) -> {code_block,Row,Col}.
