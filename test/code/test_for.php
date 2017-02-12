@@ -9,6 +9,7 @@
         <td><?=$i?></td>
     </tr>
     <? } ?>
+    </table>
 </body>
 </html>
 
