@@ -753,15 +753,47 @@ st_function(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_function(Rest, new_line(Pos), Parsed);
 % TODO if the following char is '(' maybe this is a anon-function
 st_function(Rest, Pos, Parsed) ->
-    {Rest0, Pos0, [#call{}=C]} = constant(Rest, Pos, []),
-    {Rest1, Pos1} = remove_spaces(Rest0, Pos0),
-    {Rest2, Pos2, CodeBlock} = code_block(Rest1, Pos1, []),
+    {Rest0, Pos0, Name} = funct_name(Rest, Pos, []),
+    {<<"(",Rest1/binary>>, Pos1} = remove_spaces(Rest0, Pos0),
+    {Rest2, Pos2, Args} = funct_args(Rest1, Pos1, []),
+    {Rest3, Pos3, CodeBlock} = code_block(Rest2, Pos2, []),
     Function = add_line(#function{
-        name = C#call.name,
-        args = C#call.args,
+        name = Name,
+        args = Args,
         code = CodeBlock
     }, Pos),
-    {Rest2, copy_level(Pos, Pos2), [Function|Parsed]}.
+    {Rest3, copy_level(Pos, Pos3), [Function|Parsed]}.
+
+funct_name(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) ->
+    funct_name(Rest, add_pos(Pos,1), [<<A:8>>]);
+funct_name(<<A:8,Rest/binary>>, Pos, [N])
+        when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
+    funct_name(Rest, add_pos(Pos,1), [<<N/binary, A:8>>]);
+funct_name(Rest, Pos, [N]) ->
+    {Rest, Pos, N}.
+
+funct_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    funct_args(Rest, add_pos(Pos,1), Parsed);
+funct_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    funct_args(Rest, new_line(Pos), Parsed);
+funct_args(<<"&",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, [Var|Parsed0]} = funct_args(Rest, Pos, Parsed),
+    {Rest0, Pos0, [add_line(#ref{var=Var}, Pos)|Parsed0]};
+funct_args(<<",",Rest/binary>>, Pos, Parsed) ->
+    funct_args(Rest, add_pos(Pos,1), Parsed);
+funct_args(<<")",Rest/binary>>, Pos, Parsed) ->
+    {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
+funct_args(Rest, Pos, Parsed) ->
+    {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
+    case remove_spaces(Rest0, Pos0) of
+        {<<"=",Rest1/binary>>, Pos1} ->
+            NewPos = arg_level(add_pos(Pos1,1)),
+            {Rest2, Pos2, Default} = expression(Rest1, NewPos, []),
+            NewVar = add_line(Var#variable{default_value = Default}, Pos),
+            funct_args(Rest2, copy_level(Pos, Pos2), [NewVar|Parsed]);
+        {Rest1, Pos1} ->
+            funct_args(Rest1, add_pos(Pos1,1), [Var|Parsed])
+    end.
 
 st_while(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_while(Rest, add_pos(Pos,1), Parsed);
