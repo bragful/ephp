@@ -375,6 +375,10 @@ expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, Parsed)
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+% TODO: maybe we need to change the foreach_block for _arg...
+expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos, Parsed)
+        when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
+    {Rest, Pos, add_op('end', Parsed)};
 expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 expression(<<"]",Rest/binary>>, {array,_,_}=Pos, Parsed) ->
@@ -789,18 +793,19 @@ st_foreach(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
 st_foreach(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_foreach(Rest, new_line(Pos), Parsed);
 st_foreach(<<"(",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
+    {Rest0, Pos0, Exp} = expression(Rest, foreach_block_level(Pos), []),
     {<<AS:2/binary,Rest1/binary>>, Pos1} = remove_spaces(Rest0, Pos0),
     <<"as">> = ephp_string:to_lower(AS),
     NewPos = array_def_level(add_pos(Pos1,2)),
-    {<<")",Rest2/binary>>, Pos2, Exp} = expression(Rest1, NewPos, []),
-    {Rest3, Pos3, CodeBlock} = code_block(Rest2, add_pos(Pos2,1), []),
+    {<<")",Rest2/binary>>, Pos2, ExpIter} = expression(Rest1, NewPos, []),
+    BlockPos = foreach_block_level(add_pos(Pos2,1)),
+    {Rest3, Pos3, CodeBlock} = code_block(Rest2, BlockPos, []),
     RawFor = add_line(#foreach{
-        iter=Exp,
-        elements=Var,
+        iter=ExpIter,
+        elements=Exp,
         loop_block=CodeBlock
     }, Pos),
-    For = case Exp of
+    For = case ExpIter of
         #variable{} ->
             RawFor;
         [KIter,Iter] ->
