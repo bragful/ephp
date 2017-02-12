@@ -258,10 +258,10 @@ code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, add_pos(Pos,2), Parsed};
 code(<<"?>\n",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,3)), []),
-    code(Rest0, copy_level(Pos,Pos0), Parsed ++ Text);
+    code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
-    code(Rest0, copy_level(Pos,Pos0), Parsed ++ Text);
+    code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,3), Parsed};
 code(<<"?>",Rest/binary>>, Pos, Parsed) ->
