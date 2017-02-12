@@ -140,6 +140,25 @@ copy_level({Level,_,_}, {_,Row,Col}) -> {Level,Row,Col}.
 
 code(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
+code(<<B:8,R:8,E:8,A:8,K:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(B,$B,$b) andalso ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso
+        ?OR(A,$A,$a) andalso ?OR(K,$K,$k) andalso
+        (not (?IS_SPACE(SP) orelse ?IS_NUMBER(SP))) ->
+    code(<<SP:8,Rest/binary>>, add_pos(Pos,5), [break|Parsed]);
+code(<<C:8,O:8,N:8,T:8,I:8,N:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(C,$C,$c) andalso ?OR(O,$O,$o) andalso ?OR(N,$N,$n) andalso
+        ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso ?OR(U,$U,$u) andalso
+        ?OR(E,$E,$e) andalso (not (?IS_SPACE(SP) orelse ?IS_NUMBER(SP))) ->
+    code(<<SP:8,Rest/binary>>, add_pos(Pos,8), [continue|Parsed]);
+code(<<R:8,E:8,T:8,U:8,R:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(T,$T,$t) andalso
+        ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+        (not (?IS_SPACE(SP) orelse ?IS_NUMBER(SP))) ->
+    {Rest0, Pos0, Return} = expression(<<SP:8,Rest/binary>>, add_pos(Pos,6), []),
+    case Return of
+        [] -> code(Rest0, Pos0, [add_line(#return{}, Pos)|Parsed]);
+        _ -> code(Rest0, Pos0, [add_line(#return{value=Return}, Pos)|Parsed])
+    end;
 code(<<"}",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
 code(<<E:8,N:8,D:8,I:8,F:8,Rest/binary>>, {if_old_block,_,_}=Pos, Parsed) when
@@ -1060,7 +1079,8 @@ add_line(#for{}=F, {_,R,C}) -> F#for{line={{line,R},{column,C}}};
 add_line(#foreach{}=F, {_,R,C}) -> F#foreach{line={{line,R},{column,C}}};
 add_line(#operation{}=O, {_,R,C}) -> O#operation{line={{line,R},{column,C}}};
 add_line(#concat{}=O, {_,R,C}) -> O#concat{line={{line,R},{column,C}}};
-add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}}.
+add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}};
+add_line(#return{}=Rt, {_,R,C}) -> Rt#return{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));

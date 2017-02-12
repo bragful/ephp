@@ -16,8 +16,11 @@ process(_Context, []) ->
     {ok, <<>>};
 
 process(Context, Statements) ->
-    Value = lists:foldl(fun(Statement, false) ->
-        run(Context, Statement)
+    Value = lists:foldl(fun
+        (Statement, false) ->
+            run(Context, Statement);
+        (_Statement, Return) ->
+            Return
     end, false, Statements),
     ephp_shutdown:shutdown(Context),
     {ok, Value}.
