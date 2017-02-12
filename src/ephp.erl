@@ -159,12 +159,12 @@ main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
     quit(1).
 
--spec quit(integer()) -> no_return().
-
 -ifndef(TEST).
+-spec quit(integer()) -> no_return().
 quit(Code) ->
     erlang:halt(Code).
 -else.
+-spec quit(integer()) -> integer().
 quit(Code) ->
     Code.
 -endif.
