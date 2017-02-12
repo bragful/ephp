@@ -181,6 +181,13 @@
 
 -type return() :: #return{}.
 
+-record(global, {
+    vars :: [variable()],
+    line :: line()
+}).
+
+-type global() :: #global{}.
+
 -record(int, {
     int :: integer(),
     line :: line()

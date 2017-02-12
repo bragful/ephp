@@ -152,6 +152,12 @@ code(<<R:8,E:8,T:8,U:8,R:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         [] -> code(Rest0, Pos0, [add_line(#return{}, Pos)|Parsed]);
         _ -> code(Rest0, Pos0, [add_line(#return{value=Return}, Pos)|Parsed])
     end;
+code(<<G:8,L:8,O:8,B:8,A:8,L:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(G,$G,$g) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
+        ?OR(B,$B,$b) andalso ?OR(A,$A,$a) andalso ?IS_SPACE(SP) ->
+    {Rest0, Pos0} = remove_spaces(Rest, add_pos(Pos,7)),
+    {Rest1, Pos1, [Global]} = st_global(Rest0, Pos0, []),
+    code(Rest1, copy_level(Pos, Pos1), [Global|Parsed]);
 code(<<"}",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
 code(<<E:8,N:8,D:8,I:8,F:8,Rest/binary>>, {if_old_block,_,_}=Pos, Parsed) when
@@ -252,6 +258,20 @@ code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest0, Pos0, #constant{}=Constant} =
         expression(Rest, add_pos(Pos,6), []),
     code(Rest0, copy_level(Pos, Pos0), [Constant|Parsed]);
+code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+        ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
+        ?OR(O,$O,$o) andalso ?IS_SPACE(SP) ->
+    {Rest0, Pos0, [#function{}=Function]} =
+        st_function(Rest, add_pos(Pos,9), []),
+    code(Rest0, copy_level(Pos, Pos0), [Function|Parsed]);
+code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+        ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
+        ?OR(O,$O,$o) andalso ?IS_NEWLINE(SP) ->
+    NewPos = new_line(add_pos(Pos,8)),
+    {Rest0, Pos0, #function{}=Function} = st_function(Rest, NewPos, []),
+    code(Rest0, copy_level(Pos, Pos0), [Function|Parsed]);
 code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, add_pos(Pos,3), Parsed};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
@@ -710,6 +730,34 @@ string_parsed(Rest, Pos, #text_to_process{text=C}=S)
         when not is_binary(C) ->
     string_parsed(Rest, Pos, S#text_to_process{text=[<<>>|C]}).
 
+st_global(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_global(Rest, add_pos(Pos,1), Parsed);
+st_global(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_global(Rest, new_line(Pos), Parsed);
+st_global(<<",",Rest/binary>>, Pos, Parsed) ->
+    st_global(Rest, add_pos(Pos,1), Parsed);
+st_global(<<";",Rest/binary>>, Pos, Parsed) ->
+    Global = add_line(#global{vars = Parsed}, Pos),
+    {Rest, add_pos(Pos,1), [Global]};
+st_global(<<"$",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
+    st_global(Rest0, Pos0, [Var|Parsed]).
+
+st_function(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_function(Rest, add_pos(Pos,1), Parsed);
+st_function(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_function(Rest, new_line(Pos), Parsed);
+% TODO if the following char is '(' maybe this is a anon-function
+st_function(Rest, Pos, Parsed) ->
+    {Rest0, Pos0, [#call{}=C]} = constant(Rest, Pos, []),
+    {Rest1, Pos1} = remove_spaces(Rest0, Pos0),
+    {Rest2, Pos2, CodeBlock} = code_block(Rest1, Pos1, []),
+    Function = add_line(#function{
+        name = C#call.name,
+        args = C#call.args,
+        code = CodeBlock
+    }, Pos),
+    {Rest2, copy_level(Pos, Pos2), [Function|Parsed]}.
 
 st_while(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_while(Rest, add_pos(Pos,1), Parsed);
@@ -1095,7 +1143,9 @@ add_line(#foreach{}=F, {_,R,C}) -> F#foreach{line={{line,R},{column,C}}};
 add_line(#operation{}=O, {_,R,C}) -> O#operation{line={{line,R},{column,C}}};
 add_line(#concat{}=O, {_,R,C}) -> O#concat{line={{line,R},{column,C}}};
 add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}};
-add_line(#return{}=Rt, {_,R,C}) -> Rt#return{line={{line,R},{column,C}}}.
+add_line(#return{}=Rt, {_,R,C}) -> Rt#return{line={{line,R},{column,C}}};
+add_line(#function{}=F, {_,R,C}) -> F#function{line={{line,R},{column,C}}};
+add_line(#global{}=G, {_,R,C}) -> G#global{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));
