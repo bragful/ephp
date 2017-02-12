@@ -1026,6 +1026,8 @@ solve(Expression) ->
 
 gen_op([], Stack) ->
     Stack;
+gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], Stack) ->
+    [{silent, gen_op(Rest, Stack)}];
 gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
