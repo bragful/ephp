@@ -361,6 +361,9 @@ expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
 expression(<<"//",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
+expression(<<"#",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    expression(Rest0, Pos0, Parsed);
 expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
