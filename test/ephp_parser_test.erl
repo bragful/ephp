@@ -330,21 +330,21 @@ foreach_statement_test_() -> [
         [#eval{statements=[#foreach{
                  iter=#variable{name = <<"i">>},
                  elements=#variable{name = <<"data">>},
-                 loop_block=#assign{variable=#variable{name = <<"b">>},
-                         expression=#operation{
-                            type = <<"+">>,
-                            expression_left=#variable{name = <<"b">>},
-                            expression_right=#variable{name = <<"i">>}}}}]}],
+                 loop_block=[#assign{variable=#variable{name = <<"b">>},
+                                     expression=#operation{
+                                        type = <<"+">>,
+                                        expression_left=#variable{name = <<"b">>},
+                                        expression_right=#variable{name = <<"i">>}}}]}]}],
         ?PARSE("<?php foreach ($data as $i) $b = $b + $i; ?>")),
     ?_assertMatch(
         [#eval{statements=[#foreach{
                  kiter=#variable{name = <<"k">>},
                  iter=#variable{name = <<"i">>},
                  elements=#variable{name = <<"data">>},
-                 loop_block=#assign{variable=#variable{name = <<"b">>},
-                        expression=#operation{type = <<"+">>,
-                            expression_left=#variable{name = <<"b">>},
-                            expression_right=#variable{name = <<"i">>}}}}]}],
+                 loop_block=[#assign{variable=#variable{name = <<"b">>},
+                                         expression=#operation{type = <<"+">>,
+                                             expression_left=#variable{name = <<"b">>},
+                                             expression_right=#variable{name = <<"i">>}}}]}]}],
         ?PARSE("<?php foreach ($data as $k => $i) $b = $b + $i; ?>"))
 ].
 
