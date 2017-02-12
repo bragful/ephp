@@ -451,7 +451,8 @@ expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
-expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when ?IS_ALPHA(A) ->
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when
+        ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
     expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
 expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
@@ -522,7 +523,7 @@ number(Rest, Pos, [#int{int=N}=I]) ->
 number(Rest, Pos, [#float{float=N}=F]) ->
     {Rest, Pos, [F#float{float=binary_to_float(N)}]}.
 
-constant(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) ->
+constant(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
     constant(Rest, add_pos(Pos,1), [add_line(#constant{name = <<A:8>>},Pos)]);
 constant(<<A:8,Rest/binary>>, Pos, [#constant{name=N}=C])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
