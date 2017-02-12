@@ -122,7 +122,8 @@ document(<<"<?",Rest/binary>>, {literal,_,_}=Pos, Parsed) ->
 document(<<"<?",Rest/binary>>, Pos, Parsed) ->
     %% TODO: if short is not permitted, use as text
     {Rest0,Pos0,NParsed} = code(Rest, normal_level(add_pos(Pos,2)), []),
-    document(Rest0,Pos0,[add_line(#eval{statements=NParsed},Pos)|Parsed]);
+    RParsed = lists:reverse(NParsed),
+    document(Rest0,Pos0,[add_line(#eval{statements=RParsed},Pos)|Parsed]);
 document(<<"\n",Rest/binary>>, Pos, Parsed) ->
     document(Rest, new_line(Pos), add_to_text(<<"\n">>, Pos, Parsed));
 document(<<L:1/binary,Rest/binary>>, Pos, Parsed) ->
@@ -257,10 +258,10 @@ code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, add_pos(Pos,2), Parsed};
 code(<<"?>\n",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,3)), []),
-    code(Rest0, copy_level(Pos,Pos0), Parsed ++ lists:reverse(Text));
+    code(Rest0, copy_level(Pos,Pos0), Parsed ++ Text);
 code(<<"?>",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
-    code(Rest0, copy_level(Pos,Pos0), Parsed ++ lists:reverse(Text));
+    code(Rest0, copy_level(Pos,Pos0), Parsed ++ Text);
 code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,3), Parsed};
 code(<<"?>",Rest/binary>>, Pos, Parsed) ->
