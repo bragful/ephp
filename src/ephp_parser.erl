@@ -146,7 +146,7 @@ code(<<C:8,O:8,N:8,T:8,I:8,N:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
 code(<<R:8,E:8,T:8,U:8,R:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(T,$T,$t) andalso
         ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
-        (not (?IS_SPACE(SP) orelse ?IS_NUMBER(SP))) ->
+        (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
     {Rest0, Pos0, Return} = expression(<<SP:8,Rest/binary>>, add_pos(Pos,6), []),
     case Return of
         [] -> code(Rest0, Pos0, [add_line(#return{}, Pos)|Parsed]);
