@@ -1028,9 +1028,9 @@ gen_op([], Stack) ->
     Stack;
 gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], Stack) ->
     [{silent, gen_op(Rest, Stack)}];
-gen_op([{<<126>>,{_,_},{_,R,C}},A|Rest], Stack) ->
+gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,R},{column,C}}}|Stack]);
-gen_op([{<<"!">>,{_,_},{_,R,C}},A|Rest], Stack) ->
+gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_not, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
     gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
@@ -1055,16 +1055,16 @@ shunting_yard([open|Rest], OpS, Postfix) ->
 shunting_yard([close|Rest]=_A, OpS, Postfix) ->
     {Add, [open|NewOpS]} = lists:splitwith(fun(A) -> A =/= open end, OpS),
     shunting_yard(Rest, NewOpS, Postfix ++ Add);
-shunting_yard([{_,{left,P1}}=Op|Rest], [{_,{_,P2}}=Op1|OpS], Postfix)
+shunting_yard([{_,{left,P1},_}=Op|Rest], [{_,{_,P2},_}=Op1|OpS], Postfix)
         when P1 > P2 ->
     shunting_yard(Rest, [Op|OpS], Postfix ++ [Op1]);
-shunting_yard([{_,{_,P1}}=Op|Rest], [{_,{_,P2}}=Op1|OpS], Postfix)
+shunting_yard([{_,{_,P1},_}=Op|Rest], [{_,{_,P2},_}=Op1|OpS], Postfix)
         when P1 >= P2 ->
     shunting_yard(Rest, [Op|OpS], Postfix ++ [Op1]);
-shunting_yard([{_,{left,P1}}=Op|Rest], [{_,{_,P2}}|_]=OpS, Postfix)
+shunting_yard([{_,{left,P1},_}=Op|Rest], [{_,{_,P2},_}|_]=OpS, Postfix)
         when P1 =< P2 ->
     shunting_yard(Rest, [Op|OpS], Postfix);
-shunting_yard([{_,{_,P1}}=Op|Rest], [{_,{_,P2}}|_]=OpS, Postfix)
+shunting_yard([{_,{_,P1},_}=Op|Rest], [{_,{_,P2},_}|_]=OpS, Postfix)
         when P1 < P2 ->
     shunting_yard(Rest, [Op|OpS], Postfix);
 shunting_yard([{_,{_,_},_}=Op|Rest], [open|_]=OpS, Postfix) ->
