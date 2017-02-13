@@ -550,7 +550,7 @@ constant(<<SP:8,Rest/binary>>, Pos, [#constant{}|_]=Parsed)
 constant(<<"(",_/binary>> = Rest, Pos, Parsed) ->
     constant_wait(Rest, Pos, Parsed);
 constant(Rest, Pos, Parsed) ->
-    {Rest, Pos, Parsed}.
+    {Rest, Pos, constant_known(Parsed, Pos)}.
 
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
@@ -564,7 +564,12 @@ constant_wait(<<SP:8,Rest/binary>>, Pos, [#constant{}|_]=Parsed)
         when ?IS_NEWLINE(SP) ->
     constant_wait(Rest, new_line(Pos), Parsed);
 constant_wait(Rest, Pos, Parsed) ->
-    {Rest, Pos, Parsed}.
+    {Rest, Pos, constant_known(Parsed, Pos)}.
+
+constant_known([#constant{name = <<"__LINE__">>}|Parsed], {_,R,_}=Pos) ->
+    [add_line(#int{int=R}, Pos)|Parsed];
+constant_known(C, _Pos) ->
+    C.
 
 array_def(<<SP:8,Rest/binary>>, Pos, Args) when ?IS_SPACE(SP) ->
     array_def(Rest, add_pos(Pos,1), Args);
