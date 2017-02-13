@@ -248,14 +248,30 @@ code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed)
         andalso ?OR(O,$o,$O) andalso ?OR(SP,32,$() ->
     {Rest0, Pos0, Exp} = expression(<<SP:8,Rest/binary>>,
                                      arg_level(add_pos(Pos,5)), []),
-    Print = get_print(Exp, Pos),
+    % FIXME if we detect an OR or AND expression, we put around print
+    Print = case Exp of
+        #operation{type = Type} when Type =:= 'or' orelse Type =:= 'and' ->
+            Exp#operation{
+                expression_left = get_print(Exp#operation.expression_left, Pos)
+            };
+        _ ->
+            get_print(Exp, Pos)
+    end,
     code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
 code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(P,$p,$P) andalso ?OR(R,$r,$R) andalso ?OR(I,$i,$I)
         andalso ?OR(N,$n,$N) andalso ?OR(T,$t,$T) andalso ?OR(SP,32,$() ->
     {Rest0, Pos0, Exp} = expression(<<SP:8,Rest/binary>>,
                                      arg_level(add_pos(Pos,6)), []),
-    Print = get_print(Exp, Pos),
+    % FIXME if we detect an OR or AND expression, we put around print
+    Print = case Exp of
+        #operation{type = Type} when Type =:= 'or' orelse Type =:= 'and' ->
+            Exp#operation{
+                expression_left = get_print(Exp#operation.expression_left, Pos)
+            };
+        _ ->
+            get_print(Exp, Pos)
+    end,
     code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
 code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N)
