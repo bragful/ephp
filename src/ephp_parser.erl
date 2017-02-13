@@ -152,6 +152,11 @@ code(<<R:8,E:8,T:8,U:8,R:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         [] -> code(Rest0, Pos0, [add_line(#return{}, Pos)|Parsed]);
         _ -> code(Rest0, Pos0, [add_line(#return{value=Return}, Pos)|Parsed])
     end;
+code(<<"@",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, RParsed0} = code(Rest, add_pos(Pos,1), []),
+    [ToSilent|Parsed0] = lists:reverse(RParsed0),
+    Silent = {silent, ToSilent},
+    {Rest0, Pos0, lists:reverse([Silent|Parsed0]) ++ Parsed};
 code(<<G:8,L:8,O:8,B:8,A:8,L:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(G,$G,$g) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
         ?OR(B,$B,$b) andalso ?OR(A,$A,$a) andalso ?IS_SPACE(SP) ->
