@@ -441,6 +441,10 @@ expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
 expression(<<"?>",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) ->
     {Rest, Pos, add_op('end', Parsed)};
+expression(<<"&$",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,2), []),
+    Ref = add_line(#ref{var=Var}, Pos),
+    expression(Rest0, Pos0, add_op(Ref, Parsed));
 expression(<<"$",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,1), []),
     expression(Rest0, Pos0, add_op(Var, Parsed));
@@ -1217,7 +1221,8 @@ add_line(#concat{}=O, {_,R,C}) -> O#concat{line={{line,R},{column,C}}};
 add_line(#while{}=W, {_,R,C}) -> W#while{line={{line,R},{column,C}}};
 add_line(#return{}=Rt, {_,R,C}) -> Rt#return{line={{line,R},{column,C}}};
 add_line(#function{}=F, {_,R,C}) -> F#function{line={{line,R},{column,C}}};
-add_line(#global{}=G, {_,R,C}) -> G#global{line={{line,R},{column,C}}}.
+add_line(#global{}=G, {_,R,C}) -> G#global{line={{line,R},{column,C}}};
+add_line(#ref{}=Rf, {_,R,C}) -> Rf#ref{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));
