@@ -294,6 +294,9 @@ code(<<"?>",Rest/binary>>, Pos, Parsed) ->
 code(<<"//",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
     code(Rest0, Pos0, Parsed);
+code(<<"#",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    code(Rest0, Pos0, Parsed);
 code(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     code(Rest0, Pos0, Parsed);
