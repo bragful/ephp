@@ -303,13 +303,14 @@ code(<<"/*",Rest/binary>>, Pos, Parsed) ->
 code(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, S} = string(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), [S|Parsed]);
-code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) ->
+code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, Parsed0} = constant(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), Parsed0 ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A)
                                            orelse A =:= $- orelse A =:= $(
                                            orelse A =:= $" orelse A =:= $'
-                                           orelse A =:= $$ orelse A =:= $+ ->
+                                           orelse A =:= $$ orelse A =:= $+
+                                           orelse A =:= 126 ->
     {Rest0, Pos0, Exp} = expression(Rest, Pos, []),
     code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<Space:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(Space) ->
@@ -352,6 +353,10 @@ expression(<<"[",Rest/binary>>, Pos, []) ->
     {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Pos), []),
     expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+expression(<<N:8,U:8,L:8,L:8,SP:8,Rest/binary>>, Pos, Parsed)
+        when ?OR(N,$N,$n) andalso ?OR(U,$U,$u) andalso ?OR(L,$L,$l)
+        andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
+    expression(<<SP:8,Rest/binary>>, add_pos(Pos,4), add_op(undefined, Parsed));
 expression(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(T,$t,$T) andalso ?OR(R,$r,$R) andalso ?OR(U,$u,$U)
         andalso ?OR(E,$e,$E)
@@ -1090,8 +1095,10 @@ operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
         <<"<">> -> N1 < N2;
         <<"==">> -> N1 == N2;
         <<"=<">> -> N1 =< N2;
-        <<">=">> -> N1 >= N2
-        %% TODO add more optimizations for the rest of the operators
+        <<">=">> -> N1 >= N2;
+        <<"^">> -> N1 bxor N2;
+        <<"&">> -> N1 band N2;
+        <<"|">> -> N1 bor N2
     end,
     if
         is_integer(Res) -> #int{int=Res};
