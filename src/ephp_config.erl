@@ -30,11 +30,14 @@ start_link(File) ->
     set_defaults(),
     case read_config(File) of
         {ok, Config} ->
-            [ application:set_env(ephp, K, V) || {K,V} <- Config ],
-            ok;
+            lists:foreach(fun
+                ({<<"extension">>, Module}) -> add_module(Module);
+                ({K, V}) -> application:set_env(ephp, K, V)
+            end, Config);
         _ ->
             ok
-    end.
+    end,
+    ok.
 
 -spec get(Key :: binary()) -> mixed().
 
@@ -69,15 +72,37 @@ read_config(File) ->
 get_defaults() ->
     lists:flatmap(fun(Module) ->
         Module:init_config()
-    end, ?MODULES).
+    end, application:get_env(ephp, modules, [])).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+-spec add_module(binary()) -> ok.
+
+add_module(Extension) ->
+    Module = case binary:split(Extension, <<".">>) of
+        [ExtName, <<"so">>] ->
+            % TODO: ensure the ExtName hasn't path
+            binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8);
+        [<<"php_", ExtName/binary>>, <<"dll">>] ->
+            binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8)
+        % TODO: ExtName without path and Windows format
+    end,
+    init_config(Module),
+    % TODO notice when the extension is duplicated
+    Modules = application:get_env(ephp, modules, ?MODULES),
+    application:set_env(ephp, modules, [Module|Modules]),
+    ok.
+
 -spec set_defaults() -> ok.
 
 set_defaults() ->
-    lists:foreach(fun(Module) ->
-        [ application:set_env(ephp, K, V) || {K,V} <- Module:init_config() ]
-    end, ?MODULES).
+    application:set_env(ephp, modules, ?MODULES),
+    lists:foreach(fun init_config/1, ?MODULES).
+
+-spec init_config(module()) -> ok.
+
+init_config(Module) ->
+    [ application:set_env(ephp, K, V) || {K,V} <- Module:init_config() ],
+    ok.
