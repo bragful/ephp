@@ -1205,6 +1205,8 @@ solve(Expression) ->
 
 gen_op([], Stack) ->
     Stack;
+gen_op([#variable{}=V,{<<"&">>,{left,_},Pos}], []) ->
+    [add_line(#ref{var=V}, Pos)];
 gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], Stack) ->
     [{silent, gen_op(Rest, Stack)}];
 gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
