@@ -159,7 +159,8 @@ code(<<"@",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, lists:reverse([Silent|Parsed0]) ++ Parsed};
 code(<<G:8,L:8,O:8,B:8,A:8,L:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(G,$G,$g) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
-        ?OR(B,$B,$b) andalso ?OR(A,$A,$a) andalso ?IS_SPACE(SP) ->
+        ?OR(B,$B,$b) andalso ?OR(A,$A,$a) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0} = remove_spaces(Rest, add_pos(Pos,7)),
     {Rest1, Pos1, [Global]} = st_global(Rest0, Pos0, []),
     code(Rest1, copy_level(Pos, Pos1), [Global|Parsed]);
