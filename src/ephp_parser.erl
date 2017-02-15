@@ -462,6 +462,10 @@ expression(<<"#",Rest/binary>>, Pos, Parsed) ->
 expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
+expression(<<"(",Rest/binary>>, Pos, [{op,[#variable{}=V]}|Parsed]) ->
+    Call = #call{name = V, line = V#variable.line},
+    {Rest0, Pos0, [Function]} = function(Rest, add_pos(Pos,1), [Call|Parsed]),
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Function, Parsed));
 expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) when not is_number(L) ->
     {Rest0, Pos0, Op} = expression(Rest, {1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
