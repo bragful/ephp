@@ -352,6 +352,39 @@ code(<<"/*",Rest/binary>>, Pos, Parsed) ->
 code(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, S} = string(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), [S|Parsed]);
+code(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
+        ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
+        ?OR(E,$E,$e) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"include">>, args=[Exp]}, Pos),
+    code(Rest1, Pos1, [Include|Parsed]);
+code(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
+     Pos, Parsed) when
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
+        ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
+        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"include_once">>, args=[Exp]}, Pos),
+    code(Rest1, Pos1, [Include|Parsed]);
+code(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
+        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"require">>, args=[Exp]}, Pos),
+    code(Rest1, Pos1, [Include|Parsed]);
+code(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
+     Pos, Parsed) when
+        ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
+        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(O,$O,$o) andalso
+        ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
+    code(Rest1, Pos1, [Include|Parsed]);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, Parsed0} = constant(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), Parsed0 ++ Parsed);
@@ -484,9 +517,43 @@ expression(<<"$",Rest/binary>>, Pos, Parsed) ->
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
     {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Number, Parsed));
-expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when A =:= $" orelse A =:= $' ->
+expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
+        A =:= $" orelse A =:= $' ->
     {Rest0, Pos0, String} = string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
+expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
+        ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
+        ?OR(E,$E,$e) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"include">>, args=[Exp]}, Pos),
+    expression(Rest1, Pos1, add_op(Include, Parsed));
+expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
+     Pos, Parsed) when
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
+        ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
+        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"include_once">>, args=[Exp]}, Pos),
+    expression(Rest1, Pos1, add_op(Include, Parsed));
+expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
+        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"require">>, args=[Exp]}, Pos),
+    expression(Rest1, Pos1, add_op(Include, Parsed));
+expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
+     Pos, Parsed) when
+        ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
+        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(O,$O,$o) andalso
+        ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso ?OR(SP,$(,32) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+    {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
+    Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
+    expression(Rest1, Pos1, add_op(Include, Parsed));
 expression(<<A:1/binary,"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_])
         when ?IS_OP1_ARITH(A) ->
     NewPos = code_statement_level(add_pos(Pos,2)),
@@ -1281,7 +1348,8 @@ add_line(#function{}=F, {_,R,C}) -> F#function{line={{line,R},{column,C}}};
 add_line(#global{}=G, {_,R,C}) -> G#global{line={{line,R},{column,C}}};
 add_line(#ref{}=Rf, {_,R,C}) -> Rf#ref{line={{line,R},{column,C}}};
 add_line(#switch{}=S, {_,R,C}) -> S#switch{line={{line,R},{column,C}}};
-add_line(#switch_case{}=S, {_,R,C}) -> S#switch_case{line={{line,R},{column,C}}}.
+add_line(#switch_case{}=S, {_,R,C}) -> S#switch_case{line={{line,R},{column,C}}};
+add_line(#call{}=Cl, {_,R,C}) -> Cl#call{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));
