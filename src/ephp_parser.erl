@@ -450,6 +450,18 @@ expression(<<F:8,A:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         andalso ?OR(S,$s,$S) andalso ?OR(E,$e,$E)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
     expression(<<SP:8,Rest/binary>>, add_pos(Pos,5), add_op(false, Parsed));
+expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
+           Pos, _Parsed) when
+        ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+        ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
+        ?OR(O,$O,$o) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
+    {<<"(",Rest0/binary>>, Pos0} =
+        remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 9)),
+    {Rest1, Pos1, Args} = funct_args(Rest0, Pos0, []),
+    BaseFunction = add_line(#function{args=Args}, Pos),
+    {Rest2, Pos2, Function} = st_use_or_block(Rest1, Pos1, BaseFunction),
+    {Rest2, copy_level(Pos, Pos2), Function};
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     expression(Rest, add_pos(Pos,1), Parsed);
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
@@ -891,6 +903,37 @@ st_global(<<";",Rest/binary>>, Pos, Parsed) ->
 st_global(<<"$",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
     st_global(Rest0, Pos0, [Var|Parsed]).
+
+st_use(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_use(Rest, add_pos(Pos,1), Parsed);
+st_use(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_use(Rest, new_line(Pos), Parsed);
+st_use(<<",",Rest/binary>>, Pos, Parsed) ->
+    st_use(Rest, add_pos(Pos,1), Parsed);
+st_use(<<"(",Rest/binary>>, Pos, Parsed) ->
+    st_use(Rest, add_pos(Pos,1), Parsed);
+st_use(<<")",Rest/binary>>, Pos, Parsed) ->
+    {Rest, add_pos(Pos,1), Parsed};
+st_use(<<"&$",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, [Var]} = variable(<<"$",Rest/binary>>, add_pos(Pos,1), []),
+    st_use(Rest0, Pos0, [add_line(#ref{var=Var}, Pos)|Parsed]);
+st_use(<<"$",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
+    st_use(Rest0, Pos0, [add_line(Var, Pos)|Parsed]).
+
+st_use_or_block(<<SP:8,Rest/binary>>, Pos, Function) when ?IS_SPACE(SP) ->
+    st_use_or_block(Rest, add_pos(Pos,1), Function);
+st_use_or_block(<<SP:8,Rest/binary>>, Pos, Function) when ?IS_NEWLINE(SP) ->
+    st_use_or_block(Rest, new_line(Pos), Function);
+st_use_or_block(<<"{",Rest/binary>>, Pos, Function) ->
+    {Rest0, Pos0, CodeBlock} =
+        code(Rest, code_block_level(add_pos(Pos,1)), []),
+    {Rest0, Pos0, Function#function{code=CodeBlock}};
+st_use_or_block(<<U:8,S:8,E:8,SP:8,Rest/binary>>, Pos, Function) when
+        ?OR(U,$U,$u) andalso ?OR(S,$S,$s) andalso ?OR(E,$E,$e) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0, Use} = st_use(Rest, Pos, []),
+    st_use_or_block(Rest0, Pos0, Function#function{use=Use}).
 
 st_function(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_function(Rest, add_pos(Pos,1), Parsed);
