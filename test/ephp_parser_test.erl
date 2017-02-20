@@ -435,8 +435,9 @@ not_test_() -> [
     ?_assertMatch(
         [#print{expression=#if_block{
             conditions={operation_not,#variable{name = <<"a">>},_},
-            true_block=#int{int=1}}}],
-        ?PARSE("<?=!$a ? 1?>")),
+            true_block=#int{int=1},
+            false_block=#int{int=0}}}],
+        ?PARSE("<?=!$a ? 1 : 0?>")),
     ?_assertMatch(
         [#eval{statements=[#if_block{
             conditions={operation_not,#variable{name = <<"a">>},_},
@@ -472,7 +473,7 @@ comments_test_() -> [
         [],
         ?PARSE("<? /* comment */ ")),
     ?_assertMatch(
-        [#eval{statements=[#print_text{text = <<"Result = ">>},
-            #print{expression = #variable{name = <<"i">>}}]}],
+        [#print_text{text = <<"Result = ">>},
+         #print{expression = #variable{name = <<"i">>}}],
         ?PARSE("<? # comentando ?>Result = <?=$i?><? // another comment more..."))
 ].

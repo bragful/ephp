@@ -110,8 +110,13 @@ document(<<"<?php",Rest/binary>>, {literal,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,5), Parsed};
 document(<<"<?php",Rest/binary>>, Pos, Parsed) ->
     {Rest0,Pos0,NParsed} = code(Rest, normal_level(add_pos(Pos,5)), []),
-    RParsed = lists:reverse(NParsed),
-    document(Rest0,Pos0,[add_line(#eval{statements=RParsed},Pos)|Parsed]);
+    case NParsed of
+        [] ->
+            document(Rest0, Pos0, Parsed);
+        _ ->
+            Eval = add_line(#eval{statements=lists:reverse(NParsed)}, Pos),
+            document(Rest0,Pos0,[Eval|Parsed])
+    end;
 document(<<"<?=",Rest/binary>>, Pos, Parsed) ->
     NewPos = code_value_level(add_pos(Pos,3)),
     {Rest0,Pos0,Text} = code(Rest, NewPos, []),
@@ -122,8 +127,13 @@ document(<<"<?",Rest/binary>>, {literal,_,_}=Pos, Parsed) ->
 document(<<"<?",Rest/binary>>, Pos, Parsed) ->
     %% TODO: if short is not permitted, use as text
     {Rest0,Pos0,NParsed} = code(Rest, normal_level(add_pos(Pos,2)), []),
-    RParsed = lists:reverse(NParsed),
-    document(Rest0,Pos0,[add_line(#eval{statements=RParsed},Pos)|Parsed]);
+    case NParsed of
+        [] ->
+            document(Rest0, Pos0, Parsed);
+        _ ->
+            Eval = add_line(#eval{statements=lists:reverse(NParsed)}, Pos),
+            document(Rest0,Pos0,[Eval|Parsed])
+    end;
 document(<<"\n",Rest/binary>>, Pos, Parsed) ->
     document(Rest, new_line(Pos), add_to_text(<<"\n">>, Pos, Parsed));
 document(<<L:1/binary,Rest/binary>>, Pos, Parsed) ->
@@ -277,9 +287,22 @@ code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
         code_block=[]
     }, Pos)|switch_case_block(Parsed)],
     code(Rest0, copy_level(Pos, add_pos(Pos0,1)), NewParsed);
-code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed)
-        when ?OR(E,$e,$E) andalso ?OR(C,$c,$C) andalso ?OR(H,$h,$H)
-        andalso ?OR(O,$o,$O) andalso ?OR(SP,32,$() ->
+code(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(A,$A,$a) andalso ?OR(B,$B,$b) andalso ?OR(S,$S,$s) andalso
+        ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0, [#class{}=C|Parsed0]} = code(Rest, add_pos(Pos,9), []),
+    {Rest0, Pos0, [C#class{type=abstract}|Parsed0] ++ Parsed};
+code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(C,$C,$c) andalso ?OR(L,$L,$l) andalso ?OR(A,$A,$a) andalso
+        ?OR(S,$S,$s) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    Class = add_line(#class{}, Pos),
+    {Rest0, Pos0, Class0} =
+        st_class(<<SP:8,Rest/binary>>, add_pos(Pos,5), Class),
+    code(Rest0, Pos0, [Class0|Parsed]);
+code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(E,$e,$E) andalso ?OR(C,$c,$C) andalso ?OR(H,$h,$H) andalso
+        ?OR(O,$o,$O) andalso ?OR(SP,32,$() ->
     {Rest0, Pos0, Exp} = expression(<<SP:8,Rest/binary>>,
                                      arg_level(add_pos(Pos,5)), []),
     % FIXME if we detect an OR or AND expression, we put around print
@@ -328,17 +351,18 @@ code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest0, Pos0, #function{}=Function} = st_function(Rest, NewPos, []),
     code(Rest0, copy_level(Pos, Pos0), [Function|Parsed]);
 code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
-    {Rest, add_pos(Pos,3), Parsed};
+    {Rest, new_line(add_pos(Pos,2)), Parsed};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, add_pos(Pos,2), Parsed};
 code(<<"?>\n",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
-    {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,3)), []),
+    NewPos = new_line(literal_level(add_pos(Pos,2))),
+    {Rest0, Pos0, Text} = document(Rest, NewPos, []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
-    {Rest, add_pos(Pos,3), Parsed};
+    {Rest, new_line(add_pos(Pos,2)), Parsed};
 code(<<"?>",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,2), Parsed};
 code(<<"//",Rest/binary>>, Pos, Parsed) ->
@@ -386,6 +410,9 @@ code(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
     code(Rest1, Pos1, [Include|Parsed]);
+code(<<A:8,_/binary>> = Rest, Pos, [#constant{}|_])
+        when ?IS_ALPHA(A) orelse A =:= $_ ->
+    throw_error(eparse, Pos, Rest);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, Parsed0} = constant(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), Parsed0 ++ Parsed);
@@ -393,7 +420,7 @@ code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A)
                                            orelse A =:= $- orelse A =:= $(
                                            orelse A =:= $" orelse A =:= $'
                                            orelse A =:= $$ orelse A =:= $+
-                                           orelse A =:= 126 ->
+                                           orelse A =:= 126 orelse A =:= $! ->
     {Rest0, Pos0, Exp} = expression(Rest, Pos, []),
     code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<Space:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(Space) ->
@@ -405,6 +432,8 @@ code(<<";",Rest/binary>>, Pos, Parsed) ->
 code(Text, Pos, _Parsed) ->
     throw_error(eparse, Pos, Text).
 
+code_block(<<";",Rest/binary>>, {{_,abstract},_,_}=Pos, Parsed) ->
+    {Rest, add_pos(Pos,1), Parsed};
 code_block(<<"{",Rest/binary>>, Pos, Parsed) ->
     code(Rest, code_block_level(add_pos(Pos,1)), Parsed);
 code_block(<<":",Rest/binary>>, {if_block,_,_}=Pos, Parsed) ->
@@ -436,6 +465,9 @@ expression(<<"[",Rest/binary>>, Pos, []) ->
     {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Pos), []),
     expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+expression(<<"[",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest0, Pos0, [Parsed0]} = variable(Rest, Pos, [add_op('end', Parsed)]),
+    {Rest0, Pos0, Parsed0};
 expression(<<N:8,U:8,L:8,L:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(N,$N,$n) andalso ?OR(U,$U,$u) andalso ?OR(L,$L,$l)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
@@ -462,6 +494,39 @@ expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
     BaseFunction = add_line(#function{args=Args}, Pos),
     {Rest2, Pos2, Function} = st_use_or_block(Rest1, Pos1, BaseFunction),
     {Rest2, copy_level(Pos, Pos2), Function};
+expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
+           Pos, Parsed) when
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(S,$S,$s) andalso
+        ?OR(T,$T,$t) andalso ?OR(A,$A,$a) andalso ?OR(C,$C,$c) andalso
+        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso ?OR(F,$F,$f) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
+    OpL = <<"instanceof">>,
+    expression(Rest0, Pos0, add_op({instanceof, precedence(OpL), Pos}, Parsed));
+expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(N,$N,$n) andalso ?OR(E,$E,$e) andalso ?OR(W,$W,$w) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
+    {Rest1, Pos1, ObjName} = funct_name(Rest0, Pos0, []),
+    case remove_spaces(Rest1, Pos1) of
+        {<<"(",Rest2/binary>>, Pos2} ->
+            {Rest3, Pos3, Args} = funct_args(Rest2, add_pos(Pos2,1), []),
+            Instance = add_line(#instance{
+                name=ObjName,
+                args=Args
+            }, Pos);
+        {<<";",_/binary>> = Rest3, Pos3} ->
+            Instance = add_line(#instance{
+                name=ObjName
+            }, Pos)
+    end,
+    expression(Rest3, copy_level(Pos, add_pos(Pos3,1)), add_op(Instance,Parsed));
+expression(<<SP:8,_/binary>> = Rest, {enclosed,_,_}=Pos, [Exp])
+        when ?IS_SPACE(SP) ->
+    {Rest, Pos, add_op('end', [Exp])};
+expression(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [Exp])
+        when ?IS_SPACE(SP) ->
+    {Rest, Pos, add_op('end', [Exp])};
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     expression(Rest, add_pos(Pos,1), Parsed);
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
@@ -485,6 +550,8 @@ expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) when not is_number(L) ->
 expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
     {Rest0, Pos0, Op} = expression(Rest, {L+1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
+expression(<<A:8,_/binary>> = Rest, Pos, [{op,_},#if_block{}|_]) when A =/= $: ->
+    throw_error(eparse, Pos, Rest);
 expression(<<";",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
     IfBlock = If#if_block{
         true_block = add_op('end', [Exp])
@@ -530,7 +597,7 @@ expression(<<"&$",Rest/binary>>, Pos, Parsed) ->
     expression(Rest0, Pos0, add_op(Ref, Parsed));
 expression(<<"$",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,1), []),
-    expression(Rest0, Pos0, add_op(Var, Parsed));
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Var, Parsed));
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
     {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Number, Parsed));
@@ -608,9 +675,10 @@ expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when
 expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
     expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])|Parser]);
 %% TODO support for list(...) = ...
-expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_]) ->
+expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}|_]}|_]=Parsed) ->
     NewPos = code_statement_level(add_pos(Pos,1)),
     {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
+    V = add_op('end', Parsed),
     Assign = add_line(#assign{variable=V, expression=Exp}, Pos),
     {Rest0, Pos0, Assign};
 expression(<<"=",Rest/binary>>, Pos, [{op,[#constant{}=C]}|_]) ->
@@ -628,6 +696,8 @@ expression(<<":",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
     },
     {Rest1, copy_level(Pos, Pos1), IfBlock};
 expression(<<":",_/binary>> = Rest, {switch_block,_,_}=Pos, [Exp]) ->
+    {Rest, Pos, add_op('end', [Exp])};
+expression(Rest, {unclosed,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};
 expression(<<>>, Pos, _Parsed) ->
     throw_error(eparse, Pos, <<>>).
@@ -648,8 +718,14 @@ variable(<<A:8,Rest/binary>>, {_,_,_}=Pos, [#variable{name=N}=V])
     variable(Rest, add_pos(Pos,1), [V#variable{name = <<N/binary,A:8>>}]);
 variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_SPACE(SP) ->
     variable(Rest, add_pos(Pos,1), Var);
+variable(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, Var)
+        when ?IS_SPACE(SP) ->
+    {Rest, add_pos(Pos,1), Var};
 variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_NEWLINE(SP) ->
-    variable(Rest, add_pos(Pos,1), Var);
+    variable(Rest, new_line(Pos), Var);
+variable(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, Var)
+        when ?IS_NEWLINE(SP) ->
+    {Rest, new_line(Pos), Var};
 variable(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, Var) ->
     {Rest, add_pos(Pos,1), Var};
 variable(<<"[",Rest/binary>>, Pos, [#variable{idx=Indexes}=Var]) ->
@@ -659,6 +735,11 @@ variable(<<"[",Rest/binary>>, Pos, [#variable{idx=Indexes}=Var]) ->
         _ -> RawIdx
     end,
     variable(Rest1, copy_level(Pos, Pos1), [Var#variable{idx=Indexes ++ [Idx]}]);
+variable(<<"->",Rest/binary>>, Pos, [#variable{}=Var]) ->
+    OpL = <<"->">>,
+    Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
+    {Rest0, Pos0, Exp} = expression(Rest, add_pos(Pos,2), Op),
+    {Rest0, Pos0, [Exp]};
 variable(Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
 
@@ -680,26 +761,50 @@ constant(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
 constant(<<A:8,Rest/binary>>, Pos, [#constant{name=N}=C])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
     constant(Rest, add_pos(Pos,1), [C#constant{name = <<N/binary, A:8>>}]);
-constant(<<SP:8,Rest/binary>>, Pos, [#constant{}|_]=Parsed)
+constant(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [#constant{}]=Parsed)
+        when ?IS_SPACE(SP) ->
+    {Rest, Pos, Parsed};
+constant(<<SP:8,Rest/binary>>, Pos, [#constant{}]=Parsed)
         when ?IS_SPACE(SP) ->
     constant_wait(Rest, add_pos(Pos,1), Parsed);
-constant(<<SP:8,Rest/binary>>, Pos, [#constant{}|_]=Parsed)
+constant(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [#constant{}]=Parsed)
+        when ?IS_NEWLINE(SP) ->
+    {Rest, Pos, Parsed};
+constant(<<SP:8,Rest/binary>>, Pos, [#constant{}]=Parsed)
         when ?IS_NEWLINE(SP) ->
     constant_wait(Rest, new_line(Pos), Parsed);
 constant(<<"(",_/binary>> = Rest, Pos, Parsed) ->
+    constant_wait(Rest, Pos, Parsed);
+% TODO fail when unclosed is used?
+constant(<<"::",_/binary>> = Rest, Pos, Parsed) ->
     constant_wait(Rest, Pos, Parsed);
 constant(Rest, Pos, Parsed) ->
     {Rest, Pos, constant_known(Parsed, Pos)}.
 
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
-constant_wait(<<"(",Rest/binary>>, Pos, [#constant{}=C|Parsed]) ->
+constant_wait(<<"(",Rest/binary>>, Pos, [#constant{}=C]) ->
     Call = #call{name = C#constant.name, line = C#constant.line},
-    function(Rest, add_pos(Pos,1), [Call|Parsed]);
-constant_wait(<<SP:8,Rest/binary>>, Pos, [#constant{}|_]=Parsed)
+    function(Rest, add_pos(Pos,1), [Call]);
+constant_wait(<<"::$",Rest/binary>>, Pos, [#constant{}=C]) ->
+    {Rest1, Pos1, [Var]} = variable(<<"$",Rest/binary>>, add_pos(Pos,2), []),
+    NewVar = Var#variable{type=class, class=C#constant.name},
+    {Rest2, Pos2, Exp} =
+        expression(Rest1, copy_level(Pos, Pos1), add_op(NewVar, [])),
+    {Rest2, Pos2, [Exp]};
+constant_wait(<<"::",Rest/binary>>, Pos, [#constant{}=Cons]) ->
+    case constant(Rest, add_pos(Pos,2), []) of
+        {Rest1, Pos1, [#constant{name = <<"class">>}]} ->
+            {Rest1, Pos1, [add_line(#text{text=Cons#constant.name}, Pos)]};
+        {Rest1, Pos1, [#constant{}=C]} ->
+            {Rest1, Pos1, [C#constant{type=class, class=Cons#constant.name}]};
+        {Rest1, Pos1, [#call{}=C]} ->
+            {Rest1, Pos1, [C#call{type=class, class=Cons#constant.name}]}
+    end;
+constant_wait(<<SP:8,Rest/binary>>, Pos, [#constant{}]=Parsed)
         when ?IS_SPACE(SP) ->
     constant_wait(Rest, add_pos(Pos,1), Parsed);
-constant_wait(<<SP:8,Rest/binary>>, Pos, [#constant{}|_]=Parsed)
+constant_wait(<<SP:8,Rest/binary>>, Pos, [#constant{}]=Parsed)
         when ?IS_NEWLINE(SP) ->
     constant_wait(Rest, new_line(Pos), Parsed);
 constant_wait(Rest, Pos, Parsed) ->
@@ -880,7 +985,7 @@ string_parsed(<<"{$",Rest/binary>>, {Level,Row,Col},
     string_parsed(Rest0, {Level,Row0,Col0}, NewText);
 string_parsed(<<"$",Rest/binary>>, {Level,Row,Col},
               #text_to_process{text=C}=S) ->
-    {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {Level,Row,Col+1}, []),
+    {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {unclosed,Row,Col+1}, []),
     NewText = S#text_to_process{text=[Var|C]},
     string_parsed(Rest0, {Level,Row0,Col0}, NewText);
 string_parsed(<<A/utf8,Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
@@ -903,6 +1008,131 @@ st_global(<<";",Rest/binary>>, Pos, Parsed) ->
 st_global(<<"$",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
     st_global(Rest0, Pos0, [Var|Parsed]).
+
+st_class(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_SPACE(SP) ->
+    st_class(Rest, add_pos(Pos,1), Class);
+st_class(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_NEWLINE(SP) ->
+    st_class(Rest, new_line(Pos), Class);
+st_class(<<A:8,Rest/binary>>, Pos, #class{name=undefined}=C)
+        when ?IS_ALPHA(A) ->
+    {Rest0, Pos0, Name} = funct_name(<<A:8,Rest/binary>>, Pos, []),
+    st_class(Rest0, Pos0, C#class{name=Name});
+st_class(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Pos, Class) when
+        ?OR(E,$E,$e) andalso ?OR(X,$X,$x) andalso ?OR(T,$T,$t) andalso
+        ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso ?OR(S,$S,$s) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)),
+    {Rest1, Pos1, Extends} = funct_name(Rest0, Pos0, []),
+    st_class(Rest1, Pos1, Class#class{extends=Extends});
+st_class(<<I:8,M:8,P:8,L:8,E:8,M:8,E:8,N:8,T:8,S:8,SP:8,Rest/binary>>,
+         Pos, Class) when
+        ?OR(I,$I,$i) andalso ?OR(M,$M,$m) andalso ?OR(P,$P,$p) andalso
+        ?OR(L,$L,$l) andalso ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso
+        ?OR(T,$T,$t) andalso ?OR(S,$S,$s) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)),
+    {Rest1, Pos1, Implements} = st_implements(Rest0, Pos0, []),
+    st_class(Rest1, Pos1, Class#class{implements=Implements});
+st_class(<<"{",Rest/binary>>, Pos, Class) ->
+    st_class_content(Rest, normal_public_level(add_pos(Pos,1)), Class).
+
+st_class_content(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_SPACE(SP) ->
+    st_class_content(Rest, add_pos(Pos,1), Class);
+st_class_content(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_NEWLINE(SP) ->
+    st_class_content(Rest, new_line(Pos), Class);
+st_class_content(<<"}",Rest/binary>>, Pos, Class) ->
+    {Rest, add_pos(Pos,1), Class};
+st_class_content(<<";",Rest/binary>>, Pos, Class) ->
+    st_class_content(Rest, normal_public_level(add_pos(Pos, 1)), Class);
+st_class_content(<<P:8,U:8,B:8,L:8,I:8,C:8,SP:8,Rest/binary>>, Pos, Class) when
+        ?OR(P,$P,$p) andalso ?OR(U,$U,$u) andalso ?OR(B,$B,$b) andalso
+        ?OR(L,$L,$l) andalso ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    st_class_content(<<SP:8,Rest/binary>>, public_level(add_pos(Pos,6)), Class);
+st_class_content(<<P:8,R:8,I:8,V:8,A:8,T:8,E:8,SP:8,Rest/binary>>,
+                 Pos, Class) when
+        ?OR(P,$P,$p) andalso ?OR(R,$R,$r) andalso ?OR(I,$I,$i) andalso
+        ?OR(V,$V,$v) andalso ?OR(A,$A,$a) andalso ?OR(T,$T,$t) andalso
+        ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    st_class_content(<<SP:8,Rest/binary>>, private_level(add_pos(Pos,7)),
+                     Class);
+st_class_content(<<P:8,R:8,O:8,T:8,E:8,C:8,T:8,E:8,D:8,SP:8,Rest/binary>>,
+                 Pos, Class) when
+        ?OR(P,$P,$p) andalso ?OR(R,$R,$r) andalso ?OR(O,$O,$o) andalso
+        ?OR(T,$T,$t) andalso ?OR(E,$E,$e) andalso ?OR(C,$C,$c) andalso
+        ?OR(D,$D,$d) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    st_class_content(<<SP:8,Rest/binary>>, protected_level(add_pos(Pos,9)),
+                     Class);
+st_class_content(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>,
+                 Pos, Class) when
+        ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(A,$A,$a) andalso
+        ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    st_class_content(<<SP:8,Rest/binary>>, static_level(add_pos(Pos,6)),
+                     Class);
+st_class_content(<<"$",_/binary>> = Rest, {{Access,Type},_,_}=Pos,
+                 #class{attrs=Attrs}=Class) ->
+    {Rest0, Pos0, #assign{variable=#variable{name=VarName}, expression=Expr}} =
+        expression(Rest, Pos, []),
+    Attr = #class_attr{
+        access = Access,
+        name = VarName,
+        type = Type,
+        init_value = Expr},
+    NewClass = Class#class{attrs=Attrs ++ [Attr]},
+    st_class_content(Rest0, normal_public_level(Pos0), NewClass);
+st_class_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
+                 {{Access,Type},_,_}=Pos, #class{methods=Methods}=Class) when
+        ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+        ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
+        ?OR(O,$O,$o) andalso ?IS_SPACE(SP) ->
+    {Rest0, Pos0, [#function{}=Fun]} = st_function(Rest, add_pos(Pos,9), []),
+    Method = #class_method{
+        name = Fun#function.name,
+        args = Fun#function.args,
+        code = Fun#function.code,
+        type = Type,
+        access = Access},
+    NewClass = Class#class{methods=Methods ++ [Method]},
+    st_class_content(Rest0, normal_public_level(Pos0), NewClass);
+st_class_content(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>,
+                 Pos, #class{constants=Constants}=Class) when
+        ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N) andalso
+        ?OR(S,$s,$S) andalso ?OR(T,$t,$T) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0, #constant{}=Cons} =
+        expression(<<SP:8,Rest/binary>>, add_pos(Pos,5), []),
+    Constant = #class_const{
+        name=Cons#constant.name,
+        value=Cons#constant.value},
+    NewClass = Class#class{constants=Constants ++ [Constant]},
+    st_class_content(Rest0, normal_public_level(Pos0), NewClass);
+st_class_content(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>,
+                 Pos, Class) when
+        ?OR(A,$A,$a) andalso ?OR(B,$B,$b) andalso ?OR(S,$S,$s) andalso
+        ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    NewPos = abstract_level(add_pos(Pos,8)),
+    st_class_content(<<SP:8,Rest/binary>>, NewPos, Class).
+
+st_implements(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    st_implements(Rest, add_pos(Pos,1), Parsed);
+st_implements(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    st_implements(Rest, new_line(Pos), Parsed);
+st_implements(<<",",Rest/binary>>, Pos, Parsed) ->
+    st_implements(Rest, add_pos(Pos,1), Parsed);
+st_implements(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) ->
+    {Rest0, Pos0, Name} = funct_name(Rest, Pos, []),
+    st_implements(Rest0, Pos0, [Name|Parsed]);
+st_implements(<<"{",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest, Pos, Parsed}.
+
+normal_public_level({_,Row,Col}) -> {{public,normal},Row,Col}.
+public_level({{_,Type},Row,Col}) -> {{public,Type},Row,Col}.
+protected_level({{_,Type},Row,Col}) -> {{protected,Type},Row,Col}.
+private_level({{_,Type},Row,Col}) -> {{private,Type},Row,Col}.
+static_level({{Access,_},Row,Col}) -> {{Access,static},Row,Col}.
+abstract_level({{Access,_},Row,Col}) -> {{Access,abstract},Row,Col}.
 
 st_use(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_use(Rest, add_pos(Pos,1), Parsed);
@@ -952,7 +1182,7 @@ st_function(Rest, Pos, Parsed) ->
     }, Pos),
     {Rest3, copy_level(Pos, Pos3), [Function|Parsed]}.
 
-funct_name(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) ->
+funct_name(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
     funct_name(Rest, add_pos(Pos,1), [<<A:8>>]);
 funct_name(<<A:8,Rest/binary>>, Pos, [N])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
@@ -1120,8 +1350,10 @@ st_for(<<"(",Rest/binary>>, Pos, Parsed) ->
     }, Pos),
     {Rest3, copy_level(Pos, Pos3), [For|Parsed]}.
 
-comment_line(<<>>, _Pos, Parsed) ->
-    Parsed;
+comment_line(<<>>, Pos, Parsed) ->
+    {<<>>, Pos, Parsed};
+comment_line(<<"?>",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest, Pos, Parsed};
 comment_line(<<"\n",Rest/binary>>, Pos, Parsed) ->
     {Rest, new_line(Pos), Parsed};
 comment_line(<<_/utf8,Rest/binary>>, Pos, Parsed) ->
@@ -1129,7 +1361,7 @@ comment_line(<<_/utf8,Rest/binary>>, Pos, Parsed) ->
 
 comment_block(<<>>, Pos, _Parsed) ->
     %% TODO: throw parse error
-    throw({error, {parse, Pos, missng_comment_end}});
+    throw_error(eparse, Pos, missing_comment_end);
 comment_block(<<"*/",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,2), Parsed};
 comment_block(<<"\n",Rest/binary>>, Pos, Parsed) ->
@@ -1208,7 +1440,8 @@ process_incr_decr([A|Rest], Processed) ->
 
 precedence(<<"clone">>) -> {no_assoc, 1};
 precedence(<<"new">>) -> {no_assoc, 1};
-%precedence(<<"[">>) -> {left, 2}; %% array
+precedence(<<"[">>) -> {left, 2}; %% array
+precedence(<<"->">>) -> {left, 2}; %% object
 precedence(<<"**">>) -> {right, 3}; %% arith
 precedence(<<"++">>) -> {right, 4};
 precedence(<<"--">>) -> {right, 4};
@@ -1220,7 +1453,7 @@ precedence(<<"(array)">>) -> {right, 4};
 precedence(<<"(object)">>) -> {right, 4};
 precedence(<<"(bool)">>) -> {right, 4};
 precedence(<<"@">>) -> {right, 4};
-precedence(<<"instaceof">>) -> {no_assoc, 5};
+precedence(<<"instanceof">>) -> {no_assoc, 5};
 precedence(<<"!">>) -> {right, 6}; %% logic
 precedence(<<"*">>) -> {left, 7};
 precedence(<<"/">>) -> {left, 7};
@@ -1328,6 +1561,14 @@ gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_not, A, {{line,R},{column,C}}}|Stack]);
+gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
+    Object = case B of
+        #constant{name=Name} ->
+            add_line({object, Name}, Pos);
+        _ ->
+            add_line({object, B}, Pos)
+    end,
+    gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
 gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
     gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
 gen_op([{<<"-">>,{_,_},Pos}|Rest], [#int{}=I]) ->
@@ -1397,7 +1638,17 @@ add_line(#global{}=G, {_,R,C}) -> G#global{line={{line,R},{column,C}}};
 add_line(#ref{}=Rf, {_,R,C}) -> Rf#ref{line={{line,R},{column,C}}};
 add_line(#switch{}=S, {_,R,C}) -> S#switch{line={{line,R},{column,C}}};
 add_line(#switch_case{}=S, {_,R,C}) -> S#switch_case{line={{line,R},{column,C}}};
-add_line(#call{}=Cl, {_,R,C}) -> Cl#call{line={{line,R},{column,C}}}.
+add_line(#call{}=Cl, {_,R,C}) -> Cl#call{line={{line,R},{column,C}}};
+add_line(#class{}=Cl, {_,R,C}) -> Cl#class{line={{line,R},{column,C}}};
+add_line(#class_method{}=CM, {_,R,C}) ->
+    CM#class_method{line={{line,R},{column,C}}};
+add_line(#class_const{}=CC, {_,R,C}) ->
+    CC#class_const{line={{line,R},{column,C}}};
+add_line(#class_attr{}=CA, {_,R,C}) ->
+    CA#class_attr{line={{line,R},{column,C}}};
+add_line({object, Expr}, {_,R,C}) -> {object, Expr, {{line,R},{column,C}}};
+add_line({class, Expr}, {_,R,C}) -> {class, Expr, {{line,R},{column,C}}};
+add_line(#instance{}=I, {_,R,C}) -> I#instance{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));

@@ -220,13 +220,16 @@
 
 -type constant() :: #constant{}.
 
+-type object_index() :: {object, binary(), line()}.
+-type class_index() :: {class, binary(), line()}.
+
 -type variable_types() :: normal | object | class.
 
 -record(variable, {
     type = normal :: variable_types(),
     class :: class_name() | undefined,
     name :: binary(),
-    idx = [] :: [array_index() | {object, binary()} | {class, binary()}],
+    idx = [] :: [array_index() | object_index() | class_index()],
     default_value = null :: mixed(),
     line :: line()
 }).
@@ -302,8 +305,11 @@
 
 -record(class_const, {
     name :: binary(),
-    value :: any()
+    value :: any(),
+    line :: line()
 }).
+
+-type class_const() :: #class_const{}.
 
 -type access_types() :: public | protected | private.
 
@@ -311,7 +317,8 @@
     name :: binary(),
     access = public :: access_types(),
     type = normal :: normal | static,
-    init_value = null :: mixed()
+    init_value = null :: mixed(),
+    line :: line()
 }).
 
 -type class_attr() :: #class_attr{}.
@@ -321,7 +328,8 @@
     args = [] :: [variable()],
     code :: [statement()],
     access = public :: access_types(),
-    type = normal :: normal | static | abstract
+    type = normal :: normal | static | abstract,
+    line :: line()
 }).
 
 -type class_method() :: #class_method{}.
@@ -332,7 +340,7 @@
     type = normal :: class_type(),
     extends :: undefined | class_name(),
     implements = [] :: [class_name()],
-    constants = dict:new(),
+    constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     line :: line(),
