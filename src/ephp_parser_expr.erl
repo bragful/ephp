@@ -257,6 +257,9 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
         A =:= $" orelse A =:= $' ->
     {Rest0, Pos0, String} = ephp_parser_string:string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
+expression(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest0, Pos0, String} = ephp_parser_string:string(Rest, Pos, []),
+    expression(Rest0, Pos0, add_op(String, Parsed));
 expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso

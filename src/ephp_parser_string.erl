@@ -24,9 +24,10 @@ string(<<"<<<",Rest/binary>>, Pos, []) ->
     [RawText,Rest1] = binary:split(Rest0, <<"\n", W/binary, ";">>),
     case heredoc(RawText, add_pos(Pos,Wsize+4), []) of
         {Pos2, [Text]} when is_binary(Text) ->
-            {Rest1, Pos2, add_line(#text{text=Text}, Pos)};
+            {<<";",Rest1/binary>>, Pos2, add_line(#text{text=Text}, Pos)};
         {Pos2, Text} ->
-            {Rest1, Pos2, add_line(#text_to_process{text=Text}, Pos)}
+            {<<";",Rest1/binary>>, Pos2,
+             add_line(#text_to_process{text=Text}, Pos)}
     end.
 
 heredoc(<<>>, Pos, C) ->
@@ -44,6 +45,8 @@ heredoc(<<"\n",Rest/binary>>, Pos, [C|R]) when is_binary(C) ->
     heredoc(Rest, new_line(Pos), [<<C/binary, "\n">>|R]);
 heredoc(<<A/utf8,Rest/binary>>, Pos, [C|R]) when is_binary(C) ->
     heredoc(Rest, add_pos(Pos,1), [<<C/binary, A/utf8>>|R]);
+heredoc(Rest, Pos, []) ->
+    heredoc(Rest, Pos, [<<>>]);
 heredoc(Rest, Pos, [C|_]=S) when not is_binary(C) ->
     heredoc(Rest, Pos, [<<>>|S]).
 
