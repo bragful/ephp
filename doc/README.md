@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2016 Altenwald Solutions, S.L.
+Copyright (c) 2013-2017 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -104,6 +104,10 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp_lib_vars.md" class="module">ephp_lib_vars</a></td></tr>
 <tr><td><a href="ephp_output.md" class="module">ephp_output</a></td></tr>
 <tr><td><a href="ephp_parser.md" class="module">ephp_parser</a></td></tr>
+<tr><td><a href="ephp_parser_class.md" class="module">ephp_parser_class</a></td></tr>
+<tr><td><a href="ephp_parser_expr.md" class="module">ephp_parser_expr</a></td></tr>
+<tr><td><a href="ephp_parser_func.md" class="module">ephp_parser_func</a></td></tr>
+<tr><td><a href="ephp_parser_string.md" class="module">ephp_parser_string</a></td></tr>
 <tr><td><a href="ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
 <tr><td><a href="ephp_string.md" class="module">ephp_string</a></td></tr>
 <tr><td><a href="ephp_timezone.md" class="module">ephp_timezone</a></td></tr>

@@ -18,6 +18,10 @@ Features
     - [ ] Resources
     - [x] Objects
     - [ ] Casting/Conversion
+- Strings
+    - [x] Single quote string
+    - [x] Double quote string
+    - [x] Heredocs
 - Constants
     - [x] `define` function to define contants
     - [x] text without spaces as constant
@@ -160,12 +164,19 @@ Functions
 
 * Info related functions:
    * [ini_get](http://www.php.net/ini_get)
+   * [phpinfo](http://www.php.net/phpinfo)
    * [phpversion](http://www.php.net/phpversion)
    * [set_include_path](http://www.php.net/set_include_path)
 
 * Math related functions:
+   * [abs](http://www.php.net/abs)
+   * [acos](http://www.php.net/acos)
+   * [asin](http://www.php.net/asin)
+   * [atan](http://www.php.net/atan)
    * [ceil](http://www.php.net/ceil)
+   * [exp](http://www.php.net/exp)
    * [floor](http://www.php.net/floor)
+   * [max](http://www.php.net/max)
+   * [min](http://www.php.net/min)
    * [round](http://www.php.net/round)
    * [sqrt](http://www.php.net/sqrt)
-
