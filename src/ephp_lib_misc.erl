@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     define/4,
+    defined/3,
     sleep/3,
     usleep/3,
     exit/3
@@ -19,6 +20,7 @@
 
 init_func() -> [
     define,
+    defined,
     sleep,
     usleep,
     {exit, [{alias, <<"die">>}]},
@@ -40,6 +42,14 @@ define(Context, _Line, {#constant{name=Constant},_},
         {_UnParsedContent,Content}) ->
     ephp_context:register_const(Context, Constant, Content),
     true.
+
+-spec defined(context(), line(), var_value()) -> boolean().
+
+defined(Context, _Line, {_, ConstantName}) ->
+    case ephp_context:get_const(Context, ConstantName, false) of
+        false -> false;
+        _ -> true
+    end.
 
 -spec sleep(context(), line(), Seconds :: var_value()) -> false | integer().
 

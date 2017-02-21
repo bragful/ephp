@@ -37,11 +37,13 @@ get(Ref, Name, Line, Context) ->
     case dict:find(Name, Const) of
         {ok, Value} ->
             Value;
-        error ->
+        error when Line =/= false ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
                 {error, eundefconst, Line, ?E_NOTICE, {File, Name}}),
-            Name
+            Name;
+        error ->
+            false
     end.
 
 set_bulk(Ref, Values) ->
