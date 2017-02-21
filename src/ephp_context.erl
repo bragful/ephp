@@ -553,7 +553,14 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
     case ephp_func:get(Funcs, Fun) of
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F}}}
             when is_atom(M) andalso is_atom(F) ->
-        {Args, NState} = resolve_args(RawArgs, State),
+        SState = case {M,F} of
+            {ephp_lib_vars, isset} ->
+                % silet Notice when a variable is not defined
+                State#state{ref=undefined};
+            _ ->
+                State
+        end,
+        {Args, NState} = resolve_args(RawArgs, SState),
         save_state(NState),
         Value = if
             PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
