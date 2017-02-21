@@ -14,9 +14,6 @@ coverage:
         branches: master
         attachments: "sunburst, diff"
 
-  ignore:
-    - "src/*.peg"
-
   status:
     project:
       default:
