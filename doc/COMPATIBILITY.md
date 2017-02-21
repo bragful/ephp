@@ -183,5 +183,5 @@ Functions
    * [round](http://www.php.net/round)
    * [sqrt](http://www.php.net/sqrt)
 
- * Error related functions:
+* Error related functions:
    * [error_reporting](http://www.php.net/error_reporting)
