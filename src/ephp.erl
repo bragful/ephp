@@ -47,7 +47,7 @@ context_new() ->
 -spec context_new(Filename :: binary()) -> {ok, context()}.
 
 context_new(Filename) ->
-    Modules = ?MODULES,
+    Modules = application:get_env(ephp, modules, []),
     {ok, Ctx} = ephp_context:start_link(),
     [ register_module(Ctx, Module) || Module <- Modules ],
     ephp_context:set_active_file(Ctx, Filename),
@@ -159,12 +159,12 @@ main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
     quit(1).
 
--spec quit(integer()) -> no_return().
-
 -ifndef(TEST).
+-spec quit(integer()) -> no_return().
 quit(Code) ->
     erlang:halt(Code).
 -else.
+-spec quit(integer()) -> integer().
 quit(Code) ->
     Code.
 -endif.

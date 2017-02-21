@@ -16,8 +16,11 @@ process(_Context, []) ->
     {ok, <<>>};
 
 process(Context, Statements) ->
-    Value = lists:foldl(fun(Statement, false) ->
-        run(Context, Statement)
+    Value = lists:foldl(fun
+        (Statement, false) ->
+            run(Context, Statement);
+        (_Statement, Return) ->
+            Return
     end, false, Statements),
     ephp_shutdown:shutdown(Context),
     {ok, Value}.
@@ -166,6 +169,9 @@ run_depth(Context, {return,Value,_Line}, false) ->
 
 run_depth(_Context, {return,Value}, false) ->
     {return, Value};
+
+run_depth(_Context, Boolean, false) when is_boolean(Boolean) ->
+    false;
 
 run_depth(_Context, #int{}, false) ->
     false;

@@ -36,10 +36,10 @@ php_endtag_optional_test_() -> [
         [#eval{statements=[#assign{variable=#variable{name = <<"a">>}, expression=#int{int=5}}]}],
         ?PARSE("<?php $a = 5;")),
     ?_assertMatch(
-        {error, eparse,{{line,1},{column,4}}, ?E_PARSE, <<"5 ...">>},
+        {error, eparse,{{line,1},{column,6}}, ?E_PARSE, <<"...">>},
         catch ?PARSE("<?=5 ")),
     ?_assertMatch(
-        [#print_text{text = <<"5">>},#print_text{text = <<" Resultado">>}],
+        [#print_text{text = <<"5 Resultado">>}],
         ?PARSE("<?=5?> Resultado"))
 ].
 
@@ -208,7 +208,7 @@ while_statement_test_() -> [
             conditions=#operation{type = <<">">>,
                 expression_left=#variable{name = <<"a">>},
                 expression_right=#int{int=5}},
-            loop_block=#assign{variable=#variable{name = <<"a">>}, expression=#int{int=0}}}]}],
+            loop_block=[#assign{variable=#variable{name = <<"a">>}, expression=#int{int=0}}]}]}],
         ?PARSE("<?php while ($a > 5) $a = 0; ?>"))
 ].
 
@@ -255,7 +255,7 @@ do_while_statement_test_() -> [
             conditions=#operation{type = <<">">>,
                 expression_left=#variable{name = <<"a">>},
                 expression_right=#int{int=5}},
-            loop_block=#assign{variable=#variable{name = <<"a">>}, expression=#int{int=0}}}]}],
+            loop_block=[#assign{variable=#variable{name = <<"a">>}, expression=#int{int=0}}]}]}],
         ?PARSE("<?php do $a = 0; while ($a > 5); ?>"))
 ].
 
@@ -306,22 +306,22 @@ for_statement_test_() -> [
                 #operation{type = <<"+">>,
                     expression_left = #variable{name = <<"i">>},
                     expression_right = #int{int=1}}}],
-            loop_block=#assign{variable=#variable{name = <<"b">>},
+            loop_block=[#assign{variable=#variable{name = <<"b">>},
                 expression = #operation{type = <<"+">>,
                     expression_left = #variable{name = <<"b">>},
-                    expression_right = #variable{name = <<"i">>}}}}]}],
+                    expression_right = #variable{name = <<"i">>}}}]}]}],
         ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>")),
     ?_assertMatch([#eval{statements = [#for{
         init = [#assign{variable=#variable{name = <<"i">>}, expression=#int{int=0}}],
         conditions = #operation{
             type = <<"<">>,
-            expression_left = #variable{name = <<"i">>}, 
+            expression_left = #variable{name = <<"i">>},
             expression_right = #int{int=5}},
         update = [{post_incr, #variable{name = <<"i">>}, _}],
-        loop_block = #assign{variable = #variable{name = <<"b">>}, expression = 
+        loop_block = [#assign{variable = #variable{name = <<"b">>}, expression =
             #operation{type = <<"+">>,
                 expression_left = #variable{name = <<"b">>},
-                expression_right = #variable{name = <<"i">>}}}}]}],
+                expression_right = #variable{name = <<"i">>}}}]}]}],
         ?PARSE("<?php for ($i=0;$i<5;$i++) $b = $b + $i;"))
 ].
 
@@ -330,21 +330,21 @@ foreach_statement_test_() -> [
         [#eval{statements=[#foreach{
                  iter=#variable{name = <<"i">>},
                  elements=#variable{name = <<"data">>},
-                 loop_block=#assign{variable=#variable{name = <<"b">>},
-                         expression=#operation{
-                            type = <<"+">>,
-                            expression_left=#variable{name = <<"b">>},
-                            expression_right=#variable{name = <<"i">>}}}}]}],
+                 loop_block=[#assign{variable=#variable{name = <<"b">>},
+                                     expression=#operation{
+                                        type = <<"+">>,
+                                        expression_left=#variable{name = <<"b">>},
+                                        expression_right=#variable{name = <<"i">>}}}]}]}],
         ?PARSE("<?php foreach ($data as $i) $b = $b + $i; ?>")),
     ?_assertMatch(
         [#eval{statements=[#foreach{
                  kiter=#variable{name = <<"k">>},
                  iter=#variable{name = <<"i">>},
                  elements=#variable{name = <<"data">>},
-                 loop_block=#assign{variable=#variable{name = <<"b">>},
-                        expression=#operation{type = <<"+">>,
-                            expression_left=#variable{name = <<"b">>},
-                            expression_right=#variable{name = <<"i">>}}}}]}],
+                 loop_block=[#assign{variable=#variable{name = <<"b">>},
+                                         expression=#operation{type = <<"+">>,
+                                             expression_left=#variable{name = <<"b">>},
+                                             expression_right=#variable{name = <<"i">>}}}]}]}],
         ?PARSE("<?php foreach ($data as $k => $i) $b = $b + $i; ?>"))
 ].
 
@@ -435,8 +435,9 @@ not_test_() -> [
     ?_assertMatch(
         [#print{expression=#if_block{
             conditions={operation_not,#variable{name = <<"a">>},_},
-            true_block=#int{int=1}}}],
-        ?PARSE("<?=!$a ? 1?>")),
+            true_block=#int{int=1},
+            false_block=#int{int=0}}}],
+        ?PARSE("<?=!$a ? 1 : 0?>")),
     ?_assertMatch(
         [#eval{statements=[#if_block{
             conditions={operation_not,#variable{name = <<"a">>},_},
@@ -472,7 +473,7 @@ comments_test_() -> [
         [],
         ?PARSE("<? /* comment */ ")),
     ?_assertMatch(
-        [#eval{statements=[#print_text{text = <<"Result = ">>},
-            #print{expression = #variable{name = <<"i">>}}]}],
+        [#print_text{text = <<"Result = ">>},
+         #print{expression = #variable{name = <<"i">>}}],
         ?PARSE("<? # comentando ?>Result = <?=$i?><? // another comment more..."))
 ].

@@ -101,7 +101,7 @@
 % blocks
 
 -record(if_block, {
-    conditions :: conditions(),
+    conditions :: condition(),
     true_block :: statements(),
     false_block :: statements(),
     line :: line()
@@ -109,7 +109,7 @@
 
 -record(for, {
     init :: expression(),
-    conditions :: conditions(),
+    conditions :: condition(),
     update :: expression(),
     loop_block :: statements(),
     line :: line()
@@ -117,7 +117,7 @@
 
 -record(while, {
     type :: (pre | post),
-    conditions :: conditions(),
+    conditions :: condition(),
     loop_block :: statements(),
     line :: line()
 }).
@@ -174,7 +174,19 @@
 -type post_incr() :: {post_incr, variable(), line()}.
 -type pre_incr() :: {pre_incr, variable(), line()}.
 
--type return() :: {return, mixed()}.
+-record(return, {
+    value :: mixed(),
+    line :: line()
+}).
+
+-type return() :: #return{}.
+
+-record(global, {
+    vars :: [variable()],
+    line :: line()
+}).
+
+-type global() :: #global{}.
 
 -record(int, {
     int :: integer(),
@@ -208,13 +220,16 @@
 
 -type constant() :: #constant{}.
 
+-type object_index() :: {object, binary(), line()}.
+-type class_index() :: {class, binary(), line()}.
+
 -type variable_types() :: normal | object | class.
 
 -record(variable, {
     type = normal :: variable_types(),
     class :: class_name() | undefined,
     name :: binary(),
-    idx = [] :: [array_index() | {object, binary()} | {class, binary()}],
+    idx = [] :: [array_index() | object_index() | class_index()],
     default_value = null :: mixed(),
     line :: line()
 }).
@@ -290,8 +305,11 @@
 
 -record(class_const, {
     name :: binary(),
-    value :: any()
+    value :: any(),
+    line :: line()
 }).
+
+-type class_const() :: #class_const{}.
 
 -type access_types() :: public | protected | private.
 
@@ -299,7 +317,8 @@
     name :: binary(),
     access = public :: access_types(),
     type = normal :: normal | static,
-    init_value = null :: mixed()
+    init_value = null :: mixed(),
+    line :: line()
 }).
 
 -type class_attr() :: #class_attr{}.
@@ -309,7 +328,8 @@
     args = [] :: [variable()],
     code :: [statement()],
     access = public :: access_types(),
-    type = normal :: normal | static | abstract
+    type = normal :: normal | static | abstract,
+    line :: line()
 }).
 
 -type class_method() :: #class_method{}.
@@ -320,7 +340,7 @@
     type = normal :: class_type(),
     extends :: undefined | class_name(),
     implements = [] :: [class_name()],
-    constants = dict:new(),
+    constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     line :: line(),
