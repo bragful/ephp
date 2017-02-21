@@ -158,6 +158,7 @@ Functions
 * File related functions:
    * [basename](http://www.php.net/basename)
    * [dirname](http://www.php.net/dirname)
+   * [file_exists](http://www.php.net/file_exists)
 
 * Class related functions:
    * [get_class](http://www.php.net/get_class)
