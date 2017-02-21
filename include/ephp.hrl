@@ -22,7 +22,8 @@
     ephp_lib_file,
     ephp_lib_func,
     ephp_lib_info,
-    ephp_lib_class
+    ephp_lib_class,
+    ephp_lib_error
 ]).
 
 % built-in consts

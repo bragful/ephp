@@ -12,6 +12,7 @@
 
     run_quiet/2,
 
+    error_reporting/2,
     error/1,
     handle_error/2,
     get_line/1
@@ -78,6 +79,14 @@ init_consts() -> [
     {<<"E_USER_DEPRECATED">>, ?E_USER_DEPRECATED},
     {<<"E_ALL">>, ?E_ALL}
 ].
+
+-spec error_reporting(context(), integer()) -> integer().
+
+error_reporting(Context, Level) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{level=Level}),
+    State#state.level.
 
 -type throw_error() ::
     atom() |

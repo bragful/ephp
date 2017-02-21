@@ -139,6 +139,7 @@ Functions
 
 * Misc functions:
    * [define](http://www.php.net/define) (not complete)
+   * [defined](http://www.php.net/defined)
    * [die](http://www.php.net/die)
    * [exit](http://www.php.net/exit)
    * [sleep](http://www.php.net/sleep)
@@ -180,3 +181,6 @@ Functions
    * [min](http://www.php.net/min)
    * [round](http://www.php.net/round)
    * [sqrt](http://www.php.net/sqrt)
+
+ * Error related functions:
+   * [error_reporting](http://www.php.net/error_reporting)
