@@ -7,6 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
+    init_const/0,
     flush/2,
     ob_start/2,
     ob_start/3,
@@ -37,6 +38,10 @@ init_config() -> [
     {<<"output_handler">>, undefined},
     {<<"implicit_flush">>, <<"On">>}
 ].
+
+-spec init_const() -> ephp_func:php_const_results().
+
+init_const() -> [].
 
 -spec flush(context(), line()) -> undefined.
 

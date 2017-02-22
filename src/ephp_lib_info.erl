@@ -7,6 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
+    init_const/0,
     phpinfo/2,
     phpversion/2,
     ini_get/3,
@@ -25,6 +26,12 @@ init_func() -> [
 -spec init_config() -> ephp_func:php_config_results().
 
 init_config() -> [].
+
+-spec init_const() -> ephp_func:php_const_results().
+
+init_const() -> [].
+
+-spec phpinfo(context(), line()) -> undefined.
 
 phpinfo(Context, _Line) ->
     Version = ?PHP_VERSION,
@@ -57,11 +64,17 @@ phpinfo(Context, _Line) ->
     ephp_context:set_output(Context, Output),
     undefined.
 
+-spec phpversion(context(), line()) -> binary().
+
 phpversion(_Context, _Line) ->
     ?PHP_VERSION.
 
+-spec ini_get(context(), line(), var_value()) -> mixed().
+
 ini_get(_Context, _Line, {_,Key}) ->
     ephp_config:get(Key).
+
+-spec set_include_path(context(), line(), var_value()) -> binary().
 
 set_include_path(_Context, _Line, {_,NewPath}) ->
     ephp_config:set(<<"include_path">>, NewPath),
@@ -71,9 +84,13 @@ set_include_path(_Context, _Line, {_,NewPath}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+-spec get_vsn() -> binary().
+
 get_vsn() ->
     {ok, Vsn} = application:get_key(ephp, vsn),
     list_to_binary(Vsn).
+
+-spec get_build_date() -> binary().
 
 get_build_date() ->
     Info = ephp:module_info(),

@@ -7,6 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
+    init_const/0,
     in_array/4,
     count/3
 ]).
@@ -24,6 +25,10 @@ init_func() -> [
 -spec init_config() -> ephp_func:php_config_results().
 
 init_config() -> [].
+
+-spec init_const() -> ephp_func:php_const_results().
+
+init_const() -> [].
 
 -spec in_array(
     context(), line(),

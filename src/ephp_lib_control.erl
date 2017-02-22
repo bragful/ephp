@@ -7,6 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
+    init_const/0,
     include/3,
     include_once/3,
     require/3,
@@ -27,6 +28,10 @@ init_func() -> [
 init_config() -> [
     {<<"include_path">>, <<".:">>}
 ].
+
+-spec init_const() -> ephp_func:php_const_results().
+
+init_const() -> [].
 
 -spec include(context(), line(), InclFile :: var_value()) -> any().
 

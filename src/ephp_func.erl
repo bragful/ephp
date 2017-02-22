@@ -15,6 +15,9 @@
 -type config_param() :: binary().
 -type php_config_results() :: [{config_section(), [config_param()]}].
 
+-type const_name() :: binary().
+-type php_const_results() :: [{const_name(), float() | integer() | binary()}].
+
 -export_type([
     php_function/0,
     php_function_results/0,
@@ -30,6 +33,8 @@
 -callback init_func() -> php_function_results().
 
 -callback init_config() -> php_config_results().
+
+-callback init_const() -> php_const_results().
 
 %% ------------------------------------------------------------------
 %% API Function Exports

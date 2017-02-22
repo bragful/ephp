@@ -7,6 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
+    init_const/0,
     register_shutdown_function/3,
     get_defined_functions/2,
     function_exists/3,
@@ -27,6 +28,10 @@ init_func() -> [
 -spec init_config() -> ephp_func:php_config_results().
 
 init_config() -> [].
+
+-spec init_const() -> ephp_func:php_const_results().
+
+init_const() -> [].
 
 -spec register_shutdown_function(context(), line(), [var_value()]) -> ok.
 

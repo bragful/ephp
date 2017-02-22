@@ -7,6 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
+    init_const/0,
     define/4,
     defined/3,
     sleep/3,
@@ -30,6 +31,10 @@ init_func() -> [
 -spec init_config() -> ephp_func:php_config_results().
 
 init_config() -> [].
+
+-spec init_const() -> ephp_func:php_const_results().
+
+init_const() -> [].
 
 -spec define(context(), line(), Constant :: var_value(),
     Content :: var_value()) -> boolean().

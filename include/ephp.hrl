@@ -26,12 +26,6 @@
     ephp_lib_error
 ]).
 
-% built-in consts
--define(CONST_MODULES, [
-    ephp_error,
-    ephp_lib_math
-]).
-
 -define(E_ERROR, 1).
 -define(E_WARNING, 2).
 -define(E_PARSE, 4).

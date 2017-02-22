@@ -7,7 +7,7 @@
 -export([
     init_func/0,
     init_config/0,
-    init_consts/0,
+    init_const/0,
 
     php_round/3,
     php_ceil/3,
@@ -40,9 +40,9 @@ init_func() -> [
 
 init_config() -> [].
 
--spec init_consts() -> [{binary(), float() | integer() | binary()}].
+-spec init_const() -> ephp_func:php_const_results().
 
-init_consts() -> [
+init_const() -> [
     {<<"M_PI">>, 3.14159265358979323846},
     {<<"M_E">>, 2.7182818284590452354},
     {<<"M_LOG2E">>, 1.4426950408889634074},
