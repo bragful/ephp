@@ -48,10 +48,10 @@ literal_test_() -> [
         [#print_text{text = <<"-5">>}],
         ?PARSE("<?=-5?>")),
     ?_assertMatch(
-        [#print_text{text = <<"5.0">>}],
+        [#print_text{text = <<"5">>}],
         ?PARSE("<?=5.0?>")),
     ?_assertMatch(
-        [#print_text{text = <<"-5.0">>}],
+        [#print_text{text = <<"-5">>}],
         ?PARSE("<?= - 5.0 ?>")),
     ?_assertMatch(
         [#print_text{text = <<"hello world!">>}],
