@@ -14,10 +14,10 @@ string(<<"\"",Rest/binary>>, Pos, []) ->
 string(<<"'",Rest/binary>>, Pos, []) ->
     string_fixed(Rest, Pos, add_line(#text{text = <<>>}, Pos));
 string(<<"<<<'",Rest/binary>>, {Level,Row,_}=Pos, []) ->
-    [W,Rest0] = binary:split(Rest, <<"'">>),
+    [W,Rest0] = binary:split(Rest, <<"'\n">>),
     [Text,Rest1] = binary:split(Rest0, <<"\n", W/binary, ";">>),
-    NPos = {Level,Row+length(binary:matches(Text,<<"\n">>)),1},
-    {Rest1, add_pos(NPos,byte_size(W)+1), add_line(#text{text=Text}, Pos)};
+    NPos = {Level,Row+length(binary:matches(Text,<<"\n">>))+1,1},
+    {<<";",Rest1/binary>>, add_pos(NPos,byte_size(W)), add_line(#text{text=Text}, Pos)};
 string(<<"<<<",Rest/binary>>, Pos, []) ->
     [W,Rest0] = binary:split(Rest, <<"\n">>),
     Wsize = byte_size(W),
