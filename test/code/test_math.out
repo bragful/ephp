@@ -20,7 +20,30 @@ acos(1.0) = 0
 
 Warning: acos() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 20
 acos('a') = 
+acosh(1.0) = 0
+
+Warning: acosh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 22
+acosh('a') = 
 asin(1.0) = 1.5707963267948965579989817342720925807952880859375
 
-Warning: asin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 22
+Warning: asin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 24
 asin('a') = 
+asinh(1.0) = 0.88137358701954304773806825323845259845256805419921875
+
+Warning: asinh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 26
+asinh('a') = 
+atan(1.0) = 0.78539816339744827899949086713604629039764404296875
+
+Warning: atan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 28
+atan('a') = 
+atanh(0.5) = 0.5493061443340547800318063309532590210437774658203125
+
+Warning: atanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 30
+atanh('a') = 
+atan2(1.0, 1.0) = 0.78539816339744827899949086713604629039764404296875
+
+Warning: atan2() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 32
+atan2('a', 'b') = 
+
+Warning: atan2() expects parameter 2 to be double, string given in {{CWD}}/test/code/test_math.php on line 33
+atan2(1.0, 'b') = 

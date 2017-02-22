@@ -18,5 +18,17 @@ print "abs('a') = " . abs('a') . "\n";
 print "abs([]) = " . print_r(abs([]), true) . "\n";
 print "acos(1.0) = " . acos(1.0) . "\n";
 print "acos('a') = " . acos('a') . "\n";
+print "acosh(1.0) = " . acosh(1.0) . "\n";
+print "acosh('a') = " . acosh('a') . "\n";
 print "asin(1.0) = " . asin(1.0) . "\n";
 print "asin('a') = " . asin('a') . "\n";
+print "asinh(1.0) = " . asinh(1.0) . "\n";
+print "asinh('a') = " . asinh('a') . "\n";
+print "atan(1.0) = " . atan(1.0) . "\n";
+print "atan('a') = " . atan('a') . "\n";
+print "atanh(0.5) = " . atanh(0.5) . "\n";
+print "atanh('a') = " . atanh('a') . "\n";
+print "atan2(1.0, 1.0) = " . atan2(1.0, 1.0) . "\n";
+print "atan2('a', 'b') = " . atan2('a', 'b') . "\n";
+print "atan2(1.0, 'b') = " . atan2(1.0, 'b') . "\n";
+
