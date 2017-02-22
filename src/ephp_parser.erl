@@ -167,9 +167,10 @@ code(<<E:8,L:8,S:8,E:8,SP:8,_/binary>> = Rest, {if_old_block,_,_}=Pos, Parsed)
         when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
         andalso (SP =:= $: orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I)) ->
     {Rest, Pos, Parsed};
-code(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, [#if_block{}|_]=Parsed)
-        when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
-        andalso (?OR(SP,${,$:) orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I)) ->
+code(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, [#if_block{}|_]=Parsed) when
+        ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S) andalso
+        (?OR(SP,${,$:) orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I) orelse
+         ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, NewParsed} = st_else(Rest0, Pos0, Parsed),
     code(Rest1, copy_level(Pos, Pos1), NewParsed);
