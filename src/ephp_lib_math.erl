@@ -72,16 +72,16 @@ init_const() -> [
 -spec php_ceil(context(), line(), var_value()) -> integer().
 
 php_ceil(_Context, _Line, {_, Value}) when is_number(Value) ->
-    ceiling(Value);
+    ephp_data:ceiling(Value);
 php_ceil(_Context, _Line, {_, Value}) ->
-    ceiling(ephp_data:bin_to_number(Value)).
+    ephp_data:ceiling(ephp_data:bin_to_number(Value)).
 
 -spec php_floor(context(), line(), var_value()) -> integer().
 
 php_floor(_Context, _Line, {_, Value}) when is_number(Value) ->
-    floor(Value);
+    ephp_data:floor(Value);
 php_floor(_Context, _Line, {_, Value}) ->
-    floor(ephp_data:bin_to_number(Value)).
+    ephp_data:floor(ephp_data:bin_to_number(Value)).
 
 -spec php_round(context(), line(), var_value()) -> integer().
 
@@ -100,28 +100,6 @@ php_sqrt(Context, Line, {_, Val}) ->
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.
-
--spec floor(number()) -> integer().
-
-floor(X) when X < 0 ->
-    T = trunc(X),
-    case X - T == 0 of
-        true -> T;
-        false -> T - 1
-    end;
-floor(X) ->
-    trunc(X).
-
--spec ceiling(number()) -> integer().
-
-ceiling(X) when X < 0 ->
-    trunc(X);
-ceiling(X) ->
-    T = trunc(X),
-    case X - T == 0 of
-        true -> T;
-        false -> T + 1
-    end.
 
 -spec php_abs(context(), line(), number()) -> number().
 

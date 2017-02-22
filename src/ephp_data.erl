@@ -13,7 +13,9 @@
     increment_code/1,
     to_bool/1,
     zero_if_undef/1,
-    pad_to_bin/2
+    pad_to_bin/2,
+    ceiling/1,
+    floor/1
 ]).
 
 -spec gettype(mixed()) -> binary().
@@ -74,7 +76,10 @@ to_bin(A) when is_integer(A) ->
     integer_to_binary(A);
 
 to_bin(A) when is_float(A) ->
-    float_to_binary(A, [{decimals, 100}, compact]);
+    case floor(A) of
+        F when A-F == 0 -> integer_to_binary(F);
+        _ -> float_to_binary(A, [{decimals, 100}, compact])
+    end;
 
 to_bin(true) -> <<"1">>;
 
@@ -172,3 +177,24 @@ pad_to_bin(Num, Pad) when not is_binary(Num) ->
 pad_to_bin(Num, Pad) ->
     pad_to_bin(<<"0",Num/binary>>, Pad-1).
 
+-spec floor(number()) -> integer().
+
+floor(X) when X < 0 ->
+    T = trunc(X),
+    case X - T == 0 of
+        true -> T;
+        false -> T - 1
+    end;
+floor(X) ->
+    trunc(X).
+
+-spec ceiling(number()) -> integer().
+
+ceiling(X) when X < 0 ->
+    trunc(X);
+ceiling(X) ->
+    T = trunc(X),
+    case X - T == 0 of
+        true -> T;
+        false -> T + 1
+    end.
