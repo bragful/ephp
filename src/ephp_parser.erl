@@ -716,7 +716,8 @@ add_line(#class_attr{}=CA, {_,R,C}) ->
     CA#class_attr{line={{line,R},{column,C}}};
 add_line({object, Expr}, {_,R,C}) -> {object, Expr, {{line,R},{column,C}}};
 add_line({class, Expr}, {_,R,C}) -> {class, Expr, {{line,R},{column,C}}};
-add_line(#instance{}=I, {_,R,C}) -> I#instance{line={{line,R},{column,C}}}.
+add_line(#instance{}=I, {_,R,C}) -> I#instance{line={{line,R},{column,C}}};
+add_line(#cast{}=Cs, {_,R,C}) -> Cs#cast{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));

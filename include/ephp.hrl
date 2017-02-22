@@ -155,6 +155,14 @@
 
 -type operation_not() :: {operation_not, condition()}.
 
+-record(cast, {
+    type :: int | float | string | array | object | bool,
+    content :: mixed(),
+    line :: line()
+}).
+
+-type cast() :: #cast{}.
+
 -type condition() :: expression() | operation().
 -type conditions() :: [condition()].
 

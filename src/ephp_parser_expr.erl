@@ -191,6 +191,33 @@ expression(<<"#",Rest/binary>>, Pos, Parsed) ->
 expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
+expression(<<"(",I:8,N:8,T:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) ->
+    OpL = <<"(int)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<"(",F:8,L:8,O:8,A:8,T:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(F,$F,$f) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
+        ?OR(A,$A,$a) andalso ?OR(T,$T,$t) ->
+    OpL = <<"(float)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<"(",S:8,T:8,R:8,I:8,N:8,G:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso
+        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(G,$G,$g) ->
+    OpL = <<"(string)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<"(",A:8,R:8,R:8,A:8,Y:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(A,$A,$a) andalso ?OR(R,$R,$r) andalso ?OR(Y,$Y,$y) ->
+    OpL = <<"(array)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<"(",O:8,B:8,J:8,E:8,C:8,T:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(O,$O,$o) andalso ?OR(B,$B,$b) andalso ?OR(J,$J,$j) andalso
+        ?OR(E,$E,$e) andalso ?OR(C,$C,$c) andalso ?OR(T,$T,$t) ->
+    OpL = <<"(object)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<"(",B:8,O:8,O:8,L:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso ?OR(L,$L,$l) ->
+    OpL = <<"(bool)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<"(",Rest/binary>>, Pos, [{op,[#variable{}=V]}|Parsed]) ->
     Call = #call{name = V, line = V#variable.line},
     {Rest0, Pos0, [Function]} =
@@ -499,6 +526,24 @@ gen_op([{<<"-">>,{_,_},Pos}|Rest], [#int{}=I]) ->
     gen_op(Rest, [add_line(#int{int=-I#int.int},Pos)]);
 gen_op([{<<"-">>,{_,_},Pos}|Rest], [#float{}=F]) ->
     gen_op(Rest, [add_line(#float{float=-F#float.float},Pos)]);
+gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->
+    gen_op(Rest, [I|Stack]);
+gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
+    gen_op(Rest, [add_line(#int{int=ephp_data:floor(F)}, Pos)|Stack]);
+gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#text{text=T}|Stack]) ->
+    gen_op(Rest, [add_line(#int{int=ephp_data:bin_to_number(T)}, Pos)|Stack]);
+gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [A|Stack]) ->
+    gen_op(Rest, [add_line(#cast{type=int, content=A}, Pos)|Stack]);
+gen_op([{<<"(float)">>,{_,_},Pos}|Rest], [#int{int=I}|Stack]) ->
+    gen_op(Rest, [add_line(#float{float=erlang:float(I)}, Pos)|Stack]);
+gen_op([{<<"(float)">>,{_,_},_Pos}|Rest], [#float{}=F|Stack]) ->
+    gen_op(Rest, [F|Stack]);
+gen_op([{<<"(float)">>,{_,_},Pos}|Rest], [#text{text=T}|Stack]) ->
+    Float = erlang:float(ephp_data:bin_to_number(T)),
+    gen_op(Rest, [add_line(#int{int=Float}, Pos)|Stack]);
+gen_op([{<<"(float)">>,{_,_},Pos}|Rest], [A|Stack]) ->
+    gen_op(Rest, [add_line(#cast{type=float, content=A}, Pos)|Stack]);
+% TODO add the rest of casting operators
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).
 

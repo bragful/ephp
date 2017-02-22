@@ -675,6 +675,10 @@ resolve(#function{name=undefined,use=Use}=Anon, #state{vars=Vars}=State) ->
     end, {[], State}, Use),
     {Anon#function{use=NewUse}, NState};
 
+resolve(#cast{type=Type, content=C}, State) ->
+    {Value, NState} = resolve(C, State),
+    {resolve_cast(Type, Value), NState};
+
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
@@ -829,6 +833,19 @@ resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
             {File,ClassName}})
     end.
 
+% TODO complete list of casting and errors
+resolve_cast(int, I) when is_integer(I) ->
+    I;
+resolve_cast(int, T) when is_binary(T) ->
+    ephp_data:floor(ephp_data:bin_to_number(T));
+resolve_cast(int, F) when is_float(F) ->
+    ephp_data:floor(F);
+resolve_cast(float, I) when is_integer(I) ->
+    erlang:float(I);
+resolve_cast(float, T) when is_binary(T) ->
+    erlang:float(ephp_data:bin_to_number(T));
+resolve_cast(float, F) when is_float(F) ->
+    F.
 
 resolve_indexes(#variable{idx=Indexes}=Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
