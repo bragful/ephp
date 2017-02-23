@@ -80,6 +80,8 @@ string_parsed(<<"\\$",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
 string_parsed(<<"\"",Rest/binary>>, Pos, #text_to_process{text=[C]}=S)
         when is_binary(C) ->
     {Rest, add_pos(Pos,1), #text{text=C, line=S#text_to_process.line}};
+string_parsed(<<"\"",Rest/binary>>, Pos, #text_to_process{text=[]}=S) ->
+    {Rest, add_pos(Pos,1), #text{text = <<>>, line=S#text_to_process.line}};
 string_parsed(<<"\"",Rest/binary>>, Pos, #text_to_process{text=C}=S) ->
     {Rest, add_pos(Pos,1), S#text_to_process{text=lists:reverse(C)}};
 string_parsed(<<"\\n",Rest/binary>>, Pos, #text_to_process{text=T}=S) ->
