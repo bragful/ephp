@@ -20,7 +20,8 @@
     php_atan2/4,
     php_atanh/3,
     php_acos/3,
-    php_acosh/3
+    php_acosh/3,
+    bindec/3
 ]).
 
 -include("ephp.hrl").
@@ -42,7 +43,8 @@ init_func() -> [
     {php_atanh, [{alias, <<"atanh">>}]},
     {php_exp, [{alias, <<"exp">>}]},
     {php_max, [{alias, <<"max">>}]},
-    {php_min, [{alias, <<"min">>}]}
+    {php_min, [{alias, <<"min">>}]},
+    bindec
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -213,3 +215,32 @@ php_atan2(Context, Line, _, {_Var, Val}) when not is_number(Val) ->
         ?E_WARNING, Data}),
     undefined.
 
+filter_bin(<<>>, B) ->
+    B;
+filter_bin(<<A:8,Rest/binary>>, B) when A =:= $0 orelse A =:= $1 ->
+    filter_bin(Rest, <<B/binary,A:8>>);
+filter_bin(<<_/utf8,Rest/binary>>, B) ->
+    filter_bin(Rest, B).
+
+-spec bindec(context(), line(), var_value()) -> float().
+
+bindec(_Context, _Line, {_, String}) when is_binary(String) ->
+    Filtered = filter_bin(String, <<"0">>),
+    binary_to_integer(Filtered, 2);
+
+bindec(Context, Line, {Var, A}) when ?IS_ARRAY(A) ->
+    Level = ?E_NOTICE,
+    File = ephp_context:get_active_file(Context),
+    Type = <<"string">>,
+    Data = {File, Type},
+    ephp_error:handle_error(Context, {error, earrayconv, Line, Level, Data}),
+    bindec(Context, Line, {Var, <<>>});
+
+bindec(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}}) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:error({error, enotostring, Line,
+                      ?E_RECOVERABLE_ERROR, {File, ClassName}}),
+    undefined;
+
+bindec(Context, Line, {Var, Other}) ->
+    bindec(Context, Line, {Var, ephp_data:to_bin(Other)}).
