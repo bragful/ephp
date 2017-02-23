@@ -29,7 +29,8 @@
     php_cos/3,
     php_cosh/3,
     php_pow/4,
-    base_convert/5
+    base_convert/5,
+    pi/2
 ]).
 
 -include("ephp.hrl").
@@ -60,7 +61,8 @@ init_func() -> [
     {php_tan, [{alias, <<"tan">>}]},
     {php_tanh, [{alias, <<"tanh">>}]},
     {php_pow, [{alias, <<"pow">>}]},
-    base_convert
+    base_convert,
+    pi
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -430,3 +432,8 @@ base_convert(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}},
 
 base_convert(Context, Line, {Var, Other}, From, To) ->
     base_convert(Context, Line, {Var, ephp_data:to_bin(Other)}, From, To).
+
+-spec pi(context(), line()) -> float().
+
+pi(Context, Line) ->
+    ephp_context:get_const(Context, <<"M_PI">>, Line).
