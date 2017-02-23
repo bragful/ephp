@@ -21,7 +21,13 @@
     php_atanh/3,
     php_acos/3,
     php_acosh/3,
-    bindec/3
+    bindec/3,
+    php_sin/3,
+    php_sinh/3,
+    php_tan/3,
+    php_tanh/3,
+    php_cos/3,
+    php_cosh/3
 ]).
 
 -include("ephp.hrl").
@@ -44,7 +50,13 @@ init_func() -> [
     {php_exp, [{alias, <<"exp">>}]},
     {php_max, [{alias, <<"max">>}]},
     {php_min, [{alias, <<"min">>}]},
-    bindec
+    bindec,
+    {php_cos, [{alias, <<"cos">>}]},
+    {php_cosh, [{alias, <<"cosh">>}]},
+    {php_sin, [{alias, <<"sin">>}]},
+    {php_sinh, [{alias, <<"sinh">>}]},
+    {php_tan, [{alias, <<"tan">>}]},
+    {php_tanh, [{alias, <<"tanh">>}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -244,3 +256,75 @@ bindec(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}}) ->
 
 bindec(Context, Line, {Var, Other}) ->
     bindec(Context, Line, {Var, ephp_data:to_bin(Other)}).
+
+-spec php_cos(context(), line(), number()) -> float().
+
+php_cos(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:cos(Number);
+
+php_cos(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"cos">>, 1, <<"double">>, ephp_data:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
+
+-spec php_cosh(context(), line(), number()) -> float().
+
+php_cosh(_Context, _Line, {_Var, Number}) when is_number(Number) ->
+    math:cosh(Number);
+
+php_cosh(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"cosh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
+
+-spec php_sin(context(), line(), number()) -> float().
+
+php_sin(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:sin(Number);
+
+php_sin(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"sin">>, 1, <<"double">>, ephp_data:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
+
+-spec php_sinh(context(), line(), number()) -> float().
+
+php_sinh(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:sinh(Number);
+
+php_sinh(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"sinh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
+
+-spec php_tan(context(), line(), number()) -> float().
+
+php_tan(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:tan(Number);
+
+php_tan(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"tan">>, 1, <<"double">>, ephp_data:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
+
+-spec php_tanh(context(), line(), number()) -> float().
+
+php_tanh(_Context, _Line, {_, Number}) when is_number(Number) ->
+    math:tanh(Number);
+
+php_tanh(Context, Line, {_Var, Val}) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"tanh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    undefined.
