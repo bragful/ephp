@@ -29,7 +29,7 @@ start_link() ->
         dict:store(K,V,C)
     end, dict:new(), Init),
     erlang:put(Ref, Consts),
-    Modules = application:get_env(ephp, modules, []),
+    Modules = ephp_config:get(modules, []),
     [ set_bulk(Ref, Module:init_const()) || Module <- Modules ],
     {ok, Ref}.
 
