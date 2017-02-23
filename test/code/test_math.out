@@ -1,4 +1,4 @@
-sqrt(3) = 1.732050807568877193176604123436845839023590087890625
+sqrt(3) = 1.73205080756888
 
 Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 4
 sqrt('11.1a') = 
@@ -24,23 +24,23 @@ acosh(1.0) = 0
 
 Warning: acosh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 22
 acosh('a') = 
-asin(1.0) = 1.5707963267948965579989817342720925807952880859375
+asin(1.0) = 1.5707963267949
 
 Warning: asin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 24
 asin('a') = 
-asinh(1.0) = 0.88137358701954304773806825323845259845256805419921875
+asinh(1.0) = 0.88137358701954
 
 Warning: asinh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 26
 asinh('a') = 
-atan(1.0) = 0.78539816339744827899949086713604629039764404296875
+atan(1.0) = 0.78539816339745
 
 Warning: atan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 28
 atan('a') = 
-atanh(0.5) = 0.54930614433405489105410879346891306340694427490234375
+atanh(0.5) = 0.54930614433406
 
 Warning: atanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 30
 atanh('a') = 
-atan2(1.0, 1.0) = 0.78539816339744827899949086713604629039764404296875
+atan2(1.0, 1.0) = 0.78539816339745
 
 Warning: atan2() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 32
 atan2('a', 'b') = 
