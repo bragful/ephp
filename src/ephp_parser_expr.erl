@@ -26,8 +26,6 @@ add_op('end', []) ->
     [];
 add_op('end', [{op,Content}]) ->
     solve(process_incr_decr(Content));
-add_op('end', Parsed) ->
-    Parsed;
 add_op(Add, [{op,Content}|Parsed]) ->
     [{op, Content ++ [Add]}|Parsed];
 add_op(Add, Parsed) ->
@@ -71,20 +69,16 @@ array_def(<<")",Rest/binary>>, {{array_def,0},_,_}=Pos, Args) ->
 array_def(<<"]",Rest/binary>>, {{array_def,54},_,_}=Pos, Args) ->
     {Rest,add_pos(Pos,1),Args};
 %% TODO add error missing closing params
-array_def(<<"(",Rest/binary>>, Pos, []) ->
+array_def(<<"(",Rest/binary>>, {{array_def,0},_,_}=Pos, []) ->
     array_def(Rest, add_pos(Pos,1), []);
 array_def(Rest, Pos, Args) when Rest =/= <<>> ->
     case expression(Rest, Pos, []) of
-        {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, []} ->
-            {Rest0, add_pos(Pos0,1), Args};
         {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx=Idx, element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
         {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, Arg} ->
             NewArg = add_line(#array_element{element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
-        {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, []} ->
-            {Rest0, add_pos(Pos0,1), Args};
         {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx=Idx, element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
@@ -96,11 +90,7 @@ array_def(Rest, Pos, Args) when Rest =/= <<>> ->
             array_def(Rest0, add_pos(Pos0, 1), Args ++ [NewArg]);
         {<<",",Rest0/binary>>, Pos0, Arg} ->
             NewArg = add_line(#array_element{element=Arg}, Pos),
-            array_def(Rest0, add_pos(Pos0, 1), Args ++ [NewArg]);
-        {Rest0, Pos0, []} ->
-            array_def(Rest0, Pos0, Args);
-        {Rest0, Pos0, Arg} ->
-            array_def(Rest0, Pos0, Args ++ [Arg])
+            array_def(Rest0, add_pos(Pos0, 1), Args ++ [NewArg])
     end.
 
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
@@ -231,11 +221,6 @@ expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
 expression(<<A:8,_/binary>> = Rest, Pos, [{op,_},#if_block{}|_]) when A =/= $: ->
     throw_error(eparse, Pos, Rest);
-expression(<<";",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
-    IfBlock = If#if_block{
-        true_block = add_op('end', [Exp])
-    },
-    {Rest, add_pos(Pos,1), IfBlock};
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
@@ -430,7 +415,7 @@ precedence(<<"|">>) -> {left, 14}; %% bit by bit
 precedence(<<"&&">>) -> {left, 15}; %% logic
 precedence(<<"||">>) -> {left, 16}; %% logic
 precedence(<<"??">>) -> {right, 17}; %% comparison
-precedence(<<"?:">>) -> {left, 18}; %% ternary
+%precedence(<<"?:">>) -> {left, 18}; %% ternary
 precedence(<<"=">>) -> {right, 19}; %% assign
 precedence(<<"+=">>) -> {right, 19};
 precedence(<<"-=">>) -> {right, 19};
