@@ -166,7 +166,7 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
                 name=ObjName,
                 args=Args
             }, Pos);
-        {<<";",_/binary>> = Rest3, Pos3} ->
+        {<<C:8,_/binary>> = Rest3, Pos3} when C =:= $; orelse C =:= $, ->
             Instance = add_line(#instance{
                 name=ObjName
             }, Pos)
