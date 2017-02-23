@@ -55,7 +55,7 @@ is_equal(A, B) ->
 
 bin_to_number(Bin) when is_binary(Bin) ->
     {ok, R} = re:compile("^[+-]?[0-9]*(\.[0-9]+(e[+-]?[1-9][0-9]*)?)?"),
-    case re:run(Bin, R, [{capture, first, binary}]) of
+    case re:run(Bin, R, [{capture, all, binary}]) of
         {match, [<<>>]} -> 0;
         {match, [Num]} -> binary_to_integer(Num);
         {match, [Num|_]} -> binary_to_float(Num)
