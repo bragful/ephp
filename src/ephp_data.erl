@@ -76,9 +76,10 @@ to_bin(A) when is_integer(A) ->
     integer_to_binary(A);
 
 to_bin(A) when is_float(A) ->
+    Precision = ephp_config:get(<<"precision">>, ?DEFAULT_PRECISION),
     case floor(A) of
         F when A-F == 0 -> integer_to_binary(F);
-        _ -> float_to_binary(A, [{decimals, 100}, compact])
+        _ -> float_to_binary(A, [{decimals, Precision}, compact])
     end;
 
 to_bin(true) -> <<"1">>;
