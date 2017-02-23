@@ -438,13 +438,16 @@ precedence(_) -> false.
 
 operator(<<"and">>,Left,Right) -> operator('and',Left,Right);
 operator(<<"or">>,Left,Right) -> operator('or',Left,Right);
+operator(<<"xor">>,Left,Right) -> operator('xor',Left,Right);
 operator(<<"&&">>,Left,Right) -> operator('and',Left,Right);
 operator(<<"||">>,Left,Right) -> operator('or',Left,Right);
+operator(<<"^^">>,Left,Right) -> operator('xor',Left,Right);
 operator(<<"<=">>,Left,Right) -> operator(<<"=<">>,Left,Right);
 operator(Op,R1,R2) when is_boolean(R1) andalso is_boolean(R2) ->
     case Op of
         'and' -> R1 and R2;
         'or' -> R1 or R2;
+        'xor' -> R1 xor R2;
         _ -> #operation{type=Op, expression_left=R1, expression_right=R2}
     end;
 operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
@@ -464,7 +467,12 @@ operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
         <<">=">> -> N1 >= N2;
         <<"^">> -> N1 bxor N2;
         <<"&">> -> N1 band N2;
-        <<"|">> -> N1 bor N2
+        <<"|">> -> N1 bor N2;
+        <<"<<">> -> N1 bsl N2;
+        <<">>">> -> N1 bsr N2;
+        'xor' -> ephp_data:to_bool(N1) xor ephp_data:to_bool(N2);
+        'or' -> ephp_data:to_bool(N1) or ephp_data:to_bool(N2);
+        'and' -> ephp_data:to_bool(N1) or ephp_data:to_bool(N2)
     end,
     if
         is_integer(Res) -> #int{int=Res};
