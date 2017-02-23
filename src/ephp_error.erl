@@ -211,6 +211,12 @@ get_message(enotostring, Line, _Level, {File, ClassName}) ->
         "to string in ~s on line ~p~n",
         [ClassName, File, Line]);
 
+get_message(enocast, Line, _Level, {File, ClassName, Type}) ->
+    io_lib:format(
+        "~nNotice: Object of class ~s could not be converted "
+        "to ~s in ~s on line ~p~n",
+        [ClassName, Type, File, Line]);
+
 get_message(earrayconv, Line, _Level, {File, Type}) ->
     io_lib:format(
         "~nNotice: Array to ~s conversion in ~s on line ~p~n",

@@ -27,7 +27,8 @@
     php_tan/3,
     php_tanh/3,
     php_cos/3,
-    php_cosh/3
+    php_cosh/3,
+    php_pow/4
 ]).
 
 -include("ephp.hrl").
@@ -56,7 +57,8 @@ init_func() -> [
     {php_sin, [{alias, <<"sin">>}]},
     {php_sinh, [{alias, <<"sinh">>}]},
     {php_tan, [{alias, <<"tan">>}]},
-    {php_tanh, [{alias, <<"tanh">>}]}
+    {php_tanh, [{alias, <<"tanh">>}]},
+    {php_pow, [{alias, <<"pow">>}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -328,3 +330,20 @@ php_tanh(Context, Line, {_Var, Val}) ->
     ephp_error:handle_error(Context, {error, ewrongarg, Line,
         ?E_WARNING, Data}),
     undefined.
+
+get_pow_value(Context, Line, #reg_instance{class=#class{name=ClassName}}) ->
+    File = ephp_context:get_active_file(Context),
+    Level = ?E_RECOVERABLE_ERROR,
+    Data = {File, ClassName, <<"int">>},
+    ephp_error:handle_error(Context, {error, enocast, Line, Level, Data}),
+    1;
+get_pow_value(_Context, _Line, N) ->
+    ephp_data:bin_to_number(ephp_data:to_bin(N)).
+
+-spec php_pow(context(), line(), var_value(), var_value()) ->
+    float() | integer().
+
+php_pow(Context, Line, {_, Base}, {_, Power}) ->
+    B = get_pow_value(Context, Line, Base),
+    P = get_pow_value(Context, Line, Power),
+    math:pow(B, P).

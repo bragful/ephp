@@ -1,0 +1,16 @@
+pow(10,2) = 100
+pow(10,'2') = 100
+pow('a',2) = 0
+pow(10,'a') = 1
+pow(array(),2) = 0
+
+Notice: Object of class A could not be converted to int in {{CWD}}/test/code/test_math_pow.php on line 10
+pow(new A(), 2) = 1
+
+Notice: Object of class A could not be converted to int in {{CWD}}/test/code/test_math_pow.php on line 11
+pow(10, new A()) = 10
+
+Notice: Object of class A could not be converted to int in {{CWD}}/test/code/test_math_pow.php on line 12
+
+Notice: Object of class A could not be converted to int in {{CWD}}/test/code/test_math_pow.php on line 12
+pow(new A(), new A()) = 1
