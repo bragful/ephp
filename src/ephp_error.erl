@@ -194,6 +194,11 @@ get_message(enoarray, Line, _Level, File) ->
         "on line ~p~n",
         [File, Line]);
 
+get_message(einvalid, Line, _Level, {Function, Spec, Val, File}) ->
+    io_lib:format(
+        "~nWarning: ~s(): Invalid `~s' (~p) in ~s on line ~p~n",
+        [Function, Spec, Val, File, Line]);
+
 get_message(eundefvar, Line, _Level, {File, Var}) ->
     io_lib:format(
         "~nNotice: Undefined variable: ~s in ~s on line ~p~n",

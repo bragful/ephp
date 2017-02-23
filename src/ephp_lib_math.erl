@@ -28,7 +28,8 @@
     php_tanh/3,
     php_cos/3,
     php_cosh/3,
-    php_pow/4
+    php_pow/4,
+    base_convert/5
 ]).
 
 -include("ephp.hrl").
@@ -58,7 +59,8 @@ init_func() -> [
     {php_sinh, [{alias, <<"sinh">>}]},
     {php_tan, [{alias, <<"tan">>}]},
     {php_tanh, [{alias, <<"tanh">>}]},
-    {php_pow, [{alias, <<"pow">>}]}
+    {php_pow, [{alias, <<"pow">>}]},
+    base_convert
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -348,3 +350,83 @@ php_pow(Context, Line, {_, Base}, {_, Power}) ->
     B = get_pow_value(Context, Line, Base),
     P = get_pow_value(Context, Line, Power),
     math:pow(B, P).
+
+base_convert_error(Context, Line, ArgNum, ArgData) ->
+    Level = ?E_WARNING,
+    Function = <<"base_convert">>,
+    WrongType = ephp_data:gettype(ArgData),
+    File = ephp_context:get_active_file(Context),
+    Data = {Function, ArgNum, <<"long">>, WrongType, File},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, Level, Data}),
+    <<>>.
+
+base_convert_invalid(Context, Line, Spec, Val) ->
+    Level = ?E_WARNING,
+    Function = <<"base_convert">>,
+    File = ephp_context:get_active_file(Context),
+    Data = {Function, Spec, Val, File},
+    ephp_error:handle_error(Context, {error, einvalid, Line, Level, Data}),
+    <<>>.
+
+base(N) ->
+    lists:sublist([
+        $0, $1, $2, $3, $4, $5, $6, $7, $8, $9,
+        $a, $b, $c, $d, $e, $f, $g, $h, $i, $j,
+        $k, $l, $m, $n, $o, $p, $q, $r, $s, $t,
+        $u, $v, $w, $x, $y, $z
+    ], N).
+
+filter_base(Text, Base) ->
+    filter_base(Text, base(Base), <<"0">>).
+
+filter_base(<<>>, _Base, Filtered) ->
+    Filtered;
+filter_base(<<A:8,Rest/binary>>, Base, Filtered) when A >= $A andalso A =< $Z ->
+    Char = A + ($a - $A),
+    filter_base(<<Char:8,Rest/binary>>, Base, Filtered);
+filter_base(<<A:8,Rest/binary>>, Base, Filtered) ->
+    case lists:member(A, Base) of
+        true -> filter_base(Rest, Base, <<Filtered/binary,A:8>>);
+        false -> filter_base(Rest, Base, Filtered)
+    end.
+
+-spec base_convert(context(), line(), var_value(), var_value(), var_value()) ->
+    binary().
+
+base_convert(Context, Line, _, {_,From}, _) when not is_integer(From) ->
+    base_convert_error(Context, Line, 2, From);
+
+base_convert(Context, Line, _, _, {_,To}) when not is_integer(To) ->
+    base_convert_error(Context, Line, 3, To);
+
+base_convert(Context, Line, _, {_,From}, _) when
+        From < 2 orelse From > 36 ->
+    base_convert_invalid(Context, Line, <<"from base">>, From);
+
+base_convert(Context, Line, _, _, {_,To}) when
+        To < 2 orelse To > 36 ->
+    base_convert_invalid(Context, Line, <<"to base">>, To);
+
+base_convert(_Context, _Line, {_, String}, {_,From}, {_,To}) when
+        is_binary(String) ->
+    Filtered = filter_base(String, From),
+    To10 = binary_to_integer(Filtered, From),
+    integer_to_binary(To10, To);
+
+base_convert(Context, Line, {Var, A}, From, To) when ?IS_ARRAY(A) ->
+    Level = ?E_NOTICE,
+    File = ephp_context:get_active_file(Context),
+    Type = <<"string">>,
+    Data = {File, Type},
+    ephp_error:handle_error(Context, {error, earrayconv, Line, Level, Data}),
+    base_convert(Context, Line, {Var, <<>>}, From, To);
+
+base_convert(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}},
+             _From, _To) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:error({error, enotostring, Line,
+                      ?E_RECOVERABLE_ERROR, {File, ClassName}}),
+    undefined;
+
+base_convert(Context, Line, {Var, Other}, From, To) ->
+    base_convert(Context, Line, {Var, ephp_data:to_bin(Other)}, From, To).
