@@ -36,7 +36,7 @@ atan(1.0) = 0.78539816339744827899949086713604629039764404296875
 
 Warning: atan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 28
 atan('a') = 
-atanh(0.5) = 0.5493061443340547800318063309532590210437774658203125
+atanh(0.5) = 0.54930614433405489105410879346891306340694427490234375
 
 Warning: atanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 30
 atanh('a') = 

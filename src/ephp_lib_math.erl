@@ -200,7 +200,8 @@ php_atan(Context, Line, {_Var, Val}) ->
 -spec php_atanh(context(), line(), number()) -> float().
 
 php_atanh(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:atanh(Number);
+    % math:atanh(Number); % FIXME: the implementation is not reliable
+    1 / 2 * math:log((1 + Number) / (1 - Number));
 
 php_atanh(Context, Line, {_Var, Val}) ->
     File = ephp_context:get_active_file(Context),
