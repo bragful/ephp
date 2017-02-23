@@ -1,6 +1,7 @@
 <?php
 
-class foo { }
+class foo
+{}
 
 class_alias('foo', 'bar');
 
@@ -20,3 +21,5 @@ var_dump([
 	"b instance of bar" => $b instanceof bar,
 ]);
 
+class_alias('f', 'b');
+class_alias('foo', 'bar');

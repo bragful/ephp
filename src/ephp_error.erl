@@ -227,6 +227,11 @@ get_message(earrayconv, Line, _Level, {File, Type}) ->
         "~nNotice: Array to ~s conversion in ~s on line ~p~n",
         [Type, File, Line]);
 
+get_message(eredefinedclass, Line, _Level, {File, ClassName}) ->
+    io_lib:format(
+        "~nWarning: Cannot redeclare class ~s in ~s on line ~p~n",
+        [ClassName, File, Line]);
+
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
         "~nFatal error: unknown ~p for ~p in line ~p~n",

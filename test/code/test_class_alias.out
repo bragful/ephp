@@ -14,3 +14,7 @@ array(7) {
   ["b instance of bar"]=>
   bool(true)
 }
+
+Warning: Class 'f' not found in {{CWD}}/test/code/test_class_alias.php on line 24
+
+Warning: Cannot redeclare class bar in {{CWD}}/test/code/test_class_alias.php on line 25

@@ -59,7 +59,12 @@ set(Ref, ClassName, Class) ->
 set_alias(Ref, ClassName, AliasName) ->
     case get(Ref, ClassName) of
         {ok, _Class} ->
-            set(Ref, AliasName, {alias, ClassName});
+            case get(Ref, AliasName) of
+                {ok, _} ->
+                    {error, eredefined};
+                {error, enoexist} ->
+                    set(Ref, AliasName, {alias, ClassName})
+            end;
         {error, enoexist} ->
             {error, enoexist}
     end.
