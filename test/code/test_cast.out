@@ -1,0 +1,41 @@
+array(15) {
+  [0]=>
+  int(26)
+  [1]=>
+  int(40)
+  [2]=>
+  int(45)
+  [3]=>
+  float(56.76)
+  [4]=>
+  float(56.76)
+  [5]=>
+  float(55)
+  [6]=>
+  string(3) "100"
+  [7]=>
+  string(5) "25.52"
+  [8]=>
+  string(5) "world"
+  [9]=>
+  bool(true)
+  [10]=>
+  bool(false)
+  [11]=>
+  bool(true)
+  [12]=>
+  array(1) {
+    [0]=>
+    string(5) "hello"
+  }
+  [13]=>
+  array(1) {
+    [0]=>
+    int(100)
+  }
+  [14]=>
+  array(1) {
+    [0]=>
+    float(45.54)
+  }
+}

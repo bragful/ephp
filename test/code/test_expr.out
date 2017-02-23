@@ -1,0 +1,15 @@
+array(4) {
+  ["a"]=>
+  int(51)
+  ["b"]=>
+  int(100)
+  ["c"]=>
+  string(15) "this is a world"
+  ["d"]=>
+  int(756)
+}
+bool(true)
+int(2)
+int(10)
+int(2)
+int(20)

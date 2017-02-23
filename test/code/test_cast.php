@@ -1,0 +1,19 @@
+<?php
+
+var_dump([
+    (int)26.7,
+    (int)"40",
+    (int)45,
+    (float)"56.76",
+    (float)56.76,
+    (float)55,
+    (string)100,
+    (string)25.52,
+    (string)"world",
+    (bool)1,
+    (bool)"",
+    (bool)25.52,
+    (array)"hello",
+    (array)100,
+    (array)45.54
+]);
