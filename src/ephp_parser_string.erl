@@ -6,7 +6,7 @@
 -include("ephp_parser.hrl").
 
 -import(ephp_parser, [
-    add_pos/2, new_line/1, add_line/2, variable/3
+    add_pos/2, new_line/1, add_line/2, variable/3, throw_error/3
 ]).
 
 string(<<"\"",Rest/binary>>, Pos, []) ->
@@ -50,6 +50,8 @@ heredoc(Rest, Pos, []) ->
 heredoc(Rest, Pos, [C|_]=S) when not is_binary(C) ->
     heredoc(Rest, Pos, [<<>>|S]).
 
+string_fixed(<<>>, {L,_,_}, #text{line={{line,R},{column,C}}}) ->
+    throw_error(eparse, {L,R,C}, <<>>);
 string_fixed(<<"\\\\",Rest/binary>>, Pos, #text{text=C}=S) ->
     string_fixed(Rest, add_pos(Pos,1), S#text{text = <<C/binary, "\\\\">>});
 string_fixed(<<"\\'",Rest/binary>>, Pos, #text{text=C}=S) ->
@@ -61,6 +63,8 @@ string_fixed(<<"\n",Rest/binary>>, Pos, #text{text=C}=S) ->
 string_fixed(<<A/utf8,Rest/binary>>, Pos, #text{text=C}=S) ->
     string_fixed(Rest, add_pos(Pos,1), S#text{text = <<C/binary, A/utf8>>}).
 
+string_parsed(<<>>, Pos, _Text) ->
+    throw_error(eparse, Pos, <<>>);
 string_parsed(<<"\\\\",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
         when is_binary(C) ->
     NewText = S#text_to_process{text = [<<C/binary, "\\\\">>|R]},
