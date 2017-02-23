@@ -538,9 +538,38 @@ gen_op([{<<"(float)">>,{_,_},Pos}|Rest], [#text{text=T}|Stack]) ->
     gen_op(Rest, [add_line(#int{int=Float}, Pos)|Stack]);
 gen_op([{<<"(float)">>,{_,_},Pos}|Rest], [A|Stack]) ->
     gen_op(Rest, [add_line(#cast{type=float, content=A}, Pos)|Stack]);
+gen_op([{<<"(string)">>,{_,_},Pos}|Rest], [#int{int=I}|Stack]) ->
+    gen_op(Rest, [add_line(#text{text=ephp_data:to_bin(I)}, Pos)|Stack]);
+gen_op([{<<"(string)">>,{_,_},_Pos}|Rest], [#text{}=T|Stack]) ->
+    gen_op(Rest, [T|Stack]);
+gen_op([{<<"(string)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
+    gen_op(Rest, [add_line(#text{text=ephp_data:to_bin(F)}, Pos)|Stack]);
+gen_op([{<<"(string)">>,{_,_},Pos}|Rest], [A|Stack]) ->
+    gen_op(Rest, [add_line(#cast{type=string, content=A}, Pos)|Stack]);
+gen_op([{<<"(bool)">>,{_,_},_Pos}|Rest], [#int{int=I}|Stack]) ->
+    gen_op(Rest, [ephp_data:to_bool(I)|Stack]);
+gen_op([{<<"(bool)">>,{_,_},_Pos}|Rest], [#text{text=T}|Stack]) ->
+    gen_op(Rest, [ephp_data:to_bool(T)|Stack]);
+gen_op([{<<"(bool)">>,{_,_},_Pos}|Rest], [#float{float=F}|Stack]) ->
+    gen_op(Rest, [ephp_data:to_bool(F)|Stack]);
+gen_op([{<<"(bool)">>,{_,_},Pos}|Rest], [A|Stack]) ->
+    gen_op(Rest, [add_line(#cast{type=bool, content=A}, Pos)|Stack]);
+gen_op([{<<"(array)">>,{_,_},Pos}|Rest], [#int{line=DPos}=D|Stack]) ->
+    gen_op(Rest, [add_to_array(#array{line=DPos}, Pos, D)|Stack]);
+gen_op([{<<"(array)">>,{_,_},Pos}|Rest], [#text{line=DPos}=D|Stack]) ->
+    gen_op(Rest, [add_to_array(#array{line=DPos}, Pos, D)|Stack]);
+gen_op([{<<"(array)">>,{_,_},Pos}|Rest], [#float{line=DPos}=D|Stack]) ->
+    gen_op(Rest, [add_to_array(#array{line=DPos}, Pos, D)|Stack]);
+gen_op([{<<"(array)">>,{_,_},Pos}|Rest], [A|Stack]) ->
+    gen_op(Rest, [add_line(#cast{type=array, content=A}, Pos)|Stack]);
 % TODO add the rest of casting operators
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).
+
+add_to_array(#array{elements=E}=Array, Pos, Element) ->
+    Array#array{elements=E ++ [
+        add_line(#array_element{element=Element}, Pos)
+    ]}.
 
 shunting_yard([], [], Postfix) ->
     Postfix;
