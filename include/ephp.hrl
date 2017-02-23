@@ -1,7 +1,7 @@
 %% Author: Manuel Rubio <manuel@altenwald.com>
 
 -define(PHP_INI_FILE, <<"php.ini">>).
--define(PHP_VERSION, <<"5.5.0">>).
+-define(PHP_VERSION, <<"5.6.0">>).
 
 -define(PATH_SEP, <<":">>).
 
