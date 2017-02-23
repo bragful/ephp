@@ -162,9 +162,11 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
             }, Pos)
     end,
     expression(Rest3, copy_level(Pos, add_pos(Pos3,1)), add_op(Instance,Parsed));
-expression(<<SP:8,_/binary>> = Rest, {enclosed,_,_}=Pos, [Exp])
+expression(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, [Exp])
         when ?IS_SPACE(SP) ->
-    {Rest, Pos, add_op('end', [Exp])};
+    expression(Rest, Pos, [Exp]);
+expression(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, [Exp]) ->
+    {Rest, add_pos(Pos,1), add_op('end', [Exp])};
 expression(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [Exp])
         when ?IS_SPACE(SP) ->
     {Rest, Pos, add_op('end', [Exp])};
