@@ -16,7 +16,7 @@
 
 
 <pre><code>
-config_param() = binary()
+config_param() = <a href="#type-mixed">mixed()</a>
 </code></pre>
 
 

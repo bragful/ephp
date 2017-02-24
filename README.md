@@ -21,24 +21,26 @@ The port is not 100% complete, please refer to [compatibility table](http://gith
 
 ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
 
-- ~~R16B01~~ **NO** (problems found)
-- R16B02 **OK**
-- R16B03 **OK**
-- R16B03-1 **OK** (recommended if you use OTP R16)
-- 17.0 **OK**
-- 17.1 **OK**
-- 17.2 **untested**: is not available in Travis-CI
-- ~~17.3~~ **NO**: fail in SSL NOT RECOMMENED.
-- 17.4 **OK**
-- 17.5 **OK** (recommended if you use OTP 17)
-- 18.0 **OK**
-- 18.1 **OK**
-- 18.2 **OK**
-- 18.2.1 **OK**
-- 18.3 **OK** (recommended if you use OTP 18)
-- 19.0 **OK**
-- 19.1 **OK**
-- 19.2 **OK** (recommended if you use OTP 19)
+| Erlang Version | Support | Notes |
+|:---|:---:|:---|
+| 19.2 | :heavy_check_mark: | Recommended if you use OTP 19 |
+| 19.1 | :heavy_check_mark: | |
+| 19.0 | :heavy_check_mark: | |
+| 18.3 | :heavy_check_mark: | Recommended if you use OTP 18 |
+| 18.2.1 | :heavy_check_mark: | |
+| 18.2 | :heavy_check_mark: | |
+| 18.1 | :heavy_check_mark: | |
+| 18.0 | :heavy_check_mark: | |
+| 17.5 | :heavy_check_mark: | Recommended if you use OTP 17 |
+| 17.4 | :heavy_check_mark: | |
+| 17.3 | :x: | fail in SSL |
+| 17.2 | :x: | no tests available in Travis-CI |
+| 17.1 | :heavy_check_mark: | |
+| 17.0 | :heavy_check_mark: | |
+| R16B03-1 | :heavy_check_mark: | Recommended if you use OTP R16 |
+| R16B03 | :heavy_check_mark: | |
+| R16B02 | :heavy_check_mark: | |
+| R16B01 | :x: | fails in math lib |
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
