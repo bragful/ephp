@@ -12,7 +12,7 @@
 -type php_function_results() :: [php_function_result()].
 
 -type config_section() :: binary().
--type config_param() :: binary().
+-type config_param() :: mixed().
 -type php_config_results() :: [{config_section(), [config_param()]}].
 
 -type const_name() :: binary().

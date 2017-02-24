@@ -67,7 +67,9 @@ init_func() -> [
 
 -spec init_config() -> ephp_func:php_config_results().
 
-init_config() -> [].
+init_config() -> [
+    {<<"precision">>, 14}
+].
 
 -spec init_const() -> ephp_func:php_const_results().
 
