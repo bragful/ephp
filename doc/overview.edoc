@@ -33,6 +33,8 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 - 18.2.1 **OK**
 - 18.3 **OK** (recommended if you use OTP 18)
 - 19.0 **OK**
+- 19.1 **OK**
+- 19.2 **OK** (recommended if you use OTP 19)
 
 == Getting Started ==
 
