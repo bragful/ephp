@@ -17,14 +17,14 @@ The port is not 100% complete, please refer to <a href="doc/COMPATIBILITY.md">co
 
 ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
 
-- R16B01 **OK**
+- ~~R16B01~~ **NO** (problems found)
 - R16B02 **OK**
 - R16B03 **OK**
 - R16B03-1 **OK** (recommended if you use OTP R16)
 - 17.0 **OK**
 - 17.1 **OK**
 - 17.2 **untested**: is not available in Travis-CI
-- 17.3 **NO**: fail in SSL NOT RECOMMENED.
+- ~~17.3~~ **NO**: fail in SSL NOT RECOMMENED.
 - 17.4 **OK**
 - 17.5 **OK** (recommended if you use OTP 17)
 - 18.0 **OK**
