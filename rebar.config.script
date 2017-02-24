@@ -1,0 +1,9 @@
+ErlOpts = proplists:get_value(erl_opts, CONFIG),
+case lists:filter(fun({d, 'BUILD_DATE', _}) -> true; (_) -> false end, ErlOpts) of
+    [] ->
+        OldErlOpts = [{erl_opts, ErlOpts}],
+        NewErlOpts = [{erl_opts, [{d, 'BUILD_DATE', {date(), time()}}|ErlOpts]}],
+        (CONFIG -- OldErlOpts) ++ NewErlOpts;
+    [_] ->
+        CONFIG
+end.

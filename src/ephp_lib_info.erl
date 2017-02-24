@@ -93,9 +93,7 @@ get_vsn() ->
 -spec get_build_date() -> binary().
 
 get_build_date() ->
-    Info = ephp:module_info(),
-    Compile = proplists:get_value(compile, Info),
-    {Y,M,D,H,I,S} = proplists:get_value(time, Compile),
+    {{Y,M,D},{H,I,S}} = ?BUILD_DATE,
     Month = ephp_datetime:get_abbr_month(M),
     Day = ephp_data:pad_to_bin(D,2),
     Year = integer_to_binary(Y),
