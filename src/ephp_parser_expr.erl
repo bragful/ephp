@@ -450,6 +450,23 @@ operator(Op,R1,R2) when is_boolean(R1) andalso is_boolean(R2) ->
         'xor' -> R1 xor R2;
         _ -> #operation{type=Op, expression_left=R1, expression_right=R2}
     end;
+operator(<<"/">>,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
+                     andalso (is_record(R2, int) orelse is_record(R2, float)) ->
+    N2 = element(2, R2),
+    case N2 == 0 of
+        true ->
+            #operation{
+                type = <<"/">>,
+                expression_left=R1,
+                expression_right=R2};
+        false ->
+            N1 = element(2, R1),
+            Res = N1 / N2,
+            if
+                is_integer(Res) -> #int{int=Res};
+                is_float(Res) -> #float{float=Res}
+            end
+    end;
 operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
                 andalso (is_record(R2, int) orelse is_record(R2, float)) ->
     N1 = element(2, R1),
@@ -458,7 +475,6 @@ operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
         <<"+">> -> N1+N2;
         <<"-">> -> N1-N2;
         <<"*">> -> N1*N2;
-        <<"/">> -> N1/N2;
         <<"%">> -> N1 rem N2;
         <<">">> -> N1 > N2;
         <<"<">> -> N1 < N2;
@@ -477,8 +493,7 @@ operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
     if
         is_integer(Res) -> #int{int=Res};
         is_float(Res) -> #float{float=Res};
-        is_boolean(Res) -> Res;
-        true -> throw({error, R1, R2, Res})
+        is_boolean(Res) -> Res
     end;
 operator(<<".">>,#text{text=T1},#text{text=T2}) ->
     #text{text = <<T1/binary,T2/binary>>};

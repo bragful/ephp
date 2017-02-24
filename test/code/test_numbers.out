@@ -1,0 +1,6 @@
+1/INF = 0
+acos(1.01) = NAN
+
+Warning: Division by zero in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_numbers.php on line 6
+float(INF)
+float(NAN)

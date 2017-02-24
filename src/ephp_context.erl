@@ -926,7 +926,7 @@ resolve_op(#operation{type=instanceof, expression_left=Op1,
     end;
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
-        line=Index}, State) ->
+        line=Index}, #state{active_file=File}=State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
     {case Type of
@@ -941,7 +941,10 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
             B = ephp_data:zero_if_undef(OpRes2),
             if
                 B == 0 ->
-                    ephp_error:error({error, edivzero, Index, ?E_ERROR, <<>>});
+                    Error = {error, edivzero, Index, ?E_ERROR, File},
+                    ephp_error:handle_error(State#state.ref, Error);
+                B == infinity ->
+                    0;
                 true ->
                     A / B
             end;

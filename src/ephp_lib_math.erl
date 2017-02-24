@@ -94,10 +94,11 @@ init_const() -> [
     {<<"PHP_ROUND_HALF_UP">>, 1},
     {<<"PHP_ROUND_HALF_DOWN">>, 2},
     {<<"PHP_ROUND_HALF_EVEN">>, 3},
-    {<<"PHP_ROUND_HALF_ODD">>, 4}
-    %% TODO:
-    % {<<"NAN">>, nan},
-    % {<<"INFINITY">>, infinity}
+    {<<"PHP_ROUND_HALF_ODD">>, 4},
+    {<<"NAN">>, nan},
+    {<<"INF">>, infinity},
+
+    {<<"PHP_INT_SIZE">>, 8}
 ].
 
 -spec php_ceil(context(), line(), var_value()) -> integer().
@@ -146,7 +147,10 @@ php_abs(_Context, _Line, _NotANumber) ->
 -spec php_acos(context(), line(), number()) -> float().
 
 php_acos(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:acos(Number);
+    case catch math:acos(Number) of
+        {'EXIT', {badarith, _}} -> nan;
+        Res when is_float(Res) -> Res
+    end;
 
 php_acos(Context, Line, {_Var, Val}) ->
     File = ephp_context:get_active_file(Context),

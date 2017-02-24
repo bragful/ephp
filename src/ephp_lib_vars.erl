@@ -282,6 +282,12 @@ var_dump_fmt(Context, Line, #reg_instance{class=Class, context=Ctx},
 var_dump_fmt(_Context, _Line, undefined, _Spaces, _RecCtl) ->
     <<"NULL\n">>;
 
+var_dump_fmt(_Context, _Line, infinity, _Spaces, _RecCtl) ->
+    <<"float(INF)\n">>;
+
+var_dump_fmt(_Context, _Line, nan, _Spaces, _RecCtl) ->
+    <<"float(NAN)\n">>;
+
 var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
     ephp_array:fold(fun(Key, Val, Res) ->
         KeyBin = if

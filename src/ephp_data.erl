@@ -86,6 +86,10 @@ to_bin(true) -> <<"1">>;
 
 to_bin(false) -> <<>>;
 
+to_bin(nan) -> <<"NAN">>;
+
+to_bin(infinity) -> <<"INF">>;
+
 to_bin(undefined) -> <<>>.
 
 -spec to_bin(context(), line(),
@@ -160,6 +164,10 @@ to_bool(_Other) -> true.
 zero_if_undef(undefined) -> 0;
 
 zero_if_undef(Value) when ?IS_ARRAY(Value) -> throw(einvalidop);
+
+zero_if_undef(infinity) -> infinity;
+
+zero_if_undef(nan) -> nan;
 
 zero_if_undef(Value) when not is_number(Value) -> 0;
 
