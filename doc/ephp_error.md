@@ -34,7 +34,7 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_consts-0">init_consts/0</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-2">error_reporting/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -56,6 +56,15 @@ error(X1::<a href="#type-throw_error">throw_error()</a>) -&gt; ok
 </code></pre>
 <br />
 
+<a name="error_reporting-2"></a>
+
+### error_reporting/2 ###
+
+<pre><code>
+error_reporting(Context::<a href="#type-context">context()</a>, Level::integer()) -&gt; integer()
+</code></pre>
+<br />
+
 <a name="get_line-1"></a>
 
 ### get_line/1 ###
@@ -73,12 +82,6 @@ get_line(X1::<a href="#type-line">line()</a> | undefined) -&gt; non_neg_integer(
 handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, <a href="#type-error_level">error_level()</a>, any()}) -&gt; ok
 </code></pre>
 <br />
-
-<a name="init_consts-0"></a>
-
-### init_consts/0 ###
-
-`init_consts() -> any()`
 
 <a name="run_quiet-2"></a>
 

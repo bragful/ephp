@@ -5,7 +5,6 @@
 -include("ephp.hrl").
 
 -export([
-    start_link/0,
     start_link/1,
 
     get/1,
@@ -13,14 +12,8 @@
 
     set/2,
 
-    read_config/1,
-    get_defaults/0
+    read_config/1
 ]).
-
--spec start_link() -> ok.
-
-start_link() ->
-    set_defaults().
 
 -spec start_link(file_name()) -> ok.
 
@@ -67,13 +60,6 @@ read_config(File) ->
             {error, enoent}
     end.
 
--spec get_defaults() -> proplists:proplists().
-
-get_defaults() ->
-    lists:flatmap(fun(Module) ->
-        Module:init_config()
-    end, application:get_env(ephp, modules, [])).
-
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
@@ -83,6 +69,9 @@ get_defaults() ->
 add_module(Extension) ->
     Module = case binary:split(Extension, <<".">>) of
         [ExtName, <<"so">>] ->
+            % TODO: ensure the ExtName hasn't path
+            binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8);
+        [ExtName, <<"dll">>] ->
             % TODO: ensure the ExtName hasn't path
             binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8);
         [<<"php_", ExtName/binary>>, <<"dll">>] ->

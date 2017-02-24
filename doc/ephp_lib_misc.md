@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#define-4">define/4</a></td><td></td></tr><tr><td valign="top"><a href="#exit-3">exit/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#sleep-3">sleep/3</a></td><td></td></tr><tr><td valign="top"><a href="#usleep-3">usleep/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#define-4">define/4</a></td><td></td></tr><tr><td valign="top"><a href="#defined-3">defined/3</a></td><td></td></tr><tr><td valign="top"><a href="#exit-3">exit/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#sleep-3">sleep/3</a></td><td></td></tr><tr><td valign="top"><a href="#usleep-3">usleep/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -24,6 +24,15 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 
 <pre><code>
 define(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Constant::<a href="#type-var_value">var_value()</a>, Content::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+</code></pre>
+<br />
+
+<a name="defined-3"></a>
+
+### defined/3 ###
+
+<pre><code>
+defined(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -42,6 +51,15 @@ exit(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 
 <pre><code>
 init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+</code></pre>
+<br />
+
+<a name="init_const-0"></a>
+
+### init_const/0 ###
+
+<pre><code>
+init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
 </code></pre>
 <br />
 
