@@ -260,7 +260,7 @@ code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(O,$O,$o) andalso ?IS_SPACE(SP) ->
     {Rest0, Pos0, [#function{}=Function]} =
         ephp_parser_func:st_function(Rest, add_pos(Pos,9), []),
-    code(Rest0, copy_level(Pos, Pos0), [Function|Parsed]);
+    code(Rest0, copy_level(Pos, Pos0), Parsed ++ [Function]);
 code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
@@ -268,7 +268,7 @@ code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
     NewPos = new_line(add_pos(Pos,8)),
     {Rest0, Pos0, #function{}=Function} =
         ephp_parser_func:st_function(Rest, NewPos, []),
-    code(Rest0, copy_level(Pos, Pos0), [Function|Parsed]);
+    code(Rest0, copy_level(Pos, Pos0), Parsed ++ [Function]);
 code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, new_line(add_pos(Pos,2)), Parsed};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
