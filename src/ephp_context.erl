@@ -147,6 +147,7 @@ destroy_all(Context) ->
     ephp_include:destroy(State#state.include),
     ephp_func:destroy(State#state.funcs),
     ephp_error:destroy(State#state.errors),
+    ephp_class:destroy(State#state.class),
     destroy(Context).
 
 get_state(Context) ->
