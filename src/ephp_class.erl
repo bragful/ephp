@@ -15,16 +15,16 @@
     get/2,
     get_constructor/1,
     get_destructor/1,
-    get_attribute/3,
     get_attribute/2,
     get_method/2,
-    get_method/3,
     get_const/2,
     get_const/3,
 
     register_class/3,
     set_alias/3,
-    instance/5
+    instance/5,
+
+    add_if_no_exists_attrib/2
 ]).
 
 %% ------------------------------------------------------------------
@@ -34,6 +34,7 @@
 start_link() ->
     Ref = make_ref(),
     erlang:put(Ref, dict:new()),
+    ok = register_stdclass(Ref),
     {ok, Ref}.
 
 destroy(Classes) ->
@@ -88,6 +89,7 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
     {ok, #class{name=ClassName}=Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
+        % FIXME: looks like the increment is global for all of the instances
         InsCount = Class#class.instance_counter + 1,
         RegClass = #reg_instance{
             id=InsCount,
@@ -143,10 +145,6 @@ get_destructor(#class{methods=Methods}) ->
         ClassMethod
     end.
 
-get_attribute(Ref, ClassName, AttributeName) ->
-    {ok, Class} = get(Ref, ClassName),
-    get_attribute(Class, AttributeName).
-
 get_attribute(#class{attrs=Attrs}, AttributeName) ->
     case lists:keyfind(AttributeName, #class_attr.name, Attrs) of
     false ->
@@ -154,10 +152,6 @@ get_attribute(#class{attrs=Attrs}, AttributeName) ->
     #class_attr{}=ClassAttr ->
         ClassAttr
     end.
-
-get_method(Ref, ClassName, MethodName) ->
-    {ok, Class} = get(Ref, ClassName),
-    get_method(Class, MethodName).
 
 get_method(#class{methods=Methods,line=Index}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
@@ -178,6 +172,28 @@ get_const(#class{constants=Const}, ConstName) ->
         error -> ConstName
     end.
 
+add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
+    case get_attribute(Class, Name) of
+        undefined ->
+            Class#class{
+                attrs=Attrs ++ [#class_attr{name = Name}]
+            };
+        _ ->
+            Class
+    end.
+
 %% ------------------------------------------------------------------
 %% Private functions
 %% ------------------------------------------------------------------
+
+register_stdclass(Ref) ->
+    Name = <<"stdClass">>,
+    Classes = erlang:get(Ref),
+    StdClass = #class{
+        name = Name,
+        static_context = undefined,
+        constants = dict:new(),
+        attrs = []
+    },
+    erlang:put(Ref, dict:store(Name, StdClass, Classes)),
+    ok.

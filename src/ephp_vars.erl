@@ -114,7 +114,8 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
         undefined
     end.
 
-change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars) when ?IS_ARRAY(Value) ->
+change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars)
+        when ?IS_ARRAY(Value) ->
     ephp_array:fold(fun(Root, Val, NewVars) ->
         ephp_array:store(Root, Val, NewVars)
     end, ephp_array:new(), Value);
@@ -135,14 +136,19 @@ change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
     end;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars) ->
-    {ok, #reg_instance{context=Ctx}} = ephp_array:find(Root, Vars),
+    {ok, #reg_instance{context=Ctx}=RI} = ephp_array:find(Root, Vars),
+    Class = ephp_class:add_if_no_exists_attrib(RI#reg_instance.class, NewRoot),
+    NewVars = ephp_array:store(Root, RI#reg_instance{class=Class}, Vars),
     ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
-    Vars;
+    NewVars;
 
-change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var, Value, Vars) ->
-    {ok, #reg_instance{context=Ctx}} = ephp_array:find(Root, Vars),
+change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
+       Value, Vars) ->
+    {ok, #reg_instance{context=Ctx}=RI} = ephp_array:find(Root, Vars),
+    Class = ephp_class:add_if_no_exists_attrib(RI#reg_instance.class, NewRoot),
+    NewVars = ephp_array:store(Root, RI#reg_instance{class=Class}, Vars),
     ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
-    Vars;
+    NewVars;
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     case ephp_array:find(Root, Vars) of
