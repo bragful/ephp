@@ -13,7 +13,9 @@ compile:
 	./rebar3 compile
 
 test:
-	./rebar3 do xref, eunit, cover
+	./rebar3 xref
+	./rebar3 eunit
+	./rebar3 cover
 	./covertool -cover _build/test/cover/eunit.coverdata -appname ephp -output cobertura.xml
 
 ephp: compile
