@@ -1,9 +1,12 @@
-ErlOpts = proplists:get_value(erl_opts, CONFIG),
-case lists:filter(fun({d, 'BUILD_DATE', _}) -> true; (_) -> false end, ErlOpts) of
-    [] ->
-        OldErlOpts = [{erl_opts, ErlOpts}],
-        NewErlOpts = [{erl_opts, [{d, 'BUILD_DATE', {date(), time()}}|ErlOpts]}],
-        (CONFIG -- OldErlOpts) ++ NewErlOpts;
-    [_] ->
-        CONFIG
-end.
+case filelib:is_regular(".build_date") of
+    true -> ok;
+    false -> os:cmd("LANG=POSIX date '+%b %d %Y %T' > .build_date")
+end,
+BuildDate = binary_to_list(element(2,file:read_file(".build_date"))),
+ErlOpts = lists:filter(fun
+    ({d, 'BUILD_DATE', _}) -> false;
+    (_) -> true
+end, proplists:get_value(erl_opts, CONFIG)),
+OldErlOpts = [{erl_opts, ErlOpts}],
+NewErlOpts = [{erl_opts, [{d, 'BUILD_DATE', BuildDate}|ErlOpts]}],
+(CONFIG -- OldErlOpts) ++ NewErlOpts.

@@ -93,14 +93,4 @@ get_vsn() ->
 -spec get_build_date() -> binary().
 
 get_build_date() ->
-    {{Y,M,D},{H,I,S}} = ?BUILD_DATE,
-    Month = ephp_datetime:get_abbr_month(M),
-    Day = ephp_data:pad_to_bin(D,2),
-    Year = integer_to_binary(Y),
-    Hour = ephp_data:pad_to_bin(H,2),
-    Min = ephp_data:pad_to_bin(I,2),
-    Sec = ephp_data:pad_to_bin(S,2),
-    <<
-        Month/binary, " ", Day/binary, " ", Year/binary, " ",
-        Hour/binary, ":", Min/binary, ":", Sec/binary
-    >>.
+    list_to_binary(?BUILD_DATE).
