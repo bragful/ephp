@@ -113,6 +113,7 @@ $formats = [
 
 $timezones = [
     "UTC",
+    "GMT",
     "Europe/Madrid",
     "America/Mexico_City",
     "Inexistent",
