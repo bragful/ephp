@@ -1,0 +1,18 @@
+object(stdClass)#1 (2) {
+  ["name"]=>
+  string(4) "John"
+  ["surname"]=>
+  string(5) "Smith"
+}
+array(2) {
+  ["name"]=>
+  string(4) "John"
+  ["surname"]=>
+  string(5) "Smith"
+}
+object(stdClass)#2 (2) {
+  ["name"]=>
+  string(4) "John"
+  ["surname"]=>
+  string(5) "Smith"
+}
