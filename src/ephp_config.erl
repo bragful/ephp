@@ -71,12 +71,12 @@ add_module(Extension) ->
         [ExtName, <<"so">>] ->
             % TODO: ensure the ExtName hasn't path
             binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8);
+        [<<"php_", ExtName/binary>>, <<"dll">>] ->
+            binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8);
+        % TODO: ExtName without path and Windows format
         [ExtName, <<"dll">>] ->
             % TODO: ensure the ExtName hasn't path
-            binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8);
-        [<<"php_", ExtName/binary>>, <<"dll">>] ->
             binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8)
-        % TODO: ExtName without path and Windows format
     end,
     init_config(Module),
     % TODO notice when the extension is duplicated
