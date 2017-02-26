@@ -104,9 +104,17 @@ date_default_timezone_get(Context, _Line) ->
     context(), line(),
     TZ :: {variable(),binary()}) -> binary().
 
-date_default_timezone_set(Context, _Line, {_,TZ}) ->
-    ephp_context:set_tz(Context, TZ),
-    undefined.
+date_default_timezone_set(Context, Line, {_,TZ}) ->
+    case ephp_context:set_tz(Context, TZ) of
+        true ->
+            undefined;
+        false ->
+            Function = <<"date_default_timezone_set">>,
+            File = ephp_context:get_active_file(Context),
+            Params = {error, etimezone, Line, ?E_NOTICE, {Function, TZ, File}},
+            ephp_error:handle_error(Context, Params),
+            undefined
+    end.
 
 -spec timezone_abbreviations_list(context(), line()) -> [ephp_array()].
 

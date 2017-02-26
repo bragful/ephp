@@ -115,6 +115,7 @@ $timezones = [
     "UTC",
     "Europe/Madrid",
     "America/Mexico_City",
+    "Inexistent",
 ];
 
 foreach ($dates as $date) {

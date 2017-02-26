@@ -9,6 +9,7 @@
 
 -define(IS_ARRAY(A), erlang:'=:='(element(1, A), ephp_array)).
 -define(IS_OBJECT(O), erlang:'=:='(element(1, O), reg_instance)).
+-define(IS_FUNCTION(F), erlang:'=:='(elment(1, F), function)).
 
 % built-in modules
 -define(MODULES, [

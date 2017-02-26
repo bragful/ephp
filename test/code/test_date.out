@@ -23,6 +23,11 @@ date('Y-m-d H:i:s.u', 1422959410) -> 2015-02-03 11:30:10.000000
 // easy in America/Mexico_City
 date('Y-m-d H:i:s.u', 1422959410) -> 2015-02-03 04:30:10.000000
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
+date('Y-m-d H:i:s.u', 1422959410) -> 2015-02-03 04:30:10.000000
+
 // english in UTC
 date('r', 1422959410) -> Tue, 03 Feb 2015 10:30:10 +0000
 
@@ -30,6 +35,11 @@ date('r', 1422959410) -> Tue, 03 Feb 2015 10:30:10 +0000
 date('r', 1422959410) -> Tue, 03 Feb 2015 11:30:10 +0100
 
 // english in America/Mexico_City
+date('r', 1422959410) -> Tue, 03 Feb 2015 04:30:10 -0600
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
 date('r', 1422959410) -> Tue, 03 Feb 2015 04:30:10 -0600
 
 // iso in UTC
@@ -41,6 +51,11 @@ date('c', 1422959410) -> 2015-02-03T11:30:10+01:00
 // iso in America/Mexico_City
 date('c', 1422959410) -> 2015-02-03T04:30:10-06:00
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
+date('c', 1422959410) -> 2015-02-03T04:30:10-06:00
+
 // posix in UTC
 date('U', 1422959410) -> 1422959410
 
@@ -48,6 +63,11 @@ date('U', 1422959410) -> 1422959410
 date('U', 1422959410) -> 1422959410
 
 // posix in America/Mexico_City
+date('U', 1422959410) -> 1422959410
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
 date('U', 1422959410) -> 1422959410
 
 // info in UTC
@@ -59,6 +79,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1422959410) -> 3rd February 15 (Feb=2[28]) 
 // info in America/Mexico_City
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1422959410) -> 3rd February 15 (Feb=2[28]) 4:30:10am (Tuesday;2)
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1422959410) -> 3rd February 15 (Feb=2[28]) 4:30:10am (Tuesday;2)
+
 // leapyear? in UTC
 date('L', 1422959410) -> 0
 
@@ -66,6 +91,11 @@ date('L', 1422959410) -> 0
 date('L', 1422959410) -> 0
 
 // leapyear? in America/Mexico_City
+date('L', 1422959410) -> 0
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
 date('L', 1422959410) -> 0
 
 // day of week in UTC
@@ -77,6 +107,11 @@ date('D w', 1422959410) -> Tue 2
 // day of week in America/Mexico_City
 date('D w', 1422959410) -> Tue 2
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
+date('D w', 1422959410) -> Tue 2
+
 // day of year in UTC
 date('z', 1422959410) -> 33
 
@@ -86,6 +121,11 @@ date('z', 1422959410) -> 33
 // day of year in America/Mexico_City
 date('z', 1422959410) -> 33
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1422959410) -> 33
+
 // week of year / year of week in UTC
 date('W - o', 1422959410) -> 06 - 2015
 
@@ -93,6 +133,11 @@ date('W - o', 1422959410) -> 06 - 2015
 date('W - o', 1422959410) -> 06 - 2015
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1422959410) -> 06 - 2015
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1422959410) -> 06 - 2015
 
 // hours in UTC
@@ -104,6 +149,11 @@ date('h H g G [A] B', 1422959410) -> 11 11 11 11 [AM] 479
 // hours in America/Mexico_City
 date('h H g G [A] B', 1422959410) -> 04 04 4 4 [AM] 479
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1422959410) -> 04 04 4 4 [AM] 479
+
 // timezone in UTC
 date('e (I)', 1422959410) -> UTC (0)
 
@@ -111,6 +161,11 @@ date('e (I)', 1422959410) -> UTC (0)
 date('e (I)', 1422959410) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1422959410) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1422959410) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -122,6 +177,11 @@ date('Z T P O', 1422959410) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1422959410) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1422959410) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1451640610) -> 2016-01-01 09:30:10.000000
 
@@ -129,6 +189,11 @@ date('Y-m-d H:i:s.u', 1451640610) -> 2016-01-01 09:30:10.000000
 date('Y-m-d H:i:s.u', 1451640610) -> 2016-01-01 10:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1451640610) -> 2016-01-01 03:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1451640610) -> 2016-01-01 03:30:10.000000
 
 // english in UTC
@@ -140,6 +205,11 @@ date('r', 1451640610) -> Fri, 01 Jan 2016 10:30:10 +0100
 // english in America/Mexico_City
 date('r', 1451640610) -> Fri, 01 Jan 2016 03:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1451640610) -> Fri, 01 Jan 2016 03:30:10 -0600
+
 // iso in UTC
 date('c', 1451640610) -> 2016-01-01T09:30:10+00:00
 
@@ -147,6 +217,11 @@ date('c', 1451640610) -> 2016-01-01T09:30:10+00:00
 date('c', 1451640610) -> 2016-01-01T10:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1451640610) -> 2016-01-01T03:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1451640610) -> 2016-01-01T03:30:10-06:00
 
 // posix in UTC
@@ -158,6 +233,11 @@ date('U', 1451640610) -> 1451640610
 // posix in America/Mexico_City
 date('U', 1451640610) -> 1451640610
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1451640610) -> 1451640610
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1451640610) -> 1st January 16 (Jan=1[31]) 9:30:10am (Friday;5)
 
@@ -165,6 +245,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1451640610) -> 1st January 16 (Jan=1[31]) 9
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1451640610) -> 1st January 16 (Jan=1[31]) 10:30:10am (Friday;5)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1451640610) -> 1st January 16 (Jan=1[31]) 3:30:10am (Friday;5)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1451640610) -> 1st January 16 (Jan=1[31]) 3:30:10am (Friday;5)
 
 // leapyear? in UTC
@@ -176,6 +261,11 @@ date('L', 1451640610) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1451640610) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1451640610) -> 1
+
 // day of week in UTC
 date('D w', 1451640610) -> Fri 5
 
@@ -183,6 +273,11 @@ date('D w', 1451640610) -> Fri 5
 date('D w', 1451640610) -> Fri 5
 
 // day of week in America/Mexico_City
+date('D w', 1451640610) -> Fri 5
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1451640610) -> Fri 5
 
 // day of year in UTC
@@ -194,6 +289,11 @@ date('z', 1451640610) -> 0
 // day of year in America/Mexico_City
 date('z', 1451640610) -> 0
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1451640610) -> 0
+
 // week of year / year of week in UTC
 date('W - o', 1451640610) -> 53 - 2015
 
@@ -201,6 +301,11 @@ date('W - o', 1451640610) -> 53 - 2015
 date('W - o', 1451640610) -> 53 - 2015
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1451640610) -> 53 - 2015
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1451640610) -> 53 - 2015
 
 // hours in UTC
@@ -212,6 +317,11 @@ date('h H g G [A] B', 1451640610) -> 10 10 10 10 [AM] 437
 // hours in America/Mexico_City
 date('h H g G [A] B', 1451640610) -> 03 03 3 3 [AM] 437
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1451640610) -> 03 03 3 3 [AM] 437
+
 // timezone in UTC
 date('e (I)', 1451640610) -> UTC (0)
 
@@ -219,6 +329,11 @@ date('e (I)', 1451640610) -> UTC (0)
 date('e (I)', 1451640610) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1451640610) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1451640610) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -230,6 +345,11 @@ date('Z T P O', 1451640610) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1451640610) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1451640610) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1454409010) -> 2016-02-02 10:30:10.000000
 
@@ -237,6 +357,11 @@ date('Y-m-d H:i:s.u', 1454409010) -> 2016-02-02 10:30:10.000000
 date('Y-m-d H:i:s.u', 1454409010) -> 2016-02-02 11:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1454409010) -> 2016-02-02 04:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1454409010) -> 2016-02-02 04:30:10.000000
 
 // english in UTC
@@ -248,6 +373,11 @@ date('r', 1454409010) -> Tue, 02 Feb 2016 11:30:10 +0100
 // english in America/Mexico_City
 date('r', 1454409010) -> Tue, 02 Feb 2016 04:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1454409010) -> Tue, 02 Feb 2016 04:30:10 -0600
+
 // iso in UTC
 date('c', 1454409010) -> 2016-02-02T10:30:10+00:00
 
@@ -255,6 +385,11 @@ date('c', 1454409010) -> 2016-02-02T10:30:10+00:00
 date('c', 1454409010) -> 2016-02-02T11:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1454409010) -> 2016-02-02T04:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1454409010) -> 2016-02-02T04:30:10-06:00
 
 // posix in UTC
@@ -266,6 +401,11 @@ date('U', 1454409010) -> 1454409010
 // posix in America/Mexico_City
 date('U', 1454409010) -> 1454409010
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1454409010) -> 1454409010
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1454409010) -> 2nd February 16 (Feb=2[29]) 10:30:10am (Tuesday;2)
 
@@ -273,6 +413,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1454409010) -> 2nd February 16 (Feb=2[29]) 
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1454409010) -> 2nd February 16 (Feb=2[29]) 11:30:10am (Tuesday;2)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1454409010) -> 2nd February 16 (Feb=2[29]) 4:30:10am (Tuesday;2)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1454409010) -> 2nd February 16 (Feb=2[29]) 4:30:10am (Tuesday;2)
 
 // leapyear? in UTC
@@ -284,6 +429,11 @@ date('L', 1454409010) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1454409010) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1454409010) -> 1
+
 // day of week in UTC
 date('D w', 1454409010) -> Tue 2
 
@@ -291,6 +441,11 @@ date('D w', 1454409010) -> Tue 2
 date('D w', 1454409010) -> Tue 2
 
 // day of week in America/Mexico_City
+date('D w', 1454409010) -> Tue 2
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1454409010) -> Tue 2
 
 // day of year in UTC
@@ -302,6 +457,11 @@ date('z', 1454409010) -> 32
 // day of year in America/Mexico_City
 date('z', 1454409010) -> 32
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1454409010) -> 32
+
 // week of year / year of week in UTC
 date('W - o', 1454409010) -> 05 - 2016
 
@@ -309,6 +469,11 @@ date('W - o', 1454409010) -> 05 - 2016
 date('W - o', 1454409010) -> 05 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1454409010) -> 05 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1454409010) -> 05 - 2016
 
 // hours in UTC
@@ -320,6 +485,11 @@ date('h H g G [A] B', 1454409010) -> 11 11 11 11 [AM] 479
 // hours in America/Mexico_City
 date('h H g G [A] B', 1454409010) -> 04 04 4 4 [AM] 479
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1454409010) -> 04 04 4 4 [AM] 479
+
 // timezone in UTC
 date('e (I)', 1454409010) -> UTC (0)
 
@@ -327,6 +497,11 @@ date('e (I)', 1454409010) -> UTC (0)
 date('e (I)', 1454409010) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1454409010) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1454409010) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -338,6 +513,11 @@ date('Z T P O', 1454409010) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1454409010) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1454409010) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1454495410) -> 2016-02-03 10:30:10.000000
 
@@ -345,6 +525,11 @@ date('Y-m-d H:i:s.u', 1454495410) -> 2016-02-03 10:30:10.000000
 date('Y-m-d H:i:s.u', 1454495410) -> 2016-02-03 11:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1454495410) -> 2016-02-03 04:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1454495410) -> 2016-02-03 04:30:10.000000
 
 // english in UTC
@@ -356,6 +541,11 @@ date('r', 1454495410) -> Wed, 03 Feb 2016 11:30:10 +0100
 // english in America/Mexico_City
 date('r', 1454495410) -> Wed, 03 Feb 2016 04:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1454495410) -> Wed, 03 Feb 2016 04:30:10 -0600
+
 // iso in UTC
 date('c', 1454495410) -> 2016-02-03T10:30:10+00:00
 
@@ -363,6 +553,11 @@ date('c', 1454495410) -> 2016-02-03T10:30:10+00:00
 date('c', 1454495410) -> 2016-02-03T11:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1454495410) -> 2016-02-03T04:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1454495410) -> 2016-02-03T04:30:10-06:00
 
 // posix in UTC
@@ -374,6 +569,11 @@ date('U', 1454495410) -> 1454495410
 // posix in America/Mexico_City
 date('U', 1454495410) -> 1454495410
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1454495410) -> 1454495410
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1454495410) -> 3rd February 16 (Feb=2[29]) 10:30:10am (Wednesday;3)
 
@@ -381,6 +581,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1454495410) -> 3rd February 16 (Feb=2[29]) 
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1454495410) -> 3rd February 16 (Feb=2[29]) 11:30:10am (Wednesday;3)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1454495410) -> 3rd February 16 (Feb=2[29]) 4:30:10am (Wednesday;3)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1454495410) -> 3rd February 16 (Feb=2[29]) 4:30:10am (Wednesday;3)
 
 // leapyear? in UTC
@@ -392,6 +597,11 @@ date('L', 1454495410) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1454495410) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1454495410) -> 1
+
 // day of week in UTC
 date('D w', 1454495410) -> Wed 3
 
@@ -399,6 +609,11 @@ date('D w', 1454495410) -> Wed 3
 date('D w', 1454495410) -> Wed 3
 
 // day of week in America/Mexico_City
+date('D w', 1454495410) -> Wed 3
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1454495410) -> Wed 3
 
 // day of year in UTC
@@ -410,6 +625,11 @@ date('z', 1454495410) -> 33
 // day of year in America/Mexico_City
 date('z', 1454495410) -> 33
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1454495410) -> 33
+
 // week of year / year of week in UTC
 date('W - o', 1454495410) -> 05 - 2016
 
@@ -417,6 +637,11 @@ date('W - o', 1454495410) -> 05 - 2016
 date('W - o', 1454495410) -> 05 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1454495410) -> 05 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1454495410) -> 05 - 2016
 
 // hours in UTC
@@ -428,6 +653,11 @@ date('h H g G [A] B', 1454495410) -> 11 11 11 11 [AM] 479
 // hours in America/Mexico_City
 date('h H g G [A] B', 1454495410) -> 04 04 4 4 [AM] 479
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1454495410) -> 04 04 4 4 [AM] 479
+
 // timezone in UTC
 date('e (I)', 1454495410) -> UTC (0)
 
@@ -435,6 +665,11 @@ date('e (I)', 1454495410) -> UTC (0)
 date('e (I)', 1454495410) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1454495410) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1454495410) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -446,6 +681,11 @@ date('Z T P O', 1454495410) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1454495410) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1454495410) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1457004610) -> 2016-03-03 11:30:10.000000
 
@@ -453,6 +693,11 @@ date('Y-m-d H:i:s.u', 1457004610) -> 2016-03-03 11:30:10.000000
 date('Y-m-d H:i:s.u', 1457004610) -> 2016-03-03 12:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1457004610) -> 2016-03-03 05:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1457004610) -> 2016-03-03 05:30:10.000000
 
 // english in UTC
@@ -464,6 +709,11 @@ date('r', 1457004610) -> Thu, 03 Mar 2016 12:30:10 +0100
 // english in America/Mexico_City
 date('r', 1457004610) -> Thu, 03 Mar 2016 05:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1457004610) -> Thu, 03 Mar 2016 05:30:10 -0600
+
 // iso in UTC
 date('c', 1457004610) -> 2016-03-03T11:30:10+00:00
 
@@ -471,6 +721,11 @@ date('c', 1457004610) -> 2016-03-03T11:30:10+00:00
 date('c', 1457004610) -> 2016-03-03T12:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1457004610) -> 2016-03-03T05:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1457004610) -> 2016-03-03T05:30:10-06:00
 
 // posix in UTC
@@ -482,6 +737,11 @@ date('U', 1457004610) -> 1457004610
 // posix in America/Mexico_City
 date('U', 1457004610) -> 1457004610
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1457004610) -> 1457004610
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1457004610) -> 3rd March 16 (Mar=3[31]) 11:30:10am (Thursday;4)
 
@@ -489,6 +749,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1457004610) -> 3rd March 16 (Mar=3[31]) 11:
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1457004610) -> 3rd March 16 (Mar=3[31]) 12:30:10pm (Thursday;4)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1457004610) -> 3rd March 16 (Mar=3[31]) 5:30:10am (Thursday;4)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1457004610) -> 3rd March 16 (Mar=3[31]) 5:30:10am (Thursday;4)
 
 // leapyear? in UTC
@@ -500,6 +765,11 @@ date('L', 1457004610) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1457004610) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1457004610) -> 1
+
 // day of week in UTC
 date('D w', 1457004610) -> Thu 4
 
@@ -507,6 +777,11 @@ date('D w', 1457004610) -> Thu 4
 date('D w', 1457004610) -> Thu 4
 
 // day of week in America/Mexico_City
+date('D w', 1457004610) -> Thu 4
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1457004610) -> Thu 4
 
 // day of year in UTC
@@ -518,6 +793,11 @@ date('z', 1457004610) -> 62
 // day of year in America/Mexico_City
 date('z', 1457004610) -> 62
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1457004610) -> 62
+
 // week of year / year of week in UTC
 date('W - o', 1457004610) -> 09 - 2016
 
@@ -525,6 +805,11 @@ date('W - o', 1457004610) -> 09 - 2016
 date('W - o', 1457004610) -> 09 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1457004610) -> 09 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1457004610) -> 09 - 2016
 
 // hours in UTC
@@ -536,6 +821,11 @@ date('h H g G [A] B', 1457004610) -> 12 12 12 12 [PM] 520
 // hours in America/Mexico_City
 date('h H g G [A] B', 1457004610) -> 05 05 5 5 [AM] 520
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1457004610) -> 05 05 5 5 [AM] 520
+
 // timezone in UTC
 date('e (I)', 1457004610) -> UTC (0)
 
@@ -543,6 +833,11 @@ date('e (I)', 1457004610) -> UTC (0)
 date('e (I)', 1457004610) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1457004610) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1457004610) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -554,6 +849,11 @@ date('Z T P O', 1457004610) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1457004610) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1457004610) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1459773010) -> 2016-04-04 12:30:10.000000
 
@@ -561,6 +861,11 @@ date('Y-m-d H:i:s.u', 1459773010) -> 2016-04-04 12:30:10.000000
 date('Y-m-d H:i:s.u', 1459773010) -> 2016-04-04 14:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1459773010) -> 2016-04-04 07:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1459773010) -> 2016-04-04 07:30:10.000000
 
 // english in UTC
@@ -572,6 +877,11 @@ date('r', 1459773010) -> Mon, 04 Apr 2016 14:30:10 +0200
 // english in America/Mexico_City
 date('r', 1459773010) -> Mon, 04 Apr 2016 07:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1459773010) -> Mon, 04 Apr 2016 07:30:10 -0500
+
 // iso in UTC
 date('c', 1459773010) -> 2016-04-04T12:30:10+00:00
 
@@ -579,6 +889,11 @@ date('c', 1459773010) -> 2016-04-04T12:30:10+00:00
 date('c', 1459773010) -> 2016-04-04T14:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1459773010) -> 2016-04-04T07:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1459773010) -> 2016-04-04T07:30:10-05:00
 
 // posix in UTC
@@ -590,6 +905,11 @@ date('U', 1459773010) -> 1459773010
 // posix in America/Mexico_City
 date('U', 1459773010) -> 1459773010
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1459773010) -> 1459773010
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1459773010) -> 4th April 16 (Apr=4[30]) 12:30:10pm (Monday;1)
 
@@ -597,6 +917,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1459773010) -> 4th April 16 (Apr=4[30]) 12:
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1459773010) -> 4th April 16 (Apr=4[30]) 2:30:10pm (Monday;1)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1459773010) -> 4th April 16 (Apr=4[30]) 7:30:10am (Monday;1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1459773010) -> 4th April 16 (Apr=4[30]) 7:30:10am (Monday;1)
 
 // leapyear? in UTC
@@ -608,6 +933,11 @@ date('L', 1459773010) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1459773010) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1459773010) -> 1
+
 // day of week in UTC
 date('D w', 1459773010) -> Mon 1
 
@@ -615,6 +945,11 @@ date('D w', 1459773010) -> Mon 1
 date('D w', 1459773010) -> Mon 1
 
 // day of week in America/Mexico_City
+date('D w', 1459773010) -> Mon 1
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1459773010) -> Mon 1
 
 // day of year in UTC
@@ -626,6 +961,11 @@ date('z', 1459773010) -> 94
 // day of year in America/Mexico_City
 date('z', 1459773010) -> 94
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1459773010) -> 94
+
 // week of year / year of week in UTC
 date('W - o', 1459773010) -> 14 - 2016
 
@@ -633,6 +973,11 @@ date('W - o', 1459773010) -> 14 - 2016
 date('W - o', 1459773010) -> 14 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1459773010) -> 14 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1459773010) -> 14 - 2016
 
 // hours in UTC
@@ -644,6 +989,11 @@ date('h H g G [A] B', 1459773010) -> 02 14 2 14 [PM] 562
 // hours in America/Mexico_City
 date('h H g G [A] B', 1459773010) -> 07 07 7 7 [AM] 562
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1459773010) -> 07 07 7 7 [AM] 562
+
 // timezone in UTC
 date('e (I)', 1459773010) -> UTC (0)
 
@@ -651,6 +1001,11 @@ date('e (I)', 1459773010) -> UTC (0)
 date('e (I)', 1459773010) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1459773010) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1459773010) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -662,6 +1017,11 @@ date('Z T P O', 1459773010) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1459773010) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1459773010) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1462455010) -> 2016-05-05 13:30:10.000000
 
@@ -669,6 +1029,11 @@ date('Y-m-d H:i:s.u', 1462455010) -> 2016-05-05 13:30:10.000000
 date('Y-m-d H:i:s.u', 1462455010) -> 2016-05-05 15:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1462455010) -> 2016-05-05 08:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1462455010) -> 2016-05-05 08:30:10.000000
 
 // english in UTC
@@ -680,6 +1045,11 @@ date('r', 1462455010) -> Thu, 05 May 2016 15:30:10 +0200
 // english in America/Mexico_City
 date('r', 1462455010) -> Thu, 05 May 2016 08:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1462455010) -> Thu, 05 May 2016 08:30:10 -0500
+
 // iso in UTC
 date('c', 1462455010) -> 2016-05-05T13:30:10+00:00
 
@@ -687,6 +1057,11 @@ date('c', 1462455010) -> 2016-05-05T13:30:10+00:00
 date('c', 1462455010) -> 2016-05-05T15:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1462455010) -> 2016-05-05T08:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1462455010) -> 2016-05-05T08:30:10-05:00
 
 // posix in UTC
@@ -698,6 +1073,11 @@ date('U', 1462455010) -> 1462455010
 // posix in America/Mexico_City
 date('U', 1462455010) -> 1462455010
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1462455010) -> 1462455010
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1462455010) -> 5th May 16 (May=5[31]) 1:30:10pm (Thursday;4)
 
@@ -705,6 +1085,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1462455010) -> 5th May 16 (May=5[31]) 1:30:
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1462455010) -> 5th May 16 (May=5[31]) 3:30:10pm (Thursday;4)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1462455010) -> 5th May 16 (May=5[31]) 8:30:10am (Thursday;4)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1462455010) -> 5th May 16 (May=5[31]) 8:30:10am (Thursday;4)
 
 // leapyear? in UTC
@@ -716,6 +1101,11 @@ date('L', 1462455010) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1462455010) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1462455010) -> 1
+
 // day of week in UTC
 date('D w', 1462455010) -> Thu 4
 
@@ -723,6 +1113,11 @@ date('D w', 1462455010) -> Thu 4
 date('D w', 1462455010) -> Thu 4
 
 // day of week in America/Mexico_City
+date('D w', 1462455010) -> Thu 4
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1462455010) -> Thu 4
 
 // day of year in UTC
@@ -734,6 +1129,11 @@ date('z', 1462455010) -> 125
 // day of year in America/Mexico_City
 date('z', 1462455010) -> 125
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1462455010) -> 125
+
 // week of year / year of week in UTC
 date('W - o', 1462455010) -> 18 - 2016
 
@@ -741,6 +1141,11 @@ date('W - o', 1462455010) -> 18 - 2016
 date('W - o', 1462455010) -> 18 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1462455010) -> 18 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1462455010) -> 18 - 2016
 
 // hours in UTC
@@ -752,6 +1157,11 @@ date('h H g G [A] B', 1462455010) -> 03 15 3 15 [PM] 604
 // hours in America/Mexico_City
 date('h H g G [A] B', 1462455010) -> 08 08 8 8 [AM] 604
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1462455010) -> 08 08 8 8 [AM] 604
+
 // timezone in UTC
 date('e (I)', 1462455010) -> UTC (0)
 
@@ -759,6 +1169,11 @@ date('e (I)', 1462455010) -> UTC (0)
 date('e (I)', 1462455010) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1462455010) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1462455010) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -770,6 +1185,11 @@ date('Z T P O', 1462455010) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1462455010) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1462455010) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1465223410) -> 2016-06-06 14:30:10.000000
 
@@ -777,6 +1197,11 @@ date('Y-m-d H:i:s.u', 1465223410) -> 2016-06-06 14:30:10.000000
 date('Y-m-d H:i:s.u', 1465223410) -> 2016-06-06 16:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1465223410) -> 2016-06-06 09:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1465223410) -> 2016-06-06 09:30:10.000000
 
 // english in UTC
@@ -788,6 +1213,11 @@ date('r', 1465223410) -> Mon, 06 Jun 2016 16:30:10 +0200
 // english in America/Mexico_City
 date('r', 1465223410) -> Mon, 06 Jun 2016 09:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1465223410) -> Mon, 06 Jun 2016 09:30:10 -0500
+
 // iso in UTC
 date('c', 1465223410) -> 2016-06-06T14:30:10+00:00
 
@@ -795,6 +1225,11 @@ date('c', 1465223410) -> 2016-06-06T14:30:10+00:00
 date('c', 1465223410) -> 2016-06-06T16:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1465223410) -> 2016-06-06T09:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1465223410) -> 2016-06-06T09:30:10-05:00
 
 // posix in UTC
@@ -806,6 +1241,11 @@ date('U', 1465223410) -> 1465223410
 // posix in America/Mexico_City
 date('U', 1465223410) -> 1465223410
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1465223410) -> 1465223410
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1465223410) -> 6th June 16 (Jun=6[30]) 2:30:10pm (Monday;1)
 
@@ -813,6 +1253,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1465223410) -> 6th June 16 (Jun=6[30]) 2:30
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1465223410) -> 6th June 16 (Jun=6[30]) 4:30:10pm (Monday;1)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1465223410) -> 6th June 16 (Jun=6[30]) 9:30:10am (Monday;1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1465223410) -> 6th June 16 (Jun=6[30]) 9:30:10am (Monday;1)
 
 // leapyear? in UTC
@@ -824,6 +1269,11 @@ date('L', 1465223410) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1465223410) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1465223410) -> 1
+
 // day of week in UTC
 date('D w', 1465223410) -> Mon 1
 
@@ -831,6 +1281,11 @@ date('D w', 1465223410) -> Mon 1
 date('D w', 1465223410) -> Mon 1
 
 // day of week in America/Mexico_City
+date('D w', 1465223410) -> Mon 1
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1465223410) -> Mon 1
 
 // day of year in UTC
@@ -842,6 +1297,11 @@ date('z', 1465223410) -> 157
 // day of year in America/Mexico_City
 date('z', 1465223410) -> 157
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1465223410) -> 157
+
 // week of year / year of week in UTC
 date('W - o', 1465223410) -> 23 - 2016
 
@@ -849,6 +1309,11 @@ date('W - o', 1465223410) -> 23 - 2016
 date('W - o', 1465223410) -> 23 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1465223410) -> 23 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1465223410) -> 23 - 2016
 
 // hours in UTC
@@ -860,6 +1325,11 @@ date('h H g G [A] B', 1465223410) -> 04 16 4 16 [PM] 645
 // hours in America/Mexico_City
 date('h H g G [A] B', 1465223410) -> 09 09 9 9 [AM] 645
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1465223410) -> 09 09 9 9 [AM] 645
+
 // timezone in UTC
 date('e (I)', 1465223410) -> UTC (0)
 
@@ -867,6 +1337,11 @@ date('e (I)', 1465223410) -> UTC (0)
 date('e (I)', 1465223410) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1465223410) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1465223410) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -878,6 +1353,11 @@ date('Z T P O', 1465223410) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1465223410) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1465223410) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1467905410) -> 2016-07-07 15:30:10.000000
 
@@ -885,6 +1365,11 @@ date('Y-m-d H:i:s.u', 1467905410) -> 2016-07-07 15:30:10.000000
 date('Y-m-d H:i:s.u', 1467905410) -> 2016-07-07 17:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1467905410) -> 2016-07-07 10:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1467905410) -> 2016-07-07 10:30:10.000000
 
 // english in UTC
@@ -896,6 +1381,11 @@ date('r', 1467905410) -> Thu, 07 Jul 2016 17:30:10 +0200
 // english in America/Mexico_City
 date('r', 1467905410) -> Thu, 07 Jul 2016 10:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1467905410) -> Thu, 07 Jul 2016 10:30:10 -0500
+
 // iso in UTC
 date('c', 1467905410) -> 2016-07-07T15:30:10+00:00
 
@@ -903,6 +1393,11 @@ date('c', 1467905410) -> 2016-07-07T15:30:10+00:00
 date('c', 1467905410) -> 2016-07-07T17:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1467905410) -> 2016-07-07T10:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1467905410) -> 2016-07-07T10:30:10-05:00
 
 // posix in UTC
@@ -914,6 +1409,11 @@ date('U', 1467905410) -> 1467905410
 // posix in America/Mexico_City
 date('U', 1467905410) -> 1467905410
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1467905410) -> 1467905410
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1467905410) -> 7th July 16 (Jul=7[31]) 3:30:10pm (Thursday;4)
 
@@ -921,6 +1421,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1467905410) -> 7th July 16 (Jul=7[31]) 3:30
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1467905410) -> 7th July 16 (Jul=7[31]) 5:30:10pm (Thursday;4)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1467905410) -> 7th July 16 (Jul=7[31]) 10:30:10am (Thursday;4)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1467905410) -> 7th July 16 (Jul=7[31]) 10:30:10am (Thursday;4)
 
 // leapyear? in UTC
@@ -932,6 +1437,11 @@ date('L', 1467905410) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1467905410) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1467905410) -> 1
+
 // day of week in UTC
 date('D w', 1467905410) -> Thu 4
 
@@ -939,6 +1449,11 @@ date('D w', 1467905410) -> Thu 4
 date('D w', 1467905410) -> Thu 4
 
 // day of week in America/Mexico_City
+date('D w', 1467905410) -> Thu 4
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1467905410) -> Thu 4
 
 // day of year in UTC
@@ -950,6 +1465,11 @@ date('z', 1467905410) -> 188
 // day of year in America/Mexico_City
 date('z', 1467905410) -> 188
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1467905410) -> 188
+
 // week of year / year of week in UTC
 date('W - o', 1467905410) -> 27 - 2016
 
@@ -957,6 +1477,11 @@ date('W - o', 1467905410) -> 27 - 2016
 date('W - o', 1467905410) -> 27 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1467905410) -> 27 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1467905410) -> 27 - 2016
 
 // hours in UTC
@@ -968,6 +1493,11 @@ date('h H g G [A] B', 1467905410) -> 05 17 5 17 [PM] 687
 // hours in America/Mexico_City
 date('h H g G [A] B', 1467905410) -> 10 10 10 10 [AM] 687
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1467905410) -> 10 10 10 10 [AM] 687
+
 // timezone in UTC
 date('e (I)', 1467905410) -> UTC (0)
 
@@ -975,6 +1505,11 @@ date('e (I)', 1467905410) -> UTC (0)
 date('e (I)', 1467905410) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1467905410) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1467905410) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -986,6 +1521,11 @@ date('Z T P O', 1467905410) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1467905410) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1467905410) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1470673810) -> 2016-08-08 16:30:10.000000
 
@@ -993,6 +1533,11 @@ date('Y-m-d H:i:s.u', 1470673810) -> 2016-08-08 16:30:10.000000
 date('Y-m-d H:i:s.u', 1470673810) -> 2016-08-08 18:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1470673810) -> 2016-08-08 11:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1470673810) -> 2016-08-08 11:30:10.000000
 
 // english in UTC
@@ -1004,6 +1549,11 @@ date('r', 1470673810) -> Mon, 08 Aug 2016 18:30:10 +0200
 // english in America/Mexico_City
 date('r', 1470673810) -> Mon, 08 Aug 2016 11:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1470673810) -> Mon, 08 Aug 2016 11:30:10 -0500
+
 // iso in UTC
 date('c', 1470673810) -> 2016-08-08T16:30:10+00:00
 
@@ -1011,6 +1561,11 @@ date('c', 1470673810) -> 2016-08-08T16:30:10+00:00
 date('c', 1470673810) -> 2016-08-08T18:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1470673810) -> 2016-08-08T11:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1470673810) -> 2016-08-08T11:30:10-05:00
 
 // posix in UTC
@@ -1022,6 +1577,11 @@ date('U', 1470673810) -> 1470673810
 // posix in America/Mexico_City
 date('U', 1470673810) -> 1470673810
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1470673810) -> 1470673810
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1470673810) -> 8th August 16 (Aug=8[31]) 4:30:10pm (Monday;1)
 
@@ -1029,6 +1589,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1470673810) -> 8th August 16 (Aug=8[31]) 4:
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1470673810) -> 8th August 16 (Aug=8[31]) 6:30:10pm (Monday;1)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1470673810) -> 8th August 16 (Aug=8[31]) 11:30:10am (Monday;1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1470673810) -> 8th August 16 (Aug=8[31]) 11:30:10am (Monday;1)
 
 // leapyear? in UTC
@@ -1040,6 +1605,11 @@ date('L', 1470673810) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1470673810) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1470673810) -> 1
+
 // day of week in UTC
 date('D w', 1470673810) -> Mon 1
 
@@ -1047,6 +1617,11 @@ date('D w', 1470673810) -> Mon 1
 date('D w', 1470673810) -> Mon 1
 
 // day of week in America/Mexico_City
+date('D w', 1470673810) -> Mon 1
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1470673810) -> Mon 1
 
 // day of year in UTC
@@ -1058,6 +1633,11 @@ date('z', 1470673810) -> 220
 // day of year in America/Mexico_City
 date('z', 1470673810) -> 220
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1470673810) -> 220
+
 // week of year / year of week in UTC
 date('W - o', 1470673810) -> 32 - 2016
 
@@ -1065,6 +1645,11 @@ date('W - o', 1470673810) -> 32 - 2016
 date('W - o', 1470673810) -> 32 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1470673810) -> 32 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1470673810) -> 32 - 2016
 
 // hours in UTC
@@ -1076,6 +1661,11 @@ date('h H g G [A] B', 1470673810) -> 06 18 6 18 [PM] 729
 // hours in America/Mexico_City
 date('h H g G [A] B', 1470673810) -> 11 11 11 11 [AM] 729
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1470673810) -> 11 11 11 11 [AM] 729
+
 // timezone in UTC
 date('e (I)', 1470673810) -> UTC (0)
 
@@ -1083,6 +1673,11 @@ date('e (I)', 1470673810) -> UTC (0)
 date('e (I)', 1470673810) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1470673810) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1470673810) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -1094,6 +1689,11 @@ date('Z T P O', 1470673810) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1470673810) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1470673810) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1473442210) -> 2016-09-09 17:30:10.000000
 
@@ -1101,6 +1701,11 @@ date('Y-m-d H:i:s.u', 1473442210) -> 2016-09-09 17:30:10.000000
 date('Y-m-d H:i:s.u', 1473442210) -> 2016-09-09 19:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1473442210) -> 2016-09-09 12:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1473442210) -> 2016-09-09 12:30:10.000000
 
 // english in UTC
@@ -1112,6 +1717,11 @@ date('r', 1473442210) -> Fri, 09 Sep 2016 19:30:10 +0200
 // english in America/Mexico_City
 date('r', 1473442210) -> Fri, 09 Sep 2016 12:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1473442210) -> Fri, 09 Sep 2016 12:30:10 -0500
+
 // iso in UTC
 date('c', 1473442210) -> 2016-09-09T17:30:10+00:00
 
@@ -1119,6 +1729,11 @@ date('c', 1473442210) -> 2016-09-09T17:30:10+00:00
 date('c', 1473442210) -> 2016-09-09T19:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1473442210) -> 2016-09-09T12:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1473442210) -> 2016-09-09T12:30:10-05:00
 
 // posix in UTC
@@ -1130,6 +1745,11 @@ date('U', 1473442210) -> 1473442210
 // posix in America/Mexico_City
 date('U', 1473442210) -> 1473442210
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1473442210) -> 1473442210
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1473442210) -> 9th September 16 (Sep=9[30]) 5:30:10pm (Friday;5)
 
@@ -1137,6 +1757,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1473442210) -> 9th September 16 (Sep=9[30])
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1473442210) -> 9th September 16 (Sep=9[30]) 7:30:10pm (Friday;5)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1473442210) -> 9th September 16 (Sep=9[30]) 12:30:10pm (Friday;5)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1473442210) -> 9th September 16 (Sep=9[30]) 12:30:10pm (Friday;5)
 
 // leapyear? in UTC
@@ -1148,6 +1773,11 @@ date('L', 1473442210) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1473442210) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1473442210) -> 1
+
 // day of week in UTC
 date('D w', 1473442210) -> Fri 5
 
@@ -1155,6 +1785,11 @@ date('D w', 1473442210) -> Fri 5
 date('D w', 1473442210) -> Fri 5
 
 // day of week in America/Mexico_City
+date('D w', 1473442210) -> Fri 5
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1473442210) -> Fri 5
 
 // day of year in UTC
@@ -1166,6 +1801,11 @@ date('z', 1473442210) -> 252
 // day of year in America/Mexico_City
 date('z', 1473442210) -> 252
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1473442210) -> 252
+
 // week of year / year of week in UTC
 date('W - o', 1473442210) -> 36 - 2016
 
@@ -1173,6 +1813,11 @@ date('W - o', 1473442210) -> 36 - 2016
 date('W - o', 1473442210) -> 36 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1473442210) -> 36 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1473442210) -> 36 - 2016
 
 // hours in UTC
@@ -1184,6 +1829,11 @@ date('h H g G [A] B', 1473442210) -> 07 19 7 19 [PM] 770
 // hours in America/Mexico_City
 date('h H g G [A] B', 1473442210) -> 12 12 12 12 [PM] 770
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1473442210) -> 12 12 12 12 [PM] 770
+
 // timezone in UTC
 date('e (I)', 1473442210) -> UTC (0)
 
@@ -1191,6 +1841,11 @@ date('e (I)', 1473442210) -> UTC (0)
 date('e (I)', 1473442210) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1473442210) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1473442210) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -1202,6 +1857,11 @@ date('Z T P O', 1473442210) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1473442210) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1473442210) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1476124210) -> 2016-10-10 18:30:10.000000
 
@@ -1209,6 +1869,11 @@ date('Y-m-d H:i:s.u', 1476124210) -> 2016-10-10 18:30:10.000000
 date('Y-m-d H:i:s.u', 1476124210) -> 2016-10-10 20:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1476124210) -> 2016-10-10 13:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1476124210) -> 2016-10-10 13:30:10.000000
 
 // english in UTC
@@ -1220,6 +1885,11 @@ date('r', 1476124210) -> Mon, 10 Oct 2016 20:30:10 +0200
 // english in America/Mexico_City
 date('r', 1476124210) -> Mon, 10 Oct 2016 13:30:10 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1476124210) -> Mon, 10 Oct 2016 13:30:10 -0500
+
 // iso in UTC
 date('c', 1476124210) -> 2016-10-10T18:30:10+00:00
 
@@ -1227,6 +1897,11 @@ date('c', 1476124210) -> 2016-10-10T18:30:10+00:00
 date('c', 1476124210) -> 2016-10-10T20:30:10+02:00
 
 // iso in America/Mexico_City
+date('c', 1476124210) -> 2016-10-10T13:30:10-05:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1476124210) -> 2016-10-10T13:30:10-05:00
 
 // posix in UTC
@@ -1238,6 +1913,11 @@ date('U', 1476124210) -> 1476124210
 // posix in America/Mexico_City
 date('U', 1476124210) -> 1476124210
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1476124210) -> 1476124210
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1476124210) -> 10th October 16 (Oct=10[31]) 6:30:10pm (Monday;1)
 
@@ -1245,6 +1925,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1476124210) -> 10th October 16 (Oct=10[31])
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1476124210) -> 10th October 16 (Oct=10[31]) 8:30:10pm (Monday;1)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1476124210) -> 10th October 16 (Oct=10[31]) 1:30:10pm (Monday;1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1476124210) -> 10th October 16 (Oct=10[31]) 1:30:10pm (Monday;1)
 
 // leapyear? in UTC
@@ -1256,6 +1941,11 @@ date('L', 1476124210) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1476124210) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1476124210) -> 1
+
 // day of week in UTC
 date('D w', 1476124210) -> Mon 1
 
@@ -1263,6 +1953,11 @@ date('D w', 1476124210) -> Mon 1
 date('D w', 1476124210) -> Mon 1
 
 // day of week in America/Mexico_City
+date('D w', 1476124210) -> Mon 1
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1476124210) -> Mon 1
 
 // day of year in UTC
@@ -1274,6 +1969,11 @@ date('z', 1476124210) -> 283
 // day of year in America/Mexico_City
 date('z', 1476124210) -> 283
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1476124210) -> 283
+
 // week of year / year of week in UTC
 date('W - o', 1476124210) -> 41 - 2016
 
@@ -1281,6 +1981,11 @@ date('W - o', 1476124210) -> 41 - 2016
 date('W - o', 1476124210) -> 41 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1476124210) -> 41 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1476124210) -> 41 - 2016
 
 // hours in UTC
@@ -1292,6 +1997,11 @@ date('h H g G [A] B', 1476124210) -> 08 20 8 20 [PM] 812
 // hours in America/Mexico_City
 date('h H g G [A] B', 1476124210) -> 01 13 1 13 [PM] 812
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1476124210) -> 01 13 1 13 [PM] 812
+
 // timezone in UTC
 date('e (I)', 1476124210) -> UTC (0)
 
@@ -1299,6 +2009,11 @@ date('e (I)', 1476124210) -> UTC (0)
 date('e (I)', 1476124210) -> Europe/Madrid (1)
 
 // timezone in America/Mexico_City
+date('e (I)', 1476124210) -> America/Mexico_City (1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1476124210) -> America/Mexico_City (1)
 
 // 0 in UTC
@@ -1310,6 +2025,11 @@ date('Z T P O', 1476124210) -> 7200 CEST +02:00 +0200
 // 0 in America/Mexico_City
 date('Z T P O', 1476124210) -> -18000 CDT -05:00 -0500
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1476124210) -> -18000 CDT -05:00 -0500
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1478892610) -> 2016-11-11 19:30:10.000000
 
@@ -1317,6 +2037,11 @@ date('Y-m-d H:i:s.u', 1478892610) -> 2016-11-11 19:30:10.000000
 date('Y-m-d H:i:s.u', 1478892610) -> 2016-11-11 20:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1478892610) -> 2016-11-11 13:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1478892610) -> 2016-11-11 13:30:10.000000
 
 // english in UTC
@@ -1328,6 +2053,11 @@ date('r', 1478892610) -> Fri, 11 Nov 2016 20:30:10 +0100
 // english in America/Mexico_City
 date('r', 1478892610) -> Fri, 11 Nov 2016 13:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1478892610) -> Fri, 11 Nov 2016 13:30:10 -0600
+
 // iso in UTC
 date('c', 1478892610) -> 2016-11-11T19:30:10+00:00
 
@@ -1335,6 +2065,11 @@ date('c', 1478892610) -> 2016-11-11T19:30:10+00:00
 date('c', 1478892610) -> 2016-11-11T20:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1478892610) -> 2016-11-11T13:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1478892610) -> 2016-11-11T13:30:10-06:00
 
 // posix in UTC
@@ -1346,6 +2081,11 @@ date('U', 1478892610) -> 1478892610
 // posix in America/Mexico_City
 date('U', 1478892610) -> 1478892610
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1478892610) -> 1478892610
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1478892610) -> 11th November 16 (Nov=11[30]) 7:30:10pm (Friday;5)
 
@@ -1353,6 +2093,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1478892610) -> 11th November 16 (Nov=11[30]
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1478892610) -> 11th November 16 (Nov=11[30]) 8:30:10pm (Friday;5)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1478892610) -> 11th November 16 (Nov=11[30]) 1:30:10pm (Friday;5)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1478892610) -> 11th November 16 (Nov=11[30]) 1:30:10pm (Friday;5)
 
 // leapyear? in UTC
@@ -1364,6 +2109,11 @@ date('L', 1478892610) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1478892610) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1478892610) -> 1
+
 // day of week in UTC
 date('D w', 1478892610) -> Fri 5
 
@@ -1371,6 +2121,11 @@ date('D w', 1478892610) -> Fri 5
 date('D w', 1478892610) -> Fri 5
 
 // day of week in America/Mexico_City
+date('D w', 1478892610) -> Fri 5
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1478892610) -> Fri 5
 
 // day of year in UTC
@@ -1382,6 +2137,11 @@ date('z', 1478892610) -> 315
 // day of year in America/Mexico_City
 date('z', 1478892610) -> 315
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1478892610) -> 315
+
 // week of year / year of week in UTC
 date('W - o', 1478892610) -> 45 - 2016
 
@@ -1389,6 +2149,11 @@ date('W - o', 1478892610) -> 45 - 2016
 date('W - o', 1478892610) -> 45 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1478892610) -> 45 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1478892610) -> 45 - 2016
 
 // hours in UTC
@@ -1400,6 +2165,11 @@ date('h H g G [A] B', 1478892610) -> 08 20 8 20 [PM] 854
 // hours in America/Mexico_City
 date('h H g G [A] B', 1478892610) -> 01 13 1 13 [PM] 854
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1478892610) -> 01 13 1 13 [PM] 854
+
 // timezone in UTC
 date('e (I)', 1478892610) -> UTC (0)
 
@@ -1407,6 +2177,11 @@ date('e (I)', 1478892610) -> UTC (0)
 date('e (I)', 1478892610) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1478892610) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1478892610) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -1418,6 +2193,11 @@ date('Z T P O', 1478892610) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1478892610) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1478892610) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1481401810) -> 2016-12-10 20:30:10.000000
 
@@ -1425,6 +2205,11 @@ date('Y-m-d H:i:s.u', 1481401810) -> 2016-12-10 20:30:10.000000
 date('Y-m-d H:i:s.u', 1481401810) -> 2016-12-10 21:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1481401810) -> 2016-12-10 14:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1481401810) -> 2016-12-10 14:30:10.000000
 
 // english in UTC
@@ -1436,6 +2221,11 @@ date('r', 1481401810) -> Sat, 10 Dec 2016 21:30:10 +0100
 // english in America/Mexico_City
 date('r', 1481401810) -> Sat, 10 Dec 2016 14:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1481401810) -> Sat, 10 Dec 2016 14:30:10 -0600
+
 // iso in UTC
 date('c', 1481401810) -> 2016-12-10T20:30:10+00:00
 
@@ -1443,6 +2233,11 @@ date('c', 1481401810) -> 2016-12-10T20:30:10+00:00
 date('c', 1481401810) -> 2016-12-10T21:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1481401810) -> 2016-12-10T14:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1481401810) -> 2016-12-10T14:30:10-06:00
 
 // posix in UTC
@@ -1454,6 +2249,11 @@ date('U', 1481401810) -> 1481401810
 // posix in America/Mexico_City
 date('U', 1481401810) -> 1481401810
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1481401810) -> 1481401810
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481401810) -> 10th December 16 (Dec=12[31]) 8:30:10pm (Saturday;6)
 
@@ -1461,6 +2261,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1481401810) -> 10th December 16 (Dec=12[31]
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481401810) -> 10th December 16 (Dec=12[31]) 9:30:10pm (Saturday;6)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1481401810) -> 10th December 16 (Dec=12[31]) 2:30:10pm (Saturday;6)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481401810) -> 10th December 16 (Dec=12[31]) 2:30:10pm (Saturday;6)
 
 // leapyear? in UTC
@@ -1472,6 +2277,11 @@ date('L', 1481401810) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1481401810) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1481401810) -> 1
+
 // day of week in UTC
 date('D w', 1481401810) -> Sat 6
 
@@ -1479,6 +2289,11 @@ date('D w', 1481401810) -> Sat 6
 date('D w', 1481401810) -> Sat 6
 
 // day of week in America/Mexico_City
+date('D w', 1481401810) -> Sat 6
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1481401810) -> Sat 6
 
 // day of year in UTC
@@ -1490,6 +2305,11 @@ date('z', 1481401810) -> 344
 // day of year in America/Mexico_City
 date('z', 1481401810) -> 344
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1481401810) -> 344
+
 // week of year / year of week in UTC
 date('W - o', 1481401810) -> 49 - 2016
 
@@ -1497,6 +2317,11 @@ date('W - o', 1481401810) -> 49 - 2016
 date('W - o', 1481401810) -> 49 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1481401810) -> 49 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1481401810) -> 49 - 2016
 
 // hours in UTC
@@ -1508,6 +2333,11 @@ date('h H g G [A] B', 1481401810) -> 09 21 9 21 [PM] 895
 // hours in America/Mexico_City
 date('h H g G [A] B', 1481401810) -> 02 14 2 14 [PM] 895
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1481401810) -> 02 14 2 14 [PM] 895
+
 // timezone in UTC
 date('e (I)', 1481401810) -> UTC (0)
 
@@ -1515,6 +2345,11 @@ date('e (I)', 1481401810) -> UTC (0)
 date('e (I)', 1481401810) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1481401810) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1481401810) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -1526,6 +2361,11 @@ date('Z T P O', 1481401810) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1481401810) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1481401810) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1481488210) -> 2016-12-11 20:30:10.000000
 
@@ -1533,6 +2373,11 @@ date('Y-m-d H:i:s.u', 1481488210) -> 2016-12-11 20:30:10.000000
 date('Y-m-d H:i:s.u', 1481488210) -> 2016-12-11 21:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1481488210) -> 2016-12-11 14:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1481488210) -> 2016-12-11 14:30:10.000000
 
 // english in UTC
@@ -1544,6 +2389,11 @@ date('r', 1481488210) -> Sun, 11 Dec 2016 21:30:10 +0100
 // english in America/Mexico_City
 date('r', 1481488210) -> Sun, 11 Dec 2016 14:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1481488210) -> Sun, 11 Dec 2016 14:30:10 -0600
+
 // iso in UTC
 date('c', 1481488210) -> 2016-12-11T20:30:10+00:00
 
@@ -1551,6 +2401,11 @@ date('c', 1481488210) -> 2016-12-11T20:30:10+00:00
 date('c', 1481488210) -> 2016-12-11T21:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1481488210) -> 2016-12-11T14:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1481488210) -> 2016-12-11T14:30:10-06:00
 
 // posix in UTC
@@ -1562,6 +2417,11 @@ date('U', 1481488210) -> 1481488210
 // posix in America/Mexico_City
 date('U', 1481488210) -> 1481488210
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1481488210) -> 1481488210
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481488210) -> 11th December 16 (Dec=12[31]) 8:30:10pm (Sunday;7)
 
@@ -1569,6 +2429,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1481488210) -> 11th December 16 (Dec=12[31]
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481488210) -> 11th December 16 (Dec=12[31]) 9:30:10pm (Sunday;7)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1481488210) -> 11th December 16 (Dec=12[31]) 2:30:10pm (Sunday;7)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481488210) -> 11th December 16 (Dec=12[31]) 2:30:10pm (Sunday;7)
 
 // leapyear? in UTC
@@ -1580,6 +2445,11 @@ date('L', 1481488210) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1481488210) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1481488210) -> 1
+
 // day of week in UTC
 date('D w', 1481488210) -> Sun 0
 
@@ -1587,6 +2457,11 @@ date('D w', 1481488210) -> Sun 0
 date('D w', 1481488210) -> Sun 0
 
 // day of week in America/Mexico_City
+date('D w', 1481488210) -> Sun 0
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1481488210) -> Sun 0
 
 // day of year in UTC
@@ -1598,6 +2473,11 @@ date('z', 1481488210) -> 345
 // day of year in America/Mexico_City
 date('z', 1481488210) -> 345
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1481488210) -> 345
+
 // week of year / year of week in UTC
 date('W - o', 1481488210) -> 49 - 2016
 
@@ -1605,6 +2485,11 @@ date('W - o', 1481488210) -> 49 - 2016
 date('W - o', 1481488210) -> 49 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1481488210) -> 49 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1481488210) -> 49 - 2016
 
 // hours in UTC
@@ -1616,6 +2501,11 @@ date('h H g G [A] B', 1481488210) -> 09 21 9 21 [PM] 895
 // hours in America/Mexico_City
 date('h H g G [A] B', 1481488210) -> 02 14 2 14 [PM] 895
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1481488210) -> 02 14 2 14 [PM] 895
+
 // timezone in UTC
 date('e (I)', 1481488210) -> UTC (0)
 
@@ -1623,6 +2513,11 @@ date('e (I)', 1481488210) -> UTC (0)
 date('e (I)', 1481488210) -> Europe/Madrid (0)
 
 // timezone in America/Mexico_City
+date('e (I)', 1481488210) -> America/Mexico_City (0)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
 date('e (I)', 1481488210) -> America/Mexico_City (0)
 
 // 0 in UTC
@@ -1634,6 +2529,11 @@ date('Z T P O', 1481488210) -> 3600 CET +01:00 +0100
 // 0 in America/Mexico_City
 date('Z T P O', 1481488210) -> -21600 CST -06:00 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
+date('Z T P O', 1481488210) -> -21600 CST -06:00 -0600
+
 // easy in UTC
 date('Y-m-d H:i:s.u', 1481574610) -> 2016-12-12 20:30:10.000000
 
@@ -1641,6 +2541,11 @@ date('Y-m-d H:i:s.u', 1481574610) -> 2016-12-12 20:30:10.000000
 date('Y-m-d H:i:s.u', 1481574610) -> 2016-12-12 21:30:10.000000
 
 // easy in America/Mexico_City
+date('Y-m-d H:i:s.u', 1481574610) -> 2016-12-12 14:30:10.000000
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// easy in Inexistent
 date('Y-m-d H:i:s.u', 1481574610) -> 2016-12-12 14:30:10.000000
 
 // english in UTC
@@ -1652,6 +2557,11 @@ date('r', 1481574610) -> Mon, 12 Dec 2016 21:30:10 +0100
 // english in America/Mexico_City
 date('r', 1481574610) -> Mon, 12 Dec 2016 14:30:10 -0600
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// english in Inexistent
+date('r', 1481574610) -> Mon, 12 Dec 2016 14:30:10 -0600
+
 // iso in UTC
 date('c', 1481574610) -> 2016-12-12T20:30:10+00:00
 
@@ -1659,6 +2569,11 @@ date('c', 1481574610) -> 2016-12-12T20:30:10+00:00
 date('c', 1481574610) -> 2016-12-12T21:30:10+01:00
 
 // iso in America/Mexico_City
+date('c', 1481574610) -> 2016-12-12T14:30:10-06:00
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// iso in Inexistent
 date('c', 1481574610) -> 2016-12-12T14:30:10-06:00
 
 // posix in UTC
@@ -1670,6 +2585,11 @@ date('U', 1481574610) -> 1481574610
 // posix in America/Mexico_City
 date('U', 1481574610) -> 1481574610
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// posix in Inexistent
+date('U', 1481574610) -> 1481574610
+
 // info in UTC
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481574610) -> 12th December 16 (Dec=12[31]) 8:30:10pm (Monday;1)
 
@@ -1677,6 +2597,11 @@ date('jS F y (M=n[t]) g:i:sa (l;N)', 1481574610) -> 12th December 16 (Dec=12[31]
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481574610) -> 12th December 16 (Dec=12[31]) 9:30:10pm (Monday;1)
 
 // info in America/Mexico_City
+date('jS F y (M=n[t]) g:i:sa (l;N)', 1481574610) -> 12th December 16 (Dec=12[31]) 2:30:10pm (Monday;1)
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// info in Inexistent
 date('jS F y (M=n[t]) g:i:sa (l;N)', 1481574610) -> 12th December 16 (Dec=12[31]) 2:30:10pm (Monday;1)
 
 // leapyear? in UTC
@@ -1688,6 +2613,11 @@ date('L', 1481574610) -> 1
 // leapyear? in America/Mexico_City
 date('L', 1481574610) -> 1
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// leapyear? in Inexistent
+date('L', 1481574610) -> 1
+
 // day of week in UTC
 date('D w', 1481574610) -> Mon 1
 
@@ -1695,6 +2625,11 @@ date('D w', 1481574610) -> Mon 1
 date('D w', 1481574610) -> Mon 1
 
 // day of week in America/Mexico_City
+date('D w', 1481574610) -> Mon 1
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of week in Inexistent
 date('D w', 1481574610) -> Mon 1
 
 // day of year in UTC
@@ -1706,6 +2641,11 @@ date('z', 1481574610) -> 346
 // day of year in America/Mexico_City
 date('z', 1481574610) -> 346
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// day of year in Inexistent
+date('z', 1481574610) -> 346
+
 // week of year / year of week in UTC
 date('W - o', 1481574610) -> 50 - 2016
 
@@ -1713,6 +2653,11 @@ date('W - o', 1481574610) -> 50 - 2016
 date('W - o', 1481574610) -> 50 - 2016
 
 // week of year / year of week in America/Mexico_City
+date('W - o', 1481574610) -> 50 - 2016
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// week of year / year of week in Inexistent
 date('W - o', 1481574610) -> 50 - 2016
 
 // hours in UTC
@@ -1724,6 +2669,11 @@ date('h H g G [A] B', 1481574610) -> 09 21 9 21 [PM] 895
 // hours in America/Mexico_City
 date('h H g G [A] B', 1481574610) -> 02 14 2 14 [PM] 895
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// hours in Inexistent
+date('h H g G [A] B', 1481574610) -> 02 14 2 14 [PM] 895
+
 // timezone in UTC
 date('e (I)', 1481574610) -> UTC (0)
 
@@ -1733,6 +2683,11 @@ date('e (I)', 1481574610) -> Europe/Madrid (0)
 // timezone in America/Mexico_City
 date('e (I)', 1481574610) -> America/Mexico_City (0)
 
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// timezone in Inexistent
+date('e (I)', 1481574610) -> America/Mexico_City (0)
+
 // 0 in UTC
 date('Z T P O', 1481574610) -> 0 UTC +00:00 +0000
 
@@ -1740,4 +2695,9 @@ date('Z T P O', 1481574610) -> 0 UTC +00:00 +0000
 date('Z T P O', 1481574610) -> 3600 CET +01:00 +0100
 
 // 0 in America/Mexico_City
+date('Z T P O', 1481574610) -> -21600 CST -06:00 -0600
+
+Notice: date_default_timezone_set(): Timezone ID 'Inexistent' is invalid in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_date.php on line 124
+
+// 0 in Inexistent
 date('Z T P O', 1481574610) -> -21600 CST -06:00 -0600

@@ -7,7 +7,8 @@
 -export([
     timezone_to_abbreviation/2,
     abbreviations/0,
-    timezone_info/1
+    timezone_info/1,
+    is_valid/1
 ]).
 
 -type timezone() :: binary().
@@ -15,6 +16,14 @@
 -type offset() :: integer().
 -type abbreviation() :: binary().
 -type timezone_info() :: {dst(), offset(), abbreviation()}.
+
+-spec is_valid(timezone()) -> boolean().
+
+is_valid(TZ) ->
+    case lists:member(TZ, abbreviations()) of
+        true -> true;
+        false -> timezone_to_abbreviation(true, TZ) =/= TZ
+    end.
 
 -spec timezone_to_abbreviation(dst(), timezone()) -> abbreviation().
 
@@ -3571,5 +3580,4 @@ timezone_info(<<"ZZZ">>) -> [
 ];
 timezone_info(<<"Z">>) -> [
     {false, 0, undefined}
-];
-timezone_info(_) -> undefined.
+].

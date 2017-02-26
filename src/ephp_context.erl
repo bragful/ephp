@@ -253,8 +253,13 @@ get_tz(Context) ->
 
 set_tz(Context, TZ) ->
     State = load_state(Context),
-    save_state(State#state{timezone=TZ}),
-    ok.
+    case ephp_timezone:is_valid(TZ) of
+        true ->
+            save_state(State#state{timezone=TZ}),
+            true;
+        false ->
+            false
+    end.
 
 get_output(Context) ->
     #state{output=Output} = load_state(Context),

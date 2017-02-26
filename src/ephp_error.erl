@@ -237,6 +237,12 @@ get_message(edivzero, Line, _Level, File) ->
         "~nWarning: Division by zero in ~s on line ~p~n",
         [File, Line]);
 
+get_message(etimezone, Line, _Level, {Function, TZ, File}) ->
+    io_lib:format(
+        "~nNotice: ~s(): Timezone ID '~s' is invalid in ~s on line ~p~n",
+        [Function, TZ, File, Line]);
+
+
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
         "~nFatal error: unknown ~p for ~p in line ~p~n",

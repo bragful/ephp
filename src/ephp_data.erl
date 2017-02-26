@@ -25,11 +25,12 @@ gettype(Value) when is_integer(Value) -> <<"integer">>;
 gettype(Value) when is_float(Value) -> <<"float">>;
 gettype(Value) when is_binary(Value) -> <<"string">>;
 gettype(Value) when ?IS_ARRAY(Value) -> <<"array">>;
-gettype(Value) when is_record(Value, reg_instance) -> <<"object">>;
+gettype(Value) when ?IS_OBJECT(Value) -> <<"object">>;
 gettype(Value) when is_pid(Value) -> <<"resource">>;
-gettype(Value) when is_record(Value, function) -> <<"object">>;
+gettype(Value) when ?IS_FUNCTION(Value) -> <<"object">>;
 gettype(undefined) -> <<"NULL">>;
-gettype(_) -> <<"unknown type">>.
+gettype(infinity) -> <<"float">>;
+gettype(nan) -> <<"float">>.
 
 -spec is_equal(A :: mixed(), B :: mixed()) -> boolean().
 
