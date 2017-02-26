@@ -55,6 +55,8 @@ flush(Context, _Line) ->
 ob_start(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:flush(Output),
+    ephp_output:set_flush(Output, false),
+    ephp_output:set_output_handler(Output, undefined),
     true.
 
 -spec ob_start(context(), line(), Callback :: var_value()) -> boolean().

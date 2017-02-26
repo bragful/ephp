@@ -18,3 +18,10 @@ ob_start("callback");
 
 ob_end_flush();
 
+ob_start();
+
+?>
+<!-- manzanas! manzanas! -->
+<?
+
+ob_flush();
