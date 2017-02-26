@@ -4,5 +4,6 @@
 
 Notice: Array to string conversion in {{CWD}}/test/code/test_math_bindec.php on line 8
 0
+4
 
-Catchable fatal error: Object of class A could not be converted to string in {{CWD}}/test/code/test_math_bindec.php on line 9
+Catchable fatal error: Object of class A could not be converted to string in {{CWD}}/test/code/test_math_bindec.php on line 10

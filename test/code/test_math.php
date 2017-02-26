@@ -31,4 +31,15 @@ print "atanh('a') = " . atanh('a') . "\n";
 print "atan2(1.0, 1.0) = " . atan2(1.0, 1.0) . "\n";
 print "atan2('a', 'b') = " . atan2('a', 'b') . "\n";
 print "atan2(1.0, 'b') = " . atan2(1.0, 'b') . "\n";
-
+print "cos(1.0) = " . cos(1.0) . "\n";
+print "cos('a') = " . cos('a') . "\n";
+print "cosh(1.0) = " . cosh(1.0) . "\n";
+print "cosh('a') = " . cosh('a') . "\n";
+print "sin(1.0) = " . sin(1.0) . "\n";
+print "sin('a') = " . sin('a') . "\n";
+print "sinh(1.0) = " . sinh(1.0) . "\n";
+print "sinh('a') = " . sinh('a') . "\n";
+print "tan(1.0) = " . tan(1.0) . "\n";
+print "tan('a') = " . tan('a') . "\n";
+print "tanh(0.5) = " . tanh(0.5) . "\n";
+print "tanh('a') = " . tanh('a') . "\n";

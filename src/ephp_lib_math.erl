@@ -264,8 +264,7 @@ bindec(Context, Line, {Var, A}) when ?IS_ARRAY(A) ->
 bindec(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}}) ->
     File = ephp_context:get_active_file(Context),
     ephp_error:error({error, enotostring, Line,
-                      ?E_RECOVERABLE_ERROR, {File, ClassName}}),
-    undefined;
+                      ?E_RECOVERABLE_ERROR, {File, ClassName}});
 
 bindec(Context, Line, {Var, Other}) ->
     bindec(Context, Line, {Var, ephp_data:to_bin(Other)}).
@@ -433,8 +432,7 @@ base_convert(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}},
              _From, _To) ->
     File = ephp_context:get_active_file(Context),
     ephp_error:error({error, enotostring, Line,
-                      ?E_RECOVERABLE_ERROR, {File, ClassName}}),
-    undefined;
+                      ?E_RECOVERABLE_ERROR, {File, ClassName}});
 
 base_convert(Context, Line, {Var, Other}, From, To) ->
     base_convert(Context, Line, {Var, ephp_data:to_bin(Other)}, From, To).

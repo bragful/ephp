@@ -12,8 +12,9 @@ base_convert(101, 1, 1) =
 Warning: base_convert(): Invalid `to base' (1) in {{CWD}}/test/code/test_base_convert.php on line 9
 base_convert(101, 2, 1) = 
 base_convert('13031', 2, 10) = 5
+base_convert('AB10', 16, 10) = 43792
 
-Notice: Array to string conversion in {{CWD}}/test/code/test_base_convert.php on line 11
+Notice: Array to string conversion in {{CWD}}/test/code/test_base_convert.php on line 12
 base_convert(array(), 2, 2) = 0
 
-Catchable fatal error: Object of class A could not be converted to string in {{CWD}}/test/code/test_base_convert.php on line 12
+Catchable fatal error: Object of class A could not be converted to string in {{CWD}}/test/code/test_base_convert.php on line 13
