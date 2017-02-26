@@ -39,7 +39,8 @@ start_link() ->
     {ok, Ref}.
 
 destroy(Classes) ->
-    erlang:erase(Classes).
+    erlang:erase(Classes),
+    ok.
 
 get(Ref, ClassName) ->
     Classes = erlang:get(Ref),

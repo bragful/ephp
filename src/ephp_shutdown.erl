@@ -10,6 +10,7 @@
 
 -export([
     start_link/0,
+    destroy/1,
     register_func/2,
     unregister_func/2,
 
@@ -27,6 +28,12 @@ start_link() ->
     Ref = make_ref(),
     erlang:put(Ref, []),
     {ok, Ref}.
+
+-spec destroy(ephp:shutdown_id()) -> ok.
+
+destroy(Ref) ->
+    erlang:erase(Ref),
+    ok.
 
 -spec register_func(reference(), function_name()) -> ok.
 

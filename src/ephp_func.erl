@@ -64,7 +64,8 @@ start_link() ->
     {ok, Ref}.
 
 destroy(Funcs) ->
-    erlang:erase(Funcs).
+    erlang:erase(Funcs),
+    ok.
 
 get(Ref, FuncName) ->
     Funcs = erlang:get(Ref),

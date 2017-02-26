@@ -69,15 +69,13 @@ register_var(Ctx, Var, Value) when
 register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
--spec register_func(
-    Ctx :: context(), PHPName :: binary(),
-    Module :: atom(), Fun :: atom(),
-    PackArgs :: boolean()) -> ok | {error, reason()}.
+-spec register_func(context(), PHPName :: binary(), module(), Fun :: atom(),
+                    PackArgs :: boolean()) -> ok | {error, reason()}.
 
 register_func(Ctx, PHPName, Module, Fun, PackArgs) ->
     ephp_context:register_func(Ctx, PHPName, Module, Fun, PackArgs).
 
--spec register_module(Ctx :: context(), Module :: atom()) -> ok.
+-spec register_module(context(), module()) -> ok.
 
 register_module(Ctx, Module) ->
     ephp_config:module_init(Module),
@@ -91,17 +89,16 @@ register_module(Ctx, Module) ->
             ephp:register_func(Ctx, Name, Module, Func, false)
     end, Module:init_func()).
 
--spec eval(Context :: context(), PHP :: string() | binary()) ->
+-spec eval(context(), PHP :: string() | binary()) ->
     {ok, Result :: binary()} | {error, Reason :: reason()} |
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
 
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
--spec eval(Filename :: binary(), Context :: context(),
-        PHP :: string() | binary()) ->
-    {ok, Result :: binary()} | {error, Reason :: reason()} |
-    {error,{Code::binary(), Line::integer(), Col::integer()}}.
+-spec eval(Filename :: binary(), context(), PHP :: string() | binary()) ->
+    {ok, Result :: binary()} | {error, reason()} |
+    {error, {Code::binary(), Line::integer(), Col::integer()}}.
 
 eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of

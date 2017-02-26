@@ -16,7 +16,6 @@
     php_is_null/3,
     php_is_object/3,
     php_is_string/3,
-    print/3,
     print_r/3,
     print_r/4,
     var_dump/3,
@@ -46,8 +45,6 @@ init_func() -> [
     {php_is_object, [{alias, <<"is_object">>}]},
     {php_is_string, [{alias, <<"is_string">>}]},
     print_r,
-    print,
-    {print, [{alias, <<"echo">>}]},
     isset,
     empty,
     gettype,
@@ -93,13 +90,6 @@ php_is_object(_Context, _Line, {_,Value}) ->
 
 print_r(Context, Line, Vars) ->
     print_r(Context, Line, Vars, {false,false}).
-
--spec print(context(), line(), var_value()) -> 1.
-
-print(Context, _Line, {_,Value}) ->
-    ValueStr = ephp_data:to_bin(Value),
-    ephp_context:set_output(Context, ValueStr),
-    1.
 
 -spec var_dump(context(), line(), [var_value()] | var_value()) -> undefined.
 

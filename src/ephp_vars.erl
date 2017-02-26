@@ -67,8 +67,11 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs) ->
     end, ValArgs, FuncArgs),
     ok.
 
+-spec destroy(ephp:vars_id()) -> ok.
+
 destroy(Context) ->
-    erlang:erase(Context).
+    erlang:erase(Context),
+    ok.
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions

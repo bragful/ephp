@@ -58,4 +58,5 @@ set(Ref, Name, Value) ->
     ok.
 
 destroy(Const) ->
-    erlang:erase(Const).
+    erlang:erase(Const),
+    ok.

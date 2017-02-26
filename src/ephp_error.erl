@@ -58,7 +58,8 @@ start_link() ->
     {ok, Ref}.
 
 destroy(Funcs) ->
-    erlang:erase(Funcs).
+    erlang:erase(Funcs),
+    ok.
 
 -spec error_reporting(context(), integer()) -> integer().
 

@@ -57,7 +57,8 @@ load(Ref, Name) ->
     end.
 
 destroy(Inc) ->
-    erlang:erase(Inc).
+    erlang:erase(Inc),
+    ok.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

@@ -138,7 +138,8 @@ solve(Context, Expression) ->
     Value.
 
 destroy(Context) ->
-    erlang:erase(Context).
+    erlang:erase(Context),
+    ok.
 
 destroy_all(Context) ->
     State = load_state(Context),
@@ -148,6 +149,8 @@ destroy_all(Context) ->
     ephp_func:destroy(State#state.funcs),
     ephp_error:destroy(State#state.errors),
     ephp_class:destroy(State#state.class),
+    ephp_vars:destroy(State#state.vars),
+    ephp_shutdown:destroy(State#state.shutdown),
     destroy(Context).
 
 get_state(Context) ->

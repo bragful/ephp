@@ -111,7 +111,8 @@ flush(Ref) ->
 
 destroy(Ref) ->
     do_flush(Ref),
-    erlang:erase(Ref).
+    erlang:erase(Ref),
+    ok.
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
