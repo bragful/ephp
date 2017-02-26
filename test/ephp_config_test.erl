@@ -14,6 +14,7 @@ config_wrong_file_test() ->
 
 config_test() ->
     ok = ephp_config:start_link("test/php_test.ini"),
+    ok = ephp_config:module_init(ephp_lib_test),
     ?assertEqual(20, ephp_config:get(<<"precision">>)),
     ?assert(lists:member(ephp_lib_test, ephp_config:get(modules))),
     ?assertEqual(<<"true">>, ephp_config:get(<<"test">>)),

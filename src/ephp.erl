@@ -80,6 +80,7 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs) ->
 -spec register_module(Ctx :: context(), Module :: atom()) -> ok.
 
 register_module(Ctx, Module) ->
+    ephp_config:module_init(Module),
     lists:foreach(fun
         ({Func, Opts}) ->
             PackArgs = proplists:get_value(pack_args, Opts, false),
@@ -124,6 +125,7 @@ start() ->
     application:start(ezic),
     application:start(zucchini),
     application:start(ephp),
+    application:set_env(ephp, modules, ?MODULES),
     ok.
 
 -spec main(Args :: [string()]) -> integer().

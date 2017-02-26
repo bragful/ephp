@@ -12,20 +12,21 @@
 
     set/2,
 
-    read_config/1
+    read_config/1,
+    module_init/1
 ]).
 
 -spec start_link(file_name()) -> ok.
 
 start_link(File) ->
-    % ensure the application ephp is started
-    ephp:start(),
-    set_defaults(),
     case read_config(File) of
         {ok, Config} ->
             lists:foreach(fun
-                ({<<"extension">>, Module}) -> add_module(Module);
-                ({K, V}) -> application:set_env(ephp, K, V)
+                ({<<"extension">>, Module}) ->
+                    % TODO notice when the extension is duplicated
+                    add_module(Module);
+                ({K, V}) ->
+                    application:set_env(ephp, K, V)
             end, Config);
         _ ->
             ok
@@ -60,6 +61,19 @@ read_config(File) ->
             {error, enoent}
     end.
 
+-spec module_init(module()) -> ok.
+
+module_init(Module) ->
+    lists:foreach(fun({K,V}) ->
+        case application:get_env(ephp, K, undefined) of
+            undefined ->
+                application:set_env(ephp, K, V);
+            _ ->
+                ok
+        end
+    end, Module:init_config()).
+
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
@@ -78,20 +92,11 @@ add_module(Extension) ->
             % TODO: ensure the ExtName hasn't path
             binary_to_atom(<<"ephp_lib_",ExtName/binary>>, utf8)
     end,
-    init_config(Module),
-    % TODO notice when the extension is duplicated
-    Modules = application:get_env(ephp, modules, ?MODULES),
-    application:set_env(ephp, modules, [Module|Modules]),
-    ok.
-
--spec set_defaults() -> ok.
-
-set_defaults() ->
-    application:set_env(ephp, modules, ?MODULES),
-    lists:foreach(fun init_config/1, ?MODULES).
-
--spec init_config(module()) -> ok.
-
-init_config(Module) ->
-    [ application:set_env(ephp, K, V) || {K,V} <- Module:init_config() ],
-    ok.
+    Modules = application:get_env(ephp, modules, []),
+    case lists:member(Module, Modules) of
+        true ->
+            {error, duplicated};
+        false ->
+            application:set_env(ephp, modules, [Module|Modules]),
+            ok
+    end.
