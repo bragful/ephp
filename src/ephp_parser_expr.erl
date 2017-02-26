@@ -210,6 +210,11 @@ expression(<<"(",B:8,O:8,O:8,L:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso ?OR(L,$L,$l) ->
     OpL = <<"(bool)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+expression(<<"(",U:8,N:8,S:8,E:8,T:8,")",Rest/binary>>, Pos, Parsed) when
+        ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso ?OR(S,$S,$s) andalso
+        ?OR(E,$E,$e) andalso ?OR(T,$T,$t) ->
+    OpL = <<"(unset)">>,
+    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<"(",Rest/binary>>, Pos, [{op,[#variable{}=V]}|Parsed]) ->
     Call = #call{name = V, line = V#variable.line},
     {Rest0, Pos0, [Function]} =
@@ -390,6 +395,7 @@ precedence(<<"(string)">>) -> {right, 4};
 precedence(<<"(array)">>) -> {right, 4};
 precedence(<<"(object)">>) -> {right, 4};
 precedence(<<"(bool)">>) -> {right, 4};
+precedence(<<"(unset)">>) -> {right, 4};
 precedence(<<"@">>) -> {right, 4};
 precedence(<<"instanceof">>) -> {no_assoc, 5};
 precedence(<<"!">>) -> {right, 6}; %% logic
@@ -577,6 +583,10 @@ gen_op([{<<"(array)">>,{_,_},Pos}|Rest], [#float{line=DPos}=D|Stack]) ->
     gen_op(Rest, [add_to_array(#array{line=DPos}, Pos, D)|Stack]);
 gen_op([{<<"(array)">>,{_,_},Pos}|Rest], [A|Stack]) ->
     gen_op(Rest, [add_line(#cast{type=array, content=A}, Pos)|Stack]);
+gen_op([{<<"(object)">>,{_,_},Pos}|Rest], [A|Stack]) ->
+    gen_op(Rest, [add_line(#cast{type=object, content=A}, Pos)|Stack]);
+gen_op([{<<"(unset)">>,{_,_},_Pos}|Rest], [_|Stack]) ->
+    gen_op(Rest, [undefined|Stack]);
 % TODO add the rest of casting operators
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).

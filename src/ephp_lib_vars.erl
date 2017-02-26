@@ -270,12 +270,16 @@ var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_binary(Value) ->
 
 var_dump_fmt(Context, Line, #reg_instance{class=Class, context=Ctx},
              Spaces, RecCtl) ->
-    lists:foldl(fun(#class_attr{name=Name}, Output) ->
-        Value = ephp_context:get(Ctx, #variable{name=Name}),
+    lists:foldl(fun(#class_attr{name=RawName}, Output) ->
+        Value = ephp_context:get(Ctx, #variable{name=RawName}),
         ValDumped = var_dump_fmt(Context, Line, Value,
                                  <<Spaces/binary, ?SPACES_VD>>, RecCtl),
+        Name = if
+            is_binary(RawName) -> <<"\"",RawName/binary,"\"">>;
+            true -> ephp_data:to_bin(RawName)
+        end,
         Output ++ [<<
-          Spaces/binary, "[\"", Name/binary, "\"]=>\n",
+          Spaces/binary, "[", Name/binary, "]=>\n",
           Spaces/binary, ValDumped/binary>>]
     end, [], Class#class.attrs);
 
@@ -301,11 +305,23 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
                       Spaces/binary, V/binary>>
                 ];
-            V when is_list(V) ->
+            V when is_list(V) andalso ?IS_ARRAY(Val) ->
                 Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Val)),
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
                     <<Spaces/binary,"array(", Elements/binary, ") {\n">>
+                ] ++ V ++ [
+                    <<Spaces/binary, "}\n">>
+                ];
+            V when is_list(V) andalso ?IS_OBJECT(Val) ->
+                #reg_instance{class=#class{attrs=Attrs}} = Val,
+                Size = ephp_data:to_bin(length(Attrs)),
+                #reg_instance{id=InstanceID,class=Class} = Val,
+                ID = integer_to_binary(InstanceID),
+                [
+                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
+                      Spaces/binary, "object(", (Class#class.name)/binary, ")#",
+                      ID/binary, " (", Size/binary, ") {\n">>
                 ] ++ V ++ [
                     <<Spaces/binary, "}\n">>
                 ]

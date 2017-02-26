@@ -8,6 +8,7 @@
 -define(FUNC_ANON_NAME, <<"{closure}">>).
 
 -define(IS_ARRAY(A), erlang:'=:='(element(1, A), ephp_array)).
+-define(IS_OBJECT(O), erlang:'=:='(element(1, O), reg_instance)).
 
 % built-in modules
 -define(MODULES, [

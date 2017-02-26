@@ -24,6 +24,7 @@
     set_alias/3,
     instance/5,
 
+    get_stdclass/0,
     add_if_no_exists_attrib/2
 ]).
 
@@ -182,18 +183,20 @@ add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
             Class
     end.
 
+get_stdclass() ->
+    #class{
+        name = <<"stdClass">>,
+        static_context = undefined,
+        constants = dict:new(),
+        attrs = []
+    }.
+
 %% ------------------------------------------------------------------
 %% Private functions
 %% ------------------------------------------------------------------
 
 register_stdclass(Ref) ->
-    Name = <<"stdClass">>,
     Classes = erlang:get(Ref),
-    StdClass = #class{
-        name = Name,
-        static_context = undefined,
-        constants = dict:new(),
-        attrs = []
-    },
+    #class{name=Name} = StdClass = get_stdclass(),
     erlang:put(Ref, dict:store(Name, StdClass, Classes)),
     ok.

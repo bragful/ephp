@@ -676,9 +676,9 @@ resolve(#function{name=undefined,use=Use}=Anon, #state{vars=Vars}=State) ->
     end, {[], State}, Use),
     {Anon#function{use=NewUse}, NState};
 
-resolve(#cast{type=Type, content=C}, State) ->
+resolve(#cast{type=Type, content=C, line=Line}, State) ->
     {Value, NState} = resolve(C, State),
-    {resolve_cast(Type, Value), NState};
+    {resolve_cast(State, Line, Type, Value), NState};
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
@@ -835,18 +835,121 @@ resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
     end.
 
 % TODO complete list of casting and errors
-resolve_cast(int, I) when is_integer(I) ->
+resolve_cast(_State, _Line, int, I) when is_integer(I) ->
     I;
-resolve_cast(int, T) when is_binary(T) ->
+resolve_cast(_State, _Line, int, T) when is_binary(T) ->
     ephp_data:floor(ephp_data:bin_to_number(T));
-resolve_cast(int, F) when is_float(F) ->
+resolve_cast(_State, _Line, int, F) when is_float(F) ->
     ephp_data:floor(F);
-resolve_cast(float, I) when is_integer(I) ->
+resolve_cast(_State, _Line, int, A) when ?IS_ARRAY(A) ->
+    case ephp_array:size(A) of
+        0 -> 0;
+        _ -> 1
+    end;
+resolve_cast(_State, _Line, int, true) -> 1;
+resolve_cast(_State, _Line, int, false) -> 0;
+% FIXME: conversion from NAN or INF to int is a bit tricky...
+resolve_cast(_State, _Line, int, infinity) -> -9223372036854775808;
+resolve_cast(_State, _Line, int, nan) -> -9223372036854775808;
+resolve_cast(_State, _Line, int, undefined) -> 0;
+resolve_cast(#state{ref=Ctx, active_file=File}, Line, int,
+             #reg_instance{class=#class{name=ClassName}}) ->
+    Data = {File, ClassName, <<"int">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+    1;
+resolve_cast(_State, _Line, float, I) when is_integer(I) ->
     erlang:float(I);
-resolve_cast(float, T) when is_binary(T) ->
+resolve_cast(_State, _Line, float, T) when is_binary(T) ->
     erlang:float(ephp_data:bin_to_number(T));
-resolve_cast(float, F) when is_float(F) ->
-    F.
+resolve_cast(_State, _Line, float, F) when is_float(F) ->
+    F;
+resolve_cast(_State, _Line, float, A) when ?IS_ARRAY(A) ->
+    case ephp_array:size(A) of
+        0 -> 0.0;
+        _ -> 1.0
+    end;
+resolve_cast(#state{ref=Ctx, active_file=File}, Line, float,
+             #reg_instance{class=#class{name=ClassName}}) ->
+    Data = {File, ClassName, <<"double">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+    1.0;
+resolve_cast(_State, _Line, float, true) -> 1.0;
+resolve_cast(_State, _Line, float, false) -> 0.0;
+resolve_cast(_State, _Line, float, infinity) -> infinity;
+resolve_cast(_State, _Line, float, nan) -> nan;
+resolve_cast(_State, _Line, float, undefined) -> 0.0;
+resolve_cast(_State, _Line, string, N) when is_number(N) ->
+    ephp_data:to_bin(N);
+resolve_cast(_State, _Line, string, S) when is_binary(S) ->
+    S;
+resolve_cast(_State, _Line, string, true) -> <<"1">>;
+resolve_cast(_State, _Line, string, false) -> <<>>;
+resolve_cast(_State, _Line, string, infinity) -> <<"INF">>;
+resolve_cast(_State, _Line, string, nan) -> <<"NAN">>;
+resolve_cast(_State, _Line, string, undefined) -> <<>>;
+resolve_cast(#state{ref=Ctx, active_file=File},
+             Line, string, Array) when ?IS_ARRAY(Array) ->
+    Data = {File, <<"string">>},
+    ephp_error:handle_error(Ctx, {error, earrayconv, Line, ?E_NOTICE, Data}),
+    <<"Array">>;
+resolve_cast(#state{ref=Ctx}, Line, string, #reg_instance{}=Object) ->
+    ephp_data:to_bin(Ctx, Line, Object);
+resolve_cast(_State, _Line, bool, 0) -> false;
+resolve_cast(_State, _Line, bool, 0.0) -> false;
+resolve_cast(_State, _Line, bool, N) when is_number(N) -> true;
+resolve_cast(_State, _Line, bool, <<>>) -> false;
+resolve_cast(_State, _Line, bool, S) when is_binary(S) -> true;
+resolve_cast(_State, _Line, bool, true) -> true;
+resolve_cast(_State, _Line, bool, false) -> false;
+resolve_cast(_State, _Line, bool, infinity) -> true;
+resolve_cast(_State, _Line, bool, nan) -> true;
+resolve_cast(_State, _Line, bool, undefined) -> false;
+resolve_cast(_State, _Line, bool, Array) when ?IS_ARRAY(Array) ->
+    case ephp_array:size(Array) of
+        0 -> false;
+        _ -> true
+    end;
+resolve_cast(_State, _Line, bool, #reg_instance{}) -> true;
+resolve_cast(_State, _Line, array, N) when
+        is_number(N) orelse is_binary(N) orelse is_boolean(N) orelse
+        N =:= infinity orelse N =:= nan ->
+    ephp_array:store(auto, N, ephp_array:new());
+resolve_cast(_State, _Line, array, Array) when ?IS_ARRAY(Array) ->
+    Array;
+resolve_cast(_State, _Line, array,
+             #reg_instance{class=Class, context=Ctx}) ->
+    lists:foldl(fun(#class_attr{name=Name}, Array) ->
+        Value = ephp_context:get(Ctx, #variable{name=Name}),
+        ephp_array:store(Name, Value, Array)
+    end, ephp_array:new(), Class#class.attrs);
+resolve_cast(_State, _Line, array, undefined) ->
+    ephp_array:new();
+resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
+             Line, object, Array) when ?IS_ARRAY(Array) ->
+    ClassName = <<"stdClass">>,
+    Val = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    #reg_instance{context=Ctx} = Val,
+    NewClass = ephp_array:fold(fun(K, V, Class) ->
+        ephp_context:set(Ctx, #variable{name=K}, V),
+        ephp_class:add_if_no_exists_attrib(Class, K)
+    end, Val#reg_instance.class, Array),
+    Val#reg_instance{class=NewClass};
+resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
+             Line, object, N) when
+        is_number(N) orelse is_binary(N) orelse is_boolean(N) orelse
+        N =:= infinity orelse N =:= nan ->
+    ClassName = <<"stdClass">>,
+    Val = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    #reg_instance{context=Ctx, class=Class} = Val,
+    ephp_context:set(Ctx, #variable{name = <<"scalar">>}, N),
+    NewClass = ephp_class:add_if_no_exists_attrib(Class, <<"scalar">>),
+    Val#reg_instance{class=NewClass};
+resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
+             Line, object, undefined) ->
+    ClassName = <<"stdClass">>,
+    ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line);
+resolve_cast(_State, _Line, object, #reg_instance{}=Object) ->
+    Object.
 
 resolve_indexes(#variable{idx=Indexes}=Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->

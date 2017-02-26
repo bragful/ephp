@@ -1,4 +1,12 @@
-array(15) {
+
+Notice: Object of class stdClass could not be converted to int in {{CWD}}/test/code/test_cast.php on line 21
+
+Notice: Object of class stdClass could not be converted to double in {{CWD}}/test/code/test_cast.php on line 32
+
+Notice: Array to string conversion in {{CWD}}/test/code/test_cast.php on line 41
+
+Notice: Array to string conversion in {{CWD}}/test/code/test_cast.php on line 42
+array(75) {
   [0]=>
   int(26)
   [1]=>
@@ -6,36 +14,198 @@ array(15) {
   [2]=>
   int(45)
   [3]=>
-  float(56.76)
+  int(1)
   [4]=>
-  float(56.76)
+  int(0)
   [5]=>
-  float(55)
+  int(0)
   [6]=>
-  string(3) "100"
+  int(1)
   [7]=>
-  string(5) "25.52"
+  int(1)
   [8]=>
-  string(5) "world"
+  int(-9223372036854775808)
   [9]=>
-  bool(true)
+  int(-9223372036854775808)
   [10]=>
-  bool(false)
+  int(0)
   [11]=>
-  bool(true)
+  float(56.76)
   [12]=>
+  float(56.76)
+  [13]=>
+  float(55)
+  [14]=>
+  float(1)
+  [15]=>
+  float(0)
+  [16]=>
+  float(0)
+  [17]=>
+  float(1)
+  [18]=>
+  float(1)
+  [19]=>
+  float(INF)
+  [20]=>
+  float(NAN)
+  [21]=>
+  float(0)
+  [22]=>
+  string(3) "100"
+  [23]=>
+  string(5) "25.52"
+  [24]=>
+  string(5) "world"
+  [25]=>
+  string(1) "1"
+  [26]=>
+  string(0) ""
+  [27]=>
+  string(5) "Array"
+  [28]=>
+  string(5) "Array"
+  [29]=>
+  string(8) "class<A>"
+  [30]=>
+  string(3) "INF"
+  [31]=>
+  string(3) "NAN"
+  [32]=>
+  string(0) ""
+  [33]=>
+  bool(true)
+  [34]=>
+  bool(false)
+  [35]=>
+  bool(true)
+  [36]=>
+  bool(true)
+  [37]=>
+  bool(true)
+  [38]=>
+  bool(true)
+  [39]=>
+  bool(true)
+  [40]=>
+  bool(false)
+  [41]=>
+  bool(false)
+  [42]=>
+  bool(true)
+  [43]=>
+  bool(true)
+  [44]=>
+  bool(true)
+  [45]=>
+  bool(true)
+  [46]=>
+  bool(false)
+  [47]=>
   array(1) {
     [0]=>
     string(5) "hello"
   }
-  [13]=>
+  [48]=>
   array(1) {
     [0]=>
     int(100)
   }
-  [14]=>
+  [49]=>
   array(1) {
     [0]=>
     float(45.54)
   }
+  [50]=>
+  array(1) {
+    ["greet"]=>
+    string(3) "hi!"
+  }
+  [51]=>
+  array(0) {
+  }
+  [52]=>
+  array(1) {
+    [0]=>
+    int(100)
+  }
+  [53]=>
+  array(1) {
+    [0]=>
+    float(INF)
+  }
+  [54]=>
+  array(1) {
+    [0]=>
+    float(NAN)
+  }
+  [55]=>
+  array(0) {
+  }
+  [56]=>
+  array(1) {
+    [0]=>
+    bool(true)
+  }
+  [57]=>
+  array(1) {
+    [0]=>
+    bool(false)
+  }
+  [58]=>
+  NULL
+  [59]=>
+  NULL
+  [60]=>
+  NULL
+  [61]=>
+  NULL
+  [62]=>
+  NULL
+  [63]=>
+  NULL
+  [64]=>
+  NULL
+  [65]=>
+  NULL
+  [66]=>
+  NULL
+  [67]=>
+  object(stdClass)#2 (1) {
+    ["scalar"]=>
+    int(100)
+  }
+  [68]=>
+  object(stdClass)#3 (1) {
+    ["scalar"]=>
+    float(45.45)
+  }
+  [69]=>
+  object(B)#2 (1) {
+    ["greet"]=>
+    string(3) "hi!"
+  }
+  [70]=>
+  object(stdClass)#4 (0) {
+  }
+  [71]=>
+  object(stdClass)#5 (1) {
+    [0]=>
+    int(100)
+  }
+  [72]=>
+  object(stdClass)#6 (1) {
+    ["scalar"]=>
+    float(INF)
+  }
+  [73]=>
+  object(stdClass)#7 (1) {
+    ["scalar"]=>
+    float(NAN)
+  }
+  [74]=>
+  object(stdClass)#8 (0) {
+  }
 }
+
+Catchable fatal error: Object of class stdClass could not be converted to string in {{CWD}}/test/code/test_cast.php on line 91
