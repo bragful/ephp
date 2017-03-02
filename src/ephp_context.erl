@@ -16,6 +16,7 @@
     include :: ephp:includes_id(),
     shutdown :: ephp:shutdown_id(),
     errors :: ephp:errors_id(),
+    meta = [] :: term(),
 
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
@@ -74,6 +75,9 @@
     set_global/2,
     generate_subcontext/1,
 
+    get_meta/2,
+    set_meta/3,
+
     register_shutdown_func/2,
     unregister_shutdown_func/2,
     get_shutdown_funcs/1
@@ -129,6 +133,19 @@ get(Context, VarPath) ->
 set(Context, VarPath, Value) ->
     State = load_state(Context),
     ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value),
+    ok.
+
+get_meta(Context, Key) ->
+    #state{meta=Meta} = load_state(Context),
+    case lists:keyfind(Key, 1, Meta) of
+        false -> undefined;
+        {Key, Value} -> Value
+    end.
+
+set_meta(Context, Key, Value) ->
+    #state{meta=Meta} = State = load_state(Context),
+    NewMeta = lists:keystore(Key, 1, Meta, {Key, Value}),
+    save_state(State#state{meta=NewMeta}),
     ok.
 
 solve(Context, Expression) ->

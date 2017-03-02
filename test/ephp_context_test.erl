@@ -14,7 +14,8 @@ setup_test_() ->
         fun resolve_assign/1,
         fun operation_test/1,
         fun arith_mono_test/1,
-        fun global_test/1
+        fun global_test/1,
+        fun meta_test/1
     ]}.
 
 start() ->
@@ -85,4 +86,10 @@ global_test(Ctx) ->
     ?_assertEqual(10, ephp_context:solve(SubCtx, #assign{variable=Var, expression=#int{int=10}})),
     ?_assertEqual(10, ephp_context:get(SubCtx, #variable{name = <<"a">>})),
     ?_assertEqual(10, ephp_context:get(Ctx, #variable{name = <<"a">>}))
+].
+
+meta_test(Ctx) -> [
+    ?_assertEqual(undefined, ephp_context:get_meta(Ctx, headers)),
+    ?_assertEqual(ok, ephp_context:set_meta(Ctx, headers, [])),
+    ?_assertEqual([], ephp_context:get_meta(Ctx, headers))
 ].
