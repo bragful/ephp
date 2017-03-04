@@ -273,11 +273,17 @@ code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, new_line(add_pos(Pos,2)), Parsed};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, add_pos(Pos,2), Parsed};
-code(<<"?>\n",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
+code(<<"?>\n",Rest/binary>>, {L,_,_}=Pos, Parsed) when
+        L =:= code_block orelse L =:= if_old_block orelse
+        L =:= while_old_block orelse L =:= for_old_block orelse
+        L =:= foreach_old_block ->
     NewPos = new_line(literal_level(add_pos(Pos,2))),
     {Rest0, Pos0, Text} = document(Rest, NewPos, []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
-code(<<"?>",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
+code(<<"?>",Rest/binary>>, {L,_,_}=Pos, Parsed) when
+        L =:= code_block orelse L =:= if_old_block orelse
+        L =:= while_old_block orelse L =:= for_old_block orelse
+        L =:= foreach_old_block ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
