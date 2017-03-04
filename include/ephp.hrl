@@ -3,6 +3,11 @@
 -define(PHP_INI_FILE, <<"php.ini">>).
 -define(PHP_VERSION, <<"5.6.0">>).
 
+%% 256 bits
+-define(PHP_INT_MAX, 340282366920938463463374607431768211456).
+-define(PHP_INT_MIN, -340282366920938463463374607431768211455).
+-define(PHP_INT_SIZE, 32).
+
 -define(PATH_SEP, <<":">>).
 
 -define(FUNC_ANON_NAME, <<"{closure}">>).
@@ -10,6 +15,9 @@
 -define(IS_ARRAY(A), erlang:'=:='(element(1, A), ephp_array)).
 -define(IS_OBJECT(O), erlang:'=:='(element(1, O), reg_instance)).
 -define(IS_FUNCTION(F), erlang:'=:='(element(1, F), function)).
+
+-define(PHP_INF, infinity).
+-define(PHP_NAN, nan).
 
 % built-in modules
 -define(MODULES, [
