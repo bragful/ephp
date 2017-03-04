@@ -860,81 +860,14 @@ resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
     end.
 
 % TODO complete list of casting and errors
-resolve_cast(_State, _Line, int, I) when is_integer(I) ->
-    I;
-resolve_cast(_State, _Line, int, T) when is_binary(T) ->
-    ephp_data:floor(ephp_data:bin_to_number(T));
-resolve_cast(_State, _Line, int, F) when is_float(F) ->
-    ephp_data:floor(F);
-resolve_cast(_State, _Line, int, A) when ?IS_ARRAY(A) ->
-    case ephp_array:size(A) of
-        0 -> 0;
-        _ -> 1
-    end;
-resolve_cast(_State, _Line, int, true) -> 1;
-resolve_cast(_State, _Line, int, false) -> 0;
-% FIXME: conversion from NAN or INF to int is a bit tricky...
-resolve_cast(_State, _Line, int, infinity) -> -9223372036854775808;
-resolve_cast(_State, _Line, int, nan) -> -9223372036854775808;
-resolve_cast(_State, _Line, int, undefined) -> 0;
-resolve_cast(#state{ref=Ctx, active_file=File}, Line, int,
-             #reg_instance{class=#class{name=ClassName}}) ->
-    Data = {File, ClassName, <<"int">>},
-    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
-    1;
-resolve_cast(_State, _Line, float, I) when is_integer(I) ->
-    erlang:float(I);
-resolve_cast(_State, _Line, float, T) when is_binary(T) ->
-    erlang:float(ephp_data:bin_to_number(T));
-resolve_cast(_State, _Line, float, F) when is_float(F) ->
-    F;
-resolve_cast(_State, _Line, float, A) when ?IS_ARRAY(A) ->
-    case ephp_array:size(A) of
-        0 -> 0.0;
-        _ -> 1.0
-    end;
-resolve_cast(#state{ref=Ctx, active_file=File}, Line, float,
-             #reg_instance{class=#class{name=ClassName}}) ->
-    Data = {File, ClassName, <<"double">>},
-    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
-    1.0;
-resolve_cast(_State, _Line, float, true) -> 1.0;
-resolve_cast(_State, _Line, float, false) -> 0.0;
-resolve_cast(_State, _Line, float, infinity) -> infinity;
-resolve_cast(_State, _Line, float, nan) -> nan;
-resolve_cast(_State, _Line, float, undefined) -> 0.0;
-resolve_cast(_State, _Line, string, N) when is_number(N) ->
-    ephp_data:to_bin(N);
-resolve_cast(_State, _Line, string, S) when is_binary(S) ->
-    S;
-resolve_cast(_State, _Line, string, true) -> <<"1">>;
-resolve_cast(_State, _Line, string, false) -> <<>>;
-resolve_cast(_State, _Line, string, infinity) -> <<"INF">>;
-resolve_cast(_State, _Line, string, nan) -> <<"NAN">>;
-resolve_cast(_State, _Line, string, undefined) -> <<>>;
-resolve_cast(#state{ref=Ctx, active_file=File},
-             Line, string, Array) when ?IS_ARRAY(Array) ->
-    Data = {File, <<"string">>},
-    ephp_error:handle_error(Ctx, {error, earrayconv, Line, ?E_NOTICE, Data}),
-    <<"Array">>;
-resolve_cast(#state{ref=Ctx}, Line, string, #reg_instance{}=Object) ->
-    ephp_data:to_bin(Ctx, Line, Object);
-resolve_cast(_State, _Line, bool, 0) -> false;
-resolve_cast(_State, _Line, bool, 0.0) -> false;
-resolve_cast(_State, _Line, bool, N) when is_number(N) -> true;
-resolve_cast(_State, _Line, bool, <<>>) -> false;
-resolve_cast(_State, _Line, bool, S) when is_binary(S) -> true;
-resolve_cast(_State, _Line, bool, true) -> true;
-resolve_cast(_State, _Line, bool, false) -> false;
-resolve_cast(_State, _Line, bool, infinity) -> true;
-resolve_cast(_State, _Line, bool, nan) -> true;
-resolve_cast(_State, _Line, bool, undefined) -> false;
-resolve_cast(_State, _Line, bool, Array) when ?IS_ARRAY(Array) ->
-    case ephp_array:size(Array) of
-        0 -> false;
-        _ -> true
-    end;
-resolve_cast(_State, _Line, bool, #reg_instance{}) -> true;
+resolve_cast(#state{ref=Ctx}, Line, int, Value) ->
+    ephp_data:to_int(Ctx, Line, Value);
+resolve_cast(#state{ref=Ctx}, Line, float, Value) ->
+    ephp_data:to_float(Ctx, Line, Value);
+resolve_cast(#state{ref=Ctx}, Line, string, Value) ->
+    ephp_data:to_bin(Ctx, Line, Value);
+resolve_cast(_State, _Line, bool, Value) ->
+    ephp_data:to_boolean(Value);
 resolve_cast(_State, _Line, array, N) when
         is_number(N) orelse is_binary(N) orelse is_boolean(N) orelse
         N =:= infinity orelse N =:= nan ->

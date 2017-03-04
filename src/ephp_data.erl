@@ -9,6 +9,11 @@
     is_equal/2,
     to_bin/1,
     to_bin/3,
+    to_int/1,
+    to_int/3,
+    to_float/1,
+    to_float/3,
+    to_boolean/1,
     bin_to_number/1,
     increment_code/1,
     to_bool/1,
@@ -62,7 +67,79 @@ bin_to_number(Bin) when is_binary(Bin) ->
         {match, [Num|_]} -> binary_to_float(Num)
     end.
 
--spec to_bin(A :: binary() | string() | integer() | undefined) -> binary().
+-spec to_int(A :: mixed()) -> integer().
+
+to_int(A) when is_binary(A) -> bin_to_number(A);
+
+to_int(A) when is_integer(A) -> A;
+
+to_int(A) when is_float(A) -> floor(A);
+
+to_int(A) when ?IS_ARRAY(A) ->
+    case ephp_array:size(A) of
+        0 -> 0;
+        _ -> 1
+    end;
+
+to_int(true) -> 1;
+
+% FIXME: conversion from NAN or INF to int is a bit tricky...
+to_int(infinity) -> -9223372036854775808;
+
+to_int(nan) -> -9223372036854775808;
+
+to_int(_) -> 0.
+
+-spec to_int(context(), line(), mixed()) -> integer().
+
+to_int(Ctx, Line, #reg_instance{class=#class{name=ClassName}}) ->
+    File = ephp_context:get_active_file(Ctx),
+    Data = {File, ClassName, <<"int">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+    1;
+
+to_int(_Ctx, _Line, Val) ->
+    to_int(Val).
+
+-spec to_float(mixed()) -> float().
+
+to_float(I) when is_integer(I) ->
+    erlang:float(I);
+
+to_float(T) when is_binary(T) ->
+    erlang:float(ephp_data:bin_to_number(T));
+
+to_float(F) when is_float(F) ->
+    F;
+
+to_float(A) when ?IS_ARRAY(A) ->
+    case ephp_array:size(A) of
+        0 -> 0.0;
+        _ -> 1.0
+    end;
+
+to_float(true) -> 1.0;
+
+to_float(false) -> 0.0;
+
+to_float(infinity) -> infinity;
+
+to_float(nan) -> nan;
+
+to_float(undefined) -> 0.0.
+
+-spec to_float(context(), line(), mixed()) -> float().
+
+to_float(Ctx, Line, #reg_instance{class=#class{name=ClassName}}) ->
+    File = ephp_context:get_active_file(Ctx),
+    Data = {File, ClassName, <<"double">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+    1.0;
+
+to_float(_Context, _Line, Value) ->
+    to_float(Value).
+
+-spec to_bin(A :: mixed()) -> binary().
 
 to_bin(A) when is_binary(A) ->
     A;
@@ -93,8 +170,13 @@ to_bin(infinity) -> <<"INF">>;
 
 to_bin(undefined) -> <<>>.
 
--spec to_bin(context(), line(),
-             A :: binary() | string() | integer() | undefined) -> binary().
+-spec to_bin(context(), line(), mixed()) -> binary().
+
+to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
+    File = ephp_context:get_active_file(Ctx),
+    Data = {File, <<"string">>},
+    ephp_error:handle_error(Ctx, {error, earrayconv, Line, ?E_NOTICE, Data}),
+    <<"Array">>;
 
 to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
     try
@@ -108,6 +190,37 @@ to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
 
 to_bin(_Context, _Line, Val) ->
     to_bin(Val).
+
+-spec to_boolean(mixed()) -> binary().
+
+to_boolean(0) -> false;
+
+to_boolean(0.0) -> false;
+
+to_boolean(N) when is_number(N) -> true;
+
+to_boolean(<<>>) -> false;
+
+to_boolean(S) when is_binary(S) -> true;
+
+to_boolean(true) -> true;
+
+to_boolean(false) -> false;
+
+to_boolean(infinity) -> true;
+
+to_boolean(nan) -> true;
+
+to_boolean(undefined) -> false;
+
+to_boolean(Array) when ?IS_ARRAY(Array) ->
+    case ephp_array:size(Array) of
+        0 -> false;
+        _ -> true
+    end;
+
+to_boolean(#reg_instance{}) -> true.
+
 
 -spec increment_code(Code :: binary()) -> integer() | binary().
 

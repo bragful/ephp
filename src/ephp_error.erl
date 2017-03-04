@@ -243,6 +243,10 @@ get_message(etimezone, Line, _Level, {Function, TZ, File}) ->
         "~nNotice: ~s(): Timezone ID '~s' is invalid in ~s on line ~p~n",
         [Function, TZ, File, Line]);
 
+get_message(efewargs, Line, _Level, {Function, File}) ->
+    io_lib:format(
+        "~nWarning: ~s(): Too few arguments in ~s on line ~p~n",
+        [Function, File, Line]);
 
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
