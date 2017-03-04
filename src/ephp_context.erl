@@ -503,6 +503,7 @@ resolve({operation_not, Expr, _Line}, State) ->
         {0, NewState} -> {true, NewState};
         {<<"0">>, NewState} -> {true, NewState};
         {EmptyArray, NewState} -> {true, NewState};
+        {undefined, NewState} -> {true, NewState};
         {_, NewState} -> {false, NewState}
     end;
 
