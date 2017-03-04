@@ -226,39 +226,66 @@ expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) when not is_number(L) ->
 expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
     {Rest0, Pos0, Op} = expression(Rest, {L+1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
-expression(<<A:8,_/binary>> = Rest, Pos, [{op,_},#if_block{}|_]) when A =/= $: ->
+expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, [{op,_},#if_block{}|_])
+        when A =:= $, orelse A =:= $) ->
     throw_error(eparse, Pos, Rest);
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
-    {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+    {Rest, Pos, add_op('end', Parsed)};
+expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos,
+           [{op,_},#if_block{}|_])
+        when A =:= $, orelse A =:= $) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, [Parsed])
         when A =:= $, orelse A =:= $) ->
-    {Rest, add_pos(Pos,1), add_op('end', [Parsed])};
+    {Rest, Pos, add_op('end', [Parsed])};
 expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
     [Arg,Idx] = Parsed,
-    {Rest, add_pos(Pos,1), [Idx,add_op('end', [Arg])]};
+    {Rest, Pos, [Idx,add_op('end', [Arg])]};
+expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos,
+           [{op,_},#if_block{}|_])
+        when A =:= $, orelse A =:= $] ->
+    throw_error(eparse, Pos, Rest);
 expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, [Parsed])
         when A =:= $, orelse A =:= $] ->
-    {Rest, add_pos(Pos,1), add_op('end', [Parsed])};
+    {Rest, Pos, add_op('end', [Parsed])};
 expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $] ->
     [Arg,Idx] = Parsed,
-    {Rest, add_pos(Pos,1), [Idx,add_op('end', [Arg])]};
+    {Rest, Pos, [Idx,add_op('end', [Arg])]};
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
+        when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
-    {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+    {Rest, Pos, add_op('end', Parsed)};
 % TODO: maybe we need to change the foreach_block for _arg...
+expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos,
+           [{op,_},#if_block{}|_])
+        when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
     {Rest, Pos, add_op('end', Parsed)};
+expression(<<")",_/binary>> = Rest, {L,_Row,_Col}=Pos, [{op,_},#if_block{}|_])
+        when is_number(L) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+expression(<<"]",_/binary>> = Rest, {array,_,_}=Pos, [{op,_},#if_block{}|_]) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<"]",Rest/binary>>, {array,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
+        when not is_number(L) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) ->
     {Rest, Pos, add_op('end', Parsed)};
+expression(<<"?>",_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
+        when not is_number(L) ->
+    throw_error(eparse, Pos, Rest);
 expression(<<"?>",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) ->
     {Rest, Pos, add_op('end', Parsed)};
