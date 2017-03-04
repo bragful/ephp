@@ -1,0 +1,5 @@
+
+Warning: sprintf(): Too few arguments in {{CWD}}/test/code/test_sprintf.php on line 3
+%'.-20s = hello...............
+%'.20s  = ...............hello
+%2s     = hello
