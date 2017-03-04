@@ -339,8 +339,8 @@ code(<<A:8,_/binary>> = Rest, Pos, [#constant{}|_])
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     throw_error(eparse, Pos, Rest);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) orelse A =:= $_ ->
-    {Rest0, Pos0, Parsed0} = constant(Rest,Pos,[]),
-    code(Rest0, copy_level(Pos, Pos0), Parsed0 ++ Parsed);
+    {Rest0, Pos0, Parsed0} = expression(Rest,Pos,[]),
+    code(Rest0, copy_level(Pos, Pos0), [Parsed0] ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A)
                                            orelse A =:= $- orelse A =:= $(
                                            orelse A =:= $" orelse A =:= $'

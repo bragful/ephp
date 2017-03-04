@@ -369,6 +369,15 @@ expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
+        ?IS_ALPHA(A) orelse A =:= $_ ->
+    case lists:last(Ops) of
+        #constant{} ->
+            throw_error(eparse, Pos, Rest);
+        _ ->
+            {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
+            expression(Rest0, {L,R,C}, add_op(Constant, Parsed))
+    end;
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
