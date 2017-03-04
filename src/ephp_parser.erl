@@ -409,8 +409,13 @@ variable(<<"->",Rest/binary>>, Pos, [#variable{}=Var]) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
-    {Rest0, Pos0, Exp} = expression(Rest, add_pos(Pos,2), Op),
-    {Rest0, Pos0, [Exp]};
+    case expression(Rest, add_pos(Pos,2), Op) of
+        % FIXME this should be included in the expressions
+        {Rest0, {L,_,_}=Pos0, Exp} when is_number(L) ->
+            {<<")",Rest0/binary>>, Pos0, [Exp]};
+        {Rest0, Pos0, Exp} ->
+            {Rest0, Pos0, [Exp]}
+    end;
 variable(Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
 
