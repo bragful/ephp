@@ -18,6 +18,8 @@
     print/3,
     printf/3,
     sprintf/3,
+    vprintf/4,
+    vsprintf/4,
     str_replace/5,
     str_replace/6,
     strtolower/3,
@@ -41,6 +43,8 @@ init_func() -> [
     {print, [{alias, <<"echo">>}]},
     {printf, [pack_args]},
     {sprintf, [pack_args]},
+    vprintf,
+    vsprintf,
     str_replace,
     strtolower,
     strtoupper,
@@ -164,9 +168,25 @@ sprintf(Context, Line, Values) when length(Values) < 2 ->
 sprintf(_Context, _Line, [{_,Format}|Values]) ->
     print_format(Format, Values).
 
+-spec vprintf(context(), line(),
+              Format :: var_value(),
+              Values :: var_value()) -> pos_integer().
+
+vprintf(Context, _Line, {_,Format}, {_,Values}) when ?IS_ARRAY(Values) ->
+    Text = print_format(Format, ephp_array:to_list(Values)),
+    ephp_context:set_output(Context, Text),
+    byte_size(Text).
+
+-spec vsprintf(context(), line(),
+               Format :: var_value(),
+               Values :: var_value()) -> binary().
+
+vsprintf(_Context, _Line, {_,Format}, {_,Values}) when ?IS_ARRAY(Values) ->
+    print_format(Format, ephp_array:to_list(Values)).
+
 -spec str_replace(context(), line(),
-    Search :: var_value(), Replace :: var_value(),
-    Subject :: var_value()) -> binary().
+                  Search :: var_value(), Replace :: var_value(),
+                  Subject :: var_value()) -> binary().
 
 str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject})
         when ?IS_ARRAY(Search) andalso is_binary(Replace) ->
@@ -187,8 +207,8 @@ str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject}) ->
     binary:replace(Subject, Search, Replace, [global]).
 
 -spec str_replace(context(), line(),
-    Search :: var_value(), Replace :: var_value(),
-    Subject :: var_value(), Count :: var_value()) -> binary().
+                  Search :: var_value(), Replace :: var_value(),
+                  Subject :: var_value(), Count :: var_value()) -> binary().
 
 str_replace(Context, _Line, {_, Search}, {_, Replace}, {_, Subject},
             {Count,_}) ->
@@ -211,7 +231,8 @@ str_split(Context, Line, Text) ->
     str_split(Context, Line, Text, {1, 1}).
 
 -spec str_split(context(), line(),
-    Text :: var_value(), Size :: var_value()) -> ephp_array() | undefined.
+                Text :: var_value(),
+                Size :: var_value()) -> ephp_array() | undefined.
 
 str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     File = ephp_context:get_active_file(Context),
