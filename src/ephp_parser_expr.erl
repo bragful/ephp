@@ -183,6 +183,7 @@ expression(<<"#",Rest/binary>>, Pos, Parsed) ->
 expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
+%% TODO it's possible to use ( int ) with spaces between text and parens...
 expression(<<"(",I:8,N:8,T:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) ->
     OpL = <<"(int)">>,
@@ -357,16 +358,14 @@ expression(<<X:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
     OpL = <<"xor">>,
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
-    OpL = ephp_string:to_lower(Op),
-    expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
+    expression(Rest, add_pos(Pos,3), add_op({Op,precedence(Op),Pos}, Parsed));
 expression(<<O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
     OpL = <<"or">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
-    OpL = ephp_string:to_lower(Op),
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+    expression(Rest, add_pos(Pos,2), add_op({Op,precedence(Op),Pos}, Parsed));
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
@@ -378,10 +377,10 @@ expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
             {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
             expression(Rest0, {L,R,C}, add_op(Constant, Parsed))
     end;
-expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed) when
+expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
-    {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
-    expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
+    {Rest0, Pos0, [Constant]} = constant(Rest, Pos, []),
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Constant, Parsed));
 expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
     expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])|Parser]);
 %% TODO support for list(...) = ...
