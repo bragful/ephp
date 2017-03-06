@@ -412,12 +412,19 @@ variable(<<"[",Rest/binary>>, Pos, [#variable{idx=Indexes}=Var]) ->
         _ -> RawIdx
     end,
     variable(Rest1, copy_level(Pos, Pos1), [Var#variable{idx=Indexes ++ [Idx]}]);
+variable(<<"->",Rest/binary>>, {L,_,_}=Pos, [#variable{}=Var])
+        when is_number(L) ->
+    % TODO move this code to ephp_parser_expr
+    OpL = <<"->">>,
+    Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
+    {Rest0, Pos0, Exp} = expression(Rest, arg_level(add_pos(Pos,2)), Op),
+    {Rest0, copy_level(Pos, Pos0), [Exp]};
 variable(<<"->",Rest/binary>>, Pos, [#variable{}=Var]) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
     {Rest0, Pos0, Exp} = expression(Rest, add_pos(Pos,2), Op),
-    {Rest0, Pos0, [Exp]};
+    {Rest0, copy_level(Pos, Pos0), [Exp]};
 variable(Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
 
