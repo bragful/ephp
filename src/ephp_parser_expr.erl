@@ -441,7 +441,7 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
     expression(Rest0, copy_level(Pos, Pos0), add_op(Constant, Parsed));
 %% TODO support for list(...) = ...
 % FINAL -switch-
-expression(<<":",_/binary>> = Rest, {switch_block,_,_}=Pos, [Exp]) ->
+expression(<<":",_/binary>> = Rest, {switch_label,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};
 % TERNARY OPERATOR
 expression(<<"?",Rest/binary>>, Pos, Parsed) ->

@@ -95,31 +95,36 @@ code(<<"}",Rest/binary>>, {code_block,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
 code(<<"}",Rest/binary>>, {switch_block,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), lists:reverse(switch_case_block(Parsed))};
-code(<<E:8,N:8,D:8,I:8,F:8,Rest/binary>>, {if_old_block,_,_}=Pos, Parsed) when
+code(<<E:8,N:8,D:8,I:8,F:8,SP:8,Rest/binary>>, {if_old_block,_,_}=Pos, Parsed)
+    when
         ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
-        ?OR(I,$I,$i) andalso ?OR(F,$F,$f) ->
-    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,5)),
-    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
-code(<<E:8,N:8,D:8,F:8,O:8,R:8,E:8,A:8,C:8,H:8,Rest/binary>>,
+        ?OR(I,$I,$i) andalso ?OR(F,$F,$f) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)),
+    {Rest0, Pos0, lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>,
      {foreach_old_block,_,_}=Pos, Parsed) when
         ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
         ?OR(F,$F,$f) andalso ?OR(O,$O,$o) andalso ?OR(R,$R,$r) andalso
-        ?OR(A,$A,$a) andalso ?OR(C,$C,$c) andalso ?OR(H,$H,$h) ->
-    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,10)),
-    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
-code(<<E:8,N:8,D:8,F:8,O:8,R:8,Rest/binary>>,
+        ?OR(A,$A,$a) andalso ?OR(C,$C,$c) andalso ?OR(H,$H,$h) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,10)),
+    {Rest0, Pos0, lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,F:8,O:8,R:8,SP:8,Rest/binary>>,
      {for_old_block,_,_}=Pos, Parsed) when
         ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
-        ?OR(F,$F,$f) andalso ?OR(O,$O,$o) andalso ?OR(R,$R,$r) ->
-    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,6)),
-    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
-code(<<E:8,N:8,D:8,W:8,H:8,I:8,L:8,E:8,Rest/binary>>,
+        ?OR(F,$F,$f) andalso ?OR(O,$O,$o) andalso ?OR(R,$R,$r) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,6)),
+    {Rest0, Pos0, lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>,
      {while_old_block,_,_}=Pos, Parsed) when
         ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
         ?OR(W,$W,$w) andalso ?OR(H,$H,$h) andalso ?OR(I,$I,$i) andalso
-        ?OR(L,$L,$l) ->
-    {<<";",Rest0/binary>>, Pos0} = remove_spaces(Rest, add_pos(Pos,8)),
-    {Rest0, add_pos(Pos0,1), lists:reverse(Parsed)};
+        ?OR(L,$L,$l) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,8)),
+    {Rest0, Pos0, lists:reverse(Parsed)};
 code(<<";",_/binary>> = Rest, {code_statement,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), Parsed};
 code(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
@@ -185,7 +190,7 @@ code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {switch_block,_,_}=Pos, Parsed) when
         ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(S,$S,$s) andalso
         ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,4)),
-    NewPos = switch_block_level(Pos0),
+    NewPos = switch_label_level(Pos0),
     {<<":",Rest1/binary>>, Pos1, Exp} = expression(Rest0, NewPos, []),
     NewParsed = [add_line(#switch_case{
         label=Exp,
@@ -682,6 +687,7 @@ for_block_level({_,Row,Col}) -> {for_block,Row,Col}.
 foreach_block_level({_,Row,Col}) -> {foreach_block,Row,Col}.
 while_block_level({_,Row,Col}) -> {while_block,Row,Col}.
 switch_block_level({_,Row,Col}) -> {switch_block,Row,Col}.
+switch_label_level({_,Row,Col}) -> {switch_label,Row,Col}.
 
 normal_level({_,Row,Col}) -> {code,Row,Col}.
 code_block_level({_,Row,Col}) -> {code_block,Row,Col}.
