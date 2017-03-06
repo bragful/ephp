@@ -104,11 +104,12 @@ st_class_content(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>,
         ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N) andalso
         ?OR(S,$s,$S) andalso ?OR(T,$t,$T) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    {Rest0, Pos0, #constant{}=Cons} =
+    % FIXME assign when a left-constant should be converted in a simple constant
+    {Rest0, Pos0, #assign{variable=#constant{}=Cons, expression=Value}} =
         ephp_parser_expr:expression(<<SP:8,Rest/binary>>, add_pos(Pos,5), []),
     Constant = #class_const{
         name=Cons#constant.name,
-        value=Cons#constant.value},
+        value=Value},
     NewClass = Class#class{constants=Constants ++ [Constant]},
     st_class_content(Rest0, normal_public_level(Pos0), NewClass);
 st_class_content(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>,

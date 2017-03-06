@@ -495,6 +495,22 @@ resolve({post_decr, Var, _Line}, State) ->
             {V, State}
     end;
 
+resolve({operation_minus, Expr, Line}, #state{ref=Ctx}=State) ->
+    case resolve(Expr, State) of
+        {Number, NewState} when is_number(Number) ->
+            {-Number, NewState};
+        {Binary, NewState} when is_binary(Binary) ->
+            {-ephp_data:bin_to_number(Binary), NewState};
+        {Array, _NewState} when ?IS_ARRAY(Array) ->
+            File = State#state.active_file,
+            ephp_error:error({error, eunsupportop, Line, ?E_ERROR, File});
+        {#reg_instance{class=#class{name=ClassName}}, NewState} ->
+            File = State#state.active_file,
+            Data = {File, ClassName, <<"int">>},
+            ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+            {-1, NewState}
+    end;
+
 resolve({operation_not, Expr, _Line}, State) ->
     EmptyArray = ephp_array:new(),
     case resolve(Expr, State) of
@@ -509,13 +525,12 @@ resolve({operation_not, Expr, _Line}, State) ->
 
 resolve({operation_bnot, Expr, Line}, State) ->
     case resolve(Expr, State) of
-        {Number, NewState} when is_integer(Number) -> {bnot(Number), NewState};
-        {Number, NewState} when is_float(Number) -> {bnot(Number), NewState};
+        {Number, NewState} when is_number(Number) -> {bnot(Number), NewState};
         {Binary, NewState} when is_binary(Binary) ->
             {<< <<bnot(B)/integer>> || <<B:8/integer>> <= Binary >>, NewState};
         _ ->
             File = State#state.active_file,
-            ephp_error:error({error, ebadbnot, Line, ?E_ERROR, File})
+            ephp_error:error({error, eunsupportop, Line, ?E_ERROR, File})
     end;
 
 resolve(#if_block{conditions=Cond}=IfBlock, State) ->
@@ -1014,9 +1029,19 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         <<"%">> ->
             trunc(ephp_data:zero_if_undef(OpRes1)) rem
             trunc(ephp_data:zero_if_undef(OpRes2));
+        <<"<">> when OpRes1 =:= undefined -> true;
+        <<"<">> when OpRes2 =:= undefined -> false;
         <<"<">> -> OpRes1 < OpRes2;
+        <<">">> when OpRes1 =:= undefined -> false;
+        <<">">> when OpRes1 =:= undefined -> true;
         <<">">> -> OpRes1 > OpRes2;
+        <<">=">> when OpRes1 =:= undefined andalso OpRes2 =:= undefined -> true;
+        <<">=">> when OpRes1 =:= undefined -> true;
+        <<">=">> when OpRes2 =:= undefined -> false;
         <<">=">> -> OpRes1 >= OpRes2;
+        <<"=<">> when OpRes1 =:= undefined andalso OpRes2 =:= undefined -> true;
+        <<"=<">> when OpRes1 =:= undefined -> false;
+        <<"=<">> when OpRes2 =:= undefined -> true;
         <<"=<">> -> OpRes1 =< OpRes2;
         <<"==">> when
                 is_record(OpRes1, reg_instance) andalso

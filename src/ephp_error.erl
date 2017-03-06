@@ -25,7 +25,7 @@
     eundefclass |
     eprivateaccess |
     ecallprivate |
-    ebadbnot |
+    eunsupportop |
     erequired |
     einclude |
     enofile |
@@ -174,7 +174,7 @@ get_message(ecallprivate, Line, _Level, {File, Class, Element, Access}) ->
         "~nFatal error: Call to ~s method ~s::~s() in ~s on line ~p~n",
         [Access, Class, Element, File, Line]);
 
-get_message(ebadbnot, Line, _Level, File) ->
+get_message(eunsupportop, Line, _Level, File) ->
     io_lib:format(
         "~nFatal error: Unsupported operand types in ~s on line ~p~n",
         [File, Line]);

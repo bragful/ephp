@@ -251,8 +251,9 @@ code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
 code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N)
         andalso ?OR(S,$s,$S) andalso ?OR(T,$t,$T) andalso ?IS_SPACE(SP) ->
-    {Rest0, Pos0, #constant{}=Constant} =
+    {Rest0, Pos0, #assign{variable=#constant{}=Const, expression=Value}} =
         expression(Rest, add_pos(Pos,6), []),
+    Constant = Const#constant{type=define, value=Value},
     code(Rest0, copy_level(Pos, Pos0), [Constant|Parsed]);
 code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
@@ -415,7 +416,8 @@ variable(<<"->",Rest/binary>>, Pos, [#variable{}=Var]) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
-    expression(Rest, add_pos(Pos,2), Op);
+    {Rest0, Pos0, Exp} = expression(Rest, add_pos(Pos,2), Op),
+    {Rest0, Pos0, [Exp]};
 variable(Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
 

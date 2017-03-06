@@ -93,6 +93,7 @@ array_def(Rest, Pos, Args) when Rest =/= <<>> ->
             array_def(Rest0, add_pos(Pos0, 1), Args ++ [NewArg])
     end.
 
+% ARRAY(...) -old-
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
@@ -100,30 +101,47 @@ expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest1, Pos1, Content} = array_def(<<SP:8,Rest/binary>>, NewPos, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
     expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+% [...] -array new-
 expression(<<"[",Rest/binary>>, Pos, []) ->
     NewPos = array_def_54_level(add_pos(Pos, 1)),
     {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Pos), []),
     expression(Rest1, copy_level(Pos, Pos1), NewParsed);
-expression(<<"[",_/binary>> = Rest, Pos, Parsed) ->
-    {Rest0, Pos0, [Parsed0]} = variable(Rest, Pos, [add_op('end', Parsed)]),
-    {Rest0, Pos0, Parsed0};
+expression(<<"[",Rest/binary>>, Pos, [{op,Op}|_]=Parsed) ->
+    case lists:last(Op) of
+        {_,{_,_},{_,_,_}} ->
+            % ARRAY DEF
+            NewPos = array_def_54_level(add_pos(Pos, 1)),
+            {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
+            NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
+            expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+        _ ->
+            % ARRAY INDEX
+            NewParsed = [add_op('end', Parsed)],
+            {Rest0, Pos0, [Parsed0]} =
+                variable(<<"[",Rest/binary>>, Pos, NewParsed),
+            {Rest0, Pos0, Parsed0}
+    end;
+% NULL
 expression(<<N:8,U:8,L:8,L:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(N,$N,$n) andalso ?OR(U,$U,$u) andalso ?OR(L,$L,$l)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
     expression(<<SP:8,Rest/binary>>, add_pos(Pos,4), add_op(undefined, Parsed));
+% TRUE
 expression(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(T,$t,$T) andalso ?OR(R,$r,$R) andalso ?OR(U,$u,$U)
         andalso ?OR(E,$e,$E)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
     expression(<<SP:8,Rest/binary>>, add_pos(Pos,4), add_op(true, Parsed));
+% FALSE
 expression(<<F:8,A:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(A,$a,$A) andalso ?OR(L,$l,$L)
         andalso ?OR(S,$s,$S) andalso ?OR(E,$e,$E)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
     expression(<<SP:8,Rest/binary>>, add_pos(Pos,5), add_op(false, Parsed));
+% FUNCTION(...) -closure-
 expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
-           Pos, _Parsed) when
+           Pos, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
         ?OR(O,$O,$o) andalso
@@ -134,7 +152,8 @@ expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
     {Rest1, Pos1, Args} = funct_args(Rest0, Pos0, []),
     BaseFunction = add_line(#function{args=Args}, Pos),
     {Rest2, Pos2, Function} = st_use_or_block(Rest1, Pos1, BaseFunction),
-    {Rest2, copy_level(Pos, Pos2), Function};
+    expression(Rest2, copy_level(Pos, Pos2), add_op(Function, Parsed));
+% INSTANCEOF
 expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
            Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(S,$S,$s) andalso
@@ -144,6 +163,7 @@ expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     OpL = <<"instanceof">>,
     expression(Rest0, Pos0, add_op({instanceof, precedence(OpL), Pos}, Parsed));
+% NEW ...
 expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(N,$N,$n) andalso ?OR(E,$E,$e) andalso ?OR(W,$W,$w) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
@@ -162,18 +182,20 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
             }, Pos)
     end,
     expression(Rest3, copy_level(Pos, add_pos(Pos3,1)), add_op(Instance,Parsed));
-expression(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, [Exp])
-        when ?IS_SPACE(SP) ->
-    expression(Rest, Pos, [Exp]);
+% FINAL -enclosed-
 expression(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, [Exp]) ->
     {Rest, add_pos(Pos,1), add_op('end', [Exp])};
+% FINAL -unclosed-
 expression(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [Exp])
         when ?IS_SPACE(SP) ->
     {Rest, Pos, add_op('end', [Exp])};
+% SPACE -all-
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     expression(Rest, add_pos(Pos,1), Parsed);
+% NEWLINE -all-
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     expression(Rest, new_line(Pos), Parsed);
+% COMMENTS...
 expression(<<"//",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
@@ -183,56 +205,75 @@ expression(<<"#",Rest/binary>>, Pos, Parsed) ->
 expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
+% CAST (int)
 %% TODO it's possible to use ( int ) with spaces between text and parens...
 expression(<<"(",I:8,N:8,T:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) ->
     OpL = <<"(int)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% CAST (float)
 expression(<<"(",F:8,L:8,O:8,A:8,T:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
         ?OR(A,$A,$a) andalso ?OR(T,$T,$t) ->
     OpL = <<"(float)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% CAST (string)
 expression(<<"(",S:8,T:8,R:8,I:8,N:8,G:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(G,$G,$g) ->
     OpL = <<"(string)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% CAST (array)
 expression(<<"(",A:8,R:8,R:8,A:8,Y:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(A,$A,$a) andalso ?OR(R,$R,$r) andalso ?OR(Y,$Y,$y) ->
     OpL = <<"(array)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% CAST (object)
 expression(<<"(",O:8,B:8,J:8,E:8,C:8,T:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(O,$O,$o) andalso ?OR(B,$B,$b) andalso ?OR(J,$J,$j) andalso
         ?OR(E,$E,$e) andalso ?OR(C,$C,$c) andalso ?OR(T,$T,$t) ->
     OpL = <<"(object)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% CAST (bool)
 expression(<<"(",B:8,O:8,O:8,L:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso ?OR(L,$L,$l) ->
     OpL = <<"(bool)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% CAST (unset)
 expression(<<"(",U:8,N:8,S:8,E:8,T:8,")",Rest/binary>>, Pos, Parsed) when
         ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso ?OR(S,$S,$s) andalso
         ?OR(E,$E,$e) andalso ?OR(T,$T,$t) ->
     OpL = <<"(unset)">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% FUNCTION CALL
 expression(<<"(",Rest/binary>>, Pos, [{op,[#variable{}=V]}|Parsed]) ->
     Call = #call{name = V, line = V#variable.line},
     {Rest0, Pos0, [Function]} =
         ephp_parser_func:function(Rest, add_pos(Pos,1), [Call|Parsed]),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Function, Parsed));
+% PARENS -first time-
 expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) when not is_number(L) ->
+    % FIXME: this is inconsistent, sometimes is expecting to remove ")"
+    %        and sometimes is not.
     {Rest0, Pos0, Op} = expression(Rest, {1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
+% PARENS -more than one-
 expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
     {Rest0, Pos0, Op} = expression(Rest, {L+1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
+% FINAL -arg-
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, [{op,_},#if_block{}|_])
         when A =:= $, orelse A =:= $) ->
     throw_error(eparse, Pos, Rest);
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
-    {Rest, Pos, add_op('end', Parsed)};
+    case add_op('end', Parsed) of
+        #operation{type = <<"?">>, line={{_,R},{_,C}}} ->
+            throw_error(eparse, {arg,R,C}, Rest);
+        Op ->
+            {Rest, Pos, Op}
+    end;
+% FINAL -array definition array(...)-
 expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos,
            [{op,_},#if_block{}|_])
         when A =:= $, orelse A =:= $) ->
@@ -244,6 +285,7 @@ expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
     [Arg,Idx] = Parsed,
     {Rest, Pos, [Idx,add_op('end', [Arg])]};
+% FINAL -array definition [...]-
 expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos,
            [{op,_},#if_block{}|_])
         when A =:= $, orelse A =:= $] ->
@@ -255,13 +297,17 @@ expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $] ->
     [Arg,Idx] = Parsed,
     {Rest, Pos, [Idx,add_op('end', [Arg])]};
+% KEY & VALUE -array_def old and new-
+expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
+    expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])|Parser]);
+% FINAL -all but parens-
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
         when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
     throw_error(eparse, Pos, Rest);
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
     {Rest, Pos, add_op('end', Parsed)};
-% TODO: maybe we need to change the foreach_block for _arg...
+% FOREACH DATA
 expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos,
            [{op,_},#if_block{}|_])
         when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
@@ -269,44 +315,53 @@ expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos,
 expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
     {Rest, Pos, add_op('end', Parsed)};
+% FINAL -parens-
 expression(<<")",_/binary>> = Rest, {L,_Row,_Col}=Pos, [{op,_},#if_block{}|_])
         when is_number(L) ->
     throw_error(eparse, Pos, Rest);
 expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+% FINAL -array-
 expression(<<"]",_/binary>> = Rest, {array,_,_}=Pos, [{op,_},#if_block{}|_]) ->
     throw_error(eparse, Pos, Rest);
 expression(<<"]",Rest/binary>>, {array,_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+% FINAL -all but parens-
 expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
         when not is_number(L) ->
     throw_error(eparse, Pos, Rest);
 expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) ->
-    {Rest, Pos, add_op('end', Parsed)};
+    case add_op('end', Parsed) of
+        #operation{type = <<"?">>, line={{_,R},{_,C}}} ->
+            throw_error(eparse, {L,R,C}, Rest);
+        Op ->
+            {Rest, Pos, Op}
+    end;
 expression(<<"?>",_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
         when not is_number(L) ->
     throw_error(eparse, Pos, Rest);
 expression(<<"?>",_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) ->
     {Rest, Pos, add_op('end', Parsed)};
-expression(<<"&$",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,2), []),
-    Ref = add_line(#ref{var=Var}, Pos),
-    expression(Rest0, Pos0, add_op(Ref, Parsed));
+% VARIABLE
 expression(<<"$",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,1), []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Var, Parsed));
+% NUMBER
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
     {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Number, Parsed));
+% STRING
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
         A =:= $" orelse A =:= $' ->
     {Rest0, Pos0, String} = ephp_parser_string:string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
+% HEREDOC & NOWDOC
 expression(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, String} = ephp_parser_string:string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
+% INCLUDE
 expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
@@ -315,6 +370,7 @@ expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"include">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
+% INCLUDE_ONCE
 expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
      Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
@@ -324,6 +380,7 @@ expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"include_once">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
+% REQUIRE
 expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
         ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(SP,$(,32) ->
@@ -331,6 +388,7 @@ expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
+% REQUIRE_ONCE
 expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
      Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
@@ -340,34 +398,34 @@ expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
-expression(<<A:1/binary,"=",Rest/binary>>, Pos, [{op,[#variable{}=V]}|_])
-        when ?IS_OP1_ARITH(A) ->
-    NewPos = code_statement_level(add_pos(Pos,2)),
-    {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
-    Op = add_line(operator(A,V,Exp), Pos),
-    Assign = add_line(#assign{variable=V, expression=Op}, Pos),
-    {Rest0, Pos0, Assign};
+% AND
 expression(<<A:8,N:8,D:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(N,$n,$N) andalso ?OR(D,$d,$D)
         andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
     OpL = <<"and">>,
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% XOR
 expression(<<X:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(X,$x,$X) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
     OpL = <<"xor">>,
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% OPERATOR 3 LETTERS
 expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
     expression(Rest, add_pos(Pos,3), add_op({Op,precedence(Op),Pos}, Parsed));
+% OR
 expression(<<O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
     OpL = <<"or">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
+% OPERATORS 2 LETTERS
 expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     expression(Rest, add_pos(Pos,2), add_op({Op,precedence(Op),Pos}, Parsed));
+% OPERATORS 1 LETTER
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
+% CONSTANT / FUNCTION
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     case lists:last(Ops) of
@@ -381,33 +439,21 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, [Constant]} = constant(Rest, Pos, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Constant, Parsed));
-expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
-    expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])|Parser]);
 %% TODO support for list(...) = ...
-expression(<<"=",Rest/binary>>, Pos, [{op,[#variable{}|_]}|_]=Parsed) ->
-    NewPos = code_statement_level(add_pos(Pos,1)),
-    {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
-    V = add_op('end', Parsed),
-    Assign = add_line(#assign{variable=V, expression=Exp}, Pos),
-    {Rest0, Pos0, Assign};
-expression(<<"=",Rest/binary>>, Pos, [{op,[#constant{}=C]}|_]) ->
-    NewPos = code_statement_level(add_pos(Pos,1)),
-    {Rest0, Pos0, Exp} = expression(Rest, NewPos, []),
-    Constant = add_line(C#constant{type=define, value=Exp}, Pos),
-    {Rest0, Pos0, Constant};
-expression(<<"?",Rest/binary>>, Pos, [{op,_}]=Exp) ->
-    expression(Rest, add_pos(Pos,1), [#if_block{conditions=add_op('end', Exp)}]);
-expression(<<":",Rest/binary>>, Pos, [{op,_}=Exp,#if_block{}=If]) ->
-    {Rest1, Pos1, ElseExp} = expression(Rest, add_pos(Pos,1), []),
-    IfBlock = If#if_block{
-        true_block = add_op('end', [Exp]),
-        false_block = ElseExp
-    },
-    {Rest1, copy_level(Pos, Pos1), IfBlock};
+% FINAL -switch-
 expression(<<":",_/binary>> = Rest, {switch_block,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};
+% TERNARY OPERATOR
+expression(<<"?",Rest/binary>>, Pos, Parsed) ->
+    Op = <<"?">>,
+    expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
+expression(<<":",Rest/binary>>, Pos, Parsed) ->
+    Op = <<":">>,
+    expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
+% FINAL -unclosed-
 expression(Rest, {unclosed,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};
+% PARSE ERROR
 expression(<<>>, Pos, _Parsed) ->
     throw_error(eparse, Pos, <<>>).
 
@@ -458,7 +504,8 @@ precedence(<<"|">>) -> {left, 14}; %% bit by bit
 precedence(<<"&&">>) -> {left, 15}; %% logic
 precedence(<<"||">>) -> {left, 16}; %% logic
 precedence(<<"??">>) -> {right, 17}; %% comparison
-%precedence(<<"?:">>) -> {left, 18}; %% ternary
+precedence(<<"?">>) -> {left, 18}; %% ternary
+precedence(<<":">>) -> {left, 18}; %% ternary
 precedence(<<"=">>) -> {right, 19}; %% assign
 precedence(<<"+=">>) -> {right, 19};
 precedence(<<"-=">>) -> {right, 19};
@@ -555,8 +602,20 @@ solve(Expression) ->
 
 gen_op([], Stack) ->
     Stack;
-gen_op([#variable{}=V,{<<"&">>,{left,_},Pos}], []) ->
-    [add_line(#ref{var=V}, Pos)];
+gen_op([{<<"=">>,{_,_},Pos}|Rest], [B,A|Stack]) ->
+    Assign = add_line(#assign{variable=A, expression=B}, Pos),
+    gen_op(Rest, [Assign|Stack]);
+gen_op([{<<O:1/binary,"=">>,{_,_},Pos}|Rest], [B,A|Stack])
+        when ?IS_OP1_ARITH(O) ->
+    Op = add_line(#operation{type=O,
+                             expression_left=A,
+                             expression_right=B}, Pos),
+    Assign = add_line(#assign{variable=A, expression=Op}, Pos),
+    gen_op(Rest, [Assign|Stack]);
+gen_op([#variable{}=V,{<<"&">>,{left,_},Pos}|Rest], []) ->
+    gen_op(Rest, [add_line(#ref{var=V}, Pos)]);
+gen_op([#variable{}=V,{<<"&">>,{left,_},Pos},{_,{_,_},_}=A|Rest], Stack) ->
+    gen_op([A|Rest], [add_line(#ref{var=V}, Pos)|Stack]);
 gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], Stack) ->
     [{silent, gen_op(Rest, Stack)}];
 gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
@@ -571,12 +630,12 @@ gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
             add_line({object, B}, Pos)
     end,
     gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
-gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
-    gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
 gen_op([{<<"-">>,{_,_},Pos}|Rest], [#int{}=I]) ->
     gen_op(Rest, [add_line(#int{int=-I#int.int},Pos)]);
 gen_op([{<<"-">>,{_,_},Pos}|Rest], [#float{}=F]) ->
     gen_op(Rest, [add_line(#float{float=-F#float.float},Pos)]);
+gen_op([{<<"-">>,{_,_},{_,R,C}},{_,{_,_},_}=B|Rest], [A|Stack]) ->
+    gen_op([B|Rest], [{operation_minus, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->
     gen_op(Rest, [I|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
@@ -623,6 +682,17 @@ gen_op([{<<"(object)">>,{_,_},Pos}|Rest], [A|Stack]) ->
 gen_op([{<<"(unset)">>,{_,_},_Pos}|Rest], [_|Stack]) ->
     gen_op(Rest, [undefined|Stack]);
 % TODO add the rest of casting operators
+gen_op([{<<":">>,_,_Pos}|Rest], [FalseValue,A|Stack]) ->
+    #operation{type = <<"?">>,
+               expression_left = Conditions,
+               expression_right = TrueValue} = A,
+    gen_op(Rest, [#if_block{
+        conditions = Conditions,
+        true_block = TrueValue,
+        false_block = FalseValue
+    }|Stack]);
+gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
+    gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).
 

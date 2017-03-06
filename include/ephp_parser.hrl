@@ -44,7 +44,8 @@
     X =:= <<">">> orelse
     X =:= <<"&">> orelse
     X =:= <<"^">> orelse
-    X =:= <<"|">>
+    X =:= <<"|">> orelse
+    X =:= <<"=">>
 ).
 -define(IS_OP2(X),
     X =:= <<"**">> orelse
