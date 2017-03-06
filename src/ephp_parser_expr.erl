@@ -505,7 +505,7 @@ precedence(<<"&&">>) -> {left, 15}; %% logic
 precedence(<<"||">>) -> {left, 16}; %% logic
 precedence(<<"??">>) -> {right, 17}; %% comparison
 precedence(<<"?">>) -> {left, 18}; %% ternary
-precedence(<<":">>) -> {left, 18}; %% ternary
+precedence(<<":">>) -> {left, 17}; %% ternary
 precedence(<<"=">>) -> {right, 19}; %% assign
 precedence(<<"+=">>) -> {right, 19};
 precedence(<<"-=">>) -> {right, 19};
@@ -524,6 +524,10 @@ precedence(<<"xor">>) -> {left, 21};
 precedence(<<"or">>) -> {left, 22};
 precedence(_) -> false.
 
+operator(<<":">> = Op,Left,Right) ->
+    #operation{type=Op, expression_left=Left, expression_right=Right};
+operator(<<"?">> = Op,Left,Right) ->
+    #operation{type=Op, expression_left=Left, expression_right=Right};
 operator(<<"and">>,Left,Right) -> operator('and',Left,Right);
 operator(<<"or">>,Left,Right) -> operator('or',Left,Right);
 operator(<<"xor">>,Left,Right) -> operator('xor',Left,Right);
@@ -682,15 +686,21 @@ gen_op([{<<"(object)">>,{_,_},Pos}|Rest], [A|Stack]) ->
 gen_op([{<<"(unset)">>,{_,_},_Pos}|Rest], [_|Stack]) ->
     gen_op(Rest, [undefined|Stack]);
 % TODO add the rest of casting operators
-gen_op([{<<":">>,_,_Pos}|Rest], [FalseValue,A|Stack]) ->
-    #operation{type = <<"?">>,
-               expression_left = Conditions,
-               expression_right = TrueValue} = A,
-    gen_op(Rest, [#if_block{
-        conditions = Conditions,
-        true_block = TrueValue,
-        false_block = FalseValue
-    }|Stack]);
+gen_op([{<<"?">>,{_,_},Pos}|Rest],
+       [#operation{type = <<":">>}=OpElse,Cond|Stack]) ->
+    #operation{
+        expression_left = TrueBlock,
+        expression_right = FalseBlock
+    } = OpElse,
+    IfBlock = #if_block{
+        conditions = Cond,
+        true_block = TrueBlock,
+        false_block = FalseBlock,
+        line = Pos
+    },
+    gen_op(Rest, [IfBlock|Stack]);
+gen_op([{<<"?">>,{_,_},Pos}|_], _Stack) ->
+    throw_error(eparse, Pos, <<>>);
 gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
     gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
 gen_op([A|Rest], Stack) ->
