@@ -620,8 +620,8 @@ gen_op([#variable{}=V,{<<"&">>,{left,_},Pos}|Rest], []) ->
     gen_op(Rest, [add_line(#ref{var=V}, Pos)]);
 gen_op([#variable{}=V,{<<"&">>,{left,_},Pos},{_,{_,_},_}=A|Rest], Stack) ->
     gen_op([A|Rest], [add_line(#ref{var=V}, Pos)|Stack]);
-gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], Stack) ->
-    [{silent, gen_op(Rest, Stack)}];
+gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], [A|Stack]) ->
+    gen_op(Rest, [{silent, A}|Stack]);
 gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
