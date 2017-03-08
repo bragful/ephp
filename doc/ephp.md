@@ -135,7 +135,7 @@ eval(Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -
 ### eval/3 ###
 
 <pre><code>
-eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, Reason::<a href="#type-reason">reason()</a>} | {error, {Code::binary(), Line::integer(), Col::integer()}}
+eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, <a href="#type-reason">reason()</a>} | {error, {Code::binary(), Line::integer(), Col::integer()}}
 </code></pre>
 <br />
 
@@ -153,7 +153,7 @@ main(Args::[string()]) -&gt; integer()
 ### register_func/5 ###
 
 <pre><code>
-register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::atom(), Fun::atom(), PackArgs::boolean()) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean()) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 
@@ -162,7 +162,7 @@ register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Mod
 ### register_module/2 ###
 
 <pre><code>
-register_module(Ctx::<a href="#type-context">context()</a>, Module::atom()) -&gt; ok
+register_module(Ctx::<a href="#type-context">context()</a>, Module::module()) -&gt; ok
 </code></pre>
 <br />
 

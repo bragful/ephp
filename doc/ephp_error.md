@@ -16,7 +16,7 @@
 
 
 <pre><code>
-error_type() = eundefclass | eprivateaccess | ecallprivate | ebadbnot | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eundefvar | eundefconst | eassignthis | earrayconv
+error_type() = eundefclass | eprivateaccess | ecallprivate | eunsupportop | erequired | einclude | enofile | eundefun | earrayundef | eundeftoken | enoclassscope | emethodtypes | eundefmethod | edivzero | eparse | enostatement | eunknownst | eundefvar | eundefconst | eassignthis | earrayconv
 </code></pre>
 
 

@@ -9,12 +9,21 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get_funcs-1">get_funcs/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-2">register_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#shutdown-1">shutdown/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#unregister_func-2">unregister_func/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_funcs-1">get_funcs/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-2">register_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#shutdown-1">shutdown/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#unregister_func-2">unregister_func/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
+
+<a name="destroy-1"></a>
+
+### destroy/1 ###
+
+<pre><code>
+destroy(Ref::<a href="ephp.md#type-shutdown_id">ephp:shutdown_id()</a>) -&gt; ok
+</code></pre>
+<br />
 
 <a name="get_funcs-1"></a>
 

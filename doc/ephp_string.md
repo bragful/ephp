@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_upper-1">to_upper/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -21,7 +21,16 @@
 ### to_lower/1 ###
 
 <pre><code>
-to_lower(Text::binary()) -&gt; binary()
+to_lower(Text::binary() | undefined) -&gt; binary() | undefined
+</code></pre>
+<br />
+
+<a name="to_upper-1"></a>
+
+### to_upper/1 ###
+
+<pre><code>
+to_upper(Text::binary() | undefined) -&gt; binary() | undefined
 </code></pre>
 <br />
 

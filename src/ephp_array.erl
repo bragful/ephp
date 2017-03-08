@@ -12,6 +12,7 @@
     store/3,
     erase/2,
     fold/3,
+    from_list/1,
     to_list/1
 ]).
 
@@ -76,6 +77,12 @@ fold(Fun, Initial, #ephp_array{values=Values, trigger=undefined}) ->
 fold(Fun, Initial, #ephp_array{trigger={Module,Function,Args}}=Array) ->
     NewFun = fun({K,V},Acc) -> Fun(K,V,Acc) end,
     apply(Module, Function, Args ++ [Array, {fold, NewFun, Initial}]).
+
+from_list(List) when is_list(List) ->
+    lists:foldl(fun({K,_}=E, #ephp_array{values=V}=A) when is_binary(K);
+                                                          is_number(K) ->
+        A#ephp_array{values = V ++ [E]}
+    end, #ephp_array{}, List).
 
 to_list(#ephp_array{values=Values, trigger=undefined}) ->
     Values;

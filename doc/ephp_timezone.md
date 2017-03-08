@@ -64,7 +64,7 @@ timezone_info() = {<a href="#type-dst">dst()</a>, <a href="#type-offset">offset(
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#abbreviations-0">abbreviations/0</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_info-1">timezone_info/1</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_to_abbreviation-2">timezone_to_abbreviation/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#abbreviations-0">abbreviations/0</a></td><td></td></tr><tr><td valign="top"><a href="#is_valid-1">is_valid/1</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_info-1">timezone_info/1</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_to_abbreviation-2">timezone_to_abbreviation/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -77,6 +77,15 @@ timezone_info() = {<a href="#type-dst">dst()</a>, <a href="#type-offset">offset(
 
 <pre><code>
 abbreviations() -&gt; [<a href="#type-abbreviation">abbreviation()</a>]
+</code></pre>
+<br />
+
+<a name="is_valid-1"></a>
+
+### is_valid/1 ###
+
+<pre><code>
+is_valid(TZ::<a href="#type-timezone">timezone()</a>) -&gt; boolean()
 </code></pre>
 <br />
 

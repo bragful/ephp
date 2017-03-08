@@ -26,7 +26,10 @@
 
 ### destroy/1 ###
 
-`destroy(Context) -> any()`
+<pre><code>
+destroy(Context::<a href="ephp.md#type-vars_id">ephp:vars_id()</a>) -&gt; ok
+</code></pre>
+<br />
 
 <a name="get-2"></a>
 

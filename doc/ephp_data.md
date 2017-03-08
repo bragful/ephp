@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin_to_number-1">bin_to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#ceiling-1">ceiling/1</a></td><td></td></tr><tr><td valign="top"><a href="#floor-1">floor/1</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-1">gettype/1</a></td><td></td></tr><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_equal-2">is_equal/2</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-3">to_bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin_to_number-1">bin_to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#ceiling-1">ceiling/1</a></td><td></td></tr><tr><td valign="top"><a href="#floor-1">floor/1</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-1">gettype/1</a></td><td></td></tr><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_equal-2">is_equal/2</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-3">to_bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_boolean-1">to_boolean/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_float-1">to_float/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_float-3">to_float/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_int-1">to_int/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_int-3">to_int/3</a></td><td></td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -84,7 +84,7 @@ pad_to_bin(Num::integer() | binary(), Pad::integer()) -&gt; binary()
 ### to_bin/1 ###
 
 <pre><code>
-to_bin(A::binary() | string() | integer() | undefined) -&gt; binary()
+to_bin(A::<a href="#type-mixed">mixed()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -93,7 +93,7 @@ to_bin(A::binary() | string() | integer() | undefined) -&gt; binary()
 ### to_bin/3 ###
 
 <pre><code>
-to_bin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, A::binary() | string() | integer() | undefined) -&gt; binary()
+to_bin(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-mixed">mixed()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -103,6 +103,51 @@ to_bin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 
 <pre><code>
 to_bool(Value::undefined | boolean() | <a href="#type-ephp_array">ephp_array()</a> | integer() | float() | string() | binary()) -&gt; boolean()
+</code></pre>
+<br />
+
+<a name="to_boolean-1"></a>
+
+### to_boolean/1 ###
+
+<pre><code>
+to_boolean(N::<a href="#type-mixed">mixed()</a>) -&gt; binary()
+</code></pre>
+<br />
+
+<a name="to_float-1"></a>
+
+### to_float/1 ###
+
+<pre><code>
+to_float(I::<a href="#type-mixed">mixed()</a>) -&gt; float()
+</code></pre>
+<br />
+
+<a name="to_float-3"></a>
+
+### to_float/3 ###
+
+<pre><code>
+to_float(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Reg_instance::<a href="#type-mixed">mixed()</a>) -&gt; float()
+</code></pre>
+<br />
+
+<a name="to_int-1"></a>
+
+### to_int/1 ###
+
+<pre><code>
+to_int(A::<a href="#type-mixed">mixed()</a>) -&gt; integer()
+</code></pre>
+<br />
+
+<a name="to_int-3"></a>
+
+### to_int/3 ###
+
+<pre><code>
+to_int(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Reg_instance::<a href="#type-mixed">mixed()</a>) -&gt; integer()
 </code></pre>
 <br />
 
