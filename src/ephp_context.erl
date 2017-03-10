@@ -576,6 +576,7 @@ resolve(#call{name=#function{args=RawFuncArgs,code=Code,use=Use},args=RawArgs},
         ({#var_ref{pid=NVars, ref=V},N}) ->
             ephp_vars:ref(NewVars, N, NVars, V)
     end, Use),
+    register_superglobals(Ref, NewVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, ?FUNC_ANON_NAME),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
@@ -629,6 +630,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
             active_class=undefined,
             active_fun_args=length(Args)}),
         ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs),
+        register_superglobals(Ref, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
         Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
             {return, V} -> V;
@@ -724,6 +726,24 @@ resolve(#cast{type=Type, content=C, line=Line}, State) ->
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
+
+register_superglobals(GlobalCtx, Vars) ->
+    #state{vars=GlobalVars} = load_state(GlobalCtx),
+    SuperGlobals = [
+        <<"_SERVER">>,
+        <<"_GET">>,
+        <<"_POST">>,
+        <<"_FILES">>,
+        <<"_COOKIE">>,
+        <<"_SESSION">>,
+        <<"_REQUEST">>,
+        <<"_ENV">>
+    ],
+    lists:foreach(fun(GlobalName) ->
+        GlobalVar = #variable{name = GlobalName},
+        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
+    end, SuperGlobals).
+
 resolve_func_args(RawFuncArgs, State) ->
     lists:foldl(fun
         (#variable{default_value=Val}=Var, {Vars, S}) when Val =/= null ->
@@ -760,6 +780,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
         active_fun_args=length(Args),
         active_class=Class#class.name}),
     ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
+    register_superglobals(Ref, NewVars),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, MethodName},
         {<<"__CLASS__">>, Class#class.name}
