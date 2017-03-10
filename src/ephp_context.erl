@@ -598,7 +598,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
             when is_atom(M) andalso is_atom(F) ->
         SState = case {M,F} of
             {ephp_lib_vars, isset} ->
-                % silet Notice when a variable is not defined
+                % FIXME: add config for silent Notice when a var isn't defined
                 State#state{ref=undefined};
             _ ->
                 State
