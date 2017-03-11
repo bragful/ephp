@@ -29,7 +29,25 @@ init_config() -> [].
 
 -spec init_const() -> ephp_func:php_const_results().
 
-init_const() -> [].
+init_const() -> [
+    {<<"PHP_VERSION">>, ?PHP_VERSION},
+    {<<"PHP_MAJOR_VERSION">>, <<?PHP_MAJOR_VERSION>>},
+    {<<"PHP_MINOR_VERSION">>, <<?PHP_MINOR_VERSION>>},
+    {<<"PHP_RELEASE_VERSION">>, <<?PHP_RELEASE_VERSION>>},
+    {<<"PHP_VERSION_ID">>, ?PHP_VERSION_ID},
+    {<<"PHP_EXTRA_VERSION">>, ?PHP_EXTRA_VERSION},
+    % Zend Thread Safety
+    {<<"PHP_ZTS">>, 0},
+    {<<"PHP_DEBUG">>, 0},
+    % TODO: move to ephp_lib_file?
+    {<<"PHP_MAXPATHLEN">>, 1024},
+    {<<"PHP_OS">>, get_os()},
+    {<<"PHP_OS_FAMILY">>, get_os_family()},
+    {<<"PHP_SAPI">>, ephp_config:get(sapi_type, <<"cli">>)},
+    {<<"PHP_EOL">>, get_os_eol()},
+    % fake:
+    {<<"PHP_SHLIB_SUFFIX">>, <<"so">>}
+].
 
 -spec phpinfo(context(), line()) -> undefined.
 
@@ -94,3 +112,33 @@ get_vsn() ->
 
 get_build_date() ->
     list_to_binary(?BUILD_DATE).
+
+-spec get_os() -> binary().
+
+get_os() ->
+    %% TODO complete the list of OS
+    case os:type() of
+        {unix, darwin} -> <<"Darwin">>;
+        {unix, linux} -> <<"Linux">>;
+        {win, nt} -> <<"WINNT">>;
+        {win, _} -> <<"Windows">>
+    end.
+
+-spec get_os_family() -> binary().
+
+get_os_family() ->
+    %% TODO complete the list of OS families
+    case os:type() of
+        {unix, darwin} -> <<"OSX">>;
+        {unix, linux} -> <<"LINUX">>;
+        %% BSD
+        %% Solaris
+        {win, _} -> <<"WIN">>;
+        {_, _} -> <<"unknown">>
+    end.
+
+-spec get_os_eol() -> binary().
+
+get_os_eol() ->
+    %% TODO change this for something more coherent :-P
+    <<"\n">>.

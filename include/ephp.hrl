@@ -1,7 +1,16 @@
 %% Author: Manuel Rubio <manuel@altenwald.com>
 
 -define(PHP_INI_FILE, <<"php.ini">>).
--define(PHP_VERSION, <<"5.6.0">>).
+
+-define(PHP_MAJOR_VERSION, "5").
+-define(PHP_MINOR_VERSION, "6").
+-define(PHP_RELEASE_VERSION, "0").
+-define(PHP_EXTRA_VERSION, "erlang").
+-define(PHP_VERSION, <<?PHP_MAJOR_VERSION, ".",
+                       ?PHP_MINOR_VERSION, ".",
+                       ?PHP_RELEASE_VERSION, "-",
+                       ?PHP_EXTRA_VERSION>>).
+-define(PHP_VERSION_ID, 50600).
 
 %% 256 bits
 -define(PHP_INT_MAX, 340282366920938463463374607431768211456).
