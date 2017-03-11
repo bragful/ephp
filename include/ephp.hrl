@@ -245,7 +245,7 @@
 -type object_index() :: {object, binary(), line()}.
 -type class_index() :: {class, binary(), line()}.
 
--type variable_types() :: normal | object | class.
+-type variable_types() :: normal | object | class | static.
 
 -record(variable, {
     type = normal :: variable_types(),

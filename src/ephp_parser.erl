@@ -342,6 +342,19 @@ code(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
     code(Rest1, Pos1, [Include|Parsed]);
+code(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(A,$A,$a) andalso
+        ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    NewPos = add_pos(Pos, 7),
+    case expression(Rest, NewPos, []) of
+        {Rest0, Pos0, #assign{variable=Var}=Assign} ->
+            NewAssign = Assign#assign{variable = Var#variable{type = static}},
+            code(Rest0, copy_level(Pos, Pos0), Parsed ++ [NewAssign]);
+        {Rest0, Pos0, #variable{}=Var} ->
+            NewVar = Var#variable{type = static},
+            code(Rest0, copy_level(Pos, Pos0), Parsed ++ [NewVar])
+    end;
 code(<<A:8,_/binary>> = Rest, Pos, [#constant{}|_])
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     throw_error(eparse, Pos, Rest);
