@@ -600,7 +600,7 @@ concat(#concat{texts=T}) -> T;
 concat(T) -> [T].
 
 solve(Expression) ->
-    Postfix = shunting_yard(Expression, [], []),
+    Postfix = shunting_yard(parse_negative(Expression), [], []),
     [Operation] = gen_op(Postfix, []),
     Operation.
 
@@ -638,8 +638,6 @@ gen_op([{<<"-">>,{_,_},Pos}|Rest], [#int{}=I]) ->
     gen_op(Rest, [add_line(#int{int=-I#int.int},Pos)]);
 gen_op([{<<"-">>,{_,_},Pos}|Rest], [#float{}=F]) ->
     gen_op(Rest, [add_line(#float{float=-F#float.float},Pos)]);
-gen_op([{<<"-">>,{_,_},{_,R,C}},{_,{_,_},_}=B|Rest], [A|Stack]) ->
-    gen_op([B|Rest], [{operation_minus, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->
     gen_op(Rest, [I|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
@@ -710,6 +708,18 @@ add_to_array(#array{elements=E}=Array, Pos, Element) ->
     Array#array{elements=E ++ [
         add_line(#array_element{element=Element}, Pos)
     ]}.
+
+parse_negative(Elements) ->
+    parse_negative(lists:reverse(Elements), []).
+
+parse_negative([A,{<<"-">>,{_,_},_},{_,{_,_},_}=Op|Rest], Stack) ->
+    parse_negative([{operation_minus, A, undefined},Op|Rest], Stack);
+parse_negative([A,{<<"-">>,{_,_},_}], Stack) ->
+    [{operation_minus, A, undefined}|Stack];
+parse_negative([A|Rest], Stack) ->
+    parse_negative(Rest, [A|Stack]);
+parse_negative([], Stack) ->
+    Stack.
 
 shunting_yard([], [], Postfix) ->
     Postfix;
