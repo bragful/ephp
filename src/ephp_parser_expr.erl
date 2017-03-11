@@ -626,6 +626,8 @@ gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_bnot, A, {{line,R},{column,C}}}|Stack]);
 gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_not, A, {{line,R},{column,C}}}|Stack]);
+gen_op([#constant{name = <<"break">>}, #int{int=I}], []) ->
+    [{break, I}];
 gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
     Object = case B of
         #constant{name=Name} ->
