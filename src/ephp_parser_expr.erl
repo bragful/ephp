@@ -729,14 +729,6 @@ shunting_yard([], OpS, Postfix) ->
     Postfix ++ OpS;
 shunting_yard([{_,{_,_},_}=Op|Rest], [], Postfix) ->
     shunting_yard(Rest, [Op], Postfix);
-shunting_yard([open|Rest], OpS, Postfix) ->
-    shunting_yard(Rest, [open|OpS], Postfix);
-%% TODO it could be a fail, find a close parens without other operators in stack
-% shunting_yard([close|Rest], [], Postfix) ->
-%     shunting_yard(Rest, [], Postfix);
-shunting_yard([close|Rest]=_A, OpS, Postfix) ->
-    {Add, [open|NewOpS]} = lists:splitwith(fun(A) -> A =/= open end, OpS),
-    shunting_yard(Rest, NewOpS, Postfix ++ Add);
 shunting_yard([{_,{left,P1},_}=Op|Rest], [{_,{_,P2},_}=Op1|OpS], Postfix)
         when P1 > P2 ->
     shunting_yard(Rest, [Op|OpS], Postfix ++ [Op1]);
@@ -748,8 +740,6 @@ shunting_yard([{_,{left,P1},_}=Op|Rest], [{_,{_,P2},_}|_]=OpS, Postfix)
     shunting_yard(Rest, [Op|OpS], Postfix);
 shunting_yard([{_,{_,P1},_}=Op|Rest], [{_,{_,P2},_}|_]=OpS, Postfix)
         when P1 < P2 ->
-    shunting_yard(Rest, [Op|OpS], Postfix);
-shunting_yard([{_,{_,_},_}=Op|Rest], [open|_]=OpS, Postfix) ->
     shunting_yard(Rest, [Op|OpS], Postfix);
 shunting_yard([A|Rest], OpS, Postfix) ->
     shunting_yard(Rest, OpS, Postfix ++ [A]).
