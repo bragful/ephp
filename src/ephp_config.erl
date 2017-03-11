@@ -6,6 +6,8 @@
 
 -export([
     start_link/1,
+    start_local/0,
+    stop_local/0,
 
     get/1,
     get/2,
@@ -33,20 +35,50 @@ start_link(File) ->
     end,
     ok.
 
+-spec start_local() -> ok.
+
+start_local() ->
+    Config = lists:foldl(fun({K,V}, Dict) ->
+        dict:store(K, V, Dict)
+    end, dict:new(), application:get_all_env(ephp)),
+    erlang:put(ephp_config, Config),
+    ok.
+
+-spec stop_local() -> ok.
+
+stop_local() ->
+    erlang:erase(ephp_config),
+    ok.
+
 -spec get(Key :: binary()) -> mixed().
 
 get(Key) ->
-    application:get_env(ephp, Key, undefined).
+    get(Key, undefined).
 
 -spec get(Key :: binary(), Default :: mixed()) -> mixed().
 
 get(Key, Default) ->
-    application:get_env(ephp, Key, Default).
+    case erlang:get(ephp_config) of
+        undefined ->
+            application:get_env(ephp, Key, Default);
+        Config ->
+            case dict:find(Key, Config) of
+                error ->
+                    application:get_env(ephp, Key, Default);
+                {ok, Value} ->
+                    Value
+            end
+    end.
 
 -spec set(Key :: binary(), Value :: mixed()) -> ok.
 
 set(Key, Value) ->
-    application:set_env(ephp, Key, Value),
+    case erlang:get(ephp_config) of
+        undefined ->
+            application:set_env(ephp, Key, Value);
+        Config ->
+            erlang:put(ephp_config, dict:store(Key, Value, Config))
+    end,
     ok.
 
 -spec read_config(file_name()) -> proplists:proplists().

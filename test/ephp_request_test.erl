@@ -12,6 +12,7 @@ eval(Filename) ->
     {ok, Content} ->
         AbsFilename = list_to_binary(filename:absname(Filename)),
         ephp_config:start_link(?PHP_INI_FILE),
+        ephp_config:start_local(),
         {ok, Ctx} = ephp:context_new(AbsFilename),
         {ok, Output} = ephp_output:start_link(Ctx, false),
         ephp_context:set_output_handler(Ctx, Output),
@@ -23,6 +24,7 @@ eval(Filename) ->
         ephp:eval(AbsFilename, Ctx, Content),
         Out = ephp_context:get_output(Ctx),
         ephp_context:destroy_all(Ctx),
+        ephp_config:stop_local(),
         {ok, Out};
     Error ->
         Error
