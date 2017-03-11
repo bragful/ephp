@@ -125,8 +125,9 @@ code(<<E:8,N:8,D:8,W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>,
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,8)),
     {Rest0, Pos0, lists:reverse(Parsed)};
-code(<<";",_/binary>> = Rest, {code_statement,_,_}=Pos, Parsed) ->
-    {Rest, add_pos(Pos,1), Parsed};
+code(<<A:8,_/binary>> = Rest, {code_statement,_,_}=Pos, Parsed)
+        when A =:= $; orelse A =:= $} ->
+    {Rest, Pos, Parsed};
 code(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(T,$t,$T) andalso ?OR(R,$r,$R) andalso ?OR(U,$u,$U)
         andalso ?OR(E,$e,$E) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
