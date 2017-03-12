@@ -109,9 +109,11 @@ eval(Filename, Context, PHP) ->
         Compiled ->
             case catch ephp_interpr:process(Context, Compiled) of
                 {ok, Return} ->
+                    ephp_shutdown:shutdown(Context),
                     {ok, Return};
                 {error, Reason, _, _, _}=Error ->
                     ephp_error:handle_error(Context, Error),
+                    ephp_shutdown:shutdown(Context),
                     {error, Reason}
             end
     end.

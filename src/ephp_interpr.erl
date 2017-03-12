@@ -22,7 +22,6 @@ process(Context, Statements) ->
         (_Statement, Return) ->
             Return
     end, false, Statements),
-    ephp_shutdown:shutdown(Context),
     {ok, Value}.
 
 -type break() :: break | {break, pos_integer()}.

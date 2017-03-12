@@ -605,6 +605,10 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
 
 resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
         #state{ref=Ref,vars=Vars,funcs=Funcs,const=Const}=State) ->
+    GlobalRef = case State#state.global of
+        undefined -> Ref;
+        GR -> GR
+    end,
     case ephp_func:get(Funcs, Fun) of
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F}}}
             when is_atom(M) andalso is_atom(F) ->
@@ -634,16 +638,17 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
     {ok,#reg_func{type=php, args=RawFuncArgs, file=AFile, code=Code}} ->
         {Args, NStatePrev} = resolve_args(RawArgs, State),
         {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
+        save_state(NState),
         {ok, NewVars} = ephp_vars:start_link(),
         {ok, SubContext} = start_mirror(NState#state{
             vars=NewVars,
-            global=Ref,
+            global=GlobalRef,
             active_file=AFile,
             active_fun=Fun,
             active_class=undefined,
             active_fun_args=length(Args)}),
         ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs),
-        register_superglobals(Ref, NewVars),
+        register_superglobals(GlobalRef, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
         Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
             {return, V} -> V;
