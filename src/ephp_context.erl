@@ -1025,10 +1025,18 @@ resolve_op(#operation{type=instanceof, expression_left=Op1,
     end;
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
-        line=Index}, #state{active_file=File}=State) ->
+                      line=Index},
+           #state{active_file=File}=State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
     {case Type of
+        <<"+">> when ?IS_ARRAY(OpRes1) andalso ?IS_ARRAY(OpRes2) ->
+            lists:foldl(fun({K,V}, A) ->
+                case ephp_array:find(K, A) of
+                    error -> ephp_array:store(K, V, A);
+                    _ -> A
+                end
+            end, OpRes1, ephp_array:to_list(OpRes2));
         <<"+">> ->
             ephp_data:zero_if_undef(OpRes1) + ephp_data:zero_if_undef(OpRes2);
         <<"-">> ->
