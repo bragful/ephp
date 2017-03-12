@@ -253,6 +253,11 @@ get_message(eargsupplied, Line, _Level, {Function, File}) ->
         "~nWarning: Invalid argument supplied for ~s() in ~s on line ~p~n",
         [Function, File, Line]);
 
+get_message(eargtype, Line, _Level, {Function, ArgNum, File}) ->
+    io_lib:format(
+        "~nWarning: ~s(): Argument #~p is not an array in ~s on line ~p~n",
+        [Function, ArgNum, File, Line]);
+
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
         "~nFatal error: unknown ~p for ~p in line ~p~n",

@@ -9,7 +9,8 @@
     init_config/0,
     init_const/0,
     in_array/4,
-    count/3
+    count/3,
+    array_merge/3
 ]).
 
 -include("ephp.hrl").
@@ -19,7 +20,8 @@
 init_func() -> [
     in_array,
     count,
-    {count, [{alias, <<"sizeof">>}]}
+    {count, [{alias, <<"sizeof">>}]},
+    {array_merge, [pack_args]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -45,6 +47,11 @@ count(_Context, _Line, {_,Array}) when ?IS_ARRAY(Array) ->
 count(_Context, _Line, _Var) ->
     1.
 
+-spec array_merge(context(), line(), Arrays :: [var_value()]) -> ephp_array().
+
+array_merge(Context, Line, Args) ->
+    array_merge(Context, Line, 1, Args).
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
@@ -52,3 +59,28 @@ count(_Context, _Line, _Var) ->
 member(Value, Dict) ->
     List = ephp_array:to_list(Dict),
     lists:keysearch(Value, 2, List) =/= false.
+
+-spec array_merge(context(), line(), pos_integer(), Arrays :: [var_value()]) ->
+    ephp_array().
+
+array_merge(Context, Line, 1, [{_,Array}|_]) when not ?IS_ARRAY(Array) ->
+    Data = {<<"array_merge">>, 1, ephp_context:get_active_file(Context)},
+    ephp_error:handle_error(Context, {error, eargtype, Line, ?E_WARNING, Data}),
+    undefined;
+array_merge(Context, Line, N, [{_,_},{_,V}|_]) when not ?IS_ARRAY(V) ->
+    Data = {<<"array_merge">>, N+1, ephp_context:get_active_file(Context)},
+    ephp_error:handle_error(Context, {error, eargtype, Line, ?E_WARNING, Data}),
+    undefined;
+array_merge(_Context, _Line, _N, [{_,Array}]) ->
+    Array;
+array_merge(Context, Line, N, [{V1,A1},{_,A2}|Rest]) when ?IS_ARRAY(A2) ->
+    Array = lists:foldl(fun
+        ({K,V}, A) when is_integer(K) ->
+            ephp_array:store(auto, V, A);
+        ({K,V}, A) ->
+            ephp_array:store(K, V, A)
+    end, A1, array_to_list(A2)),
+    array_merge(Context, Line, N+1, [{V1,Array}|Rest]).
+
+array_to_list(A) when ?IS_ARRAY(A) -> ephp_array:to_list(A);
+array_to_list(A) when is_list(A) -> A.
