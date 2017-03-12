@@ -20,7 +20,7 @@
     get_const/2,
     get_const/3,
 
-    register_class/3,
+    register_class/4,
     set_alias/3,
     instance/5,
 
@@ -72,12 +72,14 @@ set_alias(Ref, ClassName, AliasName) ->
             {error, enoexist}
     end.
 
-register_class(Ref, GlobalCtx, #class{name=Name,constants=ConstDef}=PHPClass) ->
+register_class(Ref, File, GlobalCtx,
+               #class{name=Name,constants=ConstDef}=PHPClass) ->
     Classes = erlang:get(Ref),
     {ok, Ctx} = ephp_context:start_link(),
     ephp_context:set_global(Ctx, GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
+        file = File,
         constants = lists:foldl(fun(#class_const{name=N,value=V}, D) ->
             dict:store(N,ephp_context:solve(Ctx, V),D)
         end, dict:new(), ConstDef)

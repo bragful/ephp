@@ -175,29 +175,34 @@ get_state(Context) ->
 
 register_func(Context, PHPFunc, Module, Fun, PackArgs)
         when is_atom(Module) andalso is_atom(Fun) ->
-    #state{funcs=Funcs} = load_state(Context),
-    ephp_func:register_func(Funcs, PHPFunc, Module, Fun, PackArgs),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun, PackArgs),
     ok;
 
 register_func(Context, PHPFunc, Args, Code, PackArgs) ->
-    #state{funcs=Funcs} = load_state(Context),
-    ephp_func:register_func(Funcs, PHPFunc, Args, Code, PackArgs),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, PackArgs),
     ok.
 
 register_func(Context, PHPFunc, Module, Fun)
         when is_atom(Module) andalso is_atom(Fun) ->
-    #state{funcs=Funcs} = load_state(Context),
-    ephp_func:register_func(Funcs, PHPFunc, Module, Fun),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun),
     ok;
 
 register_func(Context, PHPFunc, Args, Code) ->
-    #state{funcs=Funcs} = load_state(Context),
-    ephp_func:register_func(Funcs, PHPFunc, Args, Code),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code),
     ok.
 
 register_func(Context, PHPFunc, Fun) ->
-    #state{funcs=Funcs} = load_state(Context),
-    ephp_func:register_func(Funcs, PHPFunc, Fun),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Fun),
     ok.
 
 get_functions(Context) ->
@@ -309,8 +314,10 @@ load_once(Context, File) ->
     ephp_include:load_once(Inc, File).
 
 register_class(Context, Class) ->
-    #state{class=Classes, global=GlobalCtx} = load_state(Context),
-    ephp_class:register_class(Classes, GlobalCtx, Class),
+    #state{class=Classes, active_file=File, global=GlobalCtx} =
+        load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_class:register_class(Classes, AbsFile, GlobalCtx, Class),
     ok.
 
 set_class_alias(Context, ClassName, ClassAlias) ->
@@ -614,7 +621,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
             PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
             true -> erlang:apply(M,F,[Ref,Index|Args])
         end,
-        {Value, load_state(Ref)};
+        {Value, (load_state(Ref))#state{ref=Ref}};
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin=F}}
             when is_function(F) ->
         {Args, NState} = resolve_args(RawArgs, State),
@@ -624,13 +631,14 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
             true -> F([Ref,Index|Args])
         end,
         {Value, load_state(Ref)};
-    {ok,#reg_func{type=php, args=RawFuncArgs, code=Code}} ->
+    {ok,#reg_func{type=php, args=RawFuncArgs, file=AFile, code=Code}} ->
         {Args, NStatePrev} = resolve_args(RawArgs, State),
         {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
         {ok, NewVars} = ephp_vars:start_link(),
         {ok, SubContext} = start_mirror(NState#state{
             vars=NewVars,
             global=Ref,
+            active_file=AFile,
             active_fun=Fun,
             active_class=undefined,
             active_fun_args=length(Args)}),
@@ -758,6 +766,8 @@ resolve_func_args(RawFuncArgs, State) ->
             {Vars ++ [Var], NewState}
     end, {[], State}, RawFuncArgs).
 
+resolve_args(undefined, State) ->
+    {[], State};
 resolve_args(RawArgs, State) ->
     lists:foldl(fun(Arg, {Args,S}) ->
         {A,NewState} = resolve(Arg,S),
@@ -781,6 +791,7 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
     {ok, SubContext} = start_mirror(NState#state{
         vars=NewVars,
         global=Ref,
+        active_file=Class#class.file,
         active_fun=MethodName,
         active_fun_args=length(Args),
         active_class=Class#class.name}),

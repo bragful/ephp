@@ -1,0 +1,6 @@
+
+Warning: strpos() expects parameter 1 to be string, array given in {{CWD}}/test/code/function_broken.php on line 4
+
+Warning: strpos() expects parameter 1 to be string, array given in {{CWD}}/test/code/class_broken.php on line 5
+
+Warning: strpos() expects parameter 1 to be string, array given in {{CWD}}/test/code/class_broken.php on line 5

@@ -365,6 +365,7 @@
     constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
+    file :: binary(),
     line :: line(),
     instance_counter = 0 :: integer(),
     static_context :: context()
@@ -384,6 +385,7 @@
     name :: binary(),
     args :: [variable()],
     type :: builtin | php,
+    file :: binary(),
     code = [] :: [statement()],
     builtin :: {Module :: atom(), Func :: atom()} | function(),
     pack_args = false :: boolean()
