@@ -1,0 +1,21 @@
+Array
+(
+    [color] => green
+    [0] => 2
+    [1] => 4
+    [2] => a
+    [3] => b
+    [shape] => trapezoid
+    [4] => 4
+)
+Array
+(
+    [0] => foo
+    [1] => bar
+)
+
+Warning: array_merge(): Argument #1 is not an array in {{CWD}}/test/code/test_array_merge.php on line 12
+NULL
+
+Warning: array_merge(): Argument #3 is not an array in {{CWD}}/test/code/test_array_merge.php on line 13
+NULL
