@@ -248,6 +248,11 @@ get_message(efewargs, Line, _Level, {Function, File}) ->
         "~nWarning: ~s(): Too few arguments in ~s on line ~p~n",
         [Function, File, Line]);
 
+get_message(eargsupplied, Line, _Level, {Function, File}) ->
+    io_lib:format(
+        "~nWarning: Invalid argument supplied for ~s() in ~s on line ~p~n",
+        [Function, File, Line]);
+
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
         "~nFatal error: unknown ~p for ~p in line ~p~n",

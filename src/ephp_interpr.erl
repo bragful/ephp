@@ -94,15 +94,25 @@ run_depth(Context, #for{init=Init,conditions=Cond,
     run_loop(pre, Context, Cond, LoopBlock ++ Update);
 
 run_depth(Context, #foreach{
-        kiter=Key, iter=Var, elements=RawElements, loop_block=LB}, false) ->
+        kiter=Key, iter=Var, elements=RawElements, loop_block=LB}=FE, false) ->
     LoopBlock = if
         is_tuple(LB) -> [LB];
         is_list(LB) -> LB;
         LB =:= undefined -> [];
         is_atom(LB) -> [LB]
     end,
-    Elements = ephp_array:to_list(ephp_context:solve(Context, RawElements)),
-    run_foreach(Context, Key, Var, Elements, LoopBlock);
+    case ephp_context:solve(Context, RawElements) of
+        ProcElements when ?IS_ARRAY(ProcElements) ->
+            Elements = ephp_array:to_list(ProcElements),
+            run_foreach(Context, Key, Var, Elements, LoopBlock);
+        _ ->
+            Line = FE#foreach.line,
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"foreach">>, File},
+            Error = {error, eargsupplied, Line, ?E_WARNING, Data},
+            ephp_error:handle_error(Context, Error),
+            false
+    end;
 
 run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB}, false) ->
     LoopBlock = if

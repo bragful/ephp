@@ -1,0 +1,8 @@
+
+Notice: Undefined variable: a in {{CWD}}/test/code/test_foreach_error.php on line 3
+
+Warning: Invalid argument supplied for foreach() in {{CWD}}/test/code/test_foreach_error.php on line 3
+
+Notice: Undefined variable: x in {{CWD}}/test/code/test_foreach_error.php on line 6
+
+Warning: Invalid argument supplied for foreach() in {{CWD}}/test/code/test_foreach_error.php on line 6
