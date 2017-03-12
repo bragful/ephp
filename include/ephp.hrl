@@ -21,9 +21,9 @@
 
 -define(FUNC_ANON_NAME, <<"{closure}">>).
 
--define(IS_ARRAY(A), erlang:'=:='(element(1, A), ephp_array)).
--define(IS_OBJECT(O), erlang:'=:='(element(1, O), reg_instance)).
--define(IS_FUNCTION(F), erlang:'=:='(element(1, F), function)).
+-define(IS_ARRAY(A), is_record(A, ephp_array)).
+-define(IS_OBJECT(O), is_record(O, reg_instance)).
+-define(IS_FUNCTION(F), is_record(F, function)).
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).
