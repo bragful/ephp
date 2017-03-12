@@ -1,0 +1,10 @@
+Found 'a' in 'abc' and pos 0
+int(7)
+
+Warning: strpos() expects parameter 1 to be string, array given in {{CWD}}/test/code/test_strpos.php on line 16
+
+Warning: strpos(): needle is not a string or an integer in {{CWD}}/test/code/test_strpos.php on line 17
+
+Warning: strpos() expects parameter 3 to be long, string given in {{CWD}}/test/code/test_strpos.php on line 18
+
+Warning: strpos(): Offset not contained in string in {{CWD}}/test/code/test_strpos.php on line 19

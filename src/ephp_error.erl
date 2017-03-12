@@ -184,9 +184,11 @@ get_message(eassignthis, Line, _Level, File) ->
         "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
         [File, Line]);
 
-get_message(ewrongarg, Line, _Level, {Function, ArgNum, ArgType, WrongType, File}) ->
+get_message(ewrongarg, Line, _Level,
+            {Function, ArgNum, ArgType, WrongType, File}) ->
     io_lib:format(
-        "~nWarning: ~s() expects parameter ~p to be ~s, ~s given in ~s on line ~p~n",
+        "~nWarning: ~s() expects parameter ~p to be ~s, ~s given in ~s "
+        "on line ~p~n",
         [Function, ArgNum, ArgType, WrongType, File, Line]);
 
 get_message(enoarray, Line, _Level, File) ->
@@ -257,6 +259,16 @@ get_message(eargtype, Line, _Level, {Function, ArgNum, File}) ->
     io_lib:format(
         "~nWarning: ~s(): Argument #~p is not an array in ~s on line ~p~n",
         [Function, ArgNum, File, Line]);
+
+get_message(eisnot, Line, _Level, {Function, VarName, Type, File}) ->
+    io_lib:format(
+        "~nWarning: ~s(): ~s is not ~s in ~s on line ~p~n",
+        [Function, VarName, Type, File, Line]);
+
+get_message(eoffset, Line, _Level, {Function, File}) ->
+    io_lib:format(
+        "~nWarning: ~s(): Offset not contained in string in ~s on line ~p~n",
+        [Function, File, Line]);
 
 get_message(Unknown, Line, _Level, Data) ->
     io_lib:format(
