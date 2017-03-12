@@ -98,8 +98,6 @@ search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
         Value
     end;
 
-search(_Var, _Vars, undefined) ->
-    undefined;
 search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
     {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
@@ -110,6 +108,8 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
         get(Ctx, NewObjVar, undefined);
     {ok, NewVars} ->
         search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
+    _ when Context =:= undefined ->
+        undefined;
     _ ->
         File = ephp_context:get_active_file(Context),
         ephp_error:handle_error(Context,
