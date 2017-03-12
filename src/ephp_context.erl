@@ -401,6 +401,11 @@ resolve(#assign{
             {undefined, State}
     end;
 
+resolve(#assign{variable=#assign{}=A, expression=Expr}, State) ->
+    #assign{variable=V1, expression=V2} = A,
+    {Value, NState} = resolve(#assign{variable=V2, expression=Expr}, State),
+    resolve(#assign{variable=V1, expression=Value}, NState);
+
 resolve(#operation{}=Op, State) ->
     resolve_op(Op, State);
 
