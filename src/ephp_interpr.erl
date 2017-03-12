@@ -25,7 +25,9 @@ process(Context, Statements) ->
     ephp_shutdown:shutdown(Context),
     {ok, Value}.
 
--type flow_status() :: break | continue | return() | false.
+-type break() :: break | {break, pos_integer()}.
+
+-type flow_status() :: break() | continue | return() | false.
 
 -spec run(context(), main_statement()) -> flow_status().
 
@@ -43,9 +45,7 @@ run(Context, #eval{statements=Statements}) ->
         run_depth(Context, Statement, State)
     end, false, Statements).
 
--spec run_depth(context(), statement(), flow_status()) ->
-    flow_status().
-
+-spec run_depth(context(), statement(), flow_status()) -> flow_status().
 
 run_depth(Context, #eval{}=Eval, false) ->
     run(Context, Eval);
@@ -67,28 +67,20 @@ run_depth(Context, #if_block{conditions=Cond}=IfBlock, false) ->
     end;
 
 run_depth(Context, #switch{condition=Cond, cases=Cases}, false) ->
-    lists:foldl(fun
-        (_SwitchCase, false) ->
-            false;
-        (#switch_case{label=default, code_block=Code}, _Flow) ->
-            run(Context, #eval{statements=Code}),
-            break;
-        (#switch_case{label=LabelValue}=Case, Flow) ->
-            MatchValue = ephp_context:solve(Context, Cond),
-            Op = #operation{
-                type = <<"==">>,
-                expression_left=MatchValue,
-                expression_right=LabelValue},
-            case ephp_context:solve(Context, Op) orelse Flow =:= true of
-            true ->
-                Break = run(Context,
-                    #eval{statements=Case#switch_case.code_block}),
-                Break =/= break;
-            false ->
-                seek
-            end
-    end, seek, Cases),
-    false;
+    case run_switch(Context, Cond, Cases) of
+        {seek, false} ->
+            {_, Return} = run_switch(Context, default, Cases),
+            Return;
+        {_, Return} ->
+            Return
+    end,
+    case Return of
+        false -> false;
+        {return, R} -> {return, R};
+        break -> false;
+        {break, 0} -> false;
+        {break, N} -> {break, N-1}
+    end;
 
 run_depth(Context, #for{init=Init,conditions=Cond,
         update=Update,loop_block=LB}, false) ->
@@ -170,6 +162,9 @@ run_depth(Context, {return,Value,_Line}, false) ->
 run_depth(_Context, {return,Value}, false) ->
     {return, Value};
 
+run_depth(_Context, {break, N}, false) ->
+    {break, N-1};
+
 run_depth(_Context, Boolean, false) when is_boolean(Boolean) ->
     false;
 
@@ -218,7 +213,7 @@ run_depth(_Context, _Statement, Break) ->
     Context :: context(),
     Cond :: condition(),
     Statements :: [statement()]) ->
-        {break | continue | return() | false, binary()}.
+        break() | continue | return() | false.
 
 run_loop(PrePost, Context, Cond, Statements) ->
     case (PrePost =:= post) or ephp_context:solve(Context, Cond) of
@@ -234,6 +229,8 @@ run_loop(PrePost, Context, Cond, Statements) ->
         false ->
             case Break of
                 {return,Ret} -> {return,Ret};
+                {break,0} -> false;
+                {break,N} -> {break,N-1};
                 _ -> false
             end
         end;
@@ -246,7 +243,7 @@ run_loop(PrePost, Context, Cond, Statements) ->
     Key :: variable(),
     Var :: variable(),
     Elements :: mixed(),
-    Statements :: [statement()]) -> binary().
+    Statements :: [statement()]) -> break() | return() | false.
 
 run_foreach(_Context, _Key, _Var, [], _Statements) ->
     false;
@@ -264,6 +261,78 @@ run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements) ->
         true ->
             case Break of
                 {return,Ret} -> {return,Ret};
+                {break,0} -> false;
+                {break,N} -> {break,N-1};
                 _ -> false
             end
     end.
+
+-type switch_flow() :: seek | run | exit.
+
+-spec run_switch(context(), condition() | default, [switch_case()]) ->
+    {switch_flow(), break() | return() | false}.
+
+run_switch(Context, default, Cases) ->
+    lists:foldl(fun
+        (_SwitchCase, {exit, Return}) ->
+            {exit, Return};
+        (#switch_case{label=default, code_block=Code}, {seek, false}) ->
+            case run(Context, #eval{statements=Code}) of
+                break -> {exit, false};
+                {break, 0} -> {exit, false};
+                {break, N} -> {exit, {break, N-1}};
+                {return, R} -> {exit, {return, R}};
+                false -> {run, false}
+            end;
+        (_Case, {seek, false}) ->
+            {seek, false};
+        (Case, {run, false}) ->
+            Break = run(Context,
+                #eval{statements=Case#switch_case.code_block}),
+            case Break of
+                break -> {exit, false};
+                {break, 0} -> {exit, false};
+                {break, N} -> {exit, {break, N-1}};
+                {return, R} -> {exit, {return, R}};
+                false -> {run, false}
+            end
+    end, {seek, false}, Cases);
+
+
+run_switch(Context, Cond, Cases) ->
+    MatchValue = ephp_context:solve(Context, Cond),
+    lists:foldl(fun
+        (_SwitchCase, {exit, Return}) ->
+            {exit, Return};
+        (Case, {run, false}) ->
+            Break = run(Context,
+                #eval{statements=Case#switch_case.code_block}),
+            case Break of
+                break -> {exit, false};
+                {break, 0} -> {exit, false};
+                {break, N} -> {exit, {break, N-1}};
+                {return, R} -> {exit, {return, R}};
+                false -> {run, false}
+            end;
+        (#switch_case{label=default}, {seek, false}) ->
+            {seek, false};
+        (#switch_case{label=LabelValue}=Case, {seek, false}) ->
+            Op = #operation{
+                type = <<"==">>,
+                expression_left=MatchValue,
+                expression_right=LabelValue},
+            case ephp_context:solve(Context, Op) of
+            true ->
+                Break = run(Context,
+                    #eval{statements=Case#switch_case.code_block}),
+                case Break of
+                    break -> {exit, false};
+                    {break, 0} -> {exit, false};
+                    {break, N} -> {exit, {break, N-1}};
+                    {return, R} -> {exit, {return, R}};
+                    false -> {run, false}
+                end;
+            false ->
+                {seek, false}
+            end
+    end, {seek, false}, Cases).
