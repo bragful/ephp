@@ -636,10 +636,6 @@ gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
             add_line({object, B}, Pos)
     end,
     gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
-gen_op([{<<"-">>,{_,_},Pos}|Rest], [#int{}=I]) ->
-    gen_op(Rest, [add_line(#int{int=-I#int.int},Pos)]);
-gen_op([{<<"-">>,{_,_},Pos}|Rest], [#float{}=F]) ->
-    gen_op(Rest, [add_line(#float{float=-F#float.float},Pos)]);
 gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->
     gen_op(Rest, [I|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
@@ -714,8 +710,16 @@ add_to_array(#array{elements=E}=Array, Pos, Element) ->
 parse_negative(Elements) ->
     parse_negative(lists:reverse(Elements), []).
 
+parse_negative([#int{}=I,{<<"-">>,{_,_},_},{_,{_,_},_}=Op|Rest], Stack) ->
+    parse_negative([I#int{int=-I#int.int},Op|Rest], Stack);
+parse_negative([#float{}=F,{<<"-">>,{_,_},_},{_,{_,_},_}=Op|Rest], Stack) ->
+    parse_negative([F#float{float=-F#float.float},Op|Rest], Stack);
 parse_negative([A,{<<"-">>,{_,_},_},{_,{_,_},_}=Op|Rest], Stack) ->
     parse_negative([{operation_minus, A, undefined},Op|Rest], Stack);
+parse_negative([#int{}=I,{<<"-">>,{_,_},_}], Stack) ->
+    [I#int{int=-I#int.int}|Stack];
+parse_negative([#float{}=F,{<<"-">>,{_,_},_}], Stack) ->
+    [F#float{float=-F#float.float}|Stack];
 parse_negative([A,{<<"-">>,{_,_},_}], Stack) ->
     [{operation_minus, A, undefined}|Stack];
 parse_negative([A|Rest], Stack) ->
