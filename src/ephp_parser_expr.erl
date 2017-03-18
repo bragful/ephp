@@ -611,9 +611,7 @@ gen_op([{<<"=">>,{_,_},Pos}|Rest], [B,A|Stack]) ->
     gen_op(Rest, [Assign|Stack]);
 gen_op([{<<O:1/binary,"=">>,{_,_},Pos}|Rest], [B,A|Stack])
         when ?IS_OP1_ARITH(O) ->
-    Op = add_line(#operation{type=O,
-                             expression_left=A,
-                             expression_right=B}, Pos),
+    Op = add_line(operator(O, A, B), Pos),
     Assign = add_line(#assign{variable=A, expression=Op}, Pos),
     gen_op(Rest, [Assign|Stack]);
 gen_op([#variable{}=V,{<<"&">>,{left,_},Pos}|Rest], []) ->
