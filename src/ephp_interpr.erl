@@ -217,6 +217,11 @@ run_depth(_Context, Statement, false) ->
 run_depth(_Context, _Statement, Break) ->
     Break.
 
+exit_cond({return, Ret}) -> {return, Ret};
+exit_cond({break, 0}) -> false;
+exit_cond({break, N}) -> {break, N-1};
+exit_cond(false) -> false.
+
 -spec run_loop(
     PrePost :: (pre | post),
     Context :: context(),
@@ -224,27 +229,30 @@ run_depth(_Context, _Statement, Break) ->
     Statements :: [statement()]) ->
         break() | continue | return() | false.
 
-run_loop(PrePost, Context, Cond, Statements) ->
-    case (PrePost =:= post) or ephp_context:solve(Context, Cond) of
-    true ->
-        Break = run(Context, #eval{statements=Statements}),
-        case
-            (Break =/= break) and
-            (not is_tuple(Break)) and
-            ephp_context:solve(Context, Cond)
-        of
+run_loop(pre, Context, Cond, Statements) ->
+    case ephp_data:to_bool(ephp_context:solve(Context, Cond)) of
         true ->
-            run_loop(PrePost, Context, Cond, Statements);
+            case run(Context, #eval{statements=Statements}) of
+                false ->
+                    run_loop(pre, Context, Cond, Statements);
+                Return ->
+                    exit_cond(Return)
+            end;
         false ->
-            case Break of
-                {return,Ret} -> {return,Ret};
-                {break,0} -> false;
-                {break,N} -> {break,N-1};
-                _ -> false
-            end
-        end;
-    false ->
-        false
+            false
+    end;
+
+run_loop(post, Context, Cond, Statements) ->
+    case run(Context, #eval{statements=Statements}) of
+        false ->
+            case ephp_data:to_bool(ephp_context:solve(Context, Cond)) of
+                true ->
+                    run_loop(post, Context, Cond, Statements);
+                false ->
+                    false
+            end;
+        Return ->
+            exit_cond(Return)
     end.
 
 -spec run_foreach(
