@@ -184,10 +184,17 @@ get_message(eassignthis, Line, _Level, File) ->
         "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
         [File, Line]);
 
-get_message(ewrongarity, Line, _Level,
+get_message(ewrongminarity, Line, _Level,
             {Function, NumArgsExp, NumArgsSent, File}) ->
     io_lib:format(
         "~nWarning: ~s() expects at least ~p parameters, ~p given in ~s "
+        "on line ~p~n",
+        [Function, NumArgsExp, NumArgsSent, File, Line]);
+
+get_message(ewrongmaxarity, Line, _Level,
+            {Function, NumArgsExp, NumArgsSent, File}) ->
+    io_lib:format(
+        "~nWarning: ~s() expects at most ~p parameters, ~p given in ~s "
         "on line ~p~n",
         [Function, NumArgsExp, NumArgsSent, File, Line]);
 

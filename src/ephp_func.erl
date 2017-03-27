@@ -20,7 +20,8 @@
 
 -type default_value() :: mixed().
 -type error_return_value() :: mixed().
--type min_args() :: pos_integer().
+-type min_args() :: non_neg_integer().
+-type max_args() :: non_neg_integer().
 -type type_arg() :: mixed |
                     string |
                     integer |
@@ -32,7 +33,7 @@
     {type_arg(), default_value()} |
     type_arg().
 -type validation_args() ::
-    {min_args(), error_return_value(), [validation_arg()]} |
+    {min_args(), max_args(), error_return_value(), [validation_arg()]} |
     [validation_arg()] |
     undefined.
 

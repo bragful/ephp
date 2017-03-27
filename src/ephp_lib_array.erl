@@ -8,7 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
-    in_array/4,
+    in_array/5,
     count/3,
     array_merge/3
 ]).
@@ -18,7 +18,7 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    {in_array, [{args, [mixed, array]}]},
+    {in_array, [{args, {2, 3, undefined, [mixed, array, {boolean, false}]}}]},
     count,
     {count, [{alias, <<"sizeof">>}]},
     {array_merge, [pack_args]}
@@ -34,10 +34,11 @@ init_const() -> [].
 
 -spec in_array(
     context(), line(),
-    Key :: var_value(), Array :: var_value()) -> boolean().
+    Key :: var_value(), Array :: var_value(), Strict :: var_value()
+) -> boolean().
 
-in_array(_Context, _Line, {_,Value}, {_,Array}) ->
-    member(Value, Array).
+in_array(_Context, _Line, {_,Value}, {_,Array}, {_,Strict}) ->
+    member(Value, Array, ephp_data:to_bool(Strict)).
 
 -spec count(context(), line(), Array :: var_value()) -> integer().
 
@@ -56,9 +57,15 @@ array_merge(Context, Line, Args) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
-member(Value, Dict) ->
+member(Value, Dict, true) ->
     List = ephp_array:to_list(Dict),
-    lists:keysearch(Value, 2, List) =/= false.
+    lists:keysearch(Value, 2, List) =/= false;
+
+member(Value, Dict, false) ->
+    List = ephp_array:to_list(Dict),
+    lists:any(fun({_, Member}) ->
+        ephp_data:is_equal(Member, Value)
+    end, List).
 
 -spec array_merge(context(), line(), pos_integer(), Arrays :: [var_value()]) ->
     ephp_array().

@@ -1,0 +1,6 @@
+Found 12.4 no strict
+Found 1.13 strict
+bool(false)
+
+Warning: in_array() expects parameter 3 to be boolean, array given in {{CWD}}/test/code/test_in_array_strict.php on line 14
+NULL

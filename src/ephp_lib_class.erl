@@ -17,7 +17,7 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    {get_class, [{args, {1, false, [object]}}]},
+    {get_class, [{args, {1, 1, false, [object]}}]},
     class_alias
 ].
 

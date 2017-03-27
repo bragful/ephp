@@ -618,7 +618,15 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=Call,
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F},
      validation_args=VA}} when is_atom(M) andalso is_atom(F) ->
         FState = State#state{active_fun = Fun},
-        try resolve_args(VA, RawArgs, FState, Call#call.line) of
+        VArgs = case VA of
+            undefined ->
+                undefined;
+            {_Min, _Max, _RetErr, _ValArgs} ->
+                VA;
+            _ when is_list(VA) ->
+                {expected_min_args(VA), expected_max_args(M, F), undefined, VA}
+        end,
+        try resolve_args(VArgs, RawArgs, FState, Call#call.line) of
             {Args, NState} ->
                 save_state(NState),
                 Value = if
@@ -783,25 +791,30 @@ resolve_args(RawArgs, State) ->
         {Args ++ [{Arg,A}], NewState}
     end, {[], State}, RawArgs).
 
-expected_args(VArgs) ->
+expected_min_args(VArgs) ->
     lists:foldl(fun({_,_}, I) -> I;
                    ({_,_,_}, I) -> I;
                    (_, I) -> I+1
                 end, 0, VArgs).
 
+expected_max_args(Module, Function) ->
+    lists:foldl(fun({F,I}, Max) when F =:= Function andalso I > Max -> I;
+                   (_, Max) -> Max
+                end, 0, Module:module_info(exports)).
+
 resolve_args(_, undefined, State, _Line) ->
     {[], State};
 resolve_args(undefined, RawArgs, State, _Line) ->
     resolve_args(RawArgs, State);
-resolve_args({ExpectedArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
+resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
     {RestRawArgs, _I, Args, NewState} = lists:foldl(fun
         ({_, Default}, {[], I, Args, S}) ->
             {[], I+1, Args ++ [{undefined, Default}], S};
         (_Type, {[], I, _Args, S}) ->
             File = S#state.active_file,
             Function = S#state.active_fun,
-            Data = {Function, ExpectedArgs, I-1, File},
-            ephp_error:handle_error(S#state.ref, {error, ewrongarity, Line,
+            Data = {Function, MinArgs, I-1, File},
+            ephp_error:handle_error(S#state.ref, {error, ewrongminarity, Line,
                 ?E_WARNING, Data}),
             throw({return, ReturnError});
         ({raw, Default}, {[RArg|RArgs], I, Args, S}) ->
@@ -822,12 +835,14 @@ resolve_args({ExpectedArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
         [] ->
             {Args, NewState};
         _ ->
-            %% TODO: error? there are more arguments than declared!
-            {Args, NewState}
-    end;
-resolve_args(VArgs, RawArgs, State, Line) ->
-    ExpectedArgs = expected_args(VArgs),
-    resolve_args({ExpectedArgs, undefined, VArgs}, RawArgs, State, Line).
+            File = NewState#state.active_file,
+            Function = NewState#state.active_fun,
+            Data = {Function, MaxArgs, length(Args)+length(RestRawArgs), File},
+            ephp_error:handle_error(NewState#state.ref,
+                                    {error, ewrongmaxarity, Line, ?E_WARNING,
+                                     Data}),
+            throw({return, ReturnError})
+    end.
 
 check_arg(_State, _Line, _I, mixed, _A, _ReturnError) ->
     ok;
@@ -855,6 +870,14 @@ check_arg(State, Line, I, object, A, ReturnError) when not ?IS_OBJECT(A) ->
     throw_warning(State, Line, I, <<"object">>, A, ReturnError);
 check_arg(State, Line, I, {object,_}, A, ReturnError) when not ?IS_OBJECT(A) ->
     throw_warning(State, Line, I, <<"object">>, A, ReturnError);
+check_arg(State, Line, I, boolean, A, ReturnError)
+        when not is_boolean(A) andalso not is_number(A)
+        andalso not is_binary(A) ->
+    throw_warning(State, Line, I, <<"boolean">>, A, ReturnError);
+check_arg(State, Line, I, {boolean,_}, A, ReturnError)
+        when not is_boolean(A) andalso not is_number(A)
+        andalso not is_binary(A) ->
+    throw_warning(State, Line, I, <<"boolean">>, A, ReturnError);
 %% TODO add more checks here!
 check_arg(_State, _Line, _I, _Check, _Var, _ReturnError) ->
     ok.

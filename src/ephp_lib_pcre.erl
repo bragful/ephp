@@ -20,11 +20,11 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    {preg_match, [{args, {2, false, [string,
-                                     string,
-                                     raw,
-                                     {integer, ?PREG_OFFSET_CAPTURE},
-                                     {integer, 0}]}}]}
+    {preg_match, [{args, {2, 5, false, [string,
+                                        string,
+                                        raw,
+                                        {integer, ?PREG_OFFSET_CAPTURE},
+                                        {integer, 0}]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
