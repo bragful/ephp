@@ -42,7 +42,8 @@
     ephp_lib_func,
     ephp_lib_info,
     ephp_lib_class,
-    ephp_lib_error
+    ephp_lib_error,
+    ephp_lib_pcre
 ]).
 
 -define(E_ERROR, 1).
@@ -388,7 +389,8 @@
     file :: binary(),
     code = [] :: [statement()],
     builtin :: {Module :: atom(), Func :: atom()} | function(),
-    pack_args = false :: boolean()
+    pack_args = false :: boolean(),
+    validation_args :: ephp_func:validation_args()
 }).
 
 -record(reg_instance, {
@@ -397,3 +399,5 @@
     instance :: instance(),
     context = ephp_array:new() :: ephp_array()
 }).
+
+-type reg_instance() :: #reg_instance{}.

@@ -20,3 +20,6 @@ is 8 and 9 in array $base? yes
 how many elementas has $base? 6
 what's the size of $base? 6
 what's the count for an integer? 1
+
+Warning: in_array() expects parameter 2 to be array, integer given in {{CWD}}/test/code/test_array.php on line 16
+NULL

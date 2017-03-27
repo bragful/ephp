@@ -45,7 +45,7 @@ init_func() -> [
     {php_is_object, [{alias, <<"is_object">>}]},
     {php_is_string, [{alias, <<"is_string">>}]},
     print_r,
-    isset,
+    {isset, [{args, [raw]}]},
     empty,
     gettype,
     unset,
@@ -168,11 +168,8 @@ print_r(Context, Line, {_,Value}, {_,false}) ->
 
 -spec isset(context(), line(), var_value()) -> boolean().
 
-isset(_Context, _Line, {_,Value}) ->
-    case Value of
-        undefined -> false;
-        _ -> true
-    end.
+isset(Context, _Line, {_,Var}) ->
+    ephp_context:isset(Context, Var).
 
 -spec empty(context(), line(), var_value()) -> boolean().
 
@@ -192,7 +189,7 @@ gettype(_Context, _Line, {_,Value}) ->
 
 -spec unset(context(), line(), var_value()) -> undefined.
 
-unset(Context, _Line, {Var, {var_ref,_,_}}) ->
+unset(Context, _Line, {Var, #var_ref{}}) ->
     ephp_context:set(Context, Var, undefined),
     undefined;
 

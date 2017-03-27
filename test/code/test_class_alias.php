@@ -23,3 +23,5 @@ var_dump([
 
 class_alias('f', 'b');
 class_alias('foo', 'bar');
+
+var_dump(class_alias(12,12));

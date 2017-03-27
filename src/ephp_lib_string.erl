@@ -35,12 +35,17 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    strlen, ord, chr,
+    {strlen, [{args, [string]}]},
+    {ord, [{args, [string]}]},
+    {chr, [{args, [integer]}]},
+    %% TODO: automatic validation for implode is not possible because it has
+    %%       an overloading not supported by default by PHP
     implode,
     {implode, [{alias, <<"join">>}]},
-    explode,
+    {explode, [{args, [string, string, {integer, ?PHP_INT_MAX}]}]},
     %% FIXME: split is deprecated, should be removed?
-    {explode, [{alias, <<"split">>}]},
+    {explode, [{args, [string, string, {integer, ?PHP_INT_MAX}]},
+               {alias, <<"split">>}]},
     print,
     {print, [{alias, <<"echo">>}]},
     {printf, [pack_args]},

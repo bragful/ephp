@@ -19,8 +19,10 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    include, include_once,
-    require, require_once
+    {include, [{arg, [string]}]},
+    {include_once, [{arg, [string]}]},
+    {require, [{arg, [string]}]},
+    {require_once, [{arg, [string]}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().

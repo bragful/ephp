@@ -17,7 +17,7 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    get_class,
+    {get_class, [{args, {1, false, [object]}}]},
     class_alias
 ].
 
@@ -36,18 +36,20 @@ get_class(_Context, _Line, {_,#reg_instance{class=#class{name=ClassName}}}) ->
 
 -spec class_alias(context(), line(),
                   ClassName :: var_value(),
-                  ClassAlias :: var_value()) -> ok.
+                  ClassAlias :: var_value()) -> boolean().
 
 class_alias(Context, Line, {_,Name}, {_,Alias}) ->
     case ephp_context:set_class_alias(Context, Name, Alias) of
         ok ->
-            ok;
+            true;
         {error, enoexist} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefclass, Line, ?E_WARNING, {File, Name}});
+                {error, eundefclass, Line, ?E_WARNING, {File, Name}}),
+            false;
         {error, eredefined} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eredefinedclass, Line, ?E_ERROR, {File, Alias}})
+                {error, eredefinedclass, Line, ?E_ERROR, {File, Alias}}),
+            false
     end.

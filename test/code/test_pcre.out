@@ -1,0 +1,12 @@
+Array
+(
+    [0] => Array
+        (
+            [0] => def
+            [1] => 3
+        )
+
+)
+
+Warning: preg_match() expects at least 2 parameters, 1 given in {{CWD}}/test/code/test_pcre.php on line 7
+bool(false)

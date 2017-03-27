@@ -162,7 +162,7 @@ get_message(eundefclass, Line, _Level, {File, <<>>}) ->
 get_message(eundefclass, Line, Level, {File, Class}) ->
     io_lib:format(
         "~n~s: Class '~s' not found in ~s on line ~p~n",
-        [Level, Class, File, Line]);
+        [Level, ephp_data:to_bin(Class), File, Line]);
 
 get_message(eprivateaccess, Line, _Level, {File, Class, Element, Access}) ->
     io_lib:format(
@@ -183,6 +183,13 @@ get_message(eassignthis, Line, _Level, File) ->
     io_lib:format(
         "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
         [File, Line]);
+
+get_message(ewrongarity, Line, _Level,
+            {Function, NumArgsExp, NumArgsSent, File}) ->
+    io_lib:format(
+        "~nWarning: ~s() expects at least ~p parameters, ~p given in ~s "
+        "on line ~p~n",
+        [Function, NumArgsExp, NumArgsSent, File, Line]);
 
 get_message(ewrongarg, Line, _Level,
             {Function, ArgNum, ArgType, WrongType, File}) ->

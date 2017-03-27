@@ -152,7 +152,7 @@ run_depth(Context, #class{}=Class, Return) ->
     Return;
 
 run_depth(Context, #function{name=Name, args=Args, code=Code}, Return) ->
-    ephp_context:register_func(Context, Name, Args, Code),
+    ephp_context:register_func(Context, Name, Args, Code, undefined),
     Return;
 
 run_depth(Context, {global, GlobalVar, Line}, Return) ->

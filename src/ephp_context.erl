@@ -32,6 +32,7 @@
     start_link/0,
     get/2,
     set/3,
+    isset/2,
     solve/2,
     destroy/1,
     destroy_all/1,
@@ -49,9 +50,9 @@
     set_output_handler/2,
     get_output_handler/1,
 
-    register_func/3,
     register_func/4,
     register_func/5,
+    register_func/6,
     get_functions/1,
     get_function/2,
 
@@ -130,6 +131,10 @@ get(Context, VarPath) ->
     #state{vars=Vars} = load_state(Context),
     ephp_vars:get(Vars, VarPath, Context).
 
+isset(Context, VarPath) ->
+    #state{vars=Vars} = load_state(Context),
+    ephp_vars:isset(Vars, VarPath).
+
 set(Context, VarPath, Value) ->
     State = load_state(Context),
     ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value),
@@ -173,36 +178,36 @@ destroy_all(Context) ->
 get_state(Context) ->
     get(Context).
 
-register_func(Context, PHPFunc, Module, Fun, PackArgs)
+register_func(Context, PHPFunc, Module, Fun, PackArgs, VA)
         when is_atom(Module) andalso is_atom(Fun) ->
     #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun, PackArgs),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun, PackArgs, VA),
     ok;
 
-register_func(Context, PHPFunc, Args, Code, PackArgs) ->
+register_func(Context, PHPFunc, Args, Code, PackArgs, VA) ->
     #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, PackArgs),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, PackArgs, VA),
     ok.
 
-register_func(Context, PHPFunc, Module, Fun)
+register_func(Context, PHPFunc, Module, Fun, VA)
         when is_atom(Module) andalso is_atom(Fun) ->
     #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun, false, VA),
     ok;
 
-register_func(Context, PHPFunc, Args, Code) ->
+register_func(Context, PHPFunc, Args, Code, VA) ->
     #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, false, VA),
     ok.
 
-register_func(Context, PHPFunc, Fun) ->
+register_func(Context, PHPFunc, Fun, ValArgs) when is_function(Fun) ->
     #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Fun),
+    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Fun, false, ValArgs),
     ok.
 
 get_functions(Context) ->
@@ -603,29 +608,28 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name=Name}, NewState);
 
-resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=_Call,
+resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=Call,
         #state{ref=Ref,vars=Vars,funcs=Funcs,const=Const}=State) ->
     GlobalRef = case State#state.global of
         undefined -> Ref;
         GR -> GR
     end,
     case ephp_func:get(Funcs, Fun) of
-    {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F}}}
-            when is_atom(M) andalso is_atom(F) ->
-        SState = case {M,F} of
-            {ephp_lib_vars, isset} ->
-                % FIXME: add config for silent Notice when a var isn't defined
-                State#state{ref=undefined};
-            _ ->
-                State
-        end,
-        {Args, NState} = resolve_args(RawArgs, SState),
-        save_state(NState),
-        Value = if
-            PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
-            true -> erlang:apply(M,F,[Ref,Index|Args])
-        end,
-        {Value, (load_state(Ref))#state{ref=Ref}};
+    {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F},
+     validation_args=VA}} when is_atom(M) andalso is_atom(F) ->
+        FState = State#state{active_fun = Fun},
+        try resolve_args(VA, RawArgs, FState, Call#call.line) of
+            {Args, NState} ->
+                save_state(NState),
+                Value = if
+                    PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
+                    true -> erlang:apply(M,F,[Ref,Index|Args])
+                end,
+                {Value, (load_state(Ref))#state{ref=Ref}}
+        catch
+            throw:{return,Value} ->
+                {Value, State}
+        end;
     {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin=F}}
             when is_function(F) ->
         {Args, NState} = resolve_args(RawArgs, State),
@@ -778,6 +782,90 @@ resolve_args(RawArgs, State) ->
         {A,NewState} = resolve(Arg,S),
         {Args ++ [{Arg,A}], NewState}
     end, {[], State}, RawArgs).
+
+expected_args(VArgs) ->
+    lists:foldl(fun({_,_}, I) -> I;
+                   ({_,_,_}, I) -> I;
+                   (_, I) -> I+1
+                end, 0, VArgs).
+
+resolve_args(_, undefined, State, _Line) ->
+    {[], State};
+resolve_args(undefined, RawArgs, State, _Line) ->
+    resolve_args(RawArgs, State);
+resolve_args({ExpectedArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
+    {RestRawArgs, _I, Args, NewState} = lists:foldl(fun
+        ({_, Default}, {[], I, Args, S}) ->
+            {[], I+1, Args ++ [{undefined, Default}], S};
+        (_Type, {[], I, _Args, S}) ->
+            File = S#state.active_file,
+            Function = S#state.active_fun,
+            Data = {Function, ExpectedArgs, I-1, File},
+            ephp_error:handle_error(S#state.ref, {error, ewrongarity, Line,
+                ?E_WARNING, Data}),
+            throw({return, ReturnError});
+        ({raw, Default}, {[RArg|RArgs], I, Args, S}) ->
+            {RArgs, I+1, Args ++ [{RArg,Default}], S};
+        (raw, {[RArg|RArgs], I, Args, S}) ->
+            {RRArg, NewState} = resolve_indexes(RArg, S),
+            {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
+        ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
+            {A,NewState} = resolve(RArg,S),
+            check_arg(State, Line, I, VArg, A, ReturnError),
+            {RArgs, I+1, Args ++ [{RArg,A}], NewState};
+        (VArg, {[RArg|RArgs], I, Args, S}) ->
+            {A,NewState} = resolve(RArg,S),
+            check_arg(State, Line, I, VArg, A, ReturnError),
+            {RArgs, I+1, Args ++ [{RArg,A}], NewState}
+    end, {RawArgs, 1, [], State}, VArgs),
+    case RestRawArgs of
+        [] ->
+            {Args, NewState};
+        _ ->
+            %% TODO: error? there are more arguments than declared!
+            {Args, NewState}
+    end;
+resolve_args(VArgs, RawArgs, State, Line) ->
+    ExpectedArgs = expected_args(VArgs),
+    resolve_args({ExpectedArgs, undefined, VArgs}, RawArgs, State, Line).
+
+check_arg(_State, _Line, _I, mixed, _A, _ReturnError) ->
+    ok;
+check_arg(State, Line, I, string, A, ReturnError)
+        when not is_binary(A) andalso not is_number(A) ->
+    throw_warning(State, Line, I, <<"string">>, A, ReturnError);
+check_arg(State, Line, I, {string,_}, A, ReturnError)
+        when not is_binary(A) andalso not is_number(A) ->
+    throw_warning(State, Line, I, <<"string">>, A, ReturnError);
+check_arg(State, Line, I, integer, A, ReturnError)
+        when not is_binary(A) andalso not is_number(A) ->
+    throw_warning(State, Line, I, <<"long">>, A, ReturnError);
+check_arg(State, Line, I, {integer,_}, A, ReturnError)
+        when not is_binary(A) andalso not is_number(A) ->
+    throw_warning(State, Line, I, <<"long">>, A, ReturnError);
+check_arg(State, Line, I, double, A, ReturnError) when not is_number(A) ->
+    throw_warning(State, Line, I, <<"double">>, A, ReturnError);
+check_arg(State, Line, I, {double,_}, A, ReturnError) when not is_number(A) ->
+    throw_warning(State, Line, I, <<"double">>, A, ReturnError);
+check_arg(State, Line, I, array, A, ReturnError) when not ?IS_ARRAY(A) ->
+    throw_warning(State, Line, I, <<"array">>, A, ReturnError);
+check_arg(State, Line, I, {array,_}, A, ReturnError) when not ?IS_ARRAY(A) ->
+    throw_warning(State, Line, I, <<"array">>, A, ReturnError);
+check_arg(State, Line, I, object, A, ReturnError) when not ?IS_OBJECT(A) ->
+    throw_warning(State, Line, I, <<"object">>, A, ReturnError);
+check_arg(State, Line, I, {object,_}, A, ReturnError) when not ?IS_OBJECT(A) ->
+    throw_warning(State, Line, I, <<"object">>, A, ReturnError);
+%% TODO add more checks here!
+check_arg(_State, _Line, _I, _Check, _Var, _ReturnError) ->
+    ok.
+
+throw_warning(State, Line, I, Type, Var, ErrorRet) ->
+    File = State#state.active_file,
+    Function = State#state.active_fun,
+    Data = {Function, I, Type, ephp_data:gettype(Var), File},
+    ephp_error:handle_error(State#state.ref, {error, ewrongarg, Line,
+        ?E_WARNING, Data}),
+    throw({return,ErrorRet}).
 
 run_method(RegInstance, #call{args=RawArgs}=Call,
         #state{ref=Ref, const=Const, vars=Vars}=State) ->

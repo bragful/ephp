@@ -79,9 +79,13 @@ fold(Fun, Initial, #ephp_array{trigger={Module,Function,Args}}=Array) ->
     apply(Module, Function, Args ++ [Array, {fold, NewFun, Initial}]).
 
 from_list(List) when is_list(List) ->
-    lists:foldl(fun({K,_}=E, #ephp_array{values=V, size=S}=A)
-            when is_binary(K) orelse is_number(K) ->
-        A#ephp_array{size = S + 1, values = V ++ [E]}
+    lists:foldl(fun
+        ({K,_}=E, #ephp_array{values=V, size=S}=A) when is_binary(K)
+                                                   orelse is_number(K) ->
+            A#ephp_array{size = S + 1, values = V ++ [E]};
+        (E, #ephp_array{values=V, last_num_index=K, size=S}=A) ->
+            A#ephp_array{size = S + 1, values = V ++ [{K,E}],
+                         last_num_index = K + 1}
     end, #ephp_array{}, List).
 
 to_list(#ephp_array{values=Values, trigger=undefined}) ->

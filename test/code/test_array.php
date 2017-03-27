@@ -13,3 +13,4 @@ print "how many elementas has \$base? " . count($base) . "\n";
 print "what's the size of \$base? " . sizeof($base) . "\n";
 print "what's the count for an integer? " . count($base[0]) . "\n";
 
+var_dump(in_array(25,25));

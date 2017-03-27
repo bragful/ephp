@@ -18,7 +18,7 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    in_array,
+    {in_array, [{args, [mixed, array]}]},
     count,
     {count, [{alias, <<"sizeof">>}]},
     {array_merge, [pack_args]}

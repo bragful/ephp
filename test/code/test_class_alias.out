@@ -18,3 +18,6 @@ array(7) {
 Warning: Class 'f' not found in {{CWD}}/test/code/test_class_alias.php on line 24
 
 Warning: Cannot redeclare class bar in {{CWD}}/test/code/test_class_alias.php on line 25
+
+Warning: Class '12' not found in {{CWD}}/test/code/test_class_alias.php on line 27
+bool(false)

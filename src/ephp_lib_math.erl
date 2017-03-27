@@ -41,25 +41,25 @@ init_func() -> [
     {php_ceil, [{alias, <<"ceil">>}]},
     {php_floor, [{alias, <<"floor">>}]},
     {php_round, [{alias, <<"round">>}]},
-    {php_sqrt, [{alias, <<"sqrt">>}]},
+    {php_sqrt, [{args, [double]}, {alias, <<"sqrt">>}]},
     {php_abs, [{alias, <<"abs">>}]},
-    {php_acos, [{alias, <<"acos">>}]},
-    {php_acosh, [{alias, <<"acosh">>}]},
-    {php_asin, [{alias, <<"asin">>}]},
-    {php_asinh, [{alias, <<"asinh">>}]},
-    {php_atan, [{alias, <<"atan">>}]},
-    {php_atan2, [{alias, <<"atan2">>}]},
-    {php_atanh, [{alias, <<"atanh">>}]},
+    {php_acos, [{args, [double]}, {alias, <<"acos">>}]},
+    {php_acosh, [{args, [double]}, {alias, <<"acosh">>}]},
+    {php_asin, [{args, [double]}, {alias, <<"asin">>}]},
+    {php_asinh, [{args, [double]}, {alias, <<"asinh">>}]},
+    {php_atan, [{args, [double]}, {alias, <<"atan">>}]},
+    {php_atan2, [{args, [double, double]}, {alias, <<"atan2">>}]},
+    {php_atanh, [{args, [double]}, {alias, <<"atanh">>}]},
     {php_exp, [{alias, <<"exp">>}]},
     {php_max, [{alias, <<"max">>}]},
     {php_min, [{alias, <<"min">>}]},
     bindec,
-    {php_cos, [{alias, <<"cos">>}]},
-    {php_cosh, [{alias, <<"cosh">>}]},
-    {php_sin, [{alias, <<"sin">>}]},
-    {php_sinh, [{alias, <<"sinh">>}]},
-    {php_tan, [{alias, <<"tan">>}]},
-    {php_tanh, [{alias, <<"tanh">>}]},
+    {php_cos, [{args, [double]}, {alias, <<"cos">>}]},
+    {php_cosh, [{args, [double]}, {alias, <<"cosh">>}]},
+    {php_sin, [{args, [double]}, {alias, <<"sin">>}]},
+    {php_sinh, [{args, [double]}, {alias, <<"sinh">>}]},
+    {php_tan, [{args, [double]}, {alias, <<"tan">>}]},
+    {php_tanh, [{args, [double]}, {alias, <<"tanh">>}]},
     {php_pow, [{alias, <<"pow">>}]},
     base_convert,
     pi
@@ -124,14 +124,8 @@ php_round(_Context, _Line, {_, Value}) ->
 
 -spec php_sqrt(context(), line(), var_value()) -> float().
 
-php_sqrt(_Context, _Line, {_, Value}) when is_number(Value) ->
-    math:sqrt(float(Value));
-php_sqrt(Context, Line, {_, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"sqrt">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_sqrt(_Context, _Line, {_, Value}) ->
+    math:sqrt(float(Value)).
 
 -spec php_abs(context(), line(), number()) -> number().
 
@@ -146,99 +140,42 @@ php_abs(_Context, _Line, _NotANumber) ->
 
 -spec php_acos(context(), line(), number()) -> float().
 
-php_acos(_Context, _Line, {_, Number}) when is_number(Number) ->
+php_acos(_Context, _Line, {_, Number}) ->
     case catch math:acos(Number) of
         {'EXIT', {badarith, _}} -> nan;
         Res when is_float(Res) -> Res
-    end;
-
-php_acos(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"acos">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+    end.
 
 -spec php_acosh(context(), line(), number()) -> float().
 
-php_acosh(_Context, _Line, {_Var, Number}) when is_number(Number) ->
-    math:acosh(Number);
-
-php_acosh(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"acosh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_acosh(_Context, _Line, {_Var, Number}) ->
+    math:acosh(Number).
 
 -spec php_asin(context(), line(), number()) -> float().
 
-php_asin(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:asin(Number);
-
-php_asin(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"asin">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_asin(_Context, _Line, {_, Number}) ->
+    math:asin(Number).
 
 -spec php_asinh(context(), line(), number()) -> float().
 
-php_asinh(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:asinh(Number);
-
-php_asinh(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"asinh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_asinh(_Context, _Line, {_, Number}) ->
+    math:asinh(Number).
 
 -spec php_atan(context(), line(), number()) -> float().
 
-php_atan(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:atan(Number);
-
-php_atan(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"atan">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_atan(_Context, _Line, {_, Number}) ->
+    math:atan(Number).
 
 -spec php_atanh(context(), line(), number()) -> float().
 
-php_atanh(_Context, _Line, {_, Number}) when is_number(Number) ->
+php_atanh(_Context, _Line, {_, Number}) ->
     % math:atanh(Number); % FIXME: the implementation is not reliable
-    1 / 2 * math:log((1 + Number) / (1 - Number));
-
-php_atanh(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"atanh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+    1 / 2 * math:log((1 + Number) / (1 - Number)).
 
 -spec php_atan2(context(), line(), number(), number()) -> float().
 
-php_atan2(_Context, _Line, {_, Number1}, {_, Number2}) when is_number(Number1)
-                                                    andalso is_number(Number2) ->
-    math:atan2(Number1, Number2);
-
-php_atan2(Context, Line, {_Var, Val}, _) when not is_number(Val) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"atan2">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined;
-
-php_atan2(Context, Line, _, {_Var, Val}) when not is_number(Val) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"atan2">>, 2, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_atan2(_Context, _Line, {_, Number1}, {_, Number2}) ->
+    math:atan2(Number1, Number2).
 
 filter_bin(<<>>, B) ->
     B;
@@ -271,75 +208,35 @@ bindec(Context, Line, {Var, Other}) ->
 
 -spec php_cos(context(), line(), number()) -> float().
 
-php_cos(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:cos(Number);
-
-php_cos(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"cos">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_cos(_Context, _Line, {_, Number}) ->
+    math:cos(Number).
 
 -spec php_cosh(context(), line(), number()) -> float().
 
-php_cosh(_Context, _Line, {_Var, Number}) when is_number(Number) ->
-    math:cosh(Number);
-
-php_cosh(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"cosh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_cosh(_Context, _Line, {_Var, Number}) ->
+    math:cosh(Number).
 
 -spec php_sin(context(), line(), number()) -> float().
 
-php_sin(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:sin(Number);
-
-php_sin(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"sin">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_sin(_Context, _Line, {_, Number}) ->
+    math:sin(Number).
 
 -spec php_sinh(context(), line(), number()) -> float().
 
-php_sinh(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:sinh(Number);
-
-php_sinh(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"sinh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_sinh(_Context, _Line, {_, Number}) ->
+    math:sinh(Number).
 
 -spec php_tan(context(), line(), number()) -> float().
 
-php_tan(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:tan(Number);
-
-php_tan(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"tan">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+php_tan(_Context, _Line, {_, Number}) ->
+    math:tan(Number).
 
 -spec php_tanh(context(), line(), number()) -> float().
 
-php_tanh(_Context, _Line, {_, Number}) when is_number(Number) ->
-    math:tanh(Number);
+php_tanh(_Context, _Line, {_, Number}) ->
+    math:tanh(Number).
 
-php_tanh(Context, Line, {_Var, Val}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"tanh">>, 1, <<"double">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
-        ?E_WARNING, Data}),
-    undefined.
+-spec get_pow_value(context(), line(), reg_instance()) -> integer().
 
 get_pow_value(Context, Line, #reg_instance{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Context),

@@ -1,2 +1,5 @@
 A
 get_class = A
+
+Warning: get_class() expects parameter 1 to be object, array given in {{CWD}}/test/code/test_class_getclass.php on line 11
+bool(false)

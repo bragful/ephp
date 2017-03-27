@@ -6,7 +6,7 @@
     context_new/0,
     context_new/1,
     register_var/3,
-    register_func/5,
+    register_func/6,
     register_module/2,
     eval/2,
     eval/3,
@@ -70,10 +70,12 @@ register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
 -spec register_func(context(), PHPName :: binary(), module(), Fun :: atom(),
-                    PackArgs :: boolean()) -> ok | {error, reason()}.
+                    PackArgs :: boolean(),
+                    Args :: ephp_func:validation_args()
+                   ) -> ok | {error, reason()}.
 
-register_func(Ctx, PHPName, Module, Fun, PackArgs) ->
-    ephp_context:register_func(Ctx, PHPName, Module, Fun, PackArgs).
+register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
+    ephp_context:register_func(Ctx, PHPName, Module, Fun, PackArgs, Args).
 
 -spec register_module(context(), module()) -> ok.
 
@@ -83,10 +85,11 @@ register_module(Ctx, Module) ->
         ({Func, Opts}) ->
             PackArgs = proplists:get_value(pack_args, Opts, false),
             Name = proplists:get_value(alias, Opts, atom_to_binary(Func, utf8)),
-            ephp:register_func(Ctx, Name, Module, Func, PackArgs);
+            Args = proplists:get_value(args, Opts),
+            register_func(Ctx, Name, Module, Func, PackArgs, Args);
         (Func) ->
             Name = atom_to_binary(Func, utf8),
-            ephp:register_func(Ctx, Name, Module, Func, false)
+            register_func(Ctx, Name, Module, Func, false, undefined)
     end, Module:init_func()).
 
 -spec eval(context(), PHP :: string() | binary()) ->

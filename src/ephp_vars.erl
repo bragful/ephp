@@ -13,6 +13,7 @@
     get/2,
     get/3,
     set/3,
+    isset/2,
     ref/4,
     del/2,
     zip_args/4,
@@ -39,6 +40,9 @@ get(Context, VarPath) ->
 
 get(Context, VarPath, ContextRef) ->
     search(VarPath, erlang:get(Context), ContextRef).
+
+isset(Context, VarPath) ->
+    exists(VarPath, erlang:get(Context)).
 
 set(Context, VarPath, Value) ->
     erlang:put(Context, change(VarPath, Value, erlang:get(Context))),
@@ -77,6 +81,28 @@ destroy(Context) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
+exists(#variable{name = <<"GLOBALS">>, idx=[]}, _Vars) ->
+    true;
+exists(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars) ->
+    exists(#variable{name=Root, idx=Idx}, Vars);
+
+exists(#variable{name = Root, idx=[]}, Vars) ->
+    ephp_array:find(Root, Vars) =/= error;
+
+exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
+    case ephp_array:find(Root, Vars) of
+        {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+            NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
+            isset(RefVarsPID, NewRefVar);
+        {ok, #reg_instance{context=Ctx}} ->
+            NewObjVar = #variable{name=NewRoot, idx=Idx},
+            isset(Ctx, NewObjVar);
+        {ok, NewVars} ->
+            exists(#variable{name=NewRoot, idx=Idx}, NewVars);
+        _ ->
+            false
+    end.
+
 search(#variable{name = <<"GLOBALS">>, idx=[]}, Vars, _Context) ->
     Vars;
 
@@ -85,36 +111,36 @@ search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars, _Context) ->
 
 search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
-    error when Context =:= undefined ->
-        undefined;
-    error ->
-        File = ephp_context:get_active_file(Context),
-        ephp_error:handle_error(Context,
-            {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
-        undefined;
-    {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
-        get(RefVarsPID, RefVar, undefined);
-    {ok, Value} ->
-        Value
+        error when Context =:= undefined ->
+            undefined;
+        error ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
+            undefined;
+        {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
+            get(RefVarsPID, RefVar, undefined);
+        {ok, Value} ->
+            Value
     end;
 
 search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
-    {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
-        NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-        get(RefVarsPID, NewRefVar, undefined);
-    {ok, #reg_instance{context=Ctx}} ->
-        NewObjVar = #variable{name=NewRoot, idx=Idx},
-        get(Ctx, NewObjVar, undefined);
-    {ok, NewVars} ->
-        search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
-    _ when Context =:= undefined ->
-        undefined;
-    _ ->
-        File = ephp_context:get_active_file(Context),
-        ephp_error:handle_error(Context,
-            {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
-        undefined
+        {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+            NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
+            get(RefVarsPID, NewRefVar, undefined);
+        {ok, #reg_instance{context=Ctx}} ->
+            NewObjVar = #variable{name=NewRoot, idx=Idx},
+            get(Ctx, NewObjVar, undefined);
+        {ok, NewVars} ->
+            search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
+        _ when Context =:= undefined ->
+            undefined;
+        _ ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
+            undefined
     end.
 
 change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars)
@@ -131,11 +157,11 @@ change(#variable{name=Root, idx=[]}=_Var, undefined, Vars) ->
 
 change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
     case ephp_array:find(Root, Vars) of
-    {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
-        set(RefVarsPID, RefVar, Value),
-        Vars;
-    _ ->
-        ephp_array:store(Root, Value, Vars)
+        {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
+            set(RefVarsPID, RefVar, Value),
+            Vars;
+        _ ->
+            ephp_array:store(Root, Value, Vars)
     end;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars) ->
@@ -155,17 +181,21 @@ change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     case ephp_array:find(Root, Vars) of
-    {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
-        NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-        set(RefVarsPID, NewRefVar, Value),
-        Vars;
-    {ok, #reg_instance{context=Ctx}} ->
-        ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
-        Vars;
-    {ok, NewVars} when ?IS_ARRAY(NewVars) ->
-        ephp_array:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
-            NewVars), Vars);
-    _ ->
-        ephp_array:store(Root, change(#variable{name=NewRoot, idx=Idx}, Value,
-            ephp_array:new()), Vars)
+        {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+            NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
+            set(RefVarsPID, NewRefVar, Value),
+            Vars;
+        {ok, #reg_instance{context=Ctx}} ->
+            ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
+            Vars;
+        {ok, NewVars} when ?IS_ARRAY(NewVars) ->
+            ephp_array:store(Root,
+                             change(#variable{name=NewRoot, idx=Idx}, Value,
+                                    NewVars),
+                             Vars);
+        _ ->
+            ephp_array:store(Root,
+                             change(#variable{name=NewRoot, idx=Idx}, Value,
+                                    ephp_array:new()),
+                             Vars)
     end.
