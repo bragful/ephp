@@ -34,8 +34,6 @@ init_config() -> [].
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() ->
-    CompileInfo = proplists:get_value(compile, re:module_info()),
-    Version = list_to_binary(proplists:get_value(version, CompileInfo)),
     [
         {<<"PREG_PATTERN_ORDER">>, 1},
         {<<"PREG_SET_ORDER">>, 2},
@@ -49,7 +47,7 @@ init_const() ->
         {<<"PREG_RECURSION_LIMIT_ERROR">>, 3},
         {<<"PREG_BAD_UTF8_ERROR">>, 4},
         {<<"PREG_BAD_UTF8_OFFSET_ERROR">>, 5},
-        {<<"PCRE_VERSION">>, Version}
+        {<<"PCRE_VERSION">>, <<?PCRE_VERSION>>}
     ].
 
 -spec preg_match(

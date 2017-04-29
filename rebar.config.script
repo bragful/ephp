@@ -1,3 +1,7 @@
+PCRE_VERSION = case proplists:get_value(version, re:module_info(exports)) of
+    undefined -> {d, 'PCRE_VERSION', "8.02 2010-03-19"};
+    0 -> {d, 'PCRE_VERSION', re:version()}
+end,
 case filelib:is_regular(".build_date") of
     true -> ok;
     false -> os:cmd("LANG=POSIX date '+%b %d %Y %T' > .build_date")
@@ -8,5 +12,8 @@ ErlOpts = lists:filter(fun
     (_) -> true
 end, proplists:get_value(erl_opts, CONFIG)),
 OldErlOpts = [{erl_opts, ErlOpts}],
-NewErlOpts = [{erl_opts, [{d, 'BUILD_DATE', BuildDate}|ErlOpts]}],
+NewErlOpts = [{erl_opts, [
+    {d, 'BUILD_DATE', BuildDate},
+    PCRE_VERSION
+|ErlOpts]}],
 (CONFIG -- OldErlOpts) ++ NewErlOpts.
