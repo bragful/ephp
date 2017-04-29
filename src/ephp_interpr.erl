@@ -107,8 +107,8 @@ run_depth(Context, #foreach{
         _ ->
             Line = FE#foreach.line,
             File = ephp_context:get_active_file(Context),
-            Data = {<<"foreach">>, File},
-            Error = {error, eargsupplied, Line, ?E_WARNING, Data},
+            Data = {<<"foreach">>},
+            Error = {error, eargsupplied, Line, File, ?E_WARNING, Data},
             ephp_error:handle_error(Context, Error),
             false
     end;

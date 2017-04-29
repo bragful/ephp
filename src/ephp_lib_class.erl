@@ -45,11 +45,11 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
         {error, enoexist} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefclass, Line, ?E_WARNING, {File, Name}}),
+                {error, eundefclass, Line, File, ?E_WARNING, {Name}}),
             false;
         {error, eredefined} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eredefinedclass, Line, ?E_WARNING, {File, Alias}}),
+                {error, eredefinedclass, Line, File, ?E_WARNING, {Alias}}),
             false
     end.

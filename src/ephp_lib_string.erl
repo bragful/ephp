@@ -74,8 +74,8 @@ strlen(_Context, _Line, {_,String}) when is_binary(String) ->
 
 strlen(Context, Line, {_, Var}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strlen">>, 1, <<"string">>, ephp_data:gettype(Var), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+    Data = {<<"strlen">>, 1, <<"string">>, ephp_data:gettype(Var)},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     undefined.
 
@@ -86,8 +86,8 @@ ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
 
 ord(Context, Line, {_, Var}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"ord">>, 1, <<"string">>, ephp_data:gettype(Var), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+    Data = {<<"ord">>, 1, <<"string">>, ephp_data:gettype(Var)},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     undefined.
 
@@ -104,8 +104,8 @@ chr(_Context, _Line, _Var) ->
 
 implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
     File = ephp_context:get_active_file(Context),
-    Data = {File, <<"string">>},
-    ephp_error:handle_error(Context, {error, earrayconv, Line, ?E_NOTICE, Data}),
+    Error = {error, earrayconv, Line, File, ?E_NOTICE, {<<"string">>}},
+    ephp_error:handle_error(Context, Error),
     implode(Context, Line, {undefined, <<"Array">>}, VarGlue);
 
 implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
@@ -141,8 +141,8 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
 explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"explode">>, 3, <<"long">>, ephp_data:gettype(Limit), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+    Data = {<<"explode">>, 3, <<"long">>, ephp_data:gettype(Limit)},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     undefined;
 
@@ -156,8 +156,8 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
 
 printf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"printf">>, File},
-    ephp_error:handle_error(Context, {error, efewargs, Line, ?E_WARNING, Data}),
+    Error = {error, efewargs, Line, File, ?E_WARNING, {<<"printf">>}},
+    ephp_error:handle_error(Context, Error),
     undefined;
 
 printf(Context, _Line, [{_,Format}|Values]) ->
@@ -169,8 +169,8 @@ printf(Context, _Line, [{_,Format}|Values]) ->
 
 sprintf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"sprintf">>, File},
-    ephp_error:handle_error(Context, {error, efewargs, Line, ?E_WARNING, Data}),
+    Error = {error, efewargs, Line, File, ?E_WARNING, {<<"sprintf">>}},
+    ephp_error:handle_error(Context, Error),
     undefined;
 
 sprintf(_Context, _Line, [{_,Format}|Values]) ->
@@ -244,8 +244,8 @@ str_split(Context, Line, Text) ->
 
 str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"str_split">>, 2, <<"long">>, ephp_data:gettype(Size), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+    Data = {<<"str_split">>, 2, <<"long">>, ephp_data:gettype(Size)},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     undefined;
 
@@ -266,14 +266,16 @@ print(Context, _Line, {_,Value}) ->
 strpos(Context, Line, {_, HayStack}, _) when not is_binary(HayStack) ->
     WrongType = ephp_data:gettype(HayStack),
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, 1, <<"string">>, WrongType, File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, ?E_WARNING, Data}),
+    Data = {<<"strpos">>, 1, <<"string">>, WrongType},
+    Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 strpos(Context, Line, _, {_, Needle}) when not is_binary(Needle) andalso
                                            not is_integer(Needle) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, <<"needle">>, <<"a string or an integer">>, File},
-    ephp_error:handle_error(Context, {error, eisnot, Line, ?E_WARNING, Data}),
+    Data = {<<"strpos">>, <<"needle">>, <<"a string or an integer">>},
+    Error = {error, eisnot, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 strpos(_Context, _Line, {_, HayStack}, {_, Needle}) ->
     case binary:match(HayStack, Needle) of
@@ -289,27 +291,30 @@ strpos(_Context, _Line, {_, HayStack}, {_, Needle}) ->
 strpos(Context, Line, {_, HayStack}, _, _) when not is_binary(HayStack) ->
     WrongType = ephp_data:gettype(HayStack),
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, 1, <<"string">>, WrongType, File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, ?E_WARNING, Data}),
+    Data = {<<"strpos">>, 1, <<"string">>, WrongType},
+    Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 strpos(Context, Line, _, {_, Needle}, _) when not is_binary(Needle) andalso
                                               not is_integer(Needle) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, <<"needle">>, <<"a string or an integer">>, File},
-    ephp_error:handle_error(Context, {error, eisnot, Line, ?E_WARNING, Data}),
+    Data = {<<"strpos">>, <<"needle">>, <<"a string or an integer">>},
+    Error = {error, eisnot, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 strpos(Context, Line, _, _, {_, Offset}) when not is_integer(Offset) ->
     WrongType = ephp_data:gettype(Offset),
     File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, 3, <<"long">>, WrongType, File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, ?E_WARNING, Data}),
+    Data = {<<"strpos">>, 3, <<"long">>, WrongType},
+    Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 strpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
     Length = byte_size(HayStack) - Offset,
     if
         Length =< 0 orelse Offset < 0 ->
             File = ephp_context:get_active_file(Context),
-            Error = {error, eoffset, Line, ?E_WARNING, {<<"strpos">>, File}},
+            Error = {error, eoffset, Line, File, ?E_WARNING, {<<"strpos">>}},
             ephp_error:handle_error(Context, Error),
             undefined;
         true ->

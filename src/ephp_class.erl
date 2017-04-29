@@ -104,8 +104,8 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
         RegClass;
     {error, enoexist} ->
         File = ephp_context:get_active_file(LocalCtx),
-        ephp_error:error({error, eundefclass, Line, ?E_ERROR,
-            {File, RawClassName}})
+        ephp_error:error({error, eundefclass, Line, File, ?E_ERROR,
+            {RawClassName}})
     end.
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
@@ -161,7 +161,7 @@ get_method(#class{methods=Methods,line=Index}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        ephp_error:error({error, eundefmethod, Index, ?E_ERROR, MethodName});
+        ephp_error:error({error, eundefmethod, Index, ?E_ERROR, {MethodName}});
     #class_method{}=ClassMethod ->
         ClassMethod
     end.

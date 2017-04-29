@@ -70,7 +70,7 @@ destroy(ErrorsId) ->
 -spec set_error_format(context(), error_format()) -> ok.
 
 set_error_format(Context, Format) ->
-    ErrorsId = erlang:get_errors_id(Context),
+    ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
     erlang:put(ErrorsId, State#state{format = Format}),
     ok.
@@ -92,14 +92,14 @@ error_reporting(Context, Level) ->
 error({error, Type, Index, Level, Data}) ->
     throw({error, Type, Index, Level, Data}).
 
--spec handle_error(context(), {error, error_type(), line(),
+-spec handle_error(context(), {error, error_type(), line(), binary(),
     error_level(), any()}) -> ok.
 
-handle_error(Context, {error, Type, Index, Level, Data}) ->
+handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
     #state{format = Format} = ErrorState,
-    ErrorText = get_message(Format, Type, Line, get_level(Level), Data),
+    ErrorText = get_message(Format, Type, Line, File, get_level(Level), Data),
     case ErrorState of
         #state{silent=true} ->
             ok;
@@ -137,147 +137,128 @@ run_quiet(Errors, Fun) ->
     end.
 
 -spec get_message(error_format(), error_type(), pos_integer() | undefined,
-                  binary(), binary() | term()) -> string().
+                  binary(), binary(), term()) -> string().
 
-get_message(text, Type, Line, Level, Args) ->
+get_message(text, Type, Line, File, Level, Args) ->
     io_lib:format(
-        "~n~s: ~s on line ~p~n",
-        [Level, get_message(Type, Args), Line]);
+        "~n~s: ~s in ~s on line ~p~n",
+        [Level, get_message(Type, Args), File, Line]);
 
-get_message(html, Type, Line, Level, Args) ->
+get_message(html, Type, Line, File, Level, Args) ->
     io_lib:format(
-        "<br/>~n<strong>~s</strong>: ~s on line ~p<br/>~n",
-        [Level, get_message(Type, Args), Line]).
+        "<br/>~n<strong>~s</strong>: ~s in ~s on line ~p<br/>~n",
+        [Level, get_message(Type, Args), File, Line]).
 
 -spec get_message(error_type(), binary() | term()) -> string().
 
-get_message(eparse, Filename) ->
-    io_lib:format("parse error in ~s", [Filename]);
+get_message(eparse, {}) ->
+    "parse error";
 
-get_message(erequired, {File, ReqFile, Func}) ->
+get_message(erequired, {ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
-        "~s(): Failed opening required '~s'"
-        " (include_path='~s') in ~s",
-        [Func, ReqFile, IncludePath, File]);
+        "~s(): Failed opening required '~s' (include_path='~s')",
+        [Func, ReqFile, IncludePath]);
 
-get_message(einclude, {File, ReqFile, Func}) ->
+get_message(einclude, {ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
-        "~s(): Failed opening '~s' for inclusion (include_path='~s') in ~s",
-        [Func, ReqFile, IncludePath, File]);
+        "~s(): Failed opening '~s' for inclusion (include_path='~s')",
+        [Func, ReqFile, IncludePath]);
 
-get_message(enofile, {File, OpenFile, Func}) ->
+get_message(enofile, {OpenFile, Func}) ->
     io_lib:format(
-        "~s(~s): failed to open stream: No such file or directory in ~s",
-        [Func, OpenFile, File]);
+        "~s(~s): failed to open stream: No such file or directory",
+        [Func, OpenFile]);
 
-get_message(eundefun, {File, Fun}) ->
-    io_lib:format("Call to undefined function ~s() in ~s", [Fun, File]);
+get_message(eundefun, {Fun}) ->
+    io_lib:format("Call to undefined function ~s()", [Fun]);
 
-get_message(eundefclass, {File, <<>>}) ->
+get_message(eundefclass, {<<>>}) ->
+    "Cannot access self:: when no class scope is active";
+
+get_message(eundefclass, {Class}) ->
+    io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
+
+get_message(eprivateaccess, {Class, Element, Access}) ->
     io_lib:format(
-        "Cannot access self:: when no class scope is active in ~s",
-        [File]);
+        "Cannot access ~s property ~s::$~s",
+        [Access, Class, Element]);
 
-get_message(eundefclass, {File, Class}) ->
+get_message(ecallprivate, {Class, Element, Access}) ->
+    io_lib:format("Call to ~s method ~s::~s()", [Access, Class, Element]);
+
+get_message(eunsupportop, {}) ->
+    "Unsupported operand types";
+
+get_message(eassignthis, {}) ->
+    "Cannot re-assign $this";
+
+get_message(ewrongminarity, {Function, NumArgsExp, NumArgsSent}) ->
     io_lib:format(
-        "Class '~s' not found in ~s",
-        [ephp_data:to_bin(Class), File]);
+        "~s() expects at least ~p parameters, ~p given",
+        [Function, NumArgsExp, NumArgsSent]);
 
-get_message(eprivateaccess, {File, Class, Element, Access}) ->
+get_message(ewrongmaxarity, {Function, NumArgsExp, NumArgsSent}) ->
     io_lib:format(
-        "Cannot access ~s property ~s::$~s in ~s",
-        [Access, Class, Element, File]);
+        "~s() expects at most ~p parameters, ~p given",
+        [Function, NumArgsExp, NumArgsSent]);
 
-get_message(ecallprivate, {File, Class, Element, Access}) ->
+get_message(ewrongarg, {Function, ArgNum, ArgType, WrongType}) ->
     io_lib:format(
-        "Call to ~s method ~s::~s() in ~s",
-        [Access, Class, Element, File]);
+        "~s() expects parameter ~p to be ~s, ~s given",
+        [Function, ArgNum, ArgType, WrongType]);
 
-get_message(eunsupportop, File) ->
-    io_lib:format("Unsupported operand types in ~s", [File]);
+get_message(enoarray, {}) ->
+    "Cannot use a scalar value as an array";
 
-get_message(eassignthis, File) ->
-    io_lib:format("Cannot re-assign $this in ~s", [File]);
+get_message(einvalid, {Function, Spec, Val}) ->
+    io_lib:format("~s(): Invalid `~s' (~p)", [Function, Spec, Val]);
 
-get_message(ewrongminarity, {Function, NumArgsExp, NumArgsSent, File}) ->
+get_message(eundefvar, {Var}) ->
+    io_lib:format("Undefined variable: ~s", [Var]);
+
+get_message(eundefconst, {Const}) ->
     io_lib:format(
-        "~s() expects at least ~p parameters, ~p given in ~s",
-        [Function, NumArgsExp, NumArgsSent, File]);
+        "Use of undefined constant ~s - assumed '~s'",
+        [Const, Const]);
 
-get_message(ewrongmaxarity, {Function, NumArgsExp, NumArgsSent, File}) ->
+get_message(enotostring, {ClassName}) ->
     io_lib:format(
-        "~s() expects at most ~p parameters, ~p given in ~s",
-        [Function, NumArgsExp, NumArgsSent, File]);
+        "Object of class ~s could not be converted to string",
+        [ClassName]);
 
-get_message(ewrongarg, {Function, ArgNum, ArgType, WrongType, File}) ->
+get_message(enocast, {ClassName, Type}) ->
     io_lib:format(
-        "~s() expects parameter ~p to be ~s, ~s given in ~s",
-        [Function, ArgNum, ArgType, WrongType, File]);
+        "Object of class ~s could not be converted to ~s",
+        [ClassName, Type]);
 
-get_message(enoarray, File) ->
-    io_lib:format("Cannot use a scalar value as an array in ~s", [File]);
+get_message(earrayconv, {Type}) ->
+    io_lib:format("Array to ~s conversion", [Type]);
 
-get_message(einvalid, {Function, Spec, Val, File}) ->
-    io_lib:format(
-        "~s(): Invalid `~s' (~p) in ~s",
-        [Function, Spec, Val, File]);
+get_message(eredefinedclass, {ClassName}) ->
+    io_lib:format("Cannot redeclare class ~s", [ClassName]);
 
-get_message(eundefvar, {File, Var}) ->
-    io_lib:format("Undefined variable: ~s in ~s", [Var, File]);
+get_message(edivzero, {}) ->
+    "Division by zero";
 
-get_message(eundefconst, {File, Const}) ->
-    io_lib:format(
-        "Use of undefined constant ~s - assumed '~s' in ~s",
-        [Const, Const, File]);
+get_message(etimezone, {Function, TZ}) ->
+    io_lib:format("~s(): Timezone ID '~s' is invalid", [Function, TZ]);
 
-get_message(enotostring, {File, ClassName}) ->
-    io_lib:format(
-        "Object of class ~s could not be converted to string in ~s",
-        [ClassName, File]);
+get_message(efewargs, {Function}) ->
+    io_lib:format("~s(): Too few arguments", [Function]);
 
-get_message(enocast, {File, ClassName, Type}) ->
-    io_lib:format(
-        "Object of class ~s could not be converted to ~s in ~s",
-        [ClassName, Type, File]);
+get_message(eargsupplied, {Function}) ->
+    io_lib:format("Invalid argument supplied for ~s()", [Function]);
 
-get_message(earrayconv, {File, Type}) ->
-    io_lib:format("Array to ~s conversion in ~s", [Type, File]);
+get_message(eargtype, {Function, ArgNum}) ->
+    io_lib:format("~s(): Argument #~p is not an array", [Function, ArgNum]);
 
-get_message(eredefinedclass, {File, ClassName}) ->
-    io_lib:format(
-        "Cannot redeclare class ~s in ~s",
-        [ClassName, File]);
+get_message(eisnot, {Function, VarName, Type}) ->
+    io_lib:format("~s(): ~s is not ~s", [Function, VarName, Type]);
 
-get_message(edivzero, File) ->
-    io_lib:format("Division by zero in ~s", [File]);
-
-get_message(etimezone, {Function, TZ, File}) ->
-    io_lib:format(
-        "~s(): Timezone ID '~s' is invalid in ~s",
-        [Function, TZ, File]);
-
-get_message(efewargs, {Function, File}) ->
-    io_lib:format("~s(): Too few arguments in ~s", [Function, File]);
-
-get_message(eargsupplied, {Function, File}) ->
-    io_lib:format("Invalid argument supplied for ~s() in ~s", [Function, File]);
-
-get_message(eargtype, {Function, ArgNum, File}) ->
-    io_lib:format(
-        "~s(): Argument #~p is not an array in ~s",
-        [Function, ArgNum, File]);
-
-get_message(eisnot, {Function, VarName, Type, File}) ->
-    io_lib:format(
-        "~s(): ~s is not ~s in ~s",
-        [Function, VarName, Type, File]);
-
-get_message(eoffset, {Function, File}) ->
-    io_lib:format(
-        "~s(): Offset not contained in string in ~s",
-        [Function, File]);
+get_message(eoffset, {Function}) ->
+    io_lib:format("~s(): Offset not contained in string", [Function]);
 
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).

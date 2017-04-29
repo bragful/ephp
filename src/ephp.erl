@@ -107,14 +107,16 @@ eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of
         {error, eparse, Line, _ErrorLevel, _Text} ->
             ephp_error:handle_error(Context, {error, eparse, Line,
-                ?E_PARSE, Filename}),
+                Filename, ?E_PARSE, {}}),
             {error, eparse};
         Compiled ->
             case catch ephp_interpr:process(Context, Compiled) of
                 {ok, Return} ->
                     ephp_shutdown:shutdown(Context),
                     {ok, Return};
-                {error, Reason, _, _, _}=Error ->
+                {error, Reason, Index, Level, Data} ->
+                    File = ephp_context:get_active_file(Context),
+                    Error = {error, Reason, Index, File, Level, Data},
                     ephp_error:handle_error(Context, Error),
                     ephp_shutdown:shutdown(Context),
                     {error, Reason}

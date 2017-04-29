@@ -194,14 +194,13 @@ bindec(Context, Line, {Var, A}) when ?IS_ARRAY(A) ->
     Level = ?E_NOTICE,
     File = ephp_context:get_active_file(Context),
     Type = <<"string">>,
-    Data = {File, Type},
-    ephp_error:handle_error(Context, {error, earrayconv, Line, Level, Data}),
+    Error = {error, earrayconv, Line, File, Level, {Type}},
+    ephp_error:handle_error(Context, Error),
     bindec(Context, Line, {Var, <<>>});
 
-bindec(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}}) ->
-    File = ephp_context:get_active_file(Context),
+bindec(_Context, Line, {_, #reg_instance{class=#class{name=ClassName}}}) ->
     ephp_error:error({error, enotostring, Line,
-                      ?E_RECOVERABLE_ERROR, {File, ClassName}});
+                      ?E_RECOVERABLE_ERROR, {ClassName}});
 
 bindec(Context, Line, {Var, Other}) ->
     bindec(Context, Line, {Var, ephp_data:to_bin(Other)}).
@@ -241,8 +240,9 @@ php_tanh(_Context, _Line, {_, Number}) ->
 get_pow_value(Context, Line, #reg_instance{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Context),
     Level = ?E_NOTICE,
-    Data = {File, ClassName, <<"int">>},
-    ephp_error:handle_error(Context, {error, enocast, Line, Level, Data}),
+    Data = {ClassName, <<"int">>},
+    Error =  {error, enocast, Line, File, Level, Data},
+    ephp_error:handle_error(Context, Error),
     1;
 get_pow_value(_Context, _Line, N) ->
     ephp_data:bin_to_number(ephp_data:to_bin(N)).
@@ -260,16 +260,18 @@ base_convert_error(Context, Line, ArgNum, ArgData) ->
     Function = <<"base_convert">>,
     WrongType = ephp_data:gettype(ArgData),
     File = ephp_context:get_active_file(Context),
-    Data = {Function, ArgNum, <<"long">>, WrongType, File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, Level, Data}),
+    Data = {Function, ArgNum, <<"long">>, WrongType},
+    Error = {error, ewrongarg, Line, File, Level, Data},
+    ephp_error:handle_error(Context, Error),
     <<>>.
 
 base_convert_invalid(Context, Line, Spec, Val) ->
     Level = ?E_WARNING,
     Function = <<"base_convert">>,
     File = ephp_context:get_active_file(Context),
-    Data = {Function, Spec, Val, File},
-    ephp_error:handle_error(Context, {error, einvalid, Line, Level, Data}),
+    Data = {Function, Spec, Val},
+    Error = {error, einvalid, Line, File, Level, Data},
+    ephp_error:handle_error(Context, Error),
     <<>>.
 
 base(N) ->
@@ -321,15 +323,14 @@ base_convert(Context, Line, {Var, A}, From, To) when ?IS_ARRAY(A) ->
     Level = ?E_NOTICE,
     File = ephp_context:get_active_file(Context),
     Type = <<"string">>,
-    Data = {File, Type},
-    ephp_error:handle_error(Context, {error, earrayconv, Line, Level, Data}),
+    Error = {error, earrayconv, Line, File, Level, {Type}},
+    ephp_error:handle_error(Context, Error),
     base_convert(Context, Line, {Var, <<>>}, From, To);
 
-base_convert(Context, Line, {_, #reg_instance{class=#class{name=ClassName}}},
+base_convert(_Context, Line, {_, #reg_instance{class=#class{name=ClassName}}},
              _From, _To) ->
-    File = ephp_context:get_active_file(Context),
     ephp_error:error({error, enotostring, Line,
-                      ?E_RECOVERABLE_ERROR, {File, ClassName}});
+                      ?E_RECOVERABLE_ERROR, {ClassName}});
 
 base_convert(Context, Line, {Var, Other}, From, To) ->
     base_convert(Context, Line, {Var, ephp_data:to_bin(Other)}, From, To).

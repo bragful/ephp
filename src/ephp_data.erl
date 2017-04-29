@@ -94,8 +94,8 @@ to_int(_) -> 0.
 
 to_int(Ctx, Line, #reg_instance{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Ctx),
-    Data = {File, ClassName, <<"int">>},
-    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+    Data = {ClassName, <<"int">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
     1;
 
 to_int(_Ctx, _Line, Val) ->
@@ -132,8 +132,8 @@ to_float(undefined) -> 0.0.
 
 to_float(Ctx, Line, #reg_instance{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Ctx),
-    Data = {File, ClassName, <<"double">>},
-    ephp_error:handle_error(Ctx, {error, enocast, Line, ?E_NOTICE, Data}),
+    Data = {ClassName, <<"double">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
     1.0;
 
 to_float(_Context, _Line, Value) ->
@@ -174,8 +174,9 @@ to_bin(undefined) -> <<>>.
 
 to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
     File = ephp_context:get_active_file(Ctx),
-    Data = {File, <<"string">>},
-    ephp_error:handle_error(Ctx, {error, earrayconv, Line, ?E_NOTICE, Data}),
+    Data = {<<"string">>},
+    Error = {error, earrayconv, Line, File, ?E_NOTICE, Data},
+    ephp_error:handle_error(Ctx, Error),
     <<"Array">>;
 
 to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
@@ -183,9 +184,8 @@ to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
         Call = #call{name = <<"__toString">>},
         ephp_context:call_method(Context, RegInstance, Call)
     catch
-        throw:{error,eundefmethod,_,_,<<"__toString">>} ->
-            File = ephp_context:get_active_file(Context),
-            Data = {File, CN},
+        throw:{error,eundefmethod,_,_,{<<"__toString">>}} ->
+            Data = {CN},
             Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
             ephp_error:error(Error)
     end;

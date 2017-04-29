@@ -111,7 +111,7 @@ date_default_timezone_set(Context, Line, {_,TZ}) ->
         false ->
             Function = <<"date_default_timezone_set">>,
             File = ephp_context:get_active_file(Context),
-            Params = {error, etimezone, Line, ?E_NOTICE, {Function, TZ, File}},
+            Params = {error, etimezone, Line, File, ?E_NOTICE, {Function, TZ}},
             ephp_error:handle_error(Context, Params),
             undefined
     end.

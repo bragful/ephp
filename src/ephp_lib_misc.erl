@@ -64,8 +64,8 @@ sleep(_Context, _Line, {_, Seconds}) when is_number(Seconds) ->
 
 sleep(Context, Line, {_, Val}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"sleep">>, 1, <<"long">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+    Data = {<<"sleep">>, 1, <<"long">>, ephp_data:gettype(Val)},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     false.
 
@@ -78,8 +78,8 @@ usleep(_Context, _Line, {_, MicroSeconds}) when is_number(MicroSeconds) ->
 
 usleep(Context, Line, {_, Val}) ->
     File = ephp_context:get_active_file(Context),
-    Data = {<<"usleep">>, 1, <<"long">>, ephp_data:gettype(Val), File},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line,
+    Data = {<<"usleep">>, 1, <<"long">>, ephp_data:gettype(Val)},
+    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     false.
 

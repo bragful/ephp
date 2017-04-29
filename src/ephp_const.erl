@@ -41,7 +41,7 @@ get(Ref, Name, Line, Context) ->
         error when Line =/= false ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefconst, Line, ?E_NOTICE, {File, Name}}),
+                {error, eundefconst, Line, File, ?E_NOTICE, {Name}}),
             Name;
         error ->
             false

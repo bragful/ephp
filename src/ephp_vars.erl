@@ -116,7 +116,7 @@ search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
         error ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
+                {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
             undefined;
         {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
             get(RefVarsPID, RefVar, undefined);
@@ -139,7 +139,7 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
         _ ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefvar, Line, ?E_NOTICE, {File, Root}}),
+                {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
             undefined
     end.
 

@@ -71,12 +71,16 @@ member(Value, Dict, false) ->
     ephp_array().
 
 array_merge(Context, Line, 1, [{_,Array}|_]) when not ?IS_ARRAY(Array) ->
-    Data = {<<"array_merge">>, 1, ephp_context:get_active_file(Context)},
-    ephp_error:handle_error(Context, {error, eargtype, Line, ?E_WARNING, Data}),
+    Data = {<<"array_merge">>, 1},
+    File = ephp_context:get_active_file(Context),
+    Error = {error, eargtype, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 array_merge(Context, Line, N, [{_,_},{_,V}|_]) when not ?IS_ARRAY(V) ->
-    Data = {<<"array_merge">>, N+1, ephp_context:get_active_file(Context)},
-    ephp_error:handle_error(Context, {error, eargtype, Line, ?E_WARNING, Data}),
+    Data = {<<"array_merge">>, N+1},
+    File = ephp_context:get_active_file(Context),
+    Error = {error, eargtype, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(Context, Error),
     undefined;
 array_merge(_Context, _Line, _N, [{_,Array}]) ->
     Array;
