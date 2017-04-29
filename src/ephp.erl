@@ -107,7 +107,7 @@ eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of
         {error, eparse, Line, _ErrorLevel, _Text} ->
             ephp_error:handle_error(Context, {error, eparse, Line,
-                ?E_PARSE bor ?E_ERROR, Filename}),
+                ?E_PARSE, Filename}),
             {error, eparse};
         Compiled ->
             case catch ephp_interpr:process(Context, Compiled) of

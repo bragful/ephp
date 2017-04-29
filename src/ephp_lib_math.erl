@@ -240,7 +240,7 @@ php_tanh(_Context, _Line, {_, Number}) ->
 
 get_pow_value(Context, Line, #reg_instance{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Context),
-    Level = ?E_RECOVERABLE_ERROR,
+    Level = ?E_NOTICE,
     Data = {File, ClassName, <<"int">>},
     ephp_error:handle_error(Context, {error, enocast, Line, Level, Data}),
     1;

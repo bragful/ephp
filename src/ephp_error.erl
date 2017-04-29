@@ -21,6 +21,8 @@
 
 -include("ephp.hrl").
 
+-type error_format() :: text | html.
+
 -type error_type() ::
     eundefclass |
     eprivateaccess |
@@ -47,7 +49,8 @@
 -record(state, {
     handler = ?MODULE :: module(),
     silent = false :: boolean(),
-    level = ?E_ALL
+    level = ?E_ALL,
+    format = text :: error_format()
 }).
 
 -spec start_link() -> {ok, ephp:errors_id()}.
@@ -83,8 +86,10 @@ error({error, Type, Index, Level, Data}) ->
 
 handle_error(Context, {error, Type, Index, Level, Data}) ->
     Line = get_line(Index),
-    ErrorText = get_message(Type, Line, get_level(Level), Data),
-    case erlang:get(ephp_context:get_errors_id(Context)) of
+    ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
+    #state{format = Format} = ErrorState,
+    ErrorText = get_message(Format, Type, Line, get_level(Level), Data),
+    case ErrorState of
         #state{silent=true} ->
             ok;
         #state{level=CfgLevel} when (CfgLevel band Level) =:= 0 ->
@@ -120,174 +125,151 @@ run_quiet(Errors, Fun) ->
             Result
     end.
 
--spec get_message(error_type(), pos_integer() | undefined,
+-spec get_message(error_format(), error_type(), pos_integer() | undefined,
                   binary(), binary() | term()) -> string().
 
-get_message(eparse, Line, _Level, Filename) ->
+get_message(text, Type, Line, Level, Args) ->
     io_lib:format(
-        "~nParse error: parse error in ~s on line ~p~n",
-        [Filename, Line]);
+        "~n~s: ~s on line ~p~n",
+        [Level, get_message(Type, Args), Line]);
 
-get_message(erequired, Line, _Level, {File, ReqFile, Func}) ->
+get_message(html, Type, Line, Level, Args) ->
+    io_lib:format(
+        "<br/>~n<strong>~s</strong>: ~s on line ~p<br/>~n",
+        [Level, get_message(Type, Args), Line]).
+
+-spec get_message(error_type(), binary() | term()) -> string().
+
+get_message(eparse, Filename) ->
+    io_lib:format("parse error in ~s", [Filename]);
+
+get_message(erequired, {File, ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
-        "~nFatal error: ~s(): Failed opening required '~s'"
-        " (include_path='~s') in ~s on line ~p~n",
-        [Func, ReqFile, IncludePath, File, Line]);
+        "~s(): Failed opening required '~s'"
+        " (include_path='~s') in ~s",
+        [Func, ReqFile, IncludePath, File]);
 
-get_message(einclude, Line, _Level, {File, ReqFile, Func}) ->
+get_message(einclude, {File, ReqFile, Func}) ->
     IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
     io_lib:format(
-        "~nWarning: ~s(): Failed opening '~s' for inclusion (include_path='~s')"
-        " in ~s on line ~p~n",
-        [Func, ReqFile, IncludePath, File, Line]);
+        "~s(): Failed opening '~s' for inclusion (include_path='~s') in ~s",
+        [Func, ReqFile, IncludePath, File]);
 
-get_message(enofile, Line, _Level, {File, OpenFile, Func}) ->
+get_message(enofile, {File, OpenFile, Func}) ->
     io_lib:format(
-        "~nWarning: ~s(~s): failed to open stream: No such file or directory "
-        "in ~s on line ~p~n",
-        [Func, OpenFile, File, Line]);
+        "~s(~s): failed to open stream: No such file or directory in ~s",
+        [Func, OpenFile, File]);
 
-get_message(eundefun, Line, _Level, {File, Fun}) ->
-    io_lib:format(
-        "~nFatal error: Call to undefined function ~s() in ~s on line ~p~n",
-        [Fun, File, Line]);
+get_message(eundefun, {File, Fun}) ->
+    io_lib:format("Call to undefined function ~s() in ~s", [Fun, File]);
 
-get_message(eundefclass, Line, _Level, {File, <<>>}) ->
+get_message(eundefclass, {File, <<>>}) ->
     io_lib:format(
-        "~nFatal error: Cannot access self:: when no class scope is active "
-        "in ~s on line ~p~n",
-        [File, Line]);
+        "Cannot access self:: when no class scope is active in ~s",
+        [File]);
 
-get_message(eundefclass, Line, Level, {File, Class}) ->
+get_message(eundefclass, {File, Class}) ->
     io_lib:format(
-        "~n~s: Class '~s' not found in ~s on line ~p~n",
-        [Level, ephp_data:to_bin(Class), File, Line]);
+        "Class '~s' not found in ~s",
+        [ephp_data:to_bin(Class), File]);
 
-get_message(eprivateaccess, Line, _Level, {File, Class, Element, Access}) ->
+get_message(eprivateaccess, {File, Class, Element, Access}) ->
     io_lib:format(
-        "~nFatal error: Cannot access ~s property ~s::$~s in ~s on line ~p~n",
-        [Access, Class, Element, File, Line]);
+        "Cannot access ~s property ~s::$~s in ~s",
+        [Access, Class, Element, File]);
 
-get_message(ecallprivate, Line, _Level, {File, Class, Element, Access}) ->
+get_message(ecallprivate, {File, Class, Element, Access}) ->
     io_lib:format(
-        "~nFatal error: Call to ~s method ~s::~s() in ~s on line ~p~n",
-        [Access, Class, Element, File, Line]);
+        "Call to ~s method ~s::~s() in ~s",
+        [Access, Class, Element, File]);
 
-get_message(eunsupportop, Line, _Level, File) ->
-    io_lib:format(
-        "~nFatal error: Unsupported operand types in ~s on line ~p~n",
-        [File, Line]);
+get_message(eunsupportop, File) ->
+    io_lib:format("Unsupported operand types in ~s", [File]);
 
-get_message(eassignthis, Line, _Level, File) ->
-    io_lib:format(
-        "~nFatal error: Cannot re-assign $this in ~s on line ~p~n",
-        [File, Line]);
+get_message(eassignthis, File) ->
+    io_lib:format("Cannot re-assign $this in ~s", [File]);
 
-get_message(ewrongminarity, Line, _Level,
-            {Function, NumArgsExp, NumArgsSent, File}) ->
+get_message(ewrongminarity, {Function, NumArgsExp, NumArgsSent, File}) ->
     io_lib:format(
-        "~nWarning: ~s() expects at least ~p parameters, ~p given in ~s "
-        "on line ~p~n",
-        [Function, NumArgsExp, NumArgsSent, File, Line]);
+        "~s() expects at least ~p parameters, ~p given in ~s",
+        [Function, NumArgsExp, NumArgsSent, File]);
 
-get_message(ewrongmaxarity, Line, _Level,
-            {Function, NumArgsExp, NumArgsSent, File}) ->
+get_message(ewrongmaxarity, {Function, NumArgsExp, NumArgsSent, File}) ->
     io_lib:format(
-        "~nWarning: ~s() expects at most ~p parameters, ~p given in ~s "
-        "on line ~p~n",
-        [Function, NumArgsExp, NumArgsSent, File, Line]);
+        "~s() expects at most ~p parameters, ~p given in ~s",
+        [Function, NumArgsExp, NumArgsSent, File]);
 
-get_message(ewrongarg, Line, _Level,
-            {Function, ArgNum, ArgType, WrongType, File}) ->
+get_message(ewrongarg, {Function, ArgNum, ArgType, WrongType, File}) ->
     io_lib:format(
-        "~nWarning: ~s() expects parameter ~p to be ~s, ~s given in ~s "
-        "on line ~p~n",
-        [Function, ArgNum, ArgType, WrongType, File, Line]);
+        "~s() expects parameter ~p to be ~s, ~s given in ~s",
+        [Function, ArgNum, ArgType, WrongType, File]);
 
-get_message(enoarray, Line, _Level, File) ->
-    io_lib:format(
-        "~nWarning:  Cannot use a scalar value as an array in ~s "
-        "on line ~p~n",
-        [File, Line]);
+get_message(enoarray, File) ->
+    io_lib:format("Cannot use a scalar value as an array in ~s", [File]);
 
-get_message(einvalid, Line, _Level, {Function, Spec, Val, File}) ->
+get_message(einvalid, {Function, Spec, Val, File}) ->
     io_lib:format(
-        "~nWarning: ~s(): Invalid `~s' (~p) in ~s on line ~p~n",
-        [Function, Spec, Val, File, Line]);
+        "~s(): Invalid `~s' (~p) in ~s",
+        [Function, Spec, Val, File]);
 
-get_message(eundefvar, Line, _Level, {File, Var}) ->
-    io_lib:format(
-        "~nNotice: Undefined variable: ~s in ~s on line ~p~n",
-        [Var, File, Line]);
+get_message(eundefvar, {File, Var}) ->
+    io_lib:format("Undefined variable: ~s in ~s", [Var, File]);
 
-get_message(eundefconst, Line, _Level, {File, Const}) ->
+get_message(eundefconst, {File, Const}) ->
     io_lib:format(
-        "~nNotice: Use of undefined constant ~s - assumed '~s' in ~s"
-        " on line ~p~n",
-        [Const, Const, File, Line]);
+        "Use of undefined constant ~s - assumed '~s' in ~s",
+        [Const, Const, File]);
 
-get_message(enotostring, Line, _Level, {File, ClassName}) ->
+get_message(enotostring, {File, ClassName}) ->
     io_lib:format(
-        "~nCatchable fatal error: Object of class ~s could not be converted "
-        "to string in ~s on line ~p~n",
-        [ClassName, File, Line]);
+        "Object of class ~s could not be converted to string in ~s",
+        [ClassName, File]);
 
-get_message(enocast, Line, _Level, {File, ClassName, Type}) ->
+get_message(enocast, {File, ClassName, Type}) ->
     io_lib:format(
-        "~nNotice: Object of class ~s could not be converted "
-        "to ~s in ~s on line ~p~n",
-        [ClassName, Type, File, Line]);
+        "Object of class ~s could not be converted to ~s in ~s",
+        [ClassName, Type, File]);
 
-get_message(earrayconv, Line, _Level, {File, Type}) ->
-    io_lib:format(
-        "~nNotice: Array to ~s conversion in ~s on line ~p~n",
-        [Type, File, Line]);
+get_message(earrayconv, {File, Type}) ->
+    io_lib:format("Array to ~s conversion in ~s", [Type, File]);
 
-get_message(eredefinedclass, Line, _Level, {File, ClassName}) ->
+get_message(eredefinedclass, {File, ClassName}) ->
     io_lib:format(
-        "~nWarning: Cannot redeclare class ~s in ~s on line ~p~n",
-        [ClassName, File, Line]);
+        "Cannot redeclare class ~s in ~s",
+        [ClassName, File]);
 
-get_message(edivzero, Line, _Level, File) ->
-    io_lib:format(
-        "~nWarning: Division by zero in ~s on line ~p~n",
-        [File, Line]);
+get_message(edivzero, File) ->
+    io_lib:format("Division by zero in ~s", [File]);
 
-get_message(etimezone, Line, _Level, {Function, TZ, File}) ->
+get_message(etimezone, {Function, TZ, File}) ->
     io_lib:format(
-        "~nNotice: ~s(): Timezone ID '~s' is invalid in ~s on line ~p~n",
-        [Function, TZ, File, Line]);
+        "~s(): Timezone ID '~s' is invalid in ~s",
+        [Function, TZ, File]);
 
-get_message(efewargs, Line, _Level, {Function, File}) ->
-    io_lib:format(
-        "~nWarning: ~s(): Too few arguments in ~s on line ~p~n",
-        [Function, File, Line]);
+get_message(efewargs, {Function, File}) ->
+    io_lib:format("~s(): Too few arguments in ~s", [Function, File]);
 
-get_message(eargsupplied, Line, _Level, {Function, File}) ->
-    io_lib:format(
-        "~nWarning: Invalid argument supplied for ~s() in ~s on line ~p~n",
-        [Function, File, Line]);
+get_message(eargsupplied, {Function, File}) ->
+    io_lib:format("Invalid argument supplied for ~s() in ~s", [Function, File]);
 
-get_message(eargtype, Line, _Level, {Function, ArgNum, File}) ->
+get_message(eargtype, {Function, ArgNum, File}) ->
     io_lib:format(
-        "~nWarning: ~s(): Argument #~p is not an array in ~s on line ~p~n",
-        [Function, ArgNum, File, Line]);
+        "~s(): Argument #~p is not an array in ~s",
+        [Function, ArgNum, File]);
 
-get_message(eisnot, Line, _Level, {Function, VarName, Type, File}) ->
+get_message(eisnot, {Function, VarName, Type, File}) ->
     io_lib:format(
-        "~nWarning: ~s(): ~s is not ~s in ~s on line ~p~n",
-        [Function, VarName, Type, File, Line]);
+        "~s(): ~s is not ~s in ~s",
+        [Function, VarName, Type, File]);
 
-get_message(eoffset, Line, _Level, {Function, File}) ->
+get_message(eoffset, {Function, File}) ->
     io_lib:format(
-        "~nWarning: ~s(): Offset not contained in string in ~s on line ~p~n",
-        [Function, File, Line]);
+        "~s(): Offset not contained in string in ~s",
+        [Function, File]);
 
-get_message(Unknown, Line, _Level, Data) ->
-    io_lib:format(
-        "~nFatal error: unknown ~p for ~p in line ~p~n",
-        [Unknown, Data, Line]).
+get_message(Unknown, Data) ->
+    io_lib:format("unknown ~p for ~p", [Unknown, Data]).
 
 -spec get_return(error_type()) -> term().
 

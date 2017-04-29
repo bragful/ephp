@@ -50,6 +50,6 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
         {error, eredefined} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eredefinedclass, Line, ?E_ERROR, {File, Alias}}),
+                {error, eredefinedclass, Line, ?E_WARNING, {File, Alias}}),
             false
     end.

@@ -185,7 +185,9 @@ to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
     catch
         throw:{error,eundefmethod,_,_,<<"__toString">>} ->
             File = ephp_context:get_active_file(Context),
-            ephp_error:error({error, enotostring, Line, ?E_ERROR, {File, CN}})
+            Data = {File, CN},
+            Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
+            ephp_error:error(Error)
     end;
 
 to_bin(_Context, _Line, Val) ->

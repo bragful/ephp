@@ -1180,7 +1180,7 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
             B = ephp_data:zero_if_undef(OpRes2),
             if
                 B == 0 ->
-                    Error = {error, edivzero, Index, ?E_ERROR, File},
+                    Error = {error, edivzero, Index, ?E_WARNING, File},
                     ephp_error:handle_error(State#state.ref, Error);
                 B == infinity ->
                     0;
