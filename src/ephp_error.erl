@@ -12,6 +12,7 @@
     run_quiet/2,
 
     error_reporting/2,
+    set_error_format/2,
     error/1,
     handle_error/2,
     get_line/1
@@ -60,8 +61,18 @@ start_link() ->
     erlang:put(Ref, #state{}),
     {ok, Ref}.
 
-destroy(Funcs) ->
-    erlang:erase(Funcs),
+-spec destroy(ephp:errors_id()) -> ok.
+
+destroy(ErrorsId) ->
+    erlang:erase(ErrorsId),
+    ok.
+
+-spec set_error_format(context(), error_format()) -> ok.
+
+set_error_format(Context, Format) ->
+    ErrorsId = erlang:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{format = Format}),
     ok.
 
 -spec error_reporting(context(), integer()) -> integer().
@@ -69,7 +80,7 @@ destroy(Funcs) ->
 error_reporting(Context, Level) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
-    erlang:put(ErrorsId, State#state{level=Level}),
+    erlang:put(ErrorsId, State#state{level = Level}),
     State#state.level.
 
 -type throw_error() ::
