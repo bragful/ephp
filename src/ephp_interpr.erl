@@ -54,15 +54,18 @@ run_depth(Context, #assign{}=Assign, Return) ->
     Return;
 
 run_depth(Context, #if_block{conditions=Cond}=IfBlock, false) ->
-    case ephp_context:solve(Context, Cond) of
-    true ->
-        run(Context,
-            #eval{statements=IfBlock#if_block.true_block});
-    false when IfBlock#if_block.false_block =/= undefined ->
-        run(Context,
-            #eval{statements=IfBlock#if_block.false_block});
-    _ ->
-        false
+    #if_block{true_block = TrueBlock, false_block = FalseBlock} = IfBlock,
+    case ephp_data:to_boolean(ephp_context:solve(Context, Cond)) of
+        true when is_list(TrueBlock) ->
+            run(Context, #eval{statements = TrueBlock});
+        true ->
+            run(Context, #eval{statements = [TrueBlock]});
+        false when is_list(FalseBlock) ->
+            run(Context, #eval{statements = FalseBlock});
+        false when FalseBlock =:= undefined ->
+            false;
+        false ->
+            run(Context, #eval{statements = [FalseBlock]})
     end;
 
 run_depth(Context, #switch{condition=Cond, cases=Cases}, false) ->

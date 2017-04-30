@@ -365,8 +365,14 @@ expression(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
 expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
-        ?OR(E,$E,$e) andalso ?OR(SP,$(,32) ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+        ?OR(E,$E,$e) andalso
+        (SP =:= $) orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = case remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)) of
+        {<<"(",R0/binary>>, P0} ->
+            {R0, add_pos(P0, 1)};
+        {R0, P0} ->
+            {R0, P0}
+    end,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"include">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
@@ -375,16 +381,28 @@ expression(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
      Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
-        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso ?OR(SP,$(,32) ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso
+        (SP =:= $) orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = case remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 12)) of
+        {<<"(",R0/binary>>, P0} ->
+            {R0, add_pos(P0, 1)};
+        {R0, P0} ->
+            {R0, P0}
+    end,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"include_once">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
 % REQUIRE
 expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
-        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(SP,$(,32) ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso
+        (SP =:= $) orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = case remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)) of
+        {<<"(",R0/binary>>, P0} ->
+            {R0, add_pos(P0, 1)};
+        {R0, P0} ->
+            {R0, P0}
+    end,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
@@ -393,8 +411,14 @@ expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
      Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
         ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(O,$O,$o) andalso
-        ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso ?OR(SP,$(,32) ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
+        ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
+        (SP =:= $) orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = case remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 12)) of
+        {<<"(",R0/binary>>, P0} ->
+            {R0, add_pos(P0, 1)};
+        {R0, P0} ->
+            {R0, P0}
+    end,
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
     expression(Rest1, Pos1, add_op(Include, Parsed));
@@ -426,6 +450,10 @@ expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
 expression(<<Op:1/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
 % CONSTANT / FUNCTION
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,[]}|_]=Parsed) when
+        ?IS_ALPHA(A) orelse A =:= $_ ->
+    {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
+    expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     case lists:last(Ops) of
