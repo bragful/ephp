@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    handle_error/3,
     include/3,
     include_once/3,
     require/3,
@@ -34,6 +35,24 @@ init_config() -> [
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [].
+
+-spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
+                   Args::term()) -> string() | ignore.
+
+handle_error(erequired, _Level, {ReqFile, Func}) ->
+    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
+    io_lib:format(
+        "~s(): Failed opening required '~s' (include_path='~s')",
+        [Func, ReqFile, IncludePath]);
+
+handle_error(einclude, _Level, {ReqFile, Func}) ->
+    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
+    io_lib:format(
+        "~s(): Failed opening '~s' for inclusion (include_path='~s')",
+        [Func, ReqFile, IncludePath]);
+
+handle_error(_Type, _Level, _Args) ->
+    ignore.
 
 -spec include(context(), line(), InclFile :: var_value()) -> any().
 

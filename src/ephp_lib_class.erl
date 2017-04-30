@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    handle_error/3,
     get_class/3,
     class_alias/4
 ]).
@@ -28,6 +29,32 @@ init_config() -> [].
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [].
+
+-spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
+                   Args::term()) -> string() | ignore.
+
+handle_error(eundefclass, _Level, {<<>>}) ->
+    "Cannot access self:: when no class scope is active";
+
+handle_error(eundefclass, _Level, {Class}) ->
+    io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
+
+handle_error(eprivateaccess, _Level, {Class, Element, Access}) ->
+    io_lib:format(
+        "Cannot access ~s property ~s::$~s",
+        [Access, Class, Element]);
+
+handle_error(ecallprivate, _Level, {Class, Element, Access}) ->
+    io_lib:format("Call to ~s method ~s::~s()", [Access, Class, Element]);
+
+handle_error(eredefinedclass, _Level, {ClassName}) ->
+    io_lib:format("Cannot redeclare class ~s", [ClassName]);
+
+handle_error(eassignthis, _Level, {}) ->
+    "Cannot re-assign $this";
+
+handle_error(_Type, _Level, _Args) ->
+    ignore.
 
 -spec get_class(context(), line(), Class :: var_value()) -> any().
 

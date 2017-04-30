@@ -8,6 +8,7 @@
 
     set_output/2,
     set_output_handler/2,
+    add_message_handler/2,
 
     run_quiet/2,
 
@@ -15,7 +16,8 @@
     set_error_format/2,
     error/1,
     handle_error/2,
-    get_line/1
+    get_line/1,
+    get_level/1
 ]).
 
 -callback set_output(context(), string()) -> ok.
@@ -51,7 +53,8 @@
     handler = ?MODULE :: module(),
     silent = false :: boolean(),
     level = ?E_ALL,
-    format = text :: error_format()
+    format = text :: error_format(),
+    modules = [] :: [module()]
 }).
 
 -spec start_link() -> {ok, ephp:errors_id()}.
@@ -65,6 +68,14 @@ start_link() ->
 
 destroy(ErrorsId) ->
     erlang:erase(ErrorsId),
+    ok.
+
+-spec add_message_handler(ephp:context(), module()) -> ok.
+
+add_message_handler(Context, Module) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    #state{modules = Modules} = State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{modules = [Module|Modules]}),
     ok.
 
 -spec set_error_format(context(), error_format()) -> ok.
@@ -98,8 +109,8 @@ error({error, Type, Index, Level, Data}) ->
 handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
-    #state{format = Format} = ErrorState,
-    ErrorText = get_message(Format, Type, Line, File, get_level(Level), Data),
+    #state{format = Format, modules = Modules} = ErrorState,
+    ErrorText = get_message(Modules, Format, Type, Line, File, Level, Data),
     case ErrorState of
         #state{silent=true} ->
             ok;
@@ -136,35 +147,37 @@ run_quiet(Errors, Fun) ->
             Result
     end.
 
--spec get_message(error_format(), error_type(), pos_integer() | undefined,
-                  binary(), binary(), term()) -> string().
+-spec get_message([module()], error_format(), error_type(),
+                  pos_integer() | undefined, binary(), binary(),
+                  term()) -> string().
 
-get_message(text, Type, Line, File, Level, Args) ->
+get_message(Modules, text, Type, Line, File, Level, Args) ->
+    Message = get_message(Modules, Type, Level, Args),
     io_lib:format(
         "~n~s: ~s in ~s on line ~p~n",
-        [Level, get_message(Type, Args), File, Line]);
+        [get_level(Level), Message, File, Line]);
 
-get_message(html, Type, Line, File, Level, Args) ->
+get_message(Modules, html, Type, Line, File, Level, Args) ->
+    Message = get_message(Modules, Type, Level, Args),
     io_lib:format(
         "<br/>~n<strong>~s</strong>: ~s in ~s on line ~p<br/>~n",
-        [Level, get_message(Type, Args), File, Line]).
+        [get_level(Level), Message, File, Line]).
+
+-spec get_message([module()], error_type(), pos_integer(), term()) -> string().
+
+get_message([], Type, _Level, Args) ->
+    get_message(Type, Args);
+
+get_message([Module|Modules], Type, Level, Args) ->
+    case Module:handle_error(Type, Level, Args) of
+        Message when is_list(Message) -> Message;
+        ignore -> get_message(Modules, Type, Level, Args)
+    end.
 
 -spec get_message(error_type(), binary() | term()) -> string().
 
 get_message(eparse, {}) ->
     "parse error";
-
-get_message(erequired, {ReqFile, Func}) ->
-    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
-    io_lib:format(
-        "~s(): Failed opening required '~s' (include_path='~s')",
-        [Func, ReqFile, IncludePath]);
-
-get_message(einclude, {ReqFile, Func}) ->
-    IncludePath = ephp_config:get(<<"include_path">>, <<".:">>),
-    io_lib:format(
-        "~s(): Failed opening '~s' for inclusion (include_path='~s')",
-        [Func, ReqFile, IncludePath]);
 
 get_message(enofile, {OpenFile, Func}) ->
     io_lib:format(
@@ -174,25 +187,8 @@ get_message(enofile, {OpenFile, Func}) ->
 get_message(eundefun, {Fun}) ->
     io_lib:format("Call to undefined function ~s()", [Fun]);
 
-get_message(eundefclass, {<<>>}) ->
-    "Cannot access self:: when no class scope is active";
-
-get_message(eundefclass, {Class}) ->
-    io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
-
-get_message(eprivateaccess, {Class, Element, Access}) ->
-    io_lib:format(
-        "Cannot access ~s property ~s::$~s",
-        [Access, Class, Element]);
-
-get_message(ecallprivate, {Class, Element, Access}) ->
-    io_lib:format("Call to ~s method ~s::~s()", [Access, Class, Element]);
-
 get_message(eunsupportop, {}) ->
     "Unsupported operand types";
-
-get_message(eassignthis, {}) ->
-    "Cannot re-assign $this";
 
 get_message(ewrongminarity, {Function, NumArgsExp, NumArgsSent}) ->
     io_lib:format(
@@ -236,14 +232,8 @@ get_message(enocast, {ClassName, Type}) ->
 get_message(earrayconv, {Type}) ->
     io_lib:format("Array to ~s conversion", [Type]);
 
-get_message(eredefinedclass, {ClassName}) ->
-    io_lib:format("Cannot redeclare class ~s", [ClassName]);
-
 get_message(edivzero, {}) ->
     "Division by zero";
-
-get_message(etimezone, {Function, TZ}) ->
-    io_lib:format("~s(): Timezone ID '~s' is invalid", [Function, TZ]);
 
 get_message(efewargs, {Function}) ->
     io_lib:format("~s(): Too few arguments", [Function]);

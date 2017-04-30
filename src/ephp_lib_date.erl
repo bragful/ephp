@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    handle_error/3,
     time/2,
     microtime/2,
     microtime/3,
@@ -38,6 +39,15 @@ init_config() -> [].
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [].
+
+-spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
+                   Args::term()) -> string() | ignore.
+
+handle_error(etimezone, _Level, {Function, TZ}) ->
+    io_lib:format("~s(): Timezone ID '~s' is invalid", [Function, TZ]);
+
+handle_error(_Type, _Level, _Args) ->
+    ignore.
 
 -spec time(context(), line()) -> integer().
 

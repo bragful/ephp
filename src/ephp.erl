@@ -81,6 +81,10 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
 
 register_module(Ctx, Module) ->
     ephp_config:module_init(Module),
+    case proplists:get_value(handle_error, Module:module_info(exports)) of
+        3 -> ephp_error:add_message_handler(Ctx, Module);
+        _ -> ok
+    end,
     lists:foreach(fun
         ({Func, Opts}) ->
             PackArgs = proplists:get_value(pack_args, Opts, false),
