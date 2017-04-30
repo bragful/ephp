@@ -23,7 +23,8 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 19.2 | :heavy_check_mark: | Recommended if you use OTP 19 |
+| 19.3 | :heavy_check_mark: | Recommended if you use OTP 19 |
+| 19.2 | :heavy_check_mark: | |
 | 19.1 | :heavy_check_mark: | |
 | 19.0 | :heavy_check_mark: | |
 | 18.3 | :heavy_check_mark: | Recommended if you use OTP 18 |
@@ -105,6 +106,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp_lib_math.md" class="module">ephp_lib_math</a></td></tr>
 <tr><td><a href="ephp_lib_misc.md" class="module">ephp_lib_misc</a></td></tr>
 <tr><td><a href="ephp_lib_ob.md" class="module">ephp_lib_ob</a></td></tr>
+<tr><td><a href="ephp_lib_pcre.md" class="module">ephp_lib_pcre</a></td></tr>
 <tr><td><a href="ephp_lib_string.md" class="module">ephp_lib_string</a></td></tr>
 <tr><td><a href="ephp_lib_vars.md" class="module">ephp_lib_vars</a></td></tr>
 <tr><td><a href="ephp_output.md" class="module">ephp_output</a></td></tr>

@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#module_init-1">module_init/1</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#module_init-1">module_init/1</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_local-0">start_local/0</a></td><td></td></tr><tr><td valign="top"><a href="#stop_local-0">stop_local/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -67,6 +67,24 @@ set(Key::binary(), Value::<a href="#type-mixed">mixed()</a>) -&gt; ok
 
 <pre><code>
 start_link(File::<a href="#type-file_name">file_name()</a>) -&gt; ok
+</code></pre>
+<br />
+
+<a name="start_local-0"></a>
+
+### start_local/0 ###
+
+<pre><code>
+start_local() -&gt; ok
+</code></pre>
+<br />
+
+<a name="stop_local-0"></a>
+
+### stop_local/0 ###
+
+<pre><code>
+stop_local() -&gt; ok
 </code></pre>
 <br />
 

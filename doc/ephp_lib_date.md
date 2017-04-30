@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#date-3">date/3</a></td><td></td></tr><tr><td valign="top"><a href="#date-4">date/4</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_get-2">date_default_timezone_get/2</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_set-3">date_default_timezone_set/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-3">gmdate/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-4">gmdate/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-2">microtime/2</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-3">microtime/3</a></td><td></td></tr><tr><td valign="top"><a href="#time-2">time/2</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_abbreviations_list-2">timezone_abbreviations_list/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#date-3">date/3</a></td><td></td></tr><tr><td valign="top"><a href="#date-4">date/4</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_get-2">date_default_timezone_get/2</a></td><td></td></tr><tr><td valign="top"><a href="#date_default_timezone_set-3">date_default_timezone_set/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-3">gmdate/3</a></td><td></td></tr><tr><td valign="top"><a href="#gmdate-4">gmdate/4</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-2">microtime/2</a></td><td></td></tr><tr><td valign="top"><a href="#microtime-3">microtime/3</a></td><td></td></tr><tr><td valign="top"><a href="#time-2">time/2</a></td><td></td></tr><tr><td valign="top"><a href="#timezone_abbreviations_list-2">timezone_abbreviations_list/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -32,7 +32,7 @@ date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### date/4 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, (integer() | float())}) -&gt; binary()
+date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, integer() | float()}) -&gt; binary()
 </code></pre>
 <br />
 
@@ -69,6 +69,15 @@ gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 
 <pre><code>
 gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::integer() | float()) -&gt; binary()
+</code></pre>
+<br />
+
+<a name="handle_error-3"></a>
+
+### handle_error/3 ###
+
+<pre><code>
+handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
 </code></pre>
 <br />
 

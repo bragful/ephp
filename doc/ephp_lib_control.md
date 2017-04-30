@@ -11,12 +11,21 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#include-3">include/3</a></td><td></td></tr><tr><td valign="top"><a href="#include_once-3">include_once/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#require-3">require/3</a></td><td></td></tr><tr><td valign="top"><a href="#require_once-3">require_once/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#include-3">include/3</a></td><td></td></tr><tr><td valign="top"><a href="#include_once-3">include_once/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#require-3">require/3</a></td><td></td></tr><tr><td valign="top"><a href="#require_once-3">require_once/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
+
+<a name="handle_error-3"></a>
+
+### handle_error/3 ###
+
+<pre><code>
+handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
+</code></pre>
+<br />
 
 <a name="include-3"></a>
 

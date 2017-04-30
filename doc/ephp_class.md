@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_if_no_exists_attrib-2">add_if_no_exists_attrib/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_attribute-2">get_attribute/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_const-2">get_const/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_const-3">get_const/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_constructor-1">get_constructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_destructor-1">get_destructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-2">get_method/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_stdclass-0">get_stdclass/0</a></td><td></td></tr><tr><td valign="top"><a href="#instance-5">instance/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-3">register_class/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_alias-3">set_alias/3</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_if_no_exists_attrib-2">add_if_no_exists_attrib/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_attribute-2">get_attribute/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_const-2">get_const/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_const-3">get_const/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_constructor-1">get_constructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_destructor-1">get_destructor/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-2">get_method/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_stdclass-0">get_stdclass/0</a></td><td></td></tr><tr><td valign="top"><a href="#instance-5">instance/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-4">register_class/4</a></td><td></td></tr><tr><td valign="top"><a href="#set_alias-3">set_alias/3</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -82,11 +82,11 @@
 
 `instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) -> any()`
 
-<a name="register_class-3"></a>
+<a name="register_class-4"></a>
 
-### register_class/3 ###
+### register_class/4 ###
 
-`register_class(Ref, GlobalCtx, Class) -> any()`
+`register_class(Ref, File, GlobalCtx, Class) -> any()`
 
 <a name="set_alias-3"></a>
 

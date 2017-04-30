@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#class_alias-4">class_alias/4</a></td><td></td></tr><tr><td valign="top"><a href="#get_class-3">get_class/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#class_alias-4">class_alias/4</a></td><td></td></tr><tr><td valign="top"><a href="#get_class-3">get_class/3</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### class_alias/4 ###
 
 <pre><code>
-class_alias(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, ClassName::<a href="#type-var_value">var_value()</a>, ClassAlias::<a href="#type-var_value">var_value()</a>) -&gt; ok
+class_alias(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, ClassName::<a href="#type-var_value">var_value()</a>, ClassAlias::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -33,6 +33,15 @@ class_alias(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 
 <pre><code>
 get_class(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>) -&gt; any()
+</code></pre>
+<br />
+
+<a name="handle_error-3"></a>
+
+### handle_error/3 ###
+
+<pre><code>
+handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
 </code></pre>
 <br />
 

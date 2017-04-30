@@ -12,11 +12,21 @@
 
 
 
+### <a name="type-break">break()</a> ###
+
+
+<pre><code>
+break() = break | {break, pos_integer()}
+</code></pre>
+
+
+
+
 ### <a name="type-flow_status">flow_status()</a> ###
 
 
 <pre><code>
-flow_status() = break | continue | <a href="#type-return">return()</a> | false
+flow_status() = <a href="#type-break">break()</a> | continue | <a href="#type-return">return()</a> | false
 </code></pre>
 
 <a name="index"></a>

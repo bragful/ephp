@@ -11,12 +11,21 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-4">in_array/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
+
+<a name="array_merge-3"></a>
+
+### array_merge/3 ###
+
+<pre><code>
+array_merge(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Arrays::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
 
 <a name="count-3"></a>
 
@@ -27,12 +36,12 @@ count(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 </code></pre>
 <br />
 
-<a name="in_array-4"></a>
+<a name="in_array-5"></a>
 
-### in_array/4 ###
+### in_array/5 ###
 
 <pre><code>
-in_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Key::<a href="#type-var_value">var_value()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+in_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Key::<a href="#type-var_value">var_value()</a>, Array::<a href="#type-var_value">var_value()</a>, Strict::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
