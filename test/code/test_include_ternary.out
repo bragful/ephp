@@ -1,0 +1,8 @@
+
+Notice: Use of undefined constant WP_DEBUG - assumed 'WP_DEBUG' in {{CWD}}/test/code/test_include_ternary.php on line 2
+
+Notice: Use of undefined constant WP_CONTENT_DIR - assumed 'WP_CONTENT_DIR' in {{CWD}}/test/code/test_include_ternary.php on line 2
+
+Warning: include(WP_CONTENT_DIR): failed to open stream: No such file or directory in {{CWD}}/test/code/test_include_ternary.php on line 2
+
+Warning: include(): Failed opening 'WP_CONTENT_DIR' for inclusion (include_path='.:') in {{CWD}}/test/code/test_include_ternary.php on line 2
