@@ -617,7 +617,7 @@ operator(Op,R1,R2) when (is_record(R1, int) orelse is_record(R1, float))
         <<">>">> -> N1 bsr N2;
         'xor' -> ephp_data:to_bool(N1) xor ephp_data:to_bool(N2);
         'or' -> ephp_data:to_bool(N1) or ephp_data:to_bool(N2);
-        'and' -> ephp_data:to_bool(N1) or ephp_data:to_bool(N2)
+        'and' -> ephp_data:to_bool(N1) and ephp_data:to_bool(N2)
     end,
     if
         is_integer(Res) -> #int{int=Res};
