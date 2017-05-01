@@ -34,4 +34,4 @@ trim(undefined) ->
     undefined;
 
 trim(Text) ->
-    re:replace(Data, "^\\s+|\\s+$", "", [{return, binary}, global]).
+    re:replace(Text, "^\\s+|\\s+$", "", [{return, binary}, global]).
