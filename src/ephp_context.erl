@@ -50,7 +50,6 @@
     set_output_handler/2,
     get_output_handler/1,
 
-    register_func/4,
     register_func/5,
     register_func/6,
     get_functions/1,
@@ -202,12 +201,6 @@ register_func(Context, PHPFunc, Args, Code, VA) ->
     #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
     ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, false, VA),
-    ok.
-
-register_func(Context, PHPFunc, Fun, ValArgs) when is_function(Fun) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
-    AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Fun, false, ValArgs),
     ok.
 
 get_functions(Context) ->
@@ -418,6 +411,11 @@ resolve(#assign{variable=#assign{}=A, expression=Expr}, State) ->
     {Value, NState} = resolve(#assign{variable=V2, expression=Expr}, State),
     resolve(#assign{variable=V1, expression=Value}, NState);
 
+resolve(#assign{variable = #call{name = <<"list">>, args = Args}=List,
+                expression = Expr}, State) ->
+    {Value, NState} = resolve(Expr, State),
+    resolve(List#call{args = [Value|Args]}, NState);
+
 resolve(#operation{}=Op, State) ->
     resolve_op(Op, State);
 
@@ -607,15 +605,25 @@ resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name=Name}, NewState);
 
-resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=Call,
-        #state{ref=Ref,vars=Vars,funcs=Funcs,const=Const}=State) ->
+resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
+        #state{ref = Ref, vars = Vars, funcs = Funcs, const = Const} = State) ->
     GlobalRef = case State#state.global of
         undefined -> Ref;
         GR -> GR
     end,
     case ephp_func:get(Funcs, Fun) of
-    {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin={M,F},
-     validation_args=VA}} when is_atom(M) andalso is_atom(F) ->
+    {ok, #reg_func{type = builtin, pack_args = PackArgs, builtin = {M, F},
+                   validation_args = no_resolve}} ->
+        FState = State#state{active_fun = Fun},
+        {Args, NState} = resolve_args(no_resolve, RawArgs, FState, Index),
+        save_state(NState),
+        Value = if
+            PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
+            true -> erlang:apply(M,F,[Ref,Index|Args])
+        end,
+        {Value, (load_state(Ref))#state{ref=Ref}};
+    {ok, #reg_func{type = builtin, pack_args = PackArgs, builtin = {M, F},
+                   validation_args = VA}} ->
         FState = State#state{active_fun = Fun},
         VArgs = case VA of
             undefined ->
@@ -625,7 +633,7 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=Call,
             _ when is_list(VA) ->
                 {expected_min_args(VA), expected_max_args(M, F), undefined, VA}
         end,
-        try resolve_args(VArgs, RawArgs, FState, Call#call.line) of
+        try resolve_args(VArgs, RawArgs, FState, Index) of
             {Args, NState} ->
                 save_state(NState),
                 Value = if
@@ -637,15 +645,6 @@ resolve(#call{type=normal,name=Fun,args=RawArgs,line=Index}=Call,
             throw:{return,Value} ->
                 {Value, State}
         end;
-    {ok,#reg_func{type=builtin, pack_args=PackArgs, builtin=F}}
-            when is_function(F) ->
-        {Args, NState} = resolve_args(RawArgs, State),
-        save_state(NState),
-        Value = if
-            PackArgs -> F([Ref,Index,Args]);
-            true -> F([Ref,Index|Args])
-        end,
-        {Value, load_state(Ref)};
     {ok,#reg_func{type=php, args=RawFuncArgs, file=AFile, code=Code}} ->
         {Args, NStatePrev} = resolve_args(RawArgs, State),
         {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
@@ -800,6 +799,9 @@ expected_max_args(Module, Function) ->
                    (_, Max) -> Max
                 end, 0, Module:module_info(exports)).
 
+resolve_args(no_resolve, RawArgs, State, _Line) ->
+    Args = [ {RawArg, undefined} || RawArg <- RawArgs ],
+    {Args, State};
 resolve_args(_, undefined, State, _Line) ->
     {[], State};
 resolve_args(undefined, RawArgs, State, _Line) ->

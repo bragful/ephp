@@ -120,6 +120,8 @@ search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
             undefined;
         {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
             get(RefVarsPID, RefVar, undefined);
+        {ok, null} ->
+            undefined;
         {ok, Value} ->
             Value
     end;

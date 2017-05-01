@@ -195,7 +195,6 @@ expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
         ?OR(O,$O,$o) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
-    % TODO move this to ephp_parser_func as st_closure or similar
     {<<"(",Rest0/binary>>, Pos0} =
         remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 9)),
     {Rest1, Pos1, Args} = funct_args(Rest0, Pos0, []),
@@ -476,7 +475,6 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, [Constant]} = constant(Rest, Pos, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Constant, Parsed));
-%% TODO support for list(...) = ...
 % FINAL -switch-
 expression(<<":",_/binary>> = Rest, {switch_label,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};

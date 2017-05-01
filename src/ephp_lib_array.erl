@@ -10,7 +10,8 @@
     init_const/0,
     in_array/5,
     count/3,
-    array_merge/3
+    array_merge/3,
+    list/3
 ]).
 
 -include("ephp.hrl").
@@ -21,7 +22,8 @@ init_func() -> [
     {in_array, [{args, {2, 3, undefined, [mixed, array, {boolean, false}]}}]},
     count,
     {count, [{alias, <<"sizeof">>}]},
-    {array_merge, [pack_args]}
+    {array_merge, [pack_args]},
+    {list, [pack_args, {args, no_resolve}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -53,9 +55,31 @@ count(_Context, _Line, _Var) ->
 array_merge(Context, Line, Args) ->
     array_merge(Context, Line, 1, Args).
 
+-spec list(context(), line(), Vars :: [var_value()]) -> ephp_array() | undefined.
+
+list(Context, _Line, [{#ephp_array{}=Array, undefined}|Getters]) ->
+    zip_list(Context, ephp_array:to_list(Array), Getters),
+    Array;
+
+list(Context, _Line, [{Binary, undefined}|Getters]) when is_binary(Binary) ->
+    lists:foreach(fun({[], _}) -> ok;
+                     ({G, _}) -> ephp_context:set(Context, G, null)
+                  end, Getters),
+    undefined.
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+zip_list(_Context, [], _) ->
+    ok;
+zip_list(_Context, _, []) ->
+    ok;
+zip_list(Context, [_|Array], [{[], _}|Getters]) ->
+    zip_list(Context, Array, Getters);
+zip_list(Context, [{_,Value}|Array], [{Getter,_}|Getters]) ->
+    ephp_context:set(Context, Getter, Value),
+    zip_list(Context, Array, Getters).
 
 member(Value, Dict, true) ->
     List = ephp_array:to_list(Dict),

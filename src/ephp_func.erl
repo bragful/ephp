@@ -35,7 +35,8 @@
 -type validation_args() ::
     {min_args(), max_args(), error_return_value(), [validation_arg()]} |
     [validation_arg()] |
-    undefined.
+    undefined |
+    no_resolve.
 
 -export_type([
     php_function/0,
@@ -69,7 +70,6 @@
 
     run/2,
 
-    register_func/4,
     register_func/5,
     register_func/6,
     register_func/7
@@ -101,29 +101,12 @@ get_functions(Ref) ->
     end,
     [ Get(FuncName) || {_,FuncName} <- dict:to_list(Funcs) ].
 
-register_func(Ref, File, PHPFunc, Fun) ->
-    register_func(Ref, File, PHPFunc, Fun, false, undefined).
-
 register_func(Ref, File, PHPFunc, Args, Code) ->
     register_func(Ref, File, PHPFunc, Args, Code, false, undefined).
 
 register_func(Ref, File, PHPFunc, Module, Fun, ValArgs)
         when is_atom(Module) andalso is_atom(Fun) ->
-    register_func(Ref, File, PHPFunc, Module, Fun, false, ValArgs);
-
-register_func(Ref, File, PHPFunc, Fun, PackArgs, ValArgs)
-        when is_function(Fun) ->
-    Funcs = erlang:get(Ref),
-    IPHPFunc = ephp_string:to_lower(PHPFunc),
-    RegFunc = #reg_func{
-        name=IPHPFunc,
-        type=builtin,
-        file=File,
-        builtin=Fun,
-        pack_args=PackArgs,
-        validation_args=ValArgs},
-    erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
-    ok.
+    register_func(Ref, File, PHPFunc, Module, Fun, false, ValArgs).
 
 register_func(Ref, File, PHPFunc, Module, Fun, PackArgs, ValArgs)
         when is_atom(Module) andalso is_atom(Fun) ->
