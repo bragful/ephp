@@ -24,6 +24,47 @@ array_def_54_level({_,Row,Col}) -> {{array_def,54},Row,Col}.
 
 add_op('end', []) ->
     [];
+add_op('end', [{op, [#constant{name = Name, line = Pos} = Constant]}]) ->
+    Op = case Name of
+        <<I:8,N:8,T:8>> when ?OR(I,$i,$I) andalso ?OR(N,$n,$N) andalso
+                             ?OR(T,$t,$T) ->
+            OpL = <<"(int)">>,
+            {OpL, precedence(OpL), Pos};
+        <<F:8,L:8,O:8,A:8,T:8>> when ?OR(F,$F,$f) andalso ?OR(L,$L,$l) andalso
+                                     ?OR(O,$O,$o) andalso ?OR(A,$A,$a) andalso
+                                     ?OR(T,$T,$t) ->
+            OpL = <<"(float)">>,
+            {OpL, precedence(OpL), Pos};
+        <<S:8,T:8,R:8,I:8,N:8,G:8>> when ?OR(S,$S,$s) andalso
+                                         ?OR(T,$T,$t) andalso
+                                         ?OR(R,$R,$r) andalso
+                                         ?OR(I,$I,$i) andalso
+                                         ?OR(N,$N,$n) andalso
+                                         ?OR(G,$G,$g) ->
+            OpL = <<"(string)">>,
+            {OpL, precedence(OpL), Pos};
+        % array will be captured in the array() part
+        <<O:8,B:8,J:8,E:8,C:8,T:8>> when ?OR(O,$O,$o) andalso
+                                         ?OR(B,$B,$b) andalso
+                                         ?OR(J,$J,$j) andalso
+                                         ?OR(E,$E,$e) andalso
+                                         ?OR(C,$C,$c) andalso
+                                         ?OR(T,$T,$t) ->
+            OpL = <<"(object)">>,
+            {OpL, precedence(OpL), Pos};
+        <<B:8,O:8,O:8,L:8>> when ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso
+                                 ?OR(L,$L,$l) ->
+            OpL = <<"(bool)">>,
+            {OpL, precedence(OpL), Pos};
+        <<U:8,N:8,S:8,E:8,T:8>> when ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+                                     ?OR(S,$S,$s) andalso ?OR(E,$E,$e) andalso
+                                     ?OR(T,$T,$t) ->
+            OpL = <<"(unset)">>,
+            {OpL, precedence(OpL), Pos};
+        _ ->
+            Constant
+    end,
+    solve([Op]);
 add_op('end', [{op,Content}]) ->
     solve(process_incr_decr(Content));
 add_op(Add, [{op,Content}|Parsed]) ->
@@ -97,10 +138,18 @@ array_def(Rest, Pos, Args) when Rest =/= <<>> ->
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
-    NewPos = array_def_level(add_pos(Pos, 5)),
-    {Rest1, Pos1, Content} = array_def(<<SP:8,Rest/binary>>, NewPos, []),
-    NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
-    expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+    case remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)) of
+        {<<")",_/binary>> = Rest0, Pos0} ->
+            %% (array) cast
+            OpL = <<"(array)">>,
+            NewParsed = add_op({OpL, precedence(OpL), Pos}, Parsed),
+            expression(Rest0, Pos0, NewParsed);
+        {Rest0, Pos0} ->
+            NewPos = array_def_level(Pos0),
+            {Rest1, Pos1, Content} = array_def(Rest0, NewPos, []),
+            NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
+            expression(Rest1, copy_level(Pos, Pos1), NewParsed)
+    end;
 % [...] -array new-
 expression(<<"[",Rest/binary>>, Pos, []) ->
     NewPos = array_def_54_level(add_pos(Pos, 1)),
@@ -205,46 +254,6 @@ expression(<<"#",Rest/binary>>, Pos, Parsed) ->
 expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
-% CAST (int)
-%% TODO it's possible to use ( int ) with spaces between text and parens...
-expression(<<"(",I:8,N:8,T:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) ->
-    OpL = <<"(int)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% CAST (float)
-expression(<<"(",F:8,L:8,O:8,A:8,T:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(F,$F,$f) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
-        ?OR(A,$A,$a) andalso ?OR(T,$T,$t) ->
-    OpL = <<"(float)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% CAST (string)
-expression(<<"(",S:8,T:8,R:8,I:8,N:8,G:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso
-        ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(G,$G,$g) ->
-    OpL = <<"(string)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% CAST (array)
-expression(<<"(",A:8,R:8,R:8,A:8,Y:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(A,$A,$a) andalso ?OR(R,$R,$r) andalso ?OR(Y,$Y,$y) ->
-    OpL = <<"(array)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% CAST (object)
-expression(<<"(",O:8,B:8,J:8,E:8,C:8,T:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(O,$O,$o) andalso ?OR(B,$B,$b) andalso ?OR(J,$J,$j) andalso
-        ?OR(E,$E,$e) andalso ?OR(C,$C,$c) andalso ?OR(T,$T,$t) ->
-    OpL = <<"(object)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% CAST (bool)
-expression(<<"(",B:8,O:8,O:8,L:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso ?OR(L,$L,$l) ->
-    OpL = <<"(bool)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% CAST (unset)
-expression(<<"(",U:8,N:8,S:8,E:8,T:8,")",Rest/binary>>, Pos, Parsed) when
-        ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso ?OR(S,$S,$s) andalso
-        ?OR(E,$E,$e) andalso ?OR(T,$T,$t) ->
-    OpL = <<"(unset)">>,
-    expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 % FUNCTION CALL
 expression(<<"(",Rest/binary>>, Pos, [{op,[#variable{}=V]}|Parsed]) ->
     Call = #call{name = V, line = V#variable.line},

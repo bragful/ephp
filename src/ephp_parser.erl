@@ -714,6 +714,7 @@ literal_level({_,Row,Col}) -> {literal,Row,Col}.
 
 add_line(true, _) -> true;
 add_line(false, _) -> false;
+add_line(X, {{line,Row},{column,Col}}) -> add_line(X, {x,Row,Col});
 add_line(#array{}=A, {_,Row,Col}) -> A#array{line={{line,Row},{column,Col}}};
 add_line(#eval{}=E, {_,Row,Col}) -> E#eval{line={{line,Row},{column,Col}}};
 add_line(#print{}=P, {_,Row,Col}) -> P#print{line={{line,Row},{column,Col}}};
