@@ -46,8 +46,8 @@ init_func() -> [
     %% FIXME: split is deprecated, should be removed?
     {explode, [{args, [string, string, {integer, ?PHP_INT_MAX}]},
                {alias, <<"split">>}]},
-    print,
-    {print, [{alias, <<"echo">>}]},
+    {print, [pack_args]},
+    {print, [pack_args, {alias, <<"echo">>}]},
     {printf, [pack_args]},
     {sprintf, [pack_args]},
     vprintf,
@@ -254,10 +254,12 @@ str_split(_Context, _Line, {_, Text}, {_, Size}) ->
 
 -spec print(context(), line(), var_value()) -> 1.
 
-print(Context, _Line, {_,Value}) ->
+print(_Context, _Line, []) ->
+    1;
+print(Context, Line, [{_,Value}|Values]) ->
     ValueStr = ephp_data:to_bin(Value),
     ephp_context:set_output(Context, ValueStr),
-    1.
+    print(Context, Line, Values).
 
 -spec strpos(context(), line(),
              HayStack :: var_value(),

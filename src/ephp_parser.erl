@@ -226,34 +226,37 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Pos, Parsed) when
     code(Rest0, Pos0, [Class0|Parsed]);
 code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(E,$e,$E) andalso ?OR(C,$c,$C) andalso ?OR(H,$h,$H) andalso
-        ?OR(O,$o,$O) andalso ?OR(SP,32,$() ->
-    {Rest0, Pos0, Exp} = expression(<<SP:8,Rest/binary>>,
-                                     arg_level(add_pos(Pos,5)), []),
+        ?OR(O,$o,$O) andalso
+        (SP =:= $( orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    Call = add_line(#call{name = <<"print">>}, Pos),
+    {Rest0, Pos0, [Call0]} =
+        ephp_parser_func:echo(<<SP:8,Rest/binary>>, add_pos(Pos, 4), [Call]),
     % FIXME if we detect an OR or AND expression, we put around print
-    Print = case Exp of
-        #operation{type = Type} when Type =:= 'or' orelse Type =:= 'and' ->
-            Exp#operation{
-                expression_left = get_print(Exp#operation.expression_left, Pos)
-            };
+    case Call0#call.args of
+        [#operation{type=Type}=A1] when Type =:= 'or' orelse Type =:= 'and' ->
+            Print = A1#operation{
+                expression_left = get_print(A1#operation.expression_left, Pos)
+            },
+            code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
         _ ->
-            get_print(Exp, Pos)
-    end,
-    code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
+            code(Rest0, copy_level(Pos, Pos0), [Call0|Parsed])
+    end;
 code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(P,$p,$P) andalso ?OR(R,$r,$R) andalso ?OR(I,$i,$I)
         andalso ?OR(N,$n,$N) andalso ?OR(T,$t,$T) andalso ?OR(SP,32,$() ->
-    {Rest0, Pos0, Exp} = expression(<<SP:8,Rest/binary>>,
-                                     arg_level(add_pos(Pos,6)), []),
+    Call = add_line(#call{name = <<"print">>}, Pos),
+    {Rest0, Pos0, [Call0]} =
+        ephp_parser_func:echo(<<SP:8,Rest/binary>>, add_pos(Pos, 5), [Call]),
     % FIXME if we detect an OR or AND expression, we put around print
-    Print = case Exp of
-        #operation{type = Type} when Type =:= 'or' orelse Type =:= 'and' ->
-            Exp#operation{
-                expression_left = get_print(Exp#operation.expression_left, Pos)
-            };
+    case Call0#call.args of
+        [#operation{type=Type}=A1] when Type =:= 'or' orelse Type =:= 'and' ->
+            Print = A1#operation{
+                expression_left = get_print(A1#operation.expression_left, Pos)
+            },
+            code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
         _ ->
-            get_print(Exp, Pos)
-    end,
-    code(Rest0, copy_level(Pos, Pos0), [Print|Parsed]);
+            code(Rest0, copy_level(Pos, Pos0), [Call0|Parsed])
+    end;
 code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N)
         andalso ?OR(S,$s,$S) andalso ?OR(T,$t,$T) andalso ?IS_SPACE(SP) ->

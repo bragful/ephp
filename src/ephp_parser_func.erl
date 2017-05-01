@@ -5,7 +5,7 @@
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
 
--export([function/3, st_function/3, st_use_or_block/3]).
+-export([function/3, st_function/3, st_use_or_block/3, echo/3]).
 
 -import(ephp_parser, [
     add_line/2, add_pos/2, new_line/1, arg_level/1, copy_level/2,
@@ -15,6 +15,27 @@
 
     code_block_level/1
 ]).
+
+echo(<<SP:8,Rest/binary>>, Pos, [#call{}|_]=Parsed) when ?IS_SPACE(SP) ->
+    echo(Rest, add_pos(Pos,1), Parsed);
+echo(<<SP:8,Rest/binary>>, Pos, [#call{}|_]=Parsed) when ?IS_NEWLINE(SP) ->
+    echo(Rest, new_line(Pos), Parsed);
+echo(<<";",Rest/binary>>, Pos, Parsed) ->
+    {Rest, add_pos(Pos,1), Parsed};
+echo(Rest, Pos, [#call{args=Args}=C|Parsed]) when Rest =/= <<>> ->
+    case ephp_parser_expr:expression(Rest, arg_level(Pos), []) of
+        {<<";",_/binary>> = Rest0, Pos0, []} ->
+            {Rest0, add_pos(Pos0,1), [C|Parsed]};
+        {<<";",_/binary>> = Rest0, Pos0, Arg} ->
+            {Rest0, add_pos(Pos0,1), [C#call{args=Args ++ [Arg]}|Parsed]};
+        {<<",",Rest0/binary>>, Pos0, Arg} ->
+            NewCall = C#call{args=Args ++ [Arg]},
+            echo(Rest0, add_pos(Pos0, 1), [NewCall|Parsed]);
+        {Rest0, Pos0, []} ->
+            echo(Rest0, Pos0, [C|Parsed]);
+        {Rest0, Pos0, Arg} ->
+            echo(Rest0, Pos0, [C#call{args=Args ++ [Arg]}|Parsed])
+    end.
 
 function(<<SP:8,Rest/binary>>, Pos, [#call{}|_]=Parsed) when ?IS_SPACE(SP) ->
     function(Rest, add_pos(Pos,1), Parsed);
