@@ -84,9 +84,9 @@ to_int(A) when ?IS_ARRAY(A) ->
 to_int(true) -> 1;
 
 % FIXME: conversion from NAN or INF to int is a bit tricky...
-to_int(infinity) -> -9223372036854775808;
+to_int(infinity) -> ?PHP_INT_MIN;
 
-to_int(nan) -> -9223372036854775808;
+to_int(nan) -> ?PHP_INT_MIN;
 
 to_int(_) -> 0.
 

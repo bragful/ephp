@@ -98,7 +98,8 @@ init_const() -> [
     {<<"NAN">>, nan},
     {<<"INF">>, infinity},
 
-    {<<"PHP_INT_SIZE">>, 8}
+    {<<"PHP_INT_SIZE">>, ?PHP_INT_SIZE},
+    {<<"PHP_INT_MAX">>, ?PHP_INT_MAX}
 ].
 
 -spec php_ceil(context(), line(), var_value()) -> integer().

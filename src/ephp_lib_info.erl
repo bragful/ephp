@@ -11,6 +11,7 @@
     phpinfo/2,
     phpversion/2,
     ini_get/3,
+    ini_set/4,
     set_include_path/3
 ]).
 
@@ -20,6 +21,7 @@ init_func() -> [
     phpinfo,
     phpversion,
     ini_get,
+    ini_set,
     set_include_path
 ].
 
@@ -91,6 +93,13 @@ phpversion(_Context, _Line) ->
 
 ini_get(_Context, _Line, {_,Key}) ->
     ephp_config:get(Key).
+
+-spec ini_set(context(), line(), var_value(), var_value()) -> binary().
+
+ini_set(_Context, _Line, {_,Key}, {_,Value}) ->
+    PrevVal = ephp_config:get(Key),
+    ephp_config:set(Key, Value),
+    PrevVal.
 
 -spec set_include_path(context(), line(), var_value()) -> binary().
 
