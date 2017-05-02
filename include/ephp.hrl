@@ -79,7 +79,7 @@
 -type ephp_array() :: #ephp_array{}.
 
 -type mixed() ::
-    integer() | float() | binary() | boolean() | ephp_array() | null.
+    integer() | float() | binary() | boolean() | ephp_array() | undefined.
 
 -type var_value() :: {variable(), mixed()}.
 
@@ -253,7 +253,7 @@
     class :: class_name() | undefined,
     name :: binary(),
     idx = [] :: [array_index() | object_index() | class_index()],
-    default_value = null :: mixed(),
+    default_value = undefined :: mixed(),
     line :: line()
 }).
 
@@ -340,7 +340,7 @@
     name :: binary(),
     access = public :: access_types(),
     type = normal :: normal | static,
-    init_value = null :: mixed(),
+    init_value = undefined :: mixed(),
     line :: line()
 }).
 

@@ -53,7 +53,7 @@ ref(Context, VarPath, VarsPID, RefVarPath) ->
     set(Context, VarPath, ValueFormatted).
 
 del(Context, VarPath) ->
-    set(Context, VarPath, undefined).
+    set(Context, VarPath, remove).
 
 zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs) ->
     lists:foldl(fun
@@ -63,7 +63,7 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs) ->
         (FuncArg, [{_,ArgVal}|RestArgs]) ->
             set(VarsDst, FuncArg, ArgVal),
             RestArgs;
-        (#variable{default_value=Val}=FuncArg, []) when Val =/= null ->
+        (#variable{default_value=Val}=FuncArg, []) when Val =/= undefined ->
             set(VarsDst, FuncArg, Val),
             [];
         (_FuncArg, []) ->
@@ -119,9 +119,7 @@ search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
                 {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
             undefined;
         {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
-            get(RefVarsPID, RefVar, undefined);
-        {ok, null} ->
-            undefined;
+            get(RefVarsPID, RefVar);
         {ok, Value} ->
             Value
     end;
@@ -130,10 +128,10 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-            get(RefVarsPID, NewRefVar, undefined);
+            get(RefVarsPID, NewRefVar);
         {ok, #reg_instance{context=Ctx}} ->
             NewObjVar = #variable{name=NewRoot, idx=Idx},
-            get(Ctx, NewObjVar, undefined);
+            get(Ctx, NewObjVar);
         {ok, NewVars} ->
             search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
         _ when Context =:= undefined ->
@@ -154,7 +152,7 @@ change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars)
 change(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Value, Vars) ->
     change(#variable{name=Root, idx=Idx}, Value, Vars);
 
-change(#variable{name=Root, idx=[]}=_Var, undefined, Vars) ->
+change(#variable{name=Root, idx=[]}=_Var, remove, Vars) ->
     ephp_array:erase(Root, Vars);
 
 change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->

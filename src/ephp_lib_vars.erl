@@ -190,7 +190,7 @@ gettype(_Context, _Line, {_,Value}) ->
 -spec unset(context(), line(), var_value()) -> undefined.
 
 unset(Context, _Line, {Var, #var_ref{}}) ->
-    ephp_context:set(Context, Var, undefined),
+    ephp_context:del(Context, Var),
     undefined;
 
 unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
@@ -212,7 +212,7 @@ unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
         _ ->
             ok
     end,
-    ephp_context:set(Context, Var, undefined),
+    ephp_context:del(Context, Var),
     undefined.
 
 %% ----------------------------------------------------------------------------

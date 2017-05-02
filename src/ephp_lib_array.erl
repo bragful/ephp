@@ -63,7 +63,7 @@ list(Context, _Line, [{#ephp_array{}=Array, undefined}|Getters]) ->
 
 list(Context, _Line, [{Binary, undefined}|Getters]) when is_binary(Binary) ->
     lists:foreach(fun({[], _}) -> ok;
-                     ({G, _}) -> ephp_context:set(Context, G, null)
+                     ({G, _}) -> ephp_context:set(Context, G, undefined)
                   end, Getters),
     undefined.
 

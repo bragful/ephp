@@ -32,6 +32,7 @@
     start_link/0,
     get/2,
     set/3,
+    del/2,
     isset/2,
     solve/2,
     destroy/1,
@@ -137,6 +138,11 @@ isset(Context, VarPath) ->
 set(Context, VarPath, Value) ->
     State = load_state(Context),
     ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value),
+    ok.
+
+del(Context, VarPath) ->
+    State = load_state(Context),
+    ephp_vars:del(State#state.vars, get_var_path(VarPath, State)),
     ok.
 
 get_meta(Context, Key) ->
@@ -773,7 +779,7 @@ register_superglobals(GlobalCtx, Vars) ->
 
 resolve_func_args(RawFuncArgs, State) ->
     lists:foldl(fun
-        (#variable{default_value=Val}=Var, {Vars, S}) when Val =/= null ->
+        (#variable{default_value=Val}=Var, {Vars, S}) when Val =/= undefined ->
             {Value, NewState} = resolve(Val,S),
             {Vars ++ [Var#variable{default_value=Value}], NewState};
         (Var, {Vars, NewState}) ->
