@@ -87,7 +87,11 @@ exists(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars) ->
     exists(#variable{name=Root, idx=Idx}, Vars);
 
 exists(#variable{name = Root, idx=[]}, Vars) ->
-    ephp_array:find(Root, Vars) =/= error;
+    case ephp_array:find(Root, Vars) of
+        error -> false;
+        {ok, undefined} -> false;
+        _ -> true
+    end;
 
 exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
     case ephp_array:find(Root, Vars) of
@@ -99,7 +103,7 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
             isset(Ctx, NewObjVar);
         {ok, NewVars} ->
             exists(#variable{name=NewRoot, idx=Idx}, NewVars);
-        _ ->
+        error ->
             false
     end.
 
