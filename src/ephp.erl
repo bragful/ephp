@@ -114,7 +114,8 @@ eval(Filename, Context, PHP) ->
                 Filename, ?E_PARSE, {}}),
             {error, eparse};
         Compiled ->
-            case catch ephp_interpr:process(Context, Compiled) of
+            Cover = ephp_cover:get_config(),
+            case catch ephp_interpr:process(Context, Compiled, Cover) of
                 {ok, Return} ->
                     ephp_shutdown:shutdown(Context),
                     {ok, Return};
@@ -143,6 +144,7 @@ main([Filename]) ->
     case file:read_file(Filename) of
     {ok, Content} ->
         start_profiling(),
+        start_cover(),
         AbsFilename = list_to_binary(filename:absname(Filename)),
         ephp_config:start_link(?PHP_INI_FILE),
         {ok, Ctx} = context_new(AbsFilename),
@@ -152,6 +154,7 @@ main([Filename]) ->
                 io:format("~s", [Result]),
                 ephp_context:destroy_all(Ctx),
                 stop_profiling(),
+                stop_cover(),
                 quit(0);
             {error, _Reason} ->
                 stop_profiling(),
@@ -198,3 +201,9 @@ stop_profiling() ->
     ok.
 
 -endif.
+
+start_cover() ->
+    ephp_cover:start_link().
+
+stop_cover() ->
+    ephp_cover:dump().
