@@ -96,7 +96,8 @@ dump() ->
     Percentage = total_percentage(Files),
     Packages = io_lib:format(?PACKAGE, ["base", Percentage, Classes]),
     Sources = [ io_lib:format(?SOURCE, [dirname(File)]) || {File,_} <- Files ],
-    XML = io_lib:format(?XML_HEAD, [epoch(), Percentage, Sources, Packages]),
+    Epoch = ephp_datetime:posix_time_ms(),
+    XML = io_lib:format(?XML_HEAD, [Epoch, Percentage, Sources, Packages]),
     Output = case ephp_config:get(<<"cover.output">>) of
         undefined -> <<"cobertura.xml">>;
         Filename -> Filename
@@ -140,7 +141,3 @@ basename(Filename) ->
 
 name(Filename) ->
     filename:rootname(filename:basename(Filename)).
-
-epoch() ->
-    {A,B,C} = os:timestamp(),
-    (A * 1000000 + B) * 1000 + (C div 1000).
