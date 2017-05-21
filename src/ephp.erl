@@ -207,4 +207,7 @@ start_cover() ->
     ephp_cover:start_link().
 
 stop_cover() ->
-    ephp_cover:dump().
+    case ephp_cover:get_config() of
+        true -> ephp_cover:dump();
+        false -> ok
+    end.
