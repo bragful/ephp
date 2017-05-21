@@ -6,9 +6,9 @@
 
 -define(XML_HEAD, "<?xml version=\"1.0\"?>"
                   "<!--DOCTYPE coverage SYSTEM "
-                  "\"http://cobertura.sourceforge.net/xml/coverage-03.dtd\"-->"
-                  "<coverage timestamp=\"~b\" line-rate=\"0.0\" "
-                  "lines-covered=\"0\" lines-valid=\"0\" branch-rate=\"0.0\""
+                  "\"http://cobertura.sourceforge.net/xml/coverage-04.dtd\"-->"
+                  "<coverage timestamp=\"~b\" line-rate=\"~f\" "
+                  "lines-covered=\"0\" lines-valid=\"0\" branch-rate=\"0.0\" "
                   "branches-covered=\"0\" branches-valid=\"0\" "
                   "complexity=\"0\" version=\"1.9.4.1\">"
                   "<sources>~s</sources>"
@@ -16,7 +16,7 @@
                   "</coverage>").
 
 -define(SOURCE, "<source>~s</source>").
--define(PACKAGE, "<package name=\"~s\" line-rate=\"~f\" branch-rate=\"0\""
+-define(PACKAGE, "<package name=\"~s\" line-rate=\"~f\" branch-rate=\"0\" "
                  "complexity=\"0\"><classes>~s</classes></package>").
 -define(CLASS, "<class name=\"~s\" filename=\"~s\" line-rate=\"~f\" "
                "branch-rate=\"0.0\" complexity=\"0\">"
@@ -95,10 +95,13 @@ dump() ->
     Classes = dump(Files, []),
     Percentage = total_percentage(Files),
     Packages = io_lib:format(?PACKAGE, ["base", Percentage, Classes]),
-    Sources = [ io_lib:format(?SOURCE, [File]) || {File,_} <- Files ],
-    XML = io:format(?XML_HEAD, [epoch(), Sources, Packages]),
-    %% TODO: dump in the file indicated in the configuration
-    io:format("~s~n", [XML]),
+    Sources = [ io_lib:format(?SOURCE, [dirname(File)]) || {File,_} <- Files ],
+    XML = io_lib:format(?XML_HEAD, [epoch(), Percentage, Sources, Packages]),
+    Output = case ephp_config:get(<<"cover.output">>) of
+        undefined -> <<"cobertura.xml">>;
+        Filename -> Filename
+    end,
+    file:write_file(Output, XML),
     ok.
 
 dump([], Classes) ->
@@ -108,11 +111,11 @@ dump([{File, Dict} | Cover], Classes) ->
     Lines = lists:flatmap(fun({Line, Hits}) ->
         io_lib:format(?ENTRY, [Line, Hits])
     end, Dict),
-    Class = io_lib:format(?CLASS, [name(File), File, Percentage, Lines]),
+    Class = io_lib:format(?CLASS, [name(File), basename(File), Percentage, Lines]),
     dump(Cover, [Class|Classes]).
 
 get_config() ->
-    case ephp_data:to_bool(ephp_config:get(<<"cover">>)) of
+    case ephp_data:to_bool(ephp_config:get(<<"cover.enable">>)) of
         true -> true;
         _ -> false
     end.
@@ -129,9 +132,15 @@ total_percentage(Files) ->
     end, {0, 0}, Files),
     A / T.
 
+dirname(Filename) ->
+    filename:dirname(Filename).
+
+basename(Filename) ->
+    filename:basename(Filename).
+
 name(Filename) ->
     filename:rootname(filename:basename(Filename)).
 
 epoch() ->
-    {A,B,_} = os:timestamp(),
-    A * 1000000 + B.
+    {A,B,C} = os:timestamp(),
+    (A * 1000000 + B) * 1000 + (C div 1000).
