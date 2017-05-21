@@ -99,6 +99,13 @@ store(true = _Cover, Type, FileOrContext, Line) ->
 store(false = _Cover, _Type, _FileOrContext, _Line) ->
     ok.
 
+-type statement_type() :: print | eval | assign | if_block | switch |
+                          switch_case | for | foreach | while |
+                          {call, binary()} | pre_incr | post_incr |
+                          pre_decr | post_decr | {op, Type :: atom()} |
+                          class | function | global | return | int | float |
+                          text | object | define | constant | switch_default.
+
 -spec store(statement_type(),
             FileOrContext :: binary() | context(),
             line() | undefined) -> ok.
