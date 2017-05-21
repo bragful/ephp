@@ -14,7 +14,7 @@ PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give
 
 In the same way, you can use for server PHP pages in an easy way.
 
-The port is not 100% complete, please refer to [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
+The port is not 100% complete, please refer to [compatibility table](http://github.com/altenwald/ephp/blob/cover/doc/COMPATIBILITY.md).
 
 
 ### <a name="Requirements">Requirements</a> ###
@@ -69,7 +69,7 @@ Result for $a = 115
 
 ### <a name="Built-in_Libs">Built-in Libs</a> ###
 
-PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](http://github.com/altenwald/ephp/blob/master/doc/COMPATIBILITY.md).
+PHP has a lot of built-in libraries. This interpreter has a little implementation of them. You can see the functions in the [compatibility table](http://github.com/altenwald/ephp/blob/cover/doc/COMPATIBILITY.md).
 
 You can add your own functions specifying the PHP name, and the module and function, as follow:
 
@@ -83,40 +83,41 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 
 
 <table width="100%" border="0" summary="list of modules">
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp.md" class="module">ephp</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_array.md" class="module">ephp_array</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_class.md" class="module">ephp_class</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_config.md" class="module">ephp_config</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_const.md" class="module">ephp_const</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_context.md" class="module">ephp_context</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_data.md" class="module">ephp_data</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_datetime.md" class="module">ephp_datetime</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_error.md" class="module">ephp_error</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_func.md" class="module">ephp_func</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_include.md" class="module">ephp_include</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_array.md" class="module">ephp_lib_array</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_class.md" class="module">ephp_lib_class</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_control.md" class="module">ephp_lib_control</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_date.md" class="module">ephp_lib_date</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_error.md" class="module">ephp_lib_error</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_file.md" class="module">ephp_lib_file</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_func.md" class="module">ephp_lib_func</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_info.md" class="module">ephp_lib_info</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_math.md" class="module">ephp_lib_math</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_misc.md" class="module">ephp_lib_misc</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_ob.md" class="module">ephp_lib_ob</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_pcre.md" class="module">ephp_lib_pcre</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_string.md" class="module">ephp_lib_string</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_lib_vars.md" class="module">ephp_lib_vars</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_output.md" class="module">ephp_output</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser.md" class="module">ephp_parser</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser_class.md" class="module">ephp_parser_class</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser_expr.md" class="module">ephp_parser_expr</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser_func.md" class="module">ephp_parser_func</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_parser_string.md" class="module">ephp_parser_string</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_string.md" class="module">ephp_string</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_timezone.md" class="module">ephp_timezone</a></td></tr>
-<tr><td><a href="http://github.com/altenwald/ephp/blob/master/doc/ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp.md" class="module">ephp</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_array.md" class="module">ephp_array</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_class.md" class="module">ephp_class</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_config.md" class="module">ephp_config</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_const.md" class="module">ephp_const</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_context.md" class="module">ephp_context</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_cover.md" class="module">ephp_cover</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_data.md" class="module">ephp_data</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_datetime.md" class="module">ephp_datetime</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_error.md" class="module">ephp_error</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_func.md" class="module">ephp_func</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_include.md" class="module">ephp_include</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_array.md" class="module">ephp_lib_array</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_class.md" class="module">ephp_lib_class</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_control.md" class="module">ephp_lib_control</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_date.md" class="module">ephp_lib_date</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_error.md" class="module">ephp_lib_error</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_file.md" class="module">ephp_lib_file</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_func.md" class="module">ephp_lib_func</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_info.md" class="module">ephp_lib_info</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_math.md" class="module">ephp_lib_math</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_misc.md" class="module">ephp_lib_misc</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_ob.md" class="module">ephp_lib_ob</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_pcre.md" class="module">ephp_lib_pcre</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_string.md" class="module">ephp_lib_string</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_lib_vars.md" class="module">ephp_lib_vars</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_output.md" class="module">ephp_output</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_parser.md" class="module">ephp_parser</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_parser_class.md" class="module">ephp_parser_class</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_parser_expr.md" class="module">ephp_parser_expr</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_parser_func.md" class="module">ephp_parser_func</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_parser_string.md" class="module">ephp_parser_string</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_string.md" class="module">ephp_string</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_timezone.md" class="module">ephp_timezone</a></td></tr>
+<tr><td><a href="http://github.com/altenwald/ephp/blob/cover/doc/ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
 
