@@ -55,13 +55,31 @@ start_link() ->
 init_file(false, _Filename, _Compiled) ->
     ok;
 init_file(true, Filename, Compiled) ->
+    case erlang:get(cover) of
+        undefined ->
+            init_file0(Filename, Compiled, []);
+        Files ->
+            case lists:keyfind(Filename, 1, Files) of
+                {Filename, _} ->
+                    ok;
+                false ->
+                    init_file0(Filename, Compiled, Files)
+            end
+    end,
+    ok.
+
+-spec init_file0(Filename :: binary(),
+                 Compiled :: [main_statement()],
+                 Files :: [{File :: binary(), cover_dict()}]) -> ok.
+%@hidden
+init_file0(Filename, Compiled, Files) ->
     Lines = process(Compiled, []),
-    File = lists:foldl(fun(N, D) ->
+    FileDict = lists:foldl(fun(N, D) ->
         orddict:store(N, 0, D)
     end, orddict:new(), Lines),
-    Files = erlang:get(cover),
-    erlang:put(cover, [{Filename, File}|Files]),
+    erlang:put(cover, [{Filename, FileDict}|Files]),
     ok.
+
 
 -type hits() :: non_neg_integer().
 -type file_line() :: pos_integer().
