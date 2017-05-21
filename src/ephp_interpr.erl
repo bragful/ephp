@@ -59,18 +59,18 @@ run(Context, Statement) ->
 -spec run(context(), main_statement(), Cover :: boolean()) -> flow_status().
 
 run(Context, #print_text{text=Text, line=Line}, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, print, Context, Line),
     ephp_context:set_output(Context, Text),
     false;
 
 run(Context, #print{expression=Expr, line=Line}, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, print, Context, Line),
     Result = ephp_context:solve(Context, Expr),
     ephp_context:set_output(Context, ephp_data:to_bin(Context, Line, Result)),
     false;
 
 run(Context, #eval{statements=Statements, line=Line}, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, eval, Context, Line),
     lists:foldl(fun(Statement, State) ->
         run_depth(Context, Statement, State, Cover)
     end, false, Statements).
@@ -82,12 +82,12 @@ run_depth(Context, #eval{}=Eval, false, Cover) ->
     run(Context, Eval, Cover);
 
 run_depth(Context, #assign{line=Line}=Assign, Return, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, assign, Context, Line),
     ephp_context:solve(Context, Assign),
     Return;
 
 run_depth(Context, #if_block{conditions=Cond,line=Line}=IfBlock, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, if_block, Context, Line),
     #if_block{true_block = TrueBlock, false_block = FalseBlock} = IfBlock,
     case ephp_data:to_boolean(ephp_context:solve(Context, Cond)) of
         true when is_list(TrueBlock) ->
@@ -104,7 +104,7 @@ run_depth(Context, #if_block{conditions=Cond,line=Line}=IfBlock, false, Cover) -
 
 run_depth(Context, #switch{condition=Cond, cases=Cases, line=Line},
           false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, switch, Context, Line),
     case run_switch(Context, Cond, Cases, Cover) of
         {seek, false} ->
             {_, Return} = run_switch(Context, default, Cases, Cover),
@@ -125,7 +125,7 @@ run_depth(Context, #for{init = Init,
                         update = Update,
                         loop_block = LB,
                         line = Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, for, Context, Line),
     run(Context, #eval{statements = Init}, Cover),
     LoopBlock = if
         is_tuple(LB) -> [LB];
@@ -140,7 +140,7 @@ run_depth(Context, #foreach{kiter = Key,
                             elements = RawElements,
                             loop_block = LB,
                             line = Line} = FE, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, foreach, Context, Line),
     LoopBlock = if
         is_tuple(LB) -> [LB];
         is_list(LB) -> LB;
@@ -162,7 +162,7 @@ run_depth(Context, #foreach{kiter = Key,
 
 run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB,line=Line},
           false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, while, Context, Line),
     LoopBlock = if
         is_tuple(LB) -> [LB];
         is_list(LB) -> LB;
@@ -172,19 +172,19 @@ run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB,line=Line},
     run_loop(Type, Context, Cond, LoopBlock, Cover);
 
 run_depth(Context, #print_text{text=Text, line=Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, print, Context, Line),
     ephp_context:set_output(Context, Text),
     false;
 
 run_depth(Context, #print{expression=Expr, line=Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, print, Context, Line),
     Result = ephp_context:solve(Context, Expr),
     ResText = ephp_data:to_bin(Context, Line, Result),
     ephp_context:set_output(Context, ResText),
     false;
 
 run_depth(Context, #call{line=Line}=Call, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, {call, Call#call.name}, Context, Line),
     ephp_func:run(Context, Call);
 
 run_depth(Context, {Op, _Var, Line}=MonoArith, false, Cover) when
@@ -192,28 +192,28 @@ run_depth(Context, {Op, _Var, Line}=MonoArith, false, Cover) when
         Op =:= pre_decr orelse
         Op =:= post_incr orelse
         Op =:= post_decr ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, Op, Context, Line),
     ephp_context:solve(Context, MonoArith),
     false;
 
 run_depth(Context, #operation{line=Line}=Op, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, {op, Op#operation.type}, Context, Line),
     ephp_context:solve(Context, Op),
     false;
 
 run_depth(Context, #class{line=Line}=Class, Return, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, class, Context, Line),
     ephp_context:register_class(Context, Class),
     Return;
 
 run_depth(Context, #function{name=Name, args=Args, code=Code, line=Line},
           Return, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, function, Context, Line),
     ephp_context:register_func(Context, Name, Args, Code, undefined),
     Return;
 
 run_depth(Context, {global, GlobalVar, Line}, Return, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, global, Context, Line),
     ephp_context:solve(Context, {global, GlobalVar, Line}),
     Return;
 
@@ -224,7 +224,7 @@ run_depth(_Context, continue, false, _Cover) ->
     continue;
 
 run_depth(Context, {return, Value, Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, return, Context, Line),
     {return, ephp_context:solve(Context, Value)};
 
 run_depth(_Context, {return,Value}, false, _Cover) ->
@@ -237,36 +237,36 @@ run_depth(_Context, Boolean, false, _Cover) when is_boolean(Boolean) ->
     false;
 
 run_depth(Context, #int{line=Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, int, Context, Line),
     false;
 
 run_depth(Context, #float{line=Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, float, Context, Line),
     false;
 
 run_depth(Context, #text{line=Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, text, Context, Line),
     false;
 
 run_depth(Context, #text_to_process{line=Line}=TP, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, text, Context, Line),
     ephp_context:solve(Context, TP),
     false;
 
 run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Var#variable.line),
+    ok = ephp_cover:store(Cover, object, Context, Var#variable.line),
     ephp_context:solve(Context, Var),
     false;
 
 run_depth(Context, #constant{type=define,name=Name,value=Expr,line=Line},
           false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, define, Context, Line),
     Value = ephp_context:solve(Context, Expr),
     ephp_context:register_const(Context, Name, Value),
     false;
 
 run_depth(Context, #constant{line=Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, Context, Line),
+    ok = ephp_cover:store(Cover, constant, Context, Line),
     false;
 
 run_depth(Context, {silent, Statement}, false, Cover) ->
@@ -365,7 +365,7 @@ run_switch(Context, default, Cases, Cover) ->
             {exit, Return};
         (#switch_case{label=default, code_block=Code, line=Line},
          {seek, false}) ->
-            ok = ephp_cover:store(Cover, Context, Line),
+            ok = ephp_cover:store(Cover, switch_case, Context, Line),
             case run(Context, #eval{statements=Code}, Cover) of
                 break -> {exit, false};
                 {break, 0} -> {exit, false};
@@ -406,10 +406,10 @@ run_switch(Context, Cond, Cases, Cover) ->
                 false -> {run, false}
             end;
         (#switch_case{label=default, line=Line}, {seek, false}) ->
-            ok = ephp_cover:store(Cover, Context, Line),
+            ok = ephp_cover:store(Cover, switch_default, Context, Line),
             {seek, false};
         (#switch_case{label=LabelValue, line=Line}=Case, {seek, false}) ->
-            ok = ephp_cover:store(Cover, Context, Line),
+            ok = ephp_cover:store(Cover, switch_case, Context, Line),
             Op = #operation{
                 type = <<"==">>,
                 expression_left=MatchValue,

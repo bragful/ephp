@@ -115,6 +115,7 @@ eval(Filename, Context, PHP) ->
             {error, eparse};
         Compiled ->
             Cover = ephp_cover:get_config(),
+            ok = ephp_cover:init_file(Cover, Filename, Compiled),
             case catch ephp_interpr:process(Context, Compiled, Cover) of
                 {ok, Return} ->
                     ephp_shutdown:shutdown(Context),
