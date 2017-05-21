@@ -156,7 +156,7 @@ validation_arg() = {<a href="#type-type_arg">type_arg()</a>, <a href="#type-defa
 
 
 <pre><code>
-validation_args() = {<a href="#type-min_args">min_args()</a>, <a href="#type-max_args">max_args()</a>, <a href="#type-error_return_value">error_return_value()</a>, [<a href="#type-validation_arg">validation_arg()</a>]} | [<a href="#type-validation_arg">validation_arg()</a>] | undefined
+validation_args() = {<a href="#type-min_args">min_args()</a>, <a href="#type-max_args">max_args()</a>, <a href="#type-error_return_value">error_return_value()</a>, [<a href="#type-validation_arg">validation_arg()</a>]} | [<a href="#type-validation_arg">validation_arg()</a>] | undefined | no_resolve
 </code></pre>
 
 <a name="index"></a>
@@ -164,7 +164,7 @@ validation_args() = {<a href="#type-min_args">min_args()</a>, <a href="#type-max
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_functions-1">get_functions/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-4">register_func/4</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_functions-1">get_functions/1</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -188,12 +188,6 @@ validation_args() = {<a href="#type-min_args">min_args()</a>, <a href="#type-max
 ### get_functions/1 ###
 
 `get_functions(Ref) -> any()`
-
-<a name="register_func-4"></a>
-
-### register_func/4 ###
-
-`register_func(Ref, File, PHPFunc, Fun) -> any()`
 
 <a name="register_func-5"></a>
 

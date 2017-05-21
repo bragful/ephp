@@ -104,7 +104,7 @@ ord(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">l
 ### print/3 ###
 
 <pre><code>
-print(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; 1
+print(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::<a href="#type-var_value">var_value()</a>) -&gt; 1
 </code></pre>
 <br />
 

@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#ini_get-3">ini_get/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#phpinfo-2">phpinfo/2</a></td><td></td></tr><tr><td valign="top"><a href="#phpversion-2">phpversion/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_include_path-3">set_include_path/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#ini_get-3">ini_get/3</a></td><td></td></tr><tr><td valign="top"><a href="#ini_set-4">ini_set/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#phpinfo-2">phpinfo/2</a></td><td></td></tr><tr><td valign="top"><a href="#phpversion-2">phpversion/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_include_path-3">set_include_path/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -22,6 +22,15 @@
 
 <pre><code>
 ini_get(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+</code></pre>
+<br />
+
+<a name="ini_set-4"></a>
+
+### ini_set/4 ###
+
+<pre><code>
+ini_set(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 

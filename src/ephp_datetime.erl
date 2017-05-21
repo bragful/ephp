@@ -11,6 +11,7 @@
     get_month/1,
     get_weekday/1,
     posix_time/0,
+    posix_time_ms/0,
     timestamp/0,
     is_dst/2,
     to_zone/2,
@@ -82,6 +83,12 @@ get_weekday(7) -> <<"Sunday">>.
 posix_time() ->
     {MS,S,_} = timestamp(),
     MS * 1000000 + S.
+
+-spec posix_time_ms() -> integer().
+
+posix_time_ms() ->
+    {MS,S,MiS} = timestamp(),
+    (MS * 1000000 + S) * 1000 + (MiS div 1000).
 
 -spec timestamp() -> os:timestamp().
 
