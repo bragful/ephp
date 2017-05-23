@@ -198,6 +198,10 @@ code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {switch_block,_,_}=Pos, Parsed) when
         code_block=[]
     }, Pos)|switch_case_block(Parsed)],
     code(Rest1, copy_level(Pos, add_pos(Pos1,1)), NewParsed);
+code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {code_statement,_,_}=Pos, Parsed) when
+        ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(S,$S,$s) andalso
+        ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {<<"case",SP:8,Rest/binary>>, Pos, Parsed};
 code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
      {switch_block,_,_}=Pos, Parsed) when
         ?OR(D,$D,$d) andalso ?OR(E,$E,$e) andalso ?OR(F,$F,$f) andalso
@@ -211,6 +215,13 @@ code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
         code_block=[]
     }, Pos)|switch_case_block(Parsed)],
     code(Rest0, copy_level(Pos, add_pos(Pos0,1)), NewParsed);
+code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
+     {code_statement,_,_}=Pos, Parsed) when
+        ?OR(D,$D,$d) andalso ?OR(E,$E,$e) andalso ?OR(F,$F,$f) andalso
+        ?OR(A,$A,$a) andalso ?OR(U,$U,$u) andalso ?OR(L,$L,$l) andalso
+        ?OR(T,$T,$t) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $:) ->
+    {<<"default",SP:8,Rest/binary>>, Pos, Parsed};
 code(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(A,$A,$a) andalso ?OR(B,$B,$b) andalso ?OR(S,$S,$s) andalso
         ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso ?OR(C,$C,$c) andalso
