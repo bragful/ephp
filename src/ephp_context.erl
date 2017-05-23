@@ -226,7 +226,7 @@ get_current_function_arity(Context) ->
     ActiveFunArgs.
 
 get_current_class(Context) ->
-    #state{active_class=ActiveClass} = load_state(Context),
+    #state{active_class = ActiveClass} = load_state(Context),
     ActiveClass.
 
 get_errors_id(Context) ->
@@ -382,26 +382,30 @@ resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
             ephp_vars:set(NState#state.vars, VarPath, Value),
             {Value, NState};
         {error, _Reason} ->
-            {undefined, State}
+            {undefined, NState}
     end;
 
-resolve(#assign{variable=#variable{type=class, class = <<"self">>, line=Index}},
-        #state{active_class=undefined}) ->
-    ephp_error:error({error, eundefclass, Index, ?E_ERROR, {<<"self">>}});
+resolve(#assign{variable = #variable{type = class,
+                                     class = <<"self">>,
+                                     line = Index}},
+        #state{active_class = <<>>}) ->
+    ephp_error:error({error, enoclassscope, Index, ?E_ERROR, {<<"self">>}});
 
-resolve(#assign{variable=#variable{type=class, class = <<"self">>}=Var}=Assign,
-        #state{active_class=ClassName}=State) ->
-    resolve(Assign#assign{variable=Var#variable{class=ClassName}}, State);
+resolve(#assign{variable = #variable{type = class,
+                                     class = <<"self">>} = Var} = Assign,
+        #state{active_class = ClassName} = State) ->
+    resolve(Assign#assign{variable = Var#variable{class = ClassName}}, State);
 
-resolve(#assign{
-            variable=#variable{type=class,class=ClassName,line=Index}=Var,
-            expression=Expr},
-        #state{class=Classes}=State) ->
+resolve(#assign{variable = #variable{type = class,
+                                     class = ClassName,
+                                     line = Index} = Var,
+                expression = Expr},
+        #state{class = Classes} = State) ->
     case catch get_var_path(Var, State) of
-        #variable{}=VarPath ->
+        #variable{} = VarPath ->
             {Value, NState} = resolve(Expr, State),
             case ephp_class:get(Classes, ClassName) of
-            {ok, #class{static_context=ClassCtx}} ->
+            {ok, #class{static_context = ClassCtx}} ->
                 set(ClassCtx, VarPath, Value);
             {error, enoexist} ->
                 ephp_error:error({error, eundefclass, Index,
@@ -412,10 +416,33 @@ resolve(#assign{
             {undefined, State}
     end;
 
-resolve(#assign{variable=#assign{}=A, expression=Expr}, State) ->
-    #assign{variable=V1, expression=V2} = A,
-    {Value, NState} = resolve(#assign{variable=V2, expression=Expr}, State),
-    resolve(#assign{variable=V1, expression=Value}, NState);
+resolve(#assign{variable = #assign{} = A, expression = Expr}, State) ->
+    #assign{variable = V1, expression=V2} = A,
+    {Value, NState} = resolve(#assign{variable = V2, expression = Expr}, State),
+    resolve(#assign{variable = V1, expression = Value}, NState);
+
+resolve(#assign{variable = #variable{type = static, idx = []} = Var,
+                expression = Expr},
+        #state{active_class = <<>>, active_fun = <<>>} = State) ->
+    %% TODO check if with include the normal behaviour changes
+    {Value, NState} = resolve(Expr, State),
+    case catch get_var_path(Var, NState) of
+        #variable{}=VarPath ->
+            ephp_vars:set(NState#state.vars, VarPath, Value),
+            {Value, NState};
+        {error, _Reason} ->
+            {undefined, NState}
+    end;
+
+resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
+                expression = Expr},
+        #state{funcs = Funcs,
+               active_fun = ActiveFun,
+               active_class = <<>>} = State) ->
+    {Value, NState} = resolve(Expr, State),
+    RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, Value),
+    ephp_vars:set(NState#state.vars, #variable{name = VarName}, RealValue),
+    {Value, NState};
 
 resolve(#assign{variable = #call{name = <<"list">>, args = Args}=List,
                 expression = Expr}, State) ->
@@ -657,12 +684,12 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         save_state(NState),
         {ok, NewVars} = ephp_vars:start_link(),
         {ok, SubContext} = start_mirror(NState#state{
-            vars=NewVars,
-            global=GlobalRef,
-            active_file=AFile,
-            active_fun=Fun,
-            active_class=undefined,
-            active_fun_args=length(Args)}),
+            vars = NewVars,
+            global = GlobalRef,
+            active_file = AFile,
+            active_fun = Fun,
+            active_class = <<>>,
+            active_fun_args = length(Args)}),
         ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs),
         register_superglobals(GlobalRef, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
@@ -670,6 +697,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
             {return, V} -> V;
             _ -> undefined
         end,
+        ephp_func:set_static(Funcs, Fun, NewVars),
         destroy(SubContext),
         ephp_vars:destroy(NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
@@ -910,12 +938,12 @@ run_method(RegInstance, #call{args=RawArgs}=Call,
         ephp_class:get_method(Class, Call#call.name),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     {ok, SubContext} = start_mirror(NState#state{
-        vars=NewVars,
-        global=Ref,
-        active_file=Class#class.file,
-        active_fun=MethodName,
-        active_fun_args=length(Args),
-        active_class=Class#class.name}),
+        vars = NewVars,
+        global = Ref,
+        active_file = Class#class.file,
+        active_fun = MethodName,
+        active_fun_args = length(Args),
+        active_class = Class#class.name}),
     ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
     register_superglobals(Ref, NewVars),
     ephp_const:set_bulk(Const, [
@@ -1005,23 +1033,23 @@ resolve_var(#variable{type=normal}=Var, State) ->
     Value = ephp_vars:get(NewState#state.vars, NewVar, State#state.ref),
     {Value, NewState};
 
-resolve_var(#variable{type=class,class = <<"self">>, line=Index},
-        #state{active_class=undefined}) ->
+resolve_var(#variable{type = class, class = <<"self">>, line = Index},
+            #state{active_class = <<>>}) ->
     ephp_error:error({error, enoclassscope, Index, ?E_ERROR, {<<"self">>}});
 
-resolve_var(#variable{type=class, class = <<"self">>}=Var,
-        #state{active_class=ClassName}=State) ->
-    resolve_var(Var#variable{class=ClassName}, State);
+resolve_var(#variable{type = class, class = <<"self">>} = Var,
+            #state{active_class = ClassName} = State) ->
+    resolve_var(Var#variable{class = ClassName}, State);
 
-resolve_var(#variable{type=class,class=ClassName,line=Index}=Var,
-            #state{class=Classes}=State) ->
+resolve_var(#variable{type = class, class = ClassName, line = Index} = Var,
+            #state{class = Classes} = State) ->
     {NewVar, NewState} = resolve_indexes(Var, State),
     case ephp_class:get(Classes, ClassName) of
-    {ok, #class{static_context=ClassCtx}} ->
-        Value = get(ClassCtx, NewVar),
-        {Value, NewState};
-    {error, enoexist} ->
-        ephp_error:error({error, eundefclass, Index, ?E_ERROR, {ClassName}})
+        {ok, #class{static_context=ClassCtx}} ->
+            Value = get(ClassCtx, NewVar),
+            {Value, NewState};
+        {error, enoexist} ->
+            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {ClassName}})
     end.
 
 % TODO complete list of casting and errors

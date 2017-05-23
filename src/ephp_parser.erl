@@ -360,15 +360,8 @@ code(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(A,$A,$a) andalso
         ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    NewPos = add_pos(Pos, 7),
-    case expression(Rest, NewPos, []) of
-        {Rest0, Pos0, #assign{variable=Var}=Assign} ->
-            NewAssign = Assign#assign{variable = Var#variable{type = static}},
-            code(Rest0, copy_level(Pos, Pos0), Parsed ++ [NewAssign]);
-        {Rest0, Pos0, #variable{}=Var} ->
-            NewVar = Var#variable{type = static},
-            code(Rest0, copy_level(Pos, Pos0), Parsed ++ [NewVar])
-    end;
+    {Rest0, Pos0, Parsed0} = static(Rest, add_pos(Pos, 7), []),
+    code(Rest0, copy_level(Pos, Pos0), Parsed0 ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Pos, [#constant{}|_])
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     throw_error(eparse, Pos, Rest);
@@ -411,6 +404,29 @@ code_block(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
 code_block(Rest, Pos, Parsed) ->
     code(Rest, code_statement_level(Pos), Parsed).
+
+static(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    static(Rest, add_pos(Pos,1), Parsed);
+static(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    static(Rest, new_line(Pos), Parsed);
+static(<<",",Rest/binary>>, Pos, Parsed) when Parsed =/= [] ->
+    static(Rest, new_line(Pos), Parsed);
+static(<<",",_/binary>>, Pos, _Parsed) ->
+    throw_error(eparse, Pos, <<",">>);
+static(<<";",_/binary>> = Rest, Pos, Parsed) ->
+    {Rest, Pos, Parsed};
+static(<<>>, Pos, _Parsed) ->
+    throw_error(eparse, Pos, <<>>);
+static(Rest, Pos, Parsed) ->
+    case expression(Rest, arg_level(Pos), []) of
+        {Rest0, Pos0, #assign{variable=Var}=Assign} ->
+            NewAssign = Assign#assign{variable = Var#variable{type = static}},
+            static(Rest0, copy_level(Pos, Pos0), Parsed ++ [NewAssign]);
+        {Rest0, Pos0, #variable{}=Var} ->
+            NewVar = Var#variable{type = static},
+            static(Rest0, copy_level(Pos, Pos0), Parsed ++ [NewVar])
+    end.
+
 
 variable(<<SP:8,Rest/binary>>, Pos, []) when ?IS_SPACE(SP) ->
     variable(Rest, add_pos(Pos,1), []);

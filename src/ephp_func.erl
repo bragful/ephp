@@ -68,6 +68,11 @@
     get/2,
     get_functions/1,
 
+    get_static_value/3,
+    set_static_value/4,
+    set_static/3,
+    init_static_value/4,
+
     run/2,
 
     register_func/5,
@@ -92,6 +97,66 @@ get(Ref, FuncName) ->
     Funcs = erlang:get(Ref),
     IFuncName = ephp_string:to_lower(FuncName),
     dict:find(IFuncName, Funcs).
+
+get_static_value(Ref, FuncName, VarName) ->
+    case get(Ref, FuncName) of
+        {ok, #reg_func{static = Static}} ->
+            case orddict:find(VarName, Static) of
+                {ok, Value} -> Value;
+                error -> undefined
+            end;
+        error ->
+            throw({error, enofunc})
+    end.
+
+set_static(Ref, FuncName, Vars) ->
+    Funcs = erlang:get(Ref),
+    IFuncName = ephp_string:to_lower(FuncName),
+    {ok, #reg_func{static = Static} = RegFunc} = dict:find(IFuncName, Funcs),
+    NewStatic = lists:map(fun({Key, _}) ->
+        %% TODO check behaviour when use unset
+        NewValue = ephp_vars:get(Vars, #variable{name = Key}),
+        {Key, NewValue}
+    end, Static),
+    NewRegFunc = RegFunc#reg_func{static = NewStatic},
+    NewFuncs = dict:store(IFuncName, NewRegFunc, Funcs),
+    erlang:put(Ref, NewFuncs),
+    ok.
+
+set_static_value(Ref, FuncName, VarName, Value) ->
+    Funcs = erlang:get(Ref),
+    IFuncName = ephp_string:to_lower(FuncName),
+    case dict:find(IFuncName, Funcs) of
+        {ok, #reg_func{static = Static} = RegFunc} ->
+            NewStatic = orddict:store(VarName, Value, Static),
+            NewRegFunc = RegFunc#reg_func{static = NewStatic},
+            NewFuncs = dict:store(IFuncName, NewRegFunc, Funcs),
+            erlang:put(Ref, NewFuncs),
+            ok;
+        error ->
+            throw({error, enofunc})
+    end.
+
+init_static_value(Ref, FuncName, VarName, Value) ->
+    Funcs = erlang:get(Ref),
+    IFuncName = ephp_string:to_lower(FuncName),
+    case dict:find(IFuncName, Funcs) of
+        {ok, #reg_func{static = Static}} ->
+            case orddict:find(VarName, Static) of
+                {ok, RealValue} ->
+                    RealValue;
+                error ->
+                    UpdateFunc = fun(RegFunc) ->
+                        NewStatic = orddict:store(VarName, Value, Static),
+                        RegFunc#reg_func{static = NewStatic}
+                    end,
+                    NewFuncs = dict:update(IFuncName, UpdateFunc, Funcs),
+                    erlang:put(Ref, NewFuncs),
+                    Value
+            end;
+        error ->
+            throw({error, enofunc})
+    end.
 
 get_functions(Ref) ->
     Funcs = erlang:get(Ref),

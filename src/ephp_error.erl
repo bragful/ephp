@@ -26,28 +26,7 @@
 
 -type error_format() :: text | html.
 
--type error_type() ::
-    eundefclass |
-    eprivateaccess |
-    ecallprivate |
-    eunsupportop |
-    erequired |
-    einclude |
-    enofile |
-    eundefun |
-    earrayundef |
-    eundeftoken |
-    enoclassscope |
-    emethodtypes |
-    eundefmethod |
-    edivzero |
-    eparse |
-    enostatement |
-    eunknownst |
-    eundefvar |
-    eundefconst |
-    eassignthis |
-    earrayconv.
+-type error_type() :: atom().
 
 -record(state, {
     handler = ?MODULE :: module(),

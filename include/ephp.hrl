@@ -382,6 +382,9 @@
 
 -type instance() :: #instance{}.
 
+-type static_arg_name() :: binary().
+-type static() :: [{static_arg_name(), mixed()}].
+
 -record(reg_func, {
     name :: binary(),
     args :: [variable()],
@@ -390,7 +393,8 @@
     code = [] :: [statement()],
     builtin :: {Module :: atom(), Func :: atom()} | function(),
     pack_args = false :: boolean(),
-    validation_args :: ephp_func:validation_args()
+    validation_args :: ephp_func:validation_args(),
+    static = [] :: static()
 }).
 
 -record(reg_instance, {

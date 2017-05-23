@@ -33,7 +33,7 @@ init_const() -> [].
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
                    Args::term()) -> string() | ignore.
 
-handle_error(eundefclass, _Level, {<<>>}) ->
+handle_error(enoclassscope, _Level, {<<"self">>}) ->
     "Cannot access self:: when no class scope is active";
 
 handle_error(eundefclass, _Level, {Class}) ->
