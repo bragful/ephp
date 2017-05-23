@@ -352,6 +352,7 @@
     code :: [statement()],
     access = public :: access_types(),
     type = normal :: normal | static | abstract,
+    static = [] :: static(),
     line :: line()
 }).
 

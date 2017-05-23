@@ -444,6 +444,17 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
     ephp_vars:set(NState#state.vars, #variable{name = VarName}, RealValue),
     {Value, NState};
 
+resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
+                expression = Expr},
+        #state{class = Classes,
+               active_fun = ActiveFun,
+               active_class = ActiveClass} = State) ->
+    {Value, NState} = resolve(Expr, State),
+    RealValue = ephp_class:init_static_value(Classes, ActiveClass,
+                                             ActiveFun, VarName, Value),
+    ephp_vars:set(NState#state.vars, #variable{name = VarName}, RealValue),
+    {Value, NState};
+
 resolve(#assign{variable = #call{name = <<"list">>, args = Args}=List,
                 expression = Expr}, State) ->
     {Value, NState} = resolve(Expr, State),
@@ -923,37 +934,39 @@ throw_warning(State, Line, I, Type, Var, ErrorRet) ->
     ephp_error:handle_error(State#state.ref, Error),
     throw({return,ErrorRet}).
 
-run_method(RegInstance, #call{args=RawArgs}=Call,
-        #state{ref=Ref, const=Const, vars=Vars}=State) ->
+run_method(RegInstance, #call{args = RawArgs} = Call,
+           #state{ref = Ref, const = Const, vars = Vars} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {ok, NewVars} = ephp_vars:start_link(),
     Class = case RegInstance of
-    #reg_instance{class=C} ->
-        ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance),
-        C;
-    #class{}=C ->
-        C
+        #reg_instance{class=C} ->
+            ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance),
+            C;
+        #class{}=C ->
+            C
     end,
+    #class{name = ClassName, file = ClassFile} = Class,
     #class_method{name=MethodName, args=RawMethodArgs, code=Code} =
         ephp_class:get_method(Class, Call#call.name),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     {ok, SubContext} = start_mirror(NState#state{
         vars = NewVars,
         global = Ref,
-        active_file = Class#class.file,
+        active_file = ClassFile,
         active_fun = MethodName,
         active_fun_args = length(Args),
-        active_class = Class#class.name}),
+        active_class = ClassName}),
     ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
     register_superglobals(Ref, NewVars),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, MethodName},
-        {<<"__CLASS__">>, Class#class.name}
+        {<<"__CLASS__">>, ClassName}
     ]),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
         _ -> undefined
     end,
+    ephp_class:set_static(State#state.class, ClassName, MethodName, NewVars),
     destroy(SubContext),
     ephp_vars:destroy(NewVars),
     ephp_const:set_bulk(Const, [

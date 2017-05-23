@@ -20,6 +20,9 @@
     get_const/2,
     get_const/3,
 
+    init_static_value/5,
+    set_static/4,
+
     register_class/4,
     set_alias/3,
     instance/5,
@@ -165,6 +168,46 @@ get_method(#class{methods=Methods,line=Index}, MethodName) ->
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
+
+init_static_value(Ref, ClassName, MethodName, VarName, Value) ->
+    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
+    case lists:keyfind(MethodName, #class_method.name, Methods) of
+        #class_method{static = Static} = Method ->
+            case orddict:find(VarName, Static) of
+                {ok, RealValue} ->
+                    RealValue;
+                error ->
+                    NewStatic = orddict:store(VarName, Value, Static),
+                    NewMethod = Method#class_method{static = NewStatic},
+                    NewMethods = lists:keyreplace(MethodName,
+                                                  #class_method.name,
+                                                  Methods,
+                                                  NewMethod),
+                    NewClass = Class#class{methods = NewMethods},
+                    set(Ref, ClassName, NewClass),
+                    Value
+            end;
+        false ->
+            throw({error, enofunc})
+    end.
+
+set_static(Ref, ClassName, MethodName, Vars) ->
+    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
+    #class_method{static = Static} = Method =
+        lists:keyfind(MethodName, #class_method.name, Methods),
+    NewStatic = lists:map(fun({Key, _}) ->
+        %% TODO check behaviour when use unset
+        NewValue = ephp_vars:get(Vars, #variable{name = Key}),
+        {Key, NewValue}
+    end, Static),
+    NewMethod = Method#class_method{static = NewStatic},
+    NewMethods = lists:keyreplace(MethodName,
+                                  #class_method.name,
+                                  Methods,
+                                  NewMethod),
+    NewClass = Class#class{methods = NewMethods},
+    set(Ref, ClassName, NewClass),
+    ok.
 
 get_const(Ref, ClassName, ConstName) ->
     {ok, Class} = get(Ref, ClassName),
