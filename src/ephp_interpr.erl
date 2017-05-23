@@ -375,10 +375,9 @@ run_switch(Context, default, Cases, Cover) ->
             end;
         (_Case, {seek, false}) ->
             {seek, false};
-        (Case, {run, false}) ->
-            Break = run(Context,
-                        #eval{statements=Case#switch_case.code_block},
-                        Cover),
+        (#switch_case{code_block=Code, line=Line}, {run, false}) ->
+            ok = ephp_cover:store(Cover, switch_case, Context, Line),
+            Break = run(Context, #eval{statements = Code}, Cover),
             case Break of
                 break -> {exit, false};
                 {break, 0} -> {exit, false};
@@ -394,10 +393,9 @@ run_switch(Context, Cond, Cases, Cover) ->
     lists:foldl(fun
         (_SwitchCase, {exit, Return}) ->
             {exit, Return};
-        (Case, {run, false}) ->
-            Break = run(Context,
-                        #eval{statements=Case#switch_case.code_block},
-                        Cover),
+        (#switch_case{line=Line, code_block=Code}, {run, false}) ->
+            ok = ephp_cover:store(Cover, switch_case, Context, Line),
+            Break = run(Context, #eval{statements = Code}, Cover),
             case Break of
                 break -> {exit, false};
                 {break, 0} -> {exit, false};
