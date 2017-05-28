@@ -255,9 +255,10 @@ var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_binary(Value) ->
     Size = ephp_data:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",Value/binary, "\"\n">>;
 
-var_dump_fmt(Context, Line, #reg_instance{class=Class, context=Ctx},
+var_dump_fmt(Context, Line, #reg_instance{class = Class, context = Ctx},
              Spaces, RecCtl) ->
-    lists:foldl(fun(#class_attr{name=RawName}, Output) ->
+    #class{name = ClassName} = Class,
+    lists:foldl(fun(#class_attr{name = RawName, access = Access}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=RawName}),
         ValDumped = var_dump_fmt(Context, Line, Value,
                                  <<Spaces/binary, ?SPACES_VD>>, RecCtl),
@@ -265,9 +266,26 @@ var_dump_fmt(Context, Line, #reg_instance{class=Class, context=Ctx},
             is_binary(RawName) -> <<"\"",RawName/binary,"\"">>;
             true -> ephp_data:to_bin(RawName)
         end,
-        Output ++ [<<
-          Spaces/binary, "[", Name/binary, "]=>\n",
-          Spaces/binary, ValDumped/binary>>]
+        CompleteName = case Access of
+            public -> Name;
+            protected -> <<Name/binary, ":protected">>;
+            private ->
+                %% TODO check what's the correct class where is the attribute
+                %%      came from.
+                <<Name/binary, ":\"", ClassName/binary, "\":private">>
+        end,
+        Output ++ if
+            is_list(ValDumped) andalso ?IS_ARRAY(Value) ->
+                Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Value)),
+                [<<Spaces/binary, "[", CompleteName/binary, "]=>\n",
+                   Spaces/binary,"array(", Elements/binary, ") {\n">>
+                ] ++ ValDumped ++ [
+                    <<Spaces/binary, "}\n">>
+                ];
+            true ->
+                [<<Spaces/binary, "[", CompleteName/binary, "]=>\n",
+                   Spaces/binary, ValDumped/binary>>]
+        end
     end, [], Class#class.attrs);
 
 var_dump_fmt(_Context, _Line, undefined, _Spaces, _RecCtl) ->

@@ -247,6 +247,7 @@
 -type class_index() :: {class, binary(), line()}.
 
 -type variable_types() :: normal | object | class | static.
+-type data_type() :: binary().
 
 -record(variable, {
     type = normal :: variable_types(),
@@ -254,6 +255,7 @@
     name :: binary(),
     idx = [] :: [array_index() | object_index() | class_index()],
     default_value = undefined :: mixed(),
+    data_type :: data_type(), %% <<"Exception">> for example
     line :: line()
 }).
 
@@ -341,6 +343,7 @@
     access = public :: access_types(),
     type = normal :: normal | static,
     init_value = undefined :: mixed(),
+    final = false :: boolean(),
     line :: line()
 }).
 
@@ -348,11 +351,16 @@
 
 -record(class_method, {
     name :: binary(),
+    code_type = php :: php | builtin,
     args = [] :: [variable()],
-    code :: [statement()],
     access = public :: access_types(),
     type = normal :: normal | static | abstract,
+    code :: [statement()] | {module(), Func :: atom()},
+    builtin :: {Module :: atom(), Func :: atom()},
+    pack_args = false :: boolean(),
+    validation_args :: ephp_func:validation_args(),
     static = [] :: static(),
+    final = false :: boolean(),
     line :: line()
 }).
 
@@ -392,7 +400,7 @@
     type :: builtin | php,
     file :: binary(),
     code = [] :: [statement()],
-    builtin :: {Module :: atom(), Func :: atom()} | function(),
+    builtin :: {Module :: atom(), Func :: atom()},
     pack_args = false :: boolean(),
     validation_args :: ephp_func:validation_args(),
     static = [] :: static()
@@ -402,7 +410,7 @@
     id :: pos_integer(),
     class :: class(),
     instance :: instance(),
-    context = ephp_array:new() :: ephp_array()
+    context :: context()
 }).
 
 -type reg_instance() :: #reg_instance{}.

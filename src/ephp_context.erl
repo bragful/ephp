@@ -729,18 +729,21 @@ resolve(#call{type=class,class=Name,line=Index}=Call,
 resolve({object,Idx,Line}, State) ->
     {{object,Idx,Line}, State};
 
-resolve(#instance{name=ClassName, args=RawArgs, line=Line}=Instance,
-        #state{ref=LocalCtx,class=Classes,global=GlobalCtx}=State) ->
+resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
+        #state{ref = LocalCtx, class = Classes, global = GlobalCtx} = State) ->
     Value = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
     RetInstance = Value#reg_instance{instance = Instance},
     #reg_instance{class = Class} = RetInstance,
     case ephp_class:get_constructor(Class) of
-    undefined ->
-        {RetInstance, State};
-    #class_method{name = ConstructorName} ->
-        Call = #call{type = object, name = ConstructorName, args=RawArgs},
-        {_, NState} = run_method(RetInstance, Call, State),
-        {RetInstance, NState}
+        undefined ->
+            {RetInstance, State};
+        #class_method{name = ConstructorName} ->
+            Call = #call{type = object,
+                         name = ConstructorName,
+                         args = RawArgs,
+                         line = Line},
+            {_, NState} = run_method(RetInstance, Call, State),
+            {RetInstance, NState}
     end;
 
 resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
@@ -934,8 +937,20 @@ throw_warning(State, Line, I, Type, Var, ErrorRet) ->
     ephp_error:handle_error(State#state.ref, Error),
     throw({return,ErrorRet}).
 
+zip_args(ValArgs, FuncArgs) ->
+    {Result, _} = lists:foldl(fun
+        (FuncArg, {Res, [{_,ArgVal}|RestArgs]}) ->
+            {Res ++ [{FuncArg, ArgVal}], RestArgs};
+        (#variable{default_value=Val}=FuncArg, {Res, []}) ->
+            {Res ++ [{FuncArg, Val}], []};
+        (_FuncArg, {Res, []}) ->
+            {Res, []}
+    end, {[], ValArgs}, FuncArgs),
+    Result.
+
 run_method(RegInstance, #call{args = RawArgs} = Call,
-           #state{ref = Ref, const = Const, vars = Vars} = State) ->
+           #state{ref = Ref, const = Const, vars = Vars,
+                  class = Classes} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {ok, NewVars} = ephp_vars:start_link(),
     Class = case RegInstance of
@@ -946,34 +961,65 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
             C
     end,
     #class{name = ClassName, file = ClassFile} = Class,
-    #class_method{name=MethodName, args=RawMethodArgs, code=Code} =
+    #class_method{name=MethodName, args=RawMethodArgs} = ClassMethod =
         ephp_class:get_method(Class, Call#call.name),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
-    {ok, SubContext} = start_mirror(NState#state{
-        vars = NewVars,
-        global = Ref,
-        active_file = ClassFile,
-        active_fun = MethodName,
-        active_fun_args = length(Args),
-        active_class = ClassName}),
-    ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
-    register_superglobals(Ref, NewVars),
-    ephp_const:set_bulk(Const, [
-        {<<"__FUNCTION__">>, MethodName},
-        {<<"__CLASS__">>, ClassName}
-    ]),
-    Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-        {return, V} -> V;
-        _ -> undefined
-    end,
-    ephp_class:set_static(State#state.class, ClassName, MethodName, NewVars),
-    destroy(SubContext),
-    ephp_vars:destroy(NewVars),
-    ephp_const:set_bulk(Const, [
-        {<<"__FUNCTION__">>, State#state.active_fun},
-        {<<"__CLASS__">>, State#state.active_class}
-    ]),
-    {Value, NState}.
+    case ClassMethod#class_method.code_type of
+        php ->
+            ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
+            {ok, SubContext} = start_mirror(NState#state{
+                vars = NewVars,
+                global = Ref,
+                active_file = ClassFile,
+                active_fun = MethodName,
+                active_fun_args = length(Args),
+                active_class = ClassName}),
+            register_superglobals(Ref, NewVars),
+            ephp_const:set_bulk(Const, [
+                {<<"__FUNCTION__">>, MethodName},
+                {<<"__CLASS__">>, ClassName}
+            ]),
+            Code = ClassMethod#class_method.code,
+            Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+                {return, V} -> V;
+                _ -> undefined
+            end,
+            ephp_class:set_static(Classes, ClassName, MethodName, NewVars),
+            destroy(SubContext),
+            ephp_vars:destroy(NewVars),
+            ephp_const:set_bulk(Const, [
+                {<<"__FUNCTION__">>, State#state.active_fun},
+                {<<"__CLASS__">>, State#state.active_class}
+            ]),
+            {Value, NState};
+        builtin ->
+            {M, F} = ClassMethod#class_method.builtin,
+            VArgs = case ClassMethod#class_method.validation_args of
+                undefined ->
+                    undefined;
+                {_Min, _Max, _RetErr, _ValArgs} = VA ->
+                    VA;
+                VA when is_list(VA) ->
+                    {expected_min_args(VA), expected_max_args(M, F),
+                     undefined, VA}
+            end,
+            Index = Call#call.line,
+            try resolve_args(VArgs, RawArgs, NState, Index) of
+                {FArgs, FState} ->
+                    FMArgs = zip_args(FArgs, MethodArgs),
+                    save_state(FState),
+                    Value = if
+                        ClassMethod#class_method.pack_args ->
+                            erlang:apply(M, F, [Ref, RegInstance, Index, FMArgs]);
+                        true ->
+                            erlang:apply(M, F, [Ref, RegInstance, Index|FMArgs])
+                    end,
+                    {Value, (load_state(Ref))#state{ref=Ref}}
+            catch
+                throw:{return,Value} ->
+                    {Value, NState}
+            end
+    end.
 
 resolve_var(#variable{type=normal,idx=[]}=Var, State) ->
     {ephp_vars:get(State#state.vars, Var, State#state.ref), State};
@@ -1081,7 +1127,7 @@ resolve_cast(_State, _Line, array, N) when
 resolve_cast(_State, _Line, array, Array) when ?IS_ARRAY(Array) ->
     Array;
 resolve_cast(_State, _Line, array,
-             #reg_instance{class=Class, context=Ctx}) ->
+             #reg_instance{class = Class, context = Ctx}) ->
     lists:foldl(fun(#class_attr{name=Name}, Array) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
         ephp_array:store(Name, Value, Array)

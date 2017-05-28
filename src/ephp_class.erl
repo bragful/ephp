@@ -20,6 +20,11 @@
     get_const/2,
     get_const/3,
 
+    class_attr/1,
+    class_attr/2,
+    class_attr/3,
+    class_attr/4,
+
     init_static_value/5,
     set_static/4,
 
@@ -38,7 +43,7 @@
 start_link() ->
     Ref = make_ref(),
     erlang:put(Ref, dict:new()),
-    ok = register_stdclass(Ref),
+    ok = register_classes(Ref),
     {ok, Ref}.
 
 destroy(Classes) ->
@@ -99,16 +104,16 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
         % FIXME: looks like the increment is global for all of the instances
         InsCount = Class#class.instance_counter + 1,
         RegClass = #reg_instance{
-            id=InsCount,
-            class=Class,
-            context=Ctx},
+            id = InsCount,
+            class = Class,
+            context = Ctx},
         initialize(Ctx, Class),
-        set(Ref, ClassName, Class#class{instance_counter=InsCount}),
+        set(Ref, ClassName, Class#class{instance_counter = InsCount}),
         RegClass;
     {error, enoexist} ->
         File = ephp_context:get_active_file(LocalCtx),
         ephp_error:error({error, eundefclass, Line, File, ?E_ERROR,
-            {RawClassName}})
+                          {RawClassName}})
     end.
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
@@ -232,17 +237,38 @@ add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
 get_stdclass() ->
     #class{
         name = <<"stdClass">>,
-        static_context = undefined,
         constants = dict:new(),
         attrs = []
+    }.
+
+class_attr(Name) ->
+    class_attr(Name, public, undefined, false).
+
+class_attr(Name, Access) ->
+    class_attr(Name, Access, undefined, false).
+
+class_attr(Name, Access, InitValue) ->
+    class_attr(Name, Access, InitValue, false).
+
+class_attr(Name, Access, InitValue, Final) ->
+    #class_attr{
+        name = Name,
+        access = Access,
+        init_value = InitValue,
+        final = Final
     }.
 
 %% ------------------------------------------------------------------
 %% Private functions
 %% ------------------------------------------------------------------
 
-register_stdclass(Ref) ->
-    Classes = erlang:get(Ref),
-    #class{name=Name} = StdClass = get_stdclass(),
-    erlang:put(Ref, dict:store(Name, StdClass, Classes)),
+register_classes(Ref) ->
+    Classes = [
+        get_stdclass(),
+        ephp_class_exception:get_class()
+    ],
+    ClassesDict = lists:foldl(fun(#class{name=Name} = Class, Dict) ->
+        dict:store(Name, Class, Dict)
+    end, erlang:get(Ref), Classes),
+    erlang:put(Ref, ClassesDict),
     ok.
