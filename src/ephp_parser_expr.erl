@@ -156,9 +156,16 @@ expression(<<"[",Rest/binary>>, Pos, []) ->
     {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Pos), []),
     expression(Rest1, copy_level(Pos, Pos1), NewParsed);
+expression(<<"[",Rest/binary>>, Pos, [{op,[]}|_]=Parsed) ->
+    % ARRAY DEF
+    NewPos = array_def_54_level(add_pos(Pos, 1)),
+    {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
+    NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
+    expression(Rest1, copy_level(Pos, Pos1), NewParsed);
 expression(<<"[",Rest/binary>>, Pos, [{op,Op}|_]=Parsed) ->
     case lists:last(Op) of
-        {_,{_,_},{_,_,_}} ->
+        {_,{RightOrLeft,_},_} when RightOrLeft =:= right orelse
+                                   RightOrLeft =:= left ->
             % ARRAY DEF
             NewPos = array_def_54_level(add_pos(Pos, 1)),
             {Rest1, Pos1, Content} = array_def(Rest, NewPos, []),
@@ -219,12 +226,12 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest1, Pos1, ObjName} = funct_name(Rest0, Pos0, []),
     case remove_spaces(Rest1, Pos1) of
         {<<"(",Rest2/binary>>, Pos2} ->
-            {Rest3, Pos3, Args} = funct_args(Rest2, add_pos(Pos2,1), []),
+            {Rest3, Pos3, Args} = funct_args(Rest2, add_pos(Pos2, 1), []),
             Instance = add_line(#instance{
                 name=ObjName,
                 args=Args
             }, Pos);
-        {<<C:8,_/binary>> = Rest3, Pos3} when C =:= $; orelse C =:= $, ->
+        {Rest3, Pos3} ->
             Instance = add_line(#instance{
                 name=ObjName
             }, Pos)

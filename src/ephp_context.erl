@@ -684,6 +684,8 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
                     PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
                     true -> erlang:apply(M,F,[Ref,Index|Args])
                 end,
+                Unset = fun(Var) -> unset(Ref, Var) end,
+                lists:foreach(Unset, Args),
                 {Value, (load_state(Ref))#state{ref=Ref}}
         catch
             throw:{return,Value} ->
@@ -800,6 +802,37 @@ resolve(#cast{type=Type, content=C, line=Line}, State) ->
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
+
+
+unset(_, {#variable{}, _}) ->
+    ok;
+unset(Ctx, {#array{elements = Elements}, Array}) ->
+    Values = [ V || {_,V} <- ephp_array:to_list(Array) ],
+    Defs = [ E || #array_element{element = E} <- Elements ],
+    DefVals = lists:zip(Defs, Values),
+    lists:foreach(fun(X) -> unset(Ctx, X) end, DefVals);
+unset(Ctx, {#cast{type = object}, #reg_instance{class=Class}=Instance}) ->
+    case ephp_class:get_destructor(Class) of
+        undefined ->
+            ok;
+        _ ->
+            Call = #call{name = <<"__destruct">>},
+            call_method(Ctx, Instance, Call),
+            % FIXME: add unset for every attribute inside of the instance
+            ok
+    end;
+unset(Ctx, {#instance{}, #reg_instance{class=Class}=Instance}) ->
+    case ephp_class:get_destructor(Class) of
+        undefined ->
+            ok;
+        _ ->
+            Call = #call{name = <<"__destruct">>},
+            call_method(Ctx, Instance, Call),
+            % FIXME: add unset for every attribute inside of the instance
+            ok
+    end;
+unset(_, _) ->
+    ok.
 
 
 register_superglobals(GlobalCtx, Vars) ->

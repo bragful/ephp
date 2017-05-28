@@ -282,6 +282,18 @@ var_dump_fmt(Context, Line, #reg_instance{class = Class, context = Ctx},
                 ] ++ ValDumped ++ [
                     <<Spaces/binary, "}\n">>
                 ];
+            is_list(ValDumped) andalso ?IS_OBJECT(Value) ->
+                #reg_instance{class=#class{attrs = Attrs}} = Value,
+                Size = ephp_data:to_bin(length(Attrs)),
+                #reg_instance{id = InstanceID, class = SClass} = Value,
+                ID = integer_to_binary(InstanceID),
+                [
+                    <<Spaces/binary, "[", CompleteName/binary, "]=>\n",
+                      Spaces/binary, "object(", (SClass#class.name)/binary, ")#",
+                      ID/binary, " (", Size/binary, ") {\n">>
+                ] ++ ValDumped ++ [
+                    <<Spaces/binary, "}\n">>
+                ];
             true ->
                 [<<Spaces/binary, "[", CompleteName/binary, "]=>\n",
                    Spaces/binary, ValDumped/binary>>]
