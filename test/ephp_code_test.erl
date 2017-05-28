@@ -31,8 +31,20 @@ test_code(File) ->
             {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
             {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
             {ok, CWD} = file:get_cwd(),
-            OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
+            OutFileRaw2 = binary:replace(OutFileRaw, <<"{{CWD}}">>,
                 list_to_binary(CWD), [global]),
+            Match = <<"{{CWDLEN\\s?\\+\\s?(\\d+)}}">>,
+            Opts = [global, {capture, all, binary}],
+            CWDLen = length(CWD),
+            OutFile = case re:run(OutFileRaw2, Match, Opts) of
+                {match, Matches} ->
+                    lists:foldl(fun([M, Num], Out) ->
+                        N = CWDLen + binary_to_integer(Num),
+                        binary:replace(Out, M, integer_to_binary(N))
+                    end, OutFileRaw2, Matches);
+                nomatch ->
+                    OutFileRaw2
+            end,
             ?assertEqual(OutFile, iolist_to_binary(OutCode)),
             true
         catch Type:Reason ->
