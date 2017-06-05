@@ -86,6 +86,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp.md" class="module">ephp</a></td></tr>
 <tr><td><a href="ephp_array.md" class="module">ephp_array</a></td></tr>
 <tr><td><a href="ephp_class.md" class="module">ephp_class</a></td></tr>
+<tr><td><a href="ephp_class_exception.md" class="module">ephp_class_exception</a></td></tr>
 <tr><td><a href="ephp_config.md" class="module">ephp_config</a></td></tr>
 <tr><td><a href="ephp_const.md" class="module">ephp_const</a></td></tr>
 <tr><td><a href="ephp_context.md" class="module">ephp_context</a></td></tr>
@@ -117,6 +118,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp_parser_func.md" class="module">ephp_parser_func</a></td></tr>
 <tr><td><a href="ephp_parser_string.md" class="module">ephp_parser_string</a></td></tr>
 <tr><td><a href="ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
+<tr><td><a href="ephp_stack.md" class="module">ephp_stack</a></td></tr>
 <tr><td><a href="ephp_string.md" class="module">ephp_string</a></td></tr>
 <tr><td><a href="ephp_timezone.md" class="module">ephp_timezone</a></td></tr>
 <tr><td><a href="ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
