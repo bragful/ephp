@@ -9,6 +9,7 @@
     init_config/0,
     init_const/0,
 
+    debug_backtrace/3,
     error_reporting/3
 ]).
 
@@ -17,6 +18,10 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
+    {debug_backtrace, [
+        {args, {0, 2, undefined, [{integer, 1}, {integer, 0}]}},
+        pack_args
+    ]},
     error_reporting
 ].
 
@@ -42,8 +47,15 @@ init_const() -> [
     {<<"E_RECOVERABLE_ERROR">>, ?E_RECOVERABLE_ERROR},
     {<<"E_DEPRECATED">>, ?E_DEPRECATED},
     {<<"E_USER_DEPRECATED">>, ?E_USER_DEPRECATED},
-    {<<"E_ALL">>, ?E_ALL}
+    {<<"E_ALL">>, ?E_ALL},
+    {<<"DEBUG_BACKTRACE_PROVIDE_OBJECT">>, 1},
+    {<<"DEBUG_BACKTRACE_IGNORE_ARGS">>, 2}
 ].
+
+-spec debug_backtrace(context(), line(), [var_value()]) -> ephp_array().
+
+debug_backtrace(Context, _Line, [{_, _Flags}, {_, _Limit}]) ->
+    ephp_stack:get_array(Context).
 
 -spec error_reporting(context(), line(), var_value()) -> integer().
 

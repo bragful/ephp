@@ -440,13 +440,13 @@ expression(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
 % AND
 expression(<<A:8,N:8,D:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(N,$n,$N) andalso ?OR(D,$d,$D)
-        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
+        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     OpL = <<"and">>,
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
 % XOR
 expression(<<X:8,O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(X,$x,$X) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
-        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
+        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     OpL = <<"xor">>,
     expression(Rest, add_pos(Pos,3), add_op({OpL,precedence(OpL),Pos}, Parsed));
 % OPERATOR 3 LETTERS
@@ -455,7 +455,7 @@ expression(<<Op:3/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP3(Op) ->
 % OR
 expression(<<O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
-        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP))) ->
+        andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     OpL = <<"or">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
 % OPERATORS 2 LETTERS

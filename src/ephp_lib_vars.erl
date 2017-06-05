@@ -204,7 +204,7 @@ unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
             undefined ->
                 ok;
             _ ->
-                Call = #call{name = <<"__destruct">>},
+                Call = #call{name = <<"__destruct">>, line = Line},
                 ephp_context:call_method(Context, Instance, Call),
                 % FIXME: add unset for every attribute inside of the instance
                 ok

@@ -1,0 +1,58 @@
+
+Hello: friend
+array(1) {
+  [0]=>
+  array(4) {
+    ["file"]=>
+    string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_a.php"
+    ["line"]=>
+    int(15)
+    ["function"]=>
+    string(6) "a_test"
+    ["args"]=>
+    array(1) {
+      [0]=>
+      &string(6) "friend"
+    }
+  }
+}
+
+Strict Standards: Non-static method A::other_test() should not be called statically in {{CWD}}/test/code/test_stacktrace_a.php on line 16
+
+Hello: friend class
+
+Hello: friend class
+array(2) {
+  [0]=>
+  array(4) {
+    ["file"]=>
+    string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_a.php"
+    ["line"]=>
+    int(6)
+    ["function"]=>
+    string(6) "a_test"
+    ["args"]=>
+    array(1) {
+      [0]=>
+      &string(12) "friend class"
+    }
+  }
+  [1]=>
+  array(6) {
+    ["file"]=>
+    string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_a.php"
+    ["line"]=>
+    int(16)
+    ["function"]=>
+    string(10) "other_test"
+    ["class"]=>
+    string(1) "A"
+    ["type"]=>
+    string(2) "::"
+    ["args"]=>
+    array(1) {
+      [0]=>
+      &string(12) "friend class"
+    }
+  }
+}

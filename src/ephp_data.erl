@@ -181,10 +181,10 @@ to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
 
 to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
     try
-        Call = #call{name = <<"__toString">>},
+        Call = #call{name = <<"__toString">>, line = Line},
         ephp_context:call_method(Context, RegInstance, Call)
     catch
-        throw:{error,eundefmethod,_,_,{<<"__toString">>}} ->
+        throw:{error, eundefmethod, _, _, {<<"__toString">>}} ->
             Data = {CN},
             Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
             ephp_error:error(Error)

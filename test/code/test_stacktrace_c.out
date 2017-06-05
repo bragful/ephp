@@ -1,0 +1,61 @@
+
+Hello: friend
+
+Hello: friend
+
+Hello: friend
+array(3) {
+  [0]=>
+  array(4) {
+    ["file"]=>
+    string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_c.php"
+    ["line"]=>
+    int(6)
+    ["function"]=>
+    string(6) "a_test"
+    ["args"]=>
+    array(1) {
+      [0]=>
+      &string(6) "friend"
+    }
+  }
+  [1]=>
+  array(6) {
+    ["file"]=>
+    string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_c.php"
+    ["line"]=>
+    int(11)
+    ["function"]=>
+    string(12) "another_test"
+    ["class"]=>
+    string(1) "A"
+    ["type"]=>
+    string(2) "::"
+    ["args"]=>
+    array(1) {
+      [0]=>
+      &string(6) "friend"
+    }
+  }
+  [2]=>
+  array(7) {
+    ["file"]=>
+    string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_c.php"
+    ["line"]=>
+    int(21)
+    ["function"]=>
+    string(16) "and_another_test"
+    ["class"]=>
+    string(1) "A"
+    ["object"]=>
+    object(A)#1 (0) {
+    }
+    ["type"]=>
+    string(2) "->"
+    ["args"]=>
+    array(1) {
+      [0]=>
+      &string(6) "friend"
+    }
+  }
+}

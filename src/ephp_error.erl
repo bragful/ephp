@@ -250,7 +250,7 @@ get_level(?E_COMPILE_WARNING) -> <<"Warning">>;
 get_level(?E_USER_ERROR) -> <<"Error">>;
 get_level(?E_USER_WARNING) -> <<"Warning">>;
 get_level(?E_USER_NOTICE) -> <<"Notice">>;
-get_level(?E_STRICT) -> <<"Strict">>;
+get_level(?E_STRICT) -> <<"Strict Standards">>;
 get_level(?E_RECOVERABLE_ERROR) -> <<"Catchable fatal error">>;
 get_level(?E_DEPRECATED) -> <<"Deprecated">>;
 get_level(?E_USER_DEPRECATED) -> <<"Deprecated">>;

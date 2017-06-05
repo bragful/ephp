@@ -55,18 +55,20 @@ get_funcs(Ref) ->
 -spec shutdown(context()) -> undefined.
 
 shutdown(Context) ->
+    Line = {{line,0},{column,0}},
     Result = lists:foldl(fun
         (FuncName, false) ->
-            Shutdown = #call{name = FuncName},
+            Shutdown = #call{name = FuncName, line = Line},
             ephp_interpr:run(Context, #eval{statements=[Shutdown]});
         (_, Break) ->
             Break
     end, false, ephp_context:get_shutdown_funcs(Context)),
     if Result =:= false ->
+        Globals = ephp_context:get(Context, #variable{name = <<"GLOBALS">>}),
         ephp_array:fold(fun(K,V,Acc) ->
-            ephp_lib_vars:unset(Context, undefined, {#variable{name=K},V}),
+            ephp_lib_vars:unset(Context, Line, {#variable{name=K},V}),
             Acc
-        end, undefined, ephp_context:get(Context, #variable{name = <<"GLOBALS">>}));
+        end, undefined, Globals);
     true ->
         undefined
     end.

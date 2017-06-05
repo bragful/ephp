@@ -39,6 +39,7 @@
     destroy_all/1,
 
     get_state/1,
+    get_vars/1,
 
     get_active_file/1,
     set_active_file/2,
@@ -97,6 +98,7 @@ start_link() ->
     {ok, Class} = ephp_class:start_link(),
     {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, Errors} = ephp_error:start_link(),
+    {ok, _} = ephp_stack:start_link(Ref),
     start_link(#state{
         ref = Ref,
         output = Output,
@@ -178,10 +180,14 @@ destroy_all(Context) ->
     ephp_class:destroy(State#state.class),
     ephp_vars:destroy(State#state.vars),
     ephp_shutdown:destroy(State#state.shutdown),
+    ephp_stack:destroy(Context),
     destroy(Context).
 
 get_state(Context) ->
     get(Context).
+
+get_vars(Context) ->
+    (get_state(Context))#state.vars.
 
 register_func(Context, PHPFunc, Module, Fun, PackArgs, VA)
         when is_atom(Module) andalso is_atom(Fun) ->
@@ -614,28 +620,38 @@ resolve(#array{elements=ArrayElements}, State) ->
     end, {ephp_array:new(),State}, ArrayElements),
     {Array, NState};
 
-resolve(#concat{texts=Texts, line=Line}, State) ->
+resolve(#concat{texts = Texts, line = Line}, State) ->
     resolve_txt(Texts, Line, State);
 
-resolve(#call{name=#function{args=RawFuncArgs,code=Code,use=Use},args=RawArgs},
-        #state{ref=Ref,vars=Vars,const=Const}=State) ->
+resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
+              args = RawArgs, line = Line},
+        #state{ref = Ref, vars = Vars, const = Const,
+               active_file = File,
+               active_class = Class} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
     {ok, NewVars} = ephp_vars:start_link(),
     {ok, SubContext} = start_mirror(NState#state{
-        vars=NewVars,
-        global=Ref,
+        vars = NewVars,
+        global = Ref,
         active_fun = ?FUNC_ANON_NAME,
         active_fun_args = length(RawArgs)}),
     ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs),
     lists:foreach(fun
-        ({#variable{}=K,V}) ->
+        ({#variable{} = K,V}) ->
             ephp_vars:set(NewVars, K, V);
-        ({#var_ref{pid=NVars, ref=V},N}) ->
+        ({#var_ref{pid = NVars, ref = V},N}) ->
             ephp_vars:ref(NewVars, N, NVars, V)
     end, Use),
     register_superglobals(Ref, NewVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, ?FUNC_ANON_NAME),
+    Refs = lists:map(fun
+        (#variable{} = Var) ->
+            #var_ref{pid = NewVars, ref = Var};
+        (#var_ref{} = VarRef) ->
+            VarRef
+    end, FuncArgs),
+    ephp_stack:push(Ref, File, Line, ?FUNC_ANON_NAME, Refs, Class, undefined),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
         _ -> undefined
@@ -643,14 +659,16 @@ resolve(#call{name=#function{args=RawFuncArgs,code=Code,use=Use},args=RawArgs},
     destroy(SubContext),
     ephp_vars:destroy(NewVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
+    ephp_stack:pop(Ref),
     {Value, NState};
 
-resolve(#call{name=Fun}=Call, State) when not is_binary(Fun) ->
+resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
-    resolve(Call#call{name=Name}, NewState);
+    resolve(Call#call{name = Name}, NewState);
 
 resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
-        #state{ref = Ref, vars = Vars, funcs = Funcs, const = Const} = State) ->
+        #state{ref = Ref, vars = Vars, funcs = Funcs, const = Const,
+               active_file = File} = State) ->
     GlobalRef = case State#state.global of
         undefined -> Ref;
         GR -> GR
@@ -706,6 +724,13 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs),
         register_superglobals(GlobalRef, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
+        Refs = lists:map(fun
+            (#variable{} = Var) ->
+                #var_ref{pid = NewVars, ref = Var};
+            (#var_ref{} = VarRef) ->
+                VarRef
+        end, FuncArgs),
+        ephp_stack:push(Ref, File, Index, Fun, Refs, undefined, undefined),
         Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
             {return, V} -> V;
             _ -> undefined
@@ -714,22 +739,23 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         destroy(SubContext),
         ephp_vars:destroy(NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
+        ephp_stack:pop(Ref),
         {Value, NState};
     error ->
         ephp_error:error({error, eundefun, Index, ?E_ERROR, {Fun}})
     end;
 
-resolve(#call{type=class,class=Name,line=Index}=Call,
-        #state{class=Classes}=State) ->
+resolve(#call{type = class, class = Name, line = Index} = Call,
+        #state{class = Classes} = State) ->
     case ephp_class:get(Classes, Name) of
-    {ok, Class} ->
-        run_method(Class, Call, State);
-    {error, enoexist} ->
-        ephp_error:error({error, eundefclass, Index, ?E_ERROR, {Name}})
+        {ok, Class} ->
+            run_method(Class, Call, State);
+        {error, enoexist} ->
+            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {Name}})
     end;
 
-resolve({object,Idx,Line}, State) ->
-    {{object,Idx,Line}, State};
+resolve({object, Idx, Line}, State) ->
+    {{object, Idx, Line}, State};
 
 resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
         #state{ref = LocalCtx, class = Classes, global = GlobalCtx} = State) ->
@@ -811,22 +837,23 @@ unset(Ctx, {#array{elements = Elements}, Array}) ->
     Defs = [ E || #array_element{element = E} <- Elements ],
     DefVals = lists:zip(Defs, Values),
     lists:foreach(fun(X) -> unset(Ctx, X) end, DefVals);
-unset(Ctx, {#cast{type = object}, #reg_instance{class=Class}=Instance}) ->
+unset(Ctx, {#cast{type = object, line = Line},
+      #reg_instance{class = Class} = Instance}) ->
     case ephp_class:get_destructor(Class) of
         undefined ->
             ok;
         _ ->
-            Call = #call{name = <<"__destruct">>},
+            Call = #call{name = <<"__destruct">>, line = Line},
             call_method(Ctx, Instance, Call),
             % FIXME: add unset for every attribute inside of the instance
             ok
     end;
-unset(Ctx, {#instance{}, #reg_instance{class=Class}=Instance}) ->
+unset(Ctx, {#instance{line = Line}, #reg_instance{class = Class} = Instance}) ->
     case ephp_class:get_destructor(Class) of
         undefined ->
             ok;
         _ ->
-            Call = #call{name = <<"__destruct">>},
+            Call = #call{name = <<"__destruct">>, line = Line},
             call_method(Ctx, Instance, Call),
             % FIXME: add unset for every attribute inside of the instance
             ok
@@ -989,14 +1016,24 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     Class = case RegInstance of
         #reg_instance{class=C} ->
             ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance),
+            Object = RegInstance,
             C;
         #class{}=C ->
+            Object = undefined,
             C
     end,
     #class{name = ClassName, file = ClassFile} = Class,
     #class_method{name=MethodName, args=RawMethodArgs} = ClassMethod =
         ephp_class:get_method(Class, Call#call.name),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
+    if
+        ClassMethod#class_method.type =/= static andalso Object =:= undefined ->
+            ephp_error:handle_error(Ref, {error, enostatic, Call#call.line,
+                                          State#state.active_file, ?E_STRICT,
+                                          {C#class.name, MethodName}});
+        true ->
+            ok
+    end,
     case ClassMethod#class_method.code_type of
         php ->
             ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs),
@@ -1012,6 +1049,14 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
                 {<<"__FUNCTION__">>, MethodName},
                 {<<"__CLASS__">>, ClassName}
             ]),
+            Refs = lists:map(fun
+                (#variable{} = Var) ->
+                    #var_ref{pid = NewVars, ref = Var};
+                (#var_ref{} = VarRef) ->
+                    VarRef
+            end, MethodArgs),
+            ephp_stack:push(Ref, NState#state.active_file, Call#call.line,
+                            MethodName, Refs, ClassName, Object),
             Code = ClassMethod#class_method.code,
             Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
                 {return, V} -> V;
@@ -1024,6 +1069,7 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
                 {<<"__FUNCTION__">>, State#state.active_fun},
                 {<<"__CLASS__">>, State#state.active_class}
             ]),
+            ephp_stack:pop(Ref),
             {Value, NState};
         builtin ->
             {M, F} = ClassMethod#class_method.builtin,
@@ -1054,68 +1100,71 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
             end
     end.
 
-resolve_var(#variable{type=normal,idx=[]}=Var, State) ->
+resolve_var(#variable{type = normal, idx = []} = Var, State) ->
     {ephp_vars:get(State#state.vars, Var, State#state.ref), State};
 
-resolve_var(#variable{name = <<"this">>, idx=[{object,#call{}=Call,_}]}=Var, State) ->
-    InstanceVar = Var#variable{idx=[]},
+resolve_var(#variable{name = <<"this">>,
+                      idx = [{object, #call{} = Call, _}]} = Var,
+            State) ->
+    InstanceVar = Var#variable{idx = []},
     Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
-    run_method(Instance, Call#call{type=object}, State);
+    run_method(Instance, Call#call{type = object}, State);
 
-resolve_var(#variable{idx=[{object,#call{}=Call,_}]}=Var, State) ->
-    InstanceVar = Var#variable{idx=[]},
-    #reg_instance{class=Class} = Instance =
+resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
+    InstanceVar = Var#variable{idx = []},
+    #reg_instance{class = Class} = Instance =
         ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     case ephp_class:get_method(Class, Call#call.name) of
-        #class_method{access=public} ->
+        #class_method{access = public} ->
             run_method(Instance, Call#call{type=object}, State);
-        #class_method{access=protected} ->
+        #class_method{access = protected} ->
             Data = {Class#class.name, Call#call.name, <<"protected">>},
             ephp_error:error({error, ecallprivate, Var#variable.line,
-                ?E_ERROR, Data});
-        #class_method{access=private} ->
+                              ?E_ERROR, Data});
+        #class_method{access = private} ->
             Data = {Class#class.name, Call#call.name, <<"private">>},
             ephp_error:error({error, ecallprivate, Var#variable.line,
-                ?E_ERROR, Data})
+                              ?E_ERROR, Data})
     end;
 
-resolve_var(#variable{idx=[{object,#variable{}=SubVar,_Line}|Idx]}=Var,State) ->
-    #reg_instance{class=Class, context=Context} =
-        ephp_vars:get(State#state.vars, Var#variable{idx=[]}, State#state.ref),
+resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
+            #state{ref = Ref, vars = Vars} = State) ->
+    #reg_instance{class = Class, context = Context} =
+        ephp_vars:get(Vars, Var#variable{idx = []}, Ref),
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} =
-        resolve_indexes(#variable{name=SubVal,idx=Idx}, State2),
+        resolve_indexes(#variable{name = SubVal, idx = Idx}, State2),
     case ephp_class:get_attribute(Class, SubVal) of
-        #class_attr{access=public} ->
+        #class_attr{access = public} ->
             {ephp_context:get(Context, NewVar), State3};
-        #class_attr{access=protected} ->
+        #class_attr{access = protected} ->
             Data = {Class#class.name, SubVal, <<"protected">>},
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
-                ?E_ERROR, Data});
-        #class_attr{access=private} ->
+                              ?E_ERROR, Data});
+        #class_attr{access = private} ->
             Data = {Class#class.name, SubVal, <<"private">>},
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
-                ?E_ERROR, Data})
+                              ?E_ERROR, Data})
     end;
 
-resolve_var(#variable{idx=[{object,VarName,_Line}|Idx]}=Var, State)
-        when is_binary(VarName) ->
-    #reg_instance{class=Class, context=Context} =
-        ephp_vars:get(State#state.vars, Var#variable{idx=[]}, State#state.ref),
+resolve_var(#variable{idx = [{object, VarName, _Line}|Idx]} = Var,
+            #state{ref = Ref, vars = Vars} = State) when is_binary(VarName) ->
+    #reg_instance{class = Class, context = Context} =
+        ephp_vars:get(Vars, Var#variable{idx = []}, Ref),
     {NewVar, NewState} =
-        resolve_indexes(#variable{name=VarName,idx=Idx}, State),
+        resolve_indexes(#variable{name = VarName, idx = Idx}, State),
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
     case ClassAttr of
-        #class_attr{access=public} ->
+        #class_attr{access = public} ->
             {ephp_context:get(Context, NewVar), NewState};
-        #class_attr{access=protected} ->
+        #class_attr{access = protected} ->
             Data = {Class#class.name, NewVar#variable.name, <<"protected">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
-                ?E_ERROR, Data});
-        #class_attr{access=private} ->
+                              ?E_ERROR, Data});
+        #class_attr{access = private} ->
             Data = {Class#class.name, NewVar#variable.name, <<"private">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
-                ?E_ERROR, Data});
+                              ?E_ERROR, Data});
         undefined -> % dynamic attribute, not defined
             {ephp_context:get(Context, NewVar), NewState}
     end;

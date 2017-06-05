@@ -305,6 +305,18 @@
     line :: line()
 }).
 
+-record(stack_trace, {
+    function :: binary(),
+    line :: integer() | undefined,
+    file :: binary(),
+    class :: binary() | undefined,
+    object :: reg_instance(),
+    type :: binary() | undefined, %% ::, -> or undefined
+    args :: [mixed()]
+}).
+
+-type stack_trace() :: #stack_trace{}.
+
 -record(ref, {
     var :: variable(),
     line :: line()

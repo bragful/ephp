@@ -53,6 +53,10 @@ handle_error(eredefinedclass, _Level, {ClassName}) ->
 handle_error(eassignthis, _Level, {}) ->
     "Cannot re-assign $this";
 
+handle_error(enostatic, _Level, {Class, Method}) ->
+    io_lib:format("Non-static method ~s::~s() should not be called statically",
+                  [Class, Method]);
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
