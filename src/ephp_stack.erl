@@ -7,7 +7,7 @@
 -export([
     start_link/1,
     destroy/1,
-    size/1,
+    get/1,
     get_array/1,
     push/7,
     pop/1
@@ -49,8 +49,8 @@ pop(Ref) ->
     erlang:put(get_id(Ref), Stack),
     Head.
 
-size(Ref) ->
-    length(erlang:get(get_id(Ref))).
+get(Ref) ->
+    erlang:get(get_id(Ref)).
 
 get_array(Ref) ->
     lists:foldl(fun(Stack, Array) ->
