@@ -17,7 +17,7 @@
     exception_to_string/3
 ]).
 
--import(ephp_class, [class_attr/1, class_attr/2, class_attr/3]).
+-import(ephp_class, [class_attr/2, class_attr/3]).
 
 get_class() ->
     #class{
