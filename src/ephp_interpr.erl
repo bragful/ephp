@@ -32,6 +32,7 @@ process(Context, Statements, false) ->
         (_Statement, Return) ->
             Return
     end, false, Statements),
+    % TODO: handle exception if {throw,_} in Value
     {ok, Value};
 
 process(Context, Statements, true) ->
@@ -223,11 +224,15 @@ run_depth(_Context, break, false, _Cover) ->
 run_depth(_Context, continue, false, _Cover) ->
     continue;
 
-run_depth(Context, {return, Value, Line}, false, Cover) ->
+run_depth(Context, #throw{value = Value, line = Line}, false, Cover) ->
+    ok = ephp_cover:store(Cover, throw, Context, Line),
+    {throw, ephp_context:solve(Context, Value)};
+
+run_depth(Context, #return{value = Value, line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, return, Context, Line),
     {return, ephp_context:solve(Context, Value)};
 
-run_depth(_Context, {return,Value}, false, _Cover) ->
+run_depth(_Context, {return, Value}, false, _Cover) ->
     {return, Value};
 
 run_depth(_Context, {break, N}, false, _Cover) ->

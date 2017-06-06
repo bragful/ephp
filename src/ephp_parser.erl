@@ -77,7 +77,16 @@ code(<<R:8,E:8,T:8,U:8,R:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest0, Pos0, Return} = expression(<<SP:8,Rest/binary>>, add_pos(Pos,6), []),
     case Return of
         [] -> code(Rest0, Pos0, [add_line(#return{}, Pos)|Parsed]);
-        _ -> code(Rest0, Pos0, [add_line(#return{value=Return}, Pos)|Parsed])
+        _ -> code(Rest0, Pos0, [add_line(#return{value = Return}, Pos)|Parsed])
+    end;
+code(<<T:8,H:8,R:8,O:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(T,$T,$t) andalso ?OR(H,$H,$h) andalso ?OR(R,$R,$r) andalso
+        ?OR(O,$O,$o) andalso ?OR(W,$W,$w) andalso
+        (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
+    {Rest0, Pos0, Throw} = expression(<<SP:8,Rest/binary>>, add_pos(Pos,5), []),
+    case Throw of
+        [] -> throw_error(eparse, Pos0, Rest);
+        _ -> code(Rest0, Pos0, [add_line(#throw{value = Throw}, Pos)|Parsed])
     end;
 code(<<"@",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, RParsed0} = code(Rest, add_pos(Pos,1), []),
@@ -783,7 +792,8 @@ add_line(#class_attr{}=CA, {_,R,C}) ->
 add_line({object, Expr}, {_,R,C}) -> {object, Expr, {{line,R},{column,C}}};
 add_line({class, Expr}, {_,R,C}) -> {class, Expr, {{line,R},{column,C}}};
 add_line(#instance{}=I, {_,R,C}) -> I#instance{line={{line,R},{column,C}}};
-add_line(#cast{}=Cs, {_,R,C}) -> Cs#cast{line={{line,R},{column,C}}}.
+add_line(#cast{}=Cs, {_,R,C}) -> Cs#cast{line={{line,R},{column,C}}};
+add_line(#throw{}=T, {_,R,C}) -> T#throw{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));

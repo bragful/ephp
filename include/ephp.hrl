@@ -204,6 +204,13 @@
 
 -type return() :: #return{}.
 
+-record(throw, {
+    value :: mixed(),
+    line :: line()
+}).
+
+-type throw() :: #throw{}.
+
 -record(global, {
     vars :: [variable()],
     line :: line()
