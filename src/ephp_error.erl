@@ -139,7 +139,7 @@ get_message(Modules, text, Type, Line, File, Level, Args) ->
 get_message(Modules, html, Type, Line, File, Level, Args) ->
     Message = get_message(Modules, Type, Level, Args),
     io_lib:format(
-        "<br/>~n<strong>~s</strong>: ~s in ~s on line ~p<br/>~n",
+        "<br/>~n<b>~s</b>: ~s in <b>~s</b> on line <b>~p</b><br/>~n",
         [get_level(Level), Message, File, Line]).
 
 -spec get_message([module()], error_type(), pos_integer(), term()) -> string().
