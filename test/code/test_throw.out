@@ -1,0 +1,7 @@
+Launching...
+
+Fatal error: Uncaught exception 'Exception' in {{CWD}}/test/code/test_throw.php:5
+Stack trace:
+#0 {{CWD}}/test/code/test_throw.php(8): break_down(Array)
+#1 {main}
+  thrown in {{CWD}}/test/code/test_throw.php on line 5

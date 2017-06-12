@@ -26,25 +26,45 @@ process(_Context, [], _Cover) ->
     {ok, <<>>};
 
 process(Context, Statements, false) ->
-    Value = lists:foldl(fun
-        (Statement, false) ->
-            run(Context, Statement, false);
-        (_Statement, Return) ->
-            Return
-    end, false, Statements),
-    % TODO: handle exception if {throw,_} in Value
+    Value = try
+        lists:foldl(fun
+            (Statement, false) ->
+                run(Context, Statement, false);
+            (_Statement, Return) ->
+                Return
+        end, false, Statements)
+    catch
+        throw:Exception when ?IS_OBJECT(Exception) ->
+            check_exception(Context, Exception),
+            false
+    end,
     {ok, Value};
 
 process(Context, Statements, true) ->
     ok = ephp_cover:start_link(),
-    Value = lists:foldl(fun
-        (Statement, false) ->
-            run(Context, Statement, true);
-        (_Statement, Return) ->
-            Return
-    end, false, Statements),
+    Value = try
+        lists:foldl(fun
+            (Statement, false) ->
+                run(Context, Statement, true);
+            (_Statement, Return) ->
+                Return
+        end, false, Statements)
+    catch
+        throw:Exception when ?IS_OBJECT(Exception) ->
+            check_exception(Context, Exception),
+            false
+    end,
     {ok, Value}.
 
+-spec check_exception(context(), reg_instance()) -> ok.
+
+check_exception(Context, Exception) ->
+    L = ephp_class_exception:exception_get_line(Context, Exception, undefined),
+    Line = {{line,L},{column,0}},
+    File = ephp_class_exception:exception_get_file(Context, Exception, Line),
+    Data = {File, L, Exception},
+    Error = {error, euncaught, Line, File, ?E_ERROR, Data},
+    ephp_error:handle_error(Context, Error).
 
 -type break() :: break | {break, pos_integer()}.
 
@@ -226,7 +246,7 @@ run_depth(_Context, continue, false, _Cover) ->
 
 run_depth(Context, #throw{value = Value, line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, throw, Context, Line),
-    {throw, ephp_context:solve(Context, Value)};
+    throw(ephp_context:solve(Context, Value));
 
 run_depth(Context, #return{value = Value, line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, return, Context, Line),

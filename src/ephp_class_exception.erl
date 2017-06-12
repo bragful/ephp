@@ -6,6 +6,7 @@
 
 -export([
     get_class/0,
+    get_trace/1,
     exception_construct/4,
     exception_get_message/3,
     exception_get_code/3,
@@ -110,14 +111,19 @@ get_class() ->
         ]
     }.
 
+get_trace(#reg_instance{context = ClassCtx}) ->
+    ephp_context:get(ClassCtx, #variable{name = <<"trace">>}).
+
 exception_construct(Ctx, #reg_instance{context = ClassCtx}, {{line,Line},_},
                     [{_, Message}, {_, Code}, {_, Previous}]) ->
     File = ephp_context:get_active_file(Ctx),
+    Traces = ephp_stack:get_array(Ctx),
     ephp_context:set(ClassCtx, #variable{name = <<"message">>}, Message),
     ephp_context:set(ClassCtx, #variable{name = <<"code">>}, Code),
     ephp_context:set(ClassCtx, #variable{name = <<"previous">>}, Previous),
     ephp_context:set(ClassCtx, #variable{name = <<"file">>}, File),
     ephp_context:set(ClassCtx, #variable{name = <<"line">>}, Line),
+    ephp_context:set(ClassCtx, #variable{name = <<"trace">>}, Traces),
     Message.
 
 exception_get_message(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->

@@ -229,8 +229,31 @@ get_message(eisnot, {Function, VarName, Type}) ->
 get_message(eoffset, {Function}) ->
     io_lib:format("~s(): Offset not contained in string", [Function]);
 
+get_message(euncaught, {File, Line, Exception}) ->
+    StackTrace = ephp_class_exception:get_trace(Exception),
+    Traces = lists:map(fun trace_to_str/1, ephp_array:to_list(StackTrace)),
+    io_lib:format(
+        "Uncaught exception '~s' in ~s:~p~n"
+        "Stack trace:~n~s#~p {main}~n  thrown",
+        [(Exception#reg_instance.class)#class.name, File, Line, Traces,
+         ephp_array:size(StackTrace)]);
+
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
+
+-spec trace_to_str({pos_integer(), ephp_array()}) -> iolist().
+
+trace_to_str({I, Array}) ->
+    {ok, FuncName} = ephp_array:find(<<"function">>, Array),
+    {ok, Line} = ephp_array:find(<<"line">>, Array),
+    {ok, File} = ephp_array:find(<<"file">>, Array),
+    {ok, RawArgList} = ephp_array:find(<<"args">>, Array),
+    ArgStrList = lists:map(fun({_, #var_ref{pid = Vars, ref = Var}}) ->
+        binary_to_list(ephp_data:to_bin(ephp_vars:get(Vars, Var)))
+    end, ephp_array:to_list(RawArgList)),
+    Args = string:join(ArgStrList, ","),
+    io_lib:format(
+        "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args]).
 
 -spec get_return(error_type()) -> term().
 
