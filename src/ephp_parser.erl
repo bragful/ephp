@@ -63,7 +63,7 @@ code(<<>>, Pos, Parsed) ->
 code(<<B:8,R:8,E:8,A:8,K:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(B,$B,$b) andalso ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso
         ?OR(A,$A,$a) andalso ?OR(K,$K,$k) andalso
-        (not (?IS_SPACE(SP) orelse ?IS_NUMBER(SP))) ->
+        (not (?IS_SPACE(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     code(<<SP:8,Rest/binary>>, add_pos(Pos,5), [break|Parsed]);
 code(<<C:8,O:8,N:8,T:8,I:8,N:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(C,$C,$c) andalso ?OR(O,$O,$o) andalso ?OR(N,$N,$n) andalso
