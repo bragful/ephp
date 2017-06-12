@@ -238,6 +238,9 @@ get_message(euncaught, {File, Line, Exception}) ->
         [(Exception#reg_instance.class)#class.name, File, Line, Traces,
          ephp_array:size(StackTrace)]);
 
+get_message(enoobjectexception, {}) ->
+    io_lib:format("Can only throw objects", []);
+
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
 
