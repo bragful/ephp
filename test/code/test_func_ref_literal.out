@@ -1,0 +1,2 @@
+
+Fatal error: Only variables can be passed by reference in {{CWD}}/test/code/test_func_ref_literal.php on line 7
