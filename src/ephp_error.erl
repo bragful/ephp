@@ -229,6 +229,9 @@ get_message(eisnot, {Function, VarName, Type}) ->
 get_message(eoffset, {Function}) ->
     io_lib:format("~s(): Offset not contained in string", [Function]);
 
+get_message(enorefvar, {}) ->
+    io_lib:format("Only variables can be passed by reference", []); 
+
 get_message(euncaught, {File, Line, Exception}) ->
     StackTrace = ephp_class_exception:get_trace(Exception),
     Traces = lists:map(fun trace_to_str/1, ephp_array:to_list(StackTrace)),
