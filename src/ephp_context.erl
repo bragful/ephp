@@ -727,6 +727,8 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         Refs = lists:map(fun
             (#variable{} = Var) ->
                 #var_ref{pid = NewVars, ref = Var};
+            (#ref{var = Var}) ->
+                #var_ref{pid = NewVars, ref = Var};
             (#var_ref{} = VarRef) ->
                 VarRef
         end, FuncArgs),
