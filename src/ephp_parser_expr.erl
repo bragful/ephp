@@ -11,7 +11,7 @@
     add_pos/2, new_line/1, copy_level/2, add_line/2, remove_spaces/2,
     throw_error/3,
 
-    array_def_level/1, code_statement_level/1,
+    array_def_level/1, code_statement_level/1, arg_level/1,
 
     variable/3, comment_line/3, comment_block/3, constant/3
 ]).
@@ -226,17 +226,16 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest1, Pos1, ObjName} = funct_name(Rest0, Pos0, []),
     case remove_spaces(Rest1, Pos1) of
         {<<"(",Rest2/binary>>, Pos2} ->
-            {Rest3, Pos3, Args} = funct_args(Rest2, add_pos(Pos2, 1), []),
-            Instance = add_line(#instance{
-                name=ObjName,
-                args=Args
-            }, Pos);
-        {Rest3, Pos3} ->
-            Instance = add_line(#instance{
-                name=ObjName
-            }, Pos)
+            NewPos = arg_level(add_pos(Pos2, 1)),
+            {<<")",Rest3/binary>>, Pos3, Args} = expression(Rest2, NewPos, []),
+            Pos4 = add_pos(Pos3, 1),
+            Instance = add_line(#instance{name = ObjName,
+                                          args = Args},
+                                Pos);
+        {Rest3, Pos4} ->
+            Instance = add_line(#instance{name = ObjName}, Pos)
     end,
-    expression(Rest3, copy_level(Pos, add_pos(Pos3,1)), add_op(Instance,Parsed));
+    expression(Rest3, copy_level(Pos, Pos4), add_op(Instance,Parsed));
 % FINAL -enclosed-
 expression(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, [Exp]) ->
     {Rest, add_pos(Pos,1), add_op('end', [Exp])};
