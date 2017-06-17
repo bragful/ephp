@@ -246,7 +246,12 @@ run_depth(_Context, continue, false, _Cover) ->
 
 run_depth(Context, #throw{value = Value, line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, throw, Context, Line),
-    throw(ephp_context:solve(Context, Value));
+    case ephp_context:solve(Context, Value) of
+        Exception when ?IS_OBJECT(Exception) ->
+            throw(ephp_context:solve(Context, Value));
+        _ ->
+            ephp_error:error({error, enoobjectexception, Line, ?E_ERROR, {}})
+    end;
 
 run_depth(Context, #return{value = Value, line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, return, Context, Line),

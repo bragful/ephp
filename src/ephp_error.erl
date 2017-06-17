@@ -297,6 +297,9 @@ get_message(eisnot, {Function, VarName, Type}) ->
 get_message(eoffset, {Function}) ->
     io_lib:format("~s(): Offset not contained in string", [Function]);
 
+get_message(enorefvar, {}) ->
+    io_lib:format("Only variables can be passed by reference", []); 
+
 get_message(euncaught, {File, Line, Exception}) ->
     StackTrace = ephp_class_exception:get_trace(Exception),
     Traces = lists:map(fun trace_to_str/1, ephp_array:to_list(StackTrace)),
@@ -305,6 +308,9 @@ get_message(euncaught, {File, Line, Exception}) ->
         "Stack trace:~n~s#~p {main}~n  thrown",
         [(Exception#reg_instance.class)#class.name, File, Line, Traces,
          ephp_array:size(StackTrace)]);
+
+get_message(enoobjectexception, {}) ->
+    io_lib:format("Can only throw objects", []);
 
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
@@ -317,11 +323,22 @@ trace_to_str({I, Array}) ->
     {ok, File} = ephp_array:find(<<"file">>, Array),
     {ok, RawArgList} = ephp_array:find(<<"args">>, Array),
     ArgStrList = lists:map(fun({_, #var_ref{pid = Vars, ref = Var}}) ->
-        binary_to_list(ephp_data:to_bin(ephp_vars:get(Vars, Var)))
+        binary_to_list(to_output(ephp_vars:get(Vars, Var)))
     end, ephp_array:to_list(RawArgList)),
     Args = string:join(ArgStrList, ","),
     io_lib:format(
         "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args]).
+
+-spec to_output(mixed()) -> binary().
+
+to_output(Bin) when is_binary(Bin) ->
+    Bin2 = lists:foldl(fun
+        ($', Acc) -> <<Acc/binary, "\\'">>;
+        (C, Acc) -> <<Acc/binary, C:8>>
+    end, <<>>, binary_to_list(Bin)),
+    <<"'", Bin2/binary, "'">>;
+to_output(Mixed) ->
+    ephp_data:to_bin(Mixed).
 
 -spec get_return(error_type()) -> term().
 

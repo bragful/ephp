@@ -1,0 +1,7 @@
+hello World!
+
+Fatal error: Uncaught exception 'Exception' in {{CWD}}/test/code/test_throw_params.php:6
+Stack trace:
+#0 {{CWD}}/test/code/test_throw_params.php(10): hello_world('World!')
+#1 {main}
+  thrown in {{CWD}}/test/code/test_throw_params.php on line 6

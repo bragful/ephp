@@ -16,7 +16,7 @@
     isset/2,
     ref/4,
     del/2,
-    zip_args/4,
+    zip_args/5,
     destroy/1
 ]).
 
@@ -55,15 +55,17 @@ ref(Context, VarPath, VarsPID, RefVarPath) ->
 del(Context, VarPath) ->
     set(Context, VarPath, remove).
 
-zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs) ->
+zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, Line) ->
     lists:foldl(fun
-        (#ref{var=VarRef}, [{VarName,_}|RestArgs]) ->
+        (#ref{var = VarRef}, [{#variable{} = VarName,_}|RestArgs]) ->
             ref(VarsDst, VarRef, VarsSrc, VarName),
             RestArgs;
-        (FuncArg, [{_,ArgVal}|RestArgs]) ->
+        (#ref{}, _) ->
+            ephp_error:error({error, enorefvar, Line, ?E_ERROR, {}});
+        (FuncArg, [{_, ArgVal}|RestArgs]) ->
             set(VarsDst, FuncArg, ArgVal),
             RestArgs;
-        (#variable{default_value=Val}=FuncArg, []) when Val =/= undefined ->
+        (#variable{default_value = Val} = FuncArg, []) when Val =/= undefined ->
             set(VarsDst, FuncArg, Val),
             [];
         (_FuncArg, []) ->
