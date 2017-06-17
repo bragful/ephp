@@ -10,7 +10,9 @@
     init_const/0,
 
     debug_backtrace/3,
-    error_reporting/3
+    error_reporting/3,
+    set_error_handler/4,
+    restore_error_handler/2
 ]).
 
 -include("ephp.hrl").
@@ -22,6 +24,10 @@ init_func() -> [
         {args, {0, 2, undefined, [{integer, 1}, {integer, 0}]}},
         pack_args
     ]},
+    {set_error_handler, [
+        {args, {2, 3, undefined, [mixed, {integer, ?E_ALL bor ?E_STRICT}]}}
+    ]},
+    restore_error_handler,
     error_reporting
 ].
 
@@ -61,3 +67,19 @@ debug_backtrace(Context, _Line, [{_, _Flags}, {_, _Limit}]) ->
 
 error_reporting(Context, _Line, {_, ErrorLevel}) when is_integer(ErrorLevel) ->
     ephp_error:error_reporting(Context, ErrorLevel).
+
+-spec set_error_handler(context(), line(), var_value(), var_value()) -> mixed().
+
+set_error_handler(Context, _Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
+    case ephp_error:get_error_handler_func(Context) of
+        {OldErrorHandler, _} ->
+            OldErrorHandler;
+        undefined ->
+            OldErrorHandler = undefined
+    end,
+    ephp_error:set_error_handler_func(Context, ErrorHandler, ErrorLevel),
+    OldErrorHandler.
+
+restore_error_handler(Context, _Line) ->
+    ephp_error:remove_error_handler_func(Context),
+    true.

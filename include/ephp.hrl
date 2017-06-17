@@ -62,6 +62,7 @@
 -define(E_DEPRECATED, 8192).
 -define(E_USER_DEPRECATED, 16384).
 -define(E_ALL, 32767).
+-define(E_HANDLE_ERRORS, 2#011011100001010).
 
 -type error_level() :: pos_integer().
 
@@ -311,6 +312,8 @@
     code :: statements(),
     line :: line()
 }).
+
+-type callable() :: function_name() | ephp_array().
 
 -record(stack_trace, {
     function :: binary(),

@@ -10,6 +10,13 @@
     set_output_handler/2,
     add_message_handler/2,
 
+    set_exception_handler_func/2,
+    get_exception_handler_func/1,
+
+    set_error_handler_func/3,
+    get_error_handler_func/1,
+    remove_error_handler_func/1,
+
     run_quiet/2,
 
     error_reporting/2,
@@ -29,9 +36,11 @@
 -type error_type() :: atom().
 
 -record(state, {
-    handler = ?MODULE :: module(),
+    output_handler = ?MODULE :: module(),
+    error_handler :: {callable(), non_neg_integer()},
+    exception_handler :: callable(),
     silent = false :: boolean(),
-    level = ?E_ALL,
+    level = ?E_ALL :: non_neg_integer(),
     format = text :: error_format(),
     modules = [] :: [module()]
 }).
@@ -49,12 +58,48 @@ destroy(ErrorsId) ->
     erlang:erase(ErrorsId),
     ok.
 
--spec add_message_handler(ephp:context(), module()) -> ok.
+-spec add_message_handler(context(), module()) -> ok.
 
 add_message_handler(Context, Module) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     #state{modules = Modules} = State = erlang:get(ErrorsId),
     erlang:put(ErrorsId, State#state{modules = [Module|Modules]}),
+    ok.
+
+-spec set_exception_handler_func(context(), callable()) -> ok.
+
+set_exception_handler_func(Context, Callable) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{exception_handler = Callable}),
+    ok.
+
+-spec get_exception_handler_func(context()) -> callable() | undefined.
+
+get_exception_handler_func(Context) ->
+    ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
+    ErrorState#state.exception_handler.
+
+-spec set_error_handler_func(context(), callable(), non_neg_integer()) -> ok.
+
+set_error_handler_func(Context, Callable, ErrorLevel) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{error_handler = {Callable, ErrorLevel}}),
+    ok.
+
+-spec get_error_handler_func(context()) -> callable() | undefined.
+
+get_error_handler_func(Context) ->
+    ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
+    ErrorState#state.error_handler.
+
+-spec remove_error_handler_func(context()) -> ok.
+
+remove_error_handler_func(Context) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{error_handler = undefined}),
     ok.
 
 -spec set_error_format(context(), error_format()) -> ok.
@@ -83,22 +128,45 @@ error({error, Type, Index, Level, Data}) ->
     throw({error, Type, Index, Level, Data}).
 
 -spec handle_error(context(), {error, error_type(), line(), binary(),
-    error_level(), any()}) -> ok.
+                               error_level(), any()}) -> ok.
 
 handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
     #state{format = Format, modules = Modules} = ErrorState,
-    ErrorText = get_message(Modules, Format, Type, Line, File, Level, Data),
+    {SimpleErrText, ErrorText} =
+        get_message(Modules, Format, Type, Line, File, Level, Data),
     case ErrorState of
-        #state{silent=true} ->
+        #state{error_handler = {ErrHandler, CfgLevel}, output_handler = Module}
+                when (CfgLevel band Level) =/= 0
+                andalso (?E_HANDLE_ERRORS band Level) =/= 0  ->
+            case run(Context, ErrHandler, Level, SimpleErrText, File, Line) of
+                false ->
+                    Module:set_output(Context, iolist_to_binary(ErrorText));
+                _ ->
+                    ok
+            end;
+        #state{silent = true} ->
             ok;
-        #state{level=CfgLevel} when (CfgLevel band Level) =:= 0 ->
+        #state{level = CfgLevel} when (CfgLevel band Level) =:= 0 ->
             ok;
-        #state{handler=Module} ->
+        #state{output_handler = Module} ->
             Module:set_output(Context, iolist_to_binary(ErrorText))
     end,
     get_return(Type).
+
+-spec run(context(), callable(), integer(), string(), binary(), integer()) ->
+      boolean().
+
+run(Context, ErrHandler, Level, ErrorText, File, Line) ->
+    Args = [#int{int = Level}, #text{text = iolist_to_binary(ErrorText)},
+            #text{text = File}, #int{int = Line}],
+    Index = {{line,Line},{column,0}},
+    Call = #call{name = ErrHandler, args = Args, line = Index},
+    case ephp_context:solve(Context, Call) of
+        false -> false;
+        _ -> true
+    end.
 
 -spec set_output(context(), binary()) -> ok.
 
@@ -110,7 +178,7 @@ set_output(Context, Text) ->
 set_output_handler(Context, Module) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
-    erlang:put(ErrorsId, State#state{handler=Module}),
+    erlang:put(ErrorsId, State#state{output_handler = Module}),
     ok.
 
 -spec run_quiet(ephp:errors_id(), function()) -> ok.
@@ -128,19 +196,19 @@ run_quiet(Errors, Fun) ->
 
 -spec get_message([module()], error_format(), error_type(),
                   pos_integer() | undefined, binary(), binary(),
-                  term()) -> string().
+                  term()) -> {string(), string()}.
 
 get_message(Modules, text, Type, Line, File, Level, Args) ->
     Message = get_message(Modules, Type, Level, Args),
-    io_lib:format(
+    {Message, io_lib:format(
         "~n~s: ~s in ~s on line ~p~n",
-        [get_level(Level), Message, File, Line]);
+        [get_level(Level), Message, File, Line])};
 
 get_message(Modules, html, Type, Line, File, Level, Args) ->
     Message = get_message(Modules, Type, Level, Args),
-    io_lib:format(
+    {Message, io_lib:format(
         "<br/>~n<b>~s</b>: ~s in <b>~s</b> on line <b>~p</b><br/>~n",
-        [get_level(Level), Message, File, Line]).
+        [get_level(Level), Message, File, Line])}.
 
 -spec get_message([module()], error_type(), pos_integer(), term()) -> string().
 

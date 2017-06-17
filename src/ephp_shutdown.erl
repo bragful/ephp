@@ -35,19 +35,19 @@ destroy(Ref) ->
     erlang:erase(Ref),
     ok.
 
--spec register_func(reference(), function_name()) -> ok.
+-spec register_func(reference(), callable()) -> ok.
 
 register_func(Ref, FuncName) ->
     erlang:put(Ref, erlang:get(Ref) ++ [FuncName]),
     ok.
 
--spec unregister_func(reference(), function_name()) -> ok.
+-spec unregister_func(reference(), callable()) -> ok.
 
 unregister_func(Ref, FuncName) ->
     erlang:put(Ref, erlang:get(Ref) -- [FuncName]),
     ok.
 
--spec get_funcs(reference()) -> [function_name()].
+-spec get_funcs(reference()) -> [callable()].
 
 get_funcs(Ref) ->
     erlang:get(Ref).

@@ -1,0 +1,8 @@
+test_error_handler.php:14 [2] sqrt() expects parameter 1 to be double, string given
+-----
+test_error_handler.php:16 [2] sqrt() expects parameter 1 to be double, string given
+
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 16
+-----
+
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 21
