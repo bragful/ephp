@@ -10,5 +10,8 @@ function handleFatalPhpError() {
       echo "Can do custom output and/or logging for fatal error here...\n";
    }
    var_dump($last_error);
+   echo "cleaning...\n";
+   error_clear_last();
+   var_dump(error_get_last());
    echo "Finish\n";
 }

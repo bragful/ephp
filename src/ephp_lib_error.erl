@@ -13,7 +13,8 @@
     error_reporting/3,
     set_error_handler/4,
     restore_error_handler/2,
-    error_get_last/2
+    error_get_last/2,
+    error_clear_last/2
 ]).
 
 -include("ephp.hrl").
@@ -30,6 +31,7 @@ init_func() -> [
     ]},
     restore_error_handler,
     error_get_last,
+    error_clear_last,
     error_reporting
 ].
 
@@ -92,3 +94,9 @@ restore_error_handler(Context, _Line) ->
 
 error_get_last(Context, _Line) ->
     ephp_error:get_last(Context).
+
+-spec error_clear_last(context(), line()) -> undefined.
+
+error_clear_last(Context, _Line) ->
+    ephp_error:clear_last(Context),
+    undefined.

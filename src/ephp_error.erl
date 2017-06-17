@@ -18,6 +18,7 @@
     remove_error_handler_func/1,
 
     get_last/1,
+    clear_last/1,
 
     run_quiet/2,
 
@@ -119,6 +120,14 @@ get_last(Context) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
     State#state.last_error.
+
+-spec clear_last(context()) -> ok.
+
+clear_last(Context) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{last_error = undefined}),
+    ok.
 
 -spec error_reporting(context(), integer()) -> integer().
 
