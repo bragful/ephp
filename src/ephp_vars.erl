@@ -115,7 +115,16 @@ search(#variable{name = <<"GLOBALS">>, idx=[]}, Vars, _Context) ->
 search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars, _Context) ->
     search(#variable{name=Root, idx=Idx}, Vars, undefined);
 
-search(#variable{name=Root, idx=[], line=Line}, Vars, Context) ->
+search(#variable{idx = []}, undefined, undefined) ->
+    undefined;
+
+search(#variable{name = Root, idx = [], line = Line}, undefined, Context) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context,
+        {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
+    undefined;
+
+search(#variable{name = Root, idx = [], line = Line}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
         error when Context =:= undefined ->
             undefined;

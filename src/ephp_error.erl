@@ -17,6 +17,8 @@
     get_error_handler_func/1,
     remove_error_handler_func/1,
 
+    get_last/1,
+
     run_quiet/2,
 
     error_reporting/2,
@@ -42,7 +44,8 @@
     silent = false :: boolean(),
     level = ?E_ALL :: non_neg_integer(),
     format = text :: error_format(),
-    modules = [] :: [module()]
+    modules = [] :: [module()],
+    last_error :: ephp_array() | undefined
 }).
 
 -spec start_link() -> {ok, ephp:errors_id()}.
@@ -110,6 +113,13 @@ set_error_format(Context, Format) ->
     erlang:put(ErrorsId, State#state{format = Format}),
     ok.
 
+-spec get_last(context()) -> ephp_array() | undefined.
+
+get_last(Context) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    State#state.last_error.
+
 -spec error_reporting(context(), integer()) -> integer().
 
 error_reporting(Context, Level) ->
@@ -132,15 +142,28 @@ error({error, Type, Index, Level, Data}) ->
 
 handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
-    ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
+    ErrorsId = ephp_context:get_errors_id(Context),
+    ErrorState = erlang:get(ErrorsId),
     #state{format = Format, modules = Modules} = ErrorState,
     {SimpleErrText, ErrorText} =
         get_message(Modules, Format, Type, Line, File, Level, Data),
+    if
+        Type =/= euncaught ->
+            LastError = ephp_array:from_list([
+                {<<"type">>, Level},
+                {<<"message">>, iolist_to_binary(SimpleErrText)},
+                {<<"file">>, File},
+                {<<"line">>, Line}
+            ]),
+            erlang:put(ErrorsId, ErrorState#state{last_error = LastError});
+        true ->
+            ok
+    end,
     case ErrorState of
         #state{error_handler = {ErrHandler, CfgLevel}, output_handler = Module}
                 when (CfgLevel band Level) =/= 0
-                andalso (?E_HANDLE_ERRORS band Level) =/= 0  ->
-            case run(Context, ErrHandler, Level, SimpleErrText, File, Line) of
+                andalso (?E_HANDLE_ERRORS band Level) =/= 0 ->
+            case run(Context, ErrHandler, Level, SimpleErrText, File, Index) of
                 false ->
                     Module:set_output(Context, iolist_to_binary(ErrorText));
                 _ ->
@@ -155,13 +178,12 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     end,
     get_return(Type).
 
--spec run(context(), callable(), integer(), string(), binary(), integer()) ->
+-spec run(context(), callable(), integer(), string(), binary(), line()) ->
       boolean().
 
-run(Context, ErrHandler, Level, ErrorText, File, Line) ->
+run(Context, ErrHandler, Level, ErrorText, File, Index) ->
     Args = [#int{int = Level}, #text{text = iolist_to_binary(ErrorText)},
-            #text{text = File}, #int{int = Line}],
-    Index = {{line,Line},{column,0}},
+            #text{text = File}, #int{int = get_line(Index)}],
     Call = #call{name = ErrHandler, args = Args, line = Index},
     case ephp_context:solve(Context, Call) of
         false -> false;
@@ -298,7 +320,7 @@ get_message(eoffset, {Function}) ->
     io_lib:format("~s(): Offset not contained in string", [Function]);
 
 get_message(enorefvar, {}) ->
-    io_lib:format("Only variables can be passed by reference", []); 
+    io_lib:format("Only variables can be passed by reference", []);
 
 get_message(euncaught, {File, Line, Exception}) ->
     StackTrace = ephp_class_exception:get_trace(Exception),

@@ -1,0 +1,14 @@
+
+Fatal error: Call to undefined function no_function_defined() in {{CWD}}/test/code/test_error_last.php on line 5
+Can do custom output and/or logging for fatal error here...
+array(4) {
+  ["type"]=>
+  int(1)
+  ["message"]=>
+  string(48) "Call to undefined function no_function_defined()"
+  ["file"]=>
+  string({{CWDLEN+30}}) "{{CWD}}/test/code/test_error_last.php"
+  ["line"]=>
+  int(5)
+}
+Finish

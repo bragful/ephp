@@ -12,7 +12,8 @@
     debug_backtrace/3,
     error_reporting/3,
     set_error_handler/4,
-    restore_error_handler/2
+    restore_error_handler/2,
+    error_get_last/2
 ]).
 
 -include("ephp.hrl").
@@ -28,6 +29,7 @@ init_func() -> [
         {args, {2, 3, undefined, [mixed, {integer, ?E_ALL bor ?E_STRICT}]}}
     ]},
     restore_error_handler,
+    error_get_last,
     error_reporting
 ].
 
@@ -80,6 +82,13 @@ set_error_handler(Context, _Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
     ephp_error:set_error_handler_func(Context, ErrorHandler, ErrorLevel),
     OldErrorHandler.
 
+-spec restore_error_handler(context(), line()) -> true.
+
 restore_error_handler(Context, _Line) ->
     ephp_error:remove_error_handler_func(Context),
     true.
+
+-spec error_get_last(context(), line()) -> ephp_array() | undefined.
+
+error_get_last(Context, _Line) ->
+    ephp_error:get_last(Context).
