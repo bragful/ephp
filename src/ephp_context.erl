@@ -490,6 +490,9 @@ resolve(#text{text=Text}, State) ->
 resolve(#text_to_process{text=Texts, line=Line}, State) ->
     resolve_txt(Texts, Line, State);
 
+resolve(Object, State) when ?IS_OBJECT(Object) ->
+    {Object, State};
+
 resolve({pre_incr, Var, _Line}, State) ->
     case catch get_var_path(Var, State) of
         #variable{}=VarPath ->

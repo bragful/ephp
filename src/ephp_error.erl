@@ -12,6 +12,7 @@
 
     set_exception_handler_func/2,
     get_exception_handler_func/1,
+    remove_exception_handler_func/1,
 
     set_error_handler_func/3,
     get_error_handler_func/1,
@@ -84,6 +85,14 @@ get_exception_handler_func(Context) ->
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
     ErrorState#state.exception_handler.
 
+-spec remove_exception_handler_func(context()) -> ok.
+
+remove_exception_handler_func(Context) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    State = erlang:get(ErrorsId),
+    erlang:put(ErrorsId, State#state{exception_handler = undefined}),
+    ok.
+
 -spec set_error_handler_func(context(), callable(), non_neg_integer()) -> ok.
 
 set_error_handler_func(Context, Callable, ErrorLevel) ->
@@ -148,6 +157,25 @@ error({error, Type, Index, Level, Data}) ->
 
 -spec handle_error(context(), {error, error_type(), line(), binary(),
                                error_level(), any()}) -> ok.
+
+handle_error(Context, {error, euncaught, Index, File, Level,
+                       {File, Line, Exception}}) ->
+    ErrorsId = ephp_context:get_errors_id(Context),
+    case erlang:get(ErrorsId) of
+        #state{exception_handler = undefined,
+               format = Format,
+               modules = Modules,
+               output_handler = OutputHandler} ->
+            {_, ErrorText} = get_message(Modules, Format, euncaught, Line, File,
+                                         Level, {File, Line, Exception}),
+            OutputHandler:set_output(Context, iolist_to_binary(ErrorText));
+        #state{exception_handler = ExceptionHandler} ->
+            Call = #call{name = ExceptionHandler,
+                         args = [Exception],
+                         line = Index},
+            ephp_context:solve(Context, Call)
+    end,
+    get_return(euncaught);
 
 handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
@@ -334,11 +362,16 @@ get_message(enorefvar, {}) ->
 get_message(euncaught, {File, Line, Exception}) ->
     StackTrace = ephp_class_exception:get_trace(Exception),
     Traces = lists:map(fun trace_to_str/1, ephp_array:to_list(StackTrace)),
+    Message = ephp_class_exception:get_message(Exception),
+    MessageFmt = case Message of
+        <<>> -> "~s";
+        _ -> " with message '~s'"
+    end,
     io_lib:format(
-        "Uncaught exception '~s' in ~s:~p~n"
-        "Stack trace:~n~s#~p {main}~n  thrown",
-        [(Exception#reg_instance.class)#class.name, File, Line, Traces,
-         ephp_array:size(StackTrace)]);
+        "Uncaught exception '~s'" ++ MessageFmt ++
+        " in ~s:~p~nStack trace:~n~s#~p {main}~n  thrown",
+        [(Exception#reg_instance.class)#class.name, Message, File, Line,
+         Traces, ephp_array:size(StackTrace)]);
 
 get_message(enoobjectexception, {}) ->
     io_lib:format("Can only throw objects", []);

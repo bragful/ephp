@@ -5,7 +5,7 @@
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
 
--export([function/3, st_function/3, st_use_or_block/3, echo/3]).
+-export([function/3, call_args/3, st_function/3, st_use_or_block/3, echo/3]).
 
 -import(ephp_parser, [
     add_line/2, add_pos/2, new_line/1, arg_level/1, copy_level/2,
@@ -37,27 +37,31 @@ echo(Rest, Pos, [#call{args=Args}=C|Parsed]) when Rest =/= <<>> ->
             echo(Rest0, Pos0, [C#call{args=Args ++ [Arg]}|Parsed])
     end.
 
-function(<<SP:8,Rest/binary>>, Pos, [#call{}|_]=Parsed) when ?IS_SPACE(SP) ->
-    function(Rest, add_pos(Pos,1), Parsed);
-function(<<SP:8,Rest/binary>>, Pos, [#call{}|_]=Parsed) when ?IS_NEWLINE(SP) ->
-    function(Rest, new_line(Pos), Parsed);
-function(<<")",Rest/binary>>, Pos, Parsed) ->
-    {Rest,add_pos(Pos,1),Parsed};
+function(Rest, Pos, [#call{} = Call|Parsed]) ->
+    {Rest0, Pos0, Args} = call_args(Rest, Pos, []),
+    NewCall = Call#call{args = Args},
+    {Rest0, Pos0, [NewCall|Parsed]}.
+
+call_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+    call_args(Rest, add_pos(Pos, 1), Parsed);
+call_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+    call_args(Rest, new_line(Pos), Parsed);
+call_args(<<")",Rest/binary>>, Pos, Parsed) ->
+    {Rest, add_pos(Pos, 1), Parsed};
 %% TODO error missing closing params
-function(Rest, Pos, [#call{args=Args}=C|Parsed]) when Rest =/= <<>> ->
+call_args(Rest, Pos, Parsed) when Rest =/= <<>> ->
     case ephp_parser_expr:expression(Rest, arg_level(Pos), []) of
         {<<")",Rest0/binary>>, Pos0, []} ->
-            {Rest0, add_pos(Pos0,1), [C|Parsed]};
+            {Rest0, add_pos(Pos0,1), Parsed};
         {<<")",Rest0/binary>>, Pos0, Arg} ->
-            {Rest0, add_pos(Pos0,1), [C#call{args=Args ++ [Arg]}|Parsed]};
+            {Rest0, add_pos(Pos0,1), Parsed ++ [Arg]};
         {<<",",Rest0/binary>>, Pos0, Arg} ->
-            NewCall = C#call{args=Args ++ [Arg]},
-            function(Rest0, add_pos(Pos0, 1), [NewCall|Parsed]);
+            call_args(Rest0, add_pos(Pos0, 1), Parsed ++ [Arg]);
         %% TODO error missing closing params
         {Rest0, Pos0, []} ->
-            function(Rest0, Pos0, [C|Parsed]);
+            call_args(Rest0, Pos0, Parsed);
         {Rest0, Pos0, Arg} ->
-            function(Rest0, Pos0, [C#call{args=Args ++ [Arg]}|Parsed])
+            call_args(Rest0, Pos0, Parsed ++ [Arg])
     end.
 
 st_use(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->

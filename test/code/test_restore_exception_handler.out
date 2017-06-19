@@ -1,0 +1,6 @@
+bool(true)
+
+Fatal error: Uncaught exception 'Exception' with message 'Excepción No Capturada' in {{CWD}}/test/code/test_restore_exception_handler.php:9
+Stack trace:
+#0 {main}
+  thrown in {{CWD}}/test/code/test_restore_exception_handler.php on line 9

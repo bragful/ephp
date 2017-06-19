@@ -14,6 +14,8 @@
     error_reporting/3,
     set_error_handler/4,
     restore_error_handler/2,
+    set_exception_handler/3,
+    restore_exception_handler/2,
     error_get_last/2,
     error_clear_last/2
 ]).
@@ -30,9 +32,11 @@ init_func() -> [
         {args, {0, 2, undefined, [{integer, 0}, {integer, 0}]}}
     ]},
     {set_error_handler, [
-        {args, {2, 3, undefined, [mixed, {integer, ?E_ALL bor ?E_STRICT}]}}
+        {args, {1, 2, undefined, [mixed, {integer, ?E_ALL bor ?E_STRICT}]}}
     ]},
     restore_error_handler,
+    set_exception_handler,
+    restore_exception_handler,
     error_get_last,
     error_clear_last,
     error_reporting
@@ -126,6 +130,19 @@ set_error_handler(Context, _Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
 
 restore_error_handler(Context, _Line) ->
     ephp_error:remove_error_handler_func(Context),
+    true.
+
+-spec set_exception_handler(context(), line(), var_value()) -> callable().
+
+set_exception_handler(Context, _Line, {_, ExceptionHandler}) ->
+    OldExceptionHandler = ephp_error:get_exception_handler_func(Context),
+    ephp_error:set_exception_handler_func(Context, ExceptionHandler),
+    OldExceptionHandler.
+
+-spec restore_exception_handler(context(), line()) -> true.
+
+restore_exception_handler(Context, _Line) ->
+    ephp_error:remove_exception_handler_func(Context),
     true.
 
 -spec error_get_last(context(), line()) -> ephp_array() | undefined.

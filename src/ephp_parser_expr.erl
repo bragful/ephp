@@ -224,18 +224,14 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, ObjName} = funct_name(Rest0, Pos0, []),
-    case remove_spaces(Rest1, Pos1) of
+    Instance = case remove_spaces(Rest1, Pos1) of
         {<<"(",Rest2/binary>>, Pos2} ->
-            NewPos = arg_level(add_pos(Pos2, 1)),
-            {<<")",Rest3/binary>>, Pos3, Args} = expression(Rest2, NewPos, []),
-            Pos4 = add_pos(Pos3, 1),
-            Instance = add_line(#instance{name = ObjName,
-                                          args = Args},
-                                Pos);
-        {Rest3, Pos4} ->
-            Instance = add_line(#instance{name = ObjName}, Pos)
+            {Rest3, Pos3, Args} = ephp_parser_func:call_args(Rest2, Pos2, []),
+            add_line(#instance{name = ObjName, args = Args}, Pos);
+        {Rest3, Pos3} ->
+            add_line(#instance{name = ObjName}, Pos)
     end,
-    expression(Rest3, copy_level(Pos, Pos4), add_op(Instance,Parsed));
+    expression(Rest3, copy_level(Pos, Pos3), add_op(Instance,Parsed));
 % FINAL -enclosed-
 expression(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, [Exp]) ->
     {Rest, add_pos(Pos,1), add_op('end', [Exp])};

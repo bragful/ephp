@@ -7,6 +7,7 @@
 -export([
     get_class/0,
     get_trace/1,
+    get_message/1,
     exception_construct/4,
     exception_get_message/3,
     exception_get_code/3,
@@ -113,6 +114,9 @@ get_class() ->
 
 get_trace(#reg_instance{context = ClassCtx}) ->
     ephp_context:get(ClassCtx, #variable{name = <<"trace">>}).
+
+get_message(#reg_instance{context = ClassCtx}) ->
+    ephp_context:get(ClassCtx, #variable{name = <<"message">>}).
 
 exception_construct(Ctx, #reg_instance{context = ClassCtx}, {{line,Line},_},
                     [{_, Message}, {_, Code}, {_, Previous}]) ->
