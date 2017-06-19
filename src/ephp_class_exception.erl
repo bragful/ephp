@@ -130,8 +130,8 @@ exception_construct(Ctx, #reg_instance{context = ClassCtx}, {{line,Line},_},
     ephp_context:set(ClassCtx, #variable{name = <<"trace">>}, Traces),
     Message.
 
-exception_get_message(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
-    ephp_context:get(ClassCtx, #variable{name = <<"message">>}).
+exception_get_message(_Ctx, Object, _Line) ->
+    get_message(Object).
 
 exception_get_code(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"code">>}).
@@ -142,14 +142,11 @@ exception_get_file(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
 exception_get_line(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"line">>}).
 
-
-exception_get_trace(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
-    ephp_context:get(ClassCtx, #variable{name = <<"trace">>}).
-
+exception_get_trace(_Ctx, Object, _Line) ->
+    get_trace(Object).
 
 exception_get_previous(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"previous">>}).
-
 
 exception_get_trace_as_string(_Ctx, #reg_instance{context = _ClassCtx}, _L) ->
     %% TODO
