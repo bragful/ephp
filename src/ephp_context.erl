@@ -962,10 +962,10 @@ check_arg(State, Line, I, {string,_}, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) ->
     throw_warning(State, Line, I, <<"string">>, A, ReturnError);
 check_arg(State, Line, I, integer, A, ReturnError)
-        when not is_binary(A) andalso not is_number(A) ->
+        when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, {integer,_}, A, ReturnError)
-        when not is_binary(A) andalso not is_number(A) ->
+        when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, double, A, ReturnError) when not is_number(A) ->
     throw_warning(State, Line, I, <<"double">>, A, ReturnError);

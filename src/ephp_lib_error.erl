@@ -9,7 +9,8 @@
     init_config/0,
     init_const/0,
 
-    debug_backtrace/3,
+    debug_backtrace/4,
+    debug_print_backtrace/4,
     error_reporting/3,
     set_error_handler/4,
     restore_error_handler/2,
@@ -23,8 +24,10 @@
 
 init_func() -> [
     {debug_backtrace, [
-        {args, {0, 2, undefined, [{integer, 1}, {integer, 0}]}},
-        pack_args
+        {args, {0, 2, undefined, [{integer, 1}, {integer, 0}]}}
+    ]},
+    {debug_print_backtrace, [
+        {args, {0, 2, undefined, [{integer, 0}, {integer, 0}]}}
     ]},
     {set_error_handler, [
         {args, {2, 3, undefined, [mixed, {integer, ?E_ALL bor ?E_STRICT}]}}
@@ -58,14 +61,49 @@ init_const() -> [
     {<<"E_DEPRECATED">>, ?E_DEPRECATED},
     {<<"E_USER_DEPRECATED">>, ?E_USER_DEPRECATED},
     {<<"E_ALL">>, ?E_ALL},
-    {<<"DEBUG_BACKTRACE_PROVIDE_OBJECT">>, 1},
-    {<<"DEBUG_BACKTRACE_IGNORE_ARGS">>, 2}
+    {<<"DEBUG_BACKTRACE_PROVIDE_OBJECT">>, ?DEBUG_BACKTRACE_PROVIDE_OBJECT},
+    {<<"DEBUG_BACKTRACE_IGNORE_ARGS">>, ?DEBUG_BACKTRACE_IGNORE_ARGS}
 ].
 
--spec debug_backtrace(context(), line(), [var_value()]) -> ephp_array().
+-spec debug_backtrace(context(), line(), var_value(), var_value()) ->
+      ephp_array().
 
-debug_backtrace(Context, _Line, [{_, _Flags}, {_, _Limit}]) ->
+debug_backtrace(Context, _Line, {_, _Flags}, {_, _Limit}) ->
     ephp_stack:get_array(Context).
+
+-spec debug_print_backtrace(context(), line(),
+                            var_value(), var_value()) -> undefined.
+
+debug_print_backtrace(Context, _Line, {_, IncludeArgs}, {_, Limit}) ->
+    Backtrace = ephp_stack:get_array(Context),
+    ephp_array:fold(fun
+        (I, Data, _) when Limit =:= 0 orelse I < Limit ->
+            Str = iolist_to_binary(trace_to_str({I, Data}, IncludeArgs)),
+            ephp_context:set_output(Context, Str);
+        (_, _, _) ->
+            ok
+    end, [], Backtrace),
+    undefined.
+
+-spec trace_to_str({pos_integer(), ephp_array()}, pos_integer()) -> iolist().
+
+trace_to_str({I, Array}, IncludeArgs) ->
+    {ok, FuncName} = ephp_array:find(<<"function">>, Array),
+    {ok, Line} = ephp_array:find(<<"line">>, Array),
+    {ok, File} = ephp_array:find(<<"file">>, Array),
+    {ok, RawArgList} = ephp_array:find(<<"args">>, Array),
+    IncArgs = ephp_data:to_int(IncludeArgs),
+    Args = if
+        (IncArgs band ?DEBUG_BACKTRACE_IGNORE_ARGS) =:= 0 ->
+            ArgStrList = lists:map(fun({_, #var_ref{pid = Vars, ref = Var}}) ->
+                binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var), $'))
+            end, ephp_array:to_list(RawArgList)),
+            string:join(ArgStrList, ",");
+        true ->
+            ""
+    end,
+    io_lib:format(
+        "#~p  ~s(~s) called at [~s:~p]~n", [I, FuncName, Args, File, Line]).
 
 -spec error_reporting(context(), line(), var_value()) -> integer().
 

@@ -7,6 +7,7 @@
 -export([
     to_lower/1,
     to_upper/1,
+    escape/2,
     trim/1
 ]).
 
@@ -26,6 +27,17 @@ to_upper(undefined) ->
 
 to_upper(Text) ->
     unistring:to_upper(Text).
+
+-spec escape(mixed(), non_neg_integer()) -> binary().
+
+escape(Bin, Escape) when is_binary(Bin) ->
+    Bin2 = lists:foldl(fun
+        (E, Acc) when E =:= Escape -> <<Acc/binary, "\\", Escape:8>>;
+        (C, Acc) -> <<Acc/binary, C:8>>
+    end, <<>>, binary_to_list(Bin)),
+    <<"'", Bin2/binary, "'">>;
+escape(Mixed, _Escape) ->
+    ephp_data:to_bin(Mixed).
 
 -spec trim(binary()) -> binary();
           (undefined) -> undefined.

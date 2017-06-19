@@ -354,22 +354,11 @@ trace_to_str({I, Array}) ->
     {ok, File} = ephp_array:find(<<"file">>, Array),
     {ok, RawArgList} = ephp_array:find(<<"args">>, Array),
     ArgStrList = lists:map(fun({_, #var_ref{pid = Vars, ref = Var}}) ->
-        binary_to_list(to_output(ephp_vars:get(Vars, Var)))
+        binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var), $'))
     end, ephp_array:to_list(RawArgList)),
     Args = string:join(ArgStrList, ","),
     io_lib:format(
         "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args]).
-
--spec to_output(mixed()) -> binary().
-
-to_output(Bin) when is_binary(Bin) ->
-    Bin2 = lists:foldl(fun
-        ($', Acc) -> <<Acc/binary, "\\'">>;
-        (C, Acc) -> <<Acc/binary, C:8>>
-    end, <<>>, binary_to_list(Bin)),
-    <<"'", Bin2/binary, "'">>;
-to_output(Mixed) ->
-    ephp_data:to_bin(Mixed).
 
 -spec get_return(error_type()) -> term().
 

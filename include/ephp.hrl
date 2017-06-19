@@ -63,6 +63,8 @@
 -define(E_USER_DEPRECATED, 16384).
 -define(E_ALL, 32767).
 -define(E_HANDLE_ERRORS, 2#011011100001010).
+-define(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1).
+-define(DEBUG_BACKTRACE_IGNORE_ARGS, 2).
 
 -type error_level() :: pos_integer().
 
