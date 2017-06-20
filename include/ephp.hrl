@@ -438,3 +438,20 @@
 }).
 
 -type reg_instance() :: #reg_instance{}.
+
+-record(try_catch, {
+    code_block :: statements(),
+    catches = [] :: [catch_block()],
+    finally = [] :: statements(),
+    line :: line()
+}).
+
+-type try_catch() :: #try_catch{}.
+
+-record(catch_block, {
+    exception :: variable(),
+    code_block :: statements(),
+    line :: line()
+}).
+
+-type catch_block() :: #catch_block{}.

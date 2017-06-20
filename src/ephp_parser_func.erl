@@ -5,7 +5,8 @@
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
 
--export([function/3, call_args/3, st_function/3, st_use_or_block/3, echo/3]).
+-export([function/3, call_args/3, st_function/3, st_use_or_block/3, echo/3,
+         funct_args/3]).
 
 -import(ephp_parser, [
     add_line/2, add_pos/2, new_line/1, arg_level/1, copy_level/2,
@@ -131,7 +132,16 @@ funct_args(<<",",Rest/binary>>, Pos, Parsed) ->
     funct_args(Rest, add_pos(Pos,1), Parsed);
 funct_args(<<")",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,1), lists:reverse(Parsed)};
-funct_args(Rest, Pos, Parsed) ->
+funct_args(<<A:8,_/binary>> = Rest, Pos, Parsed)
+        when ?IS_ALPHA(A) orelse A =:= $_ ->
+    {Rest0, Pos0, [#constant{name = Constant}]} =
+        ephp_parser:constant(Rest, Pos, []),
+    {Rest1, Pos1, FunctArgsRev} = funct_args(Rest0, Pos0, []),
+    [FunctArg|FunctArgs] = lists:reverse(FunctArgsRev),
+    NewFuncArg = FunctArg#variable{data_type = Constant},
+    NewParsed = lists:reverse([NewFuncArg|FunctArgs]) ++ Parsed,
+    {Rest1, Pos1, NewParsed};
+funct_args(<<"$",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
     case remove_spaces(Rest0, Pos0) of
         {<<"=",Rest1/binary>>, Pos1} ->

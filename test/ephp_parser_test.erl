@@ -477,3 +477,30 @@ comments_test_() -> [
          #print{expression = #variable{name = <<"i">>}}],
         ?PARSE("<? # comentando ?>Result = <?=$i?><? // another comment more..."))
 ].
+
+try_catch_test_() -> [
+    ?_assertMatch(
+        [#eval{statements =
+            [#try_catch{code_block = [#constant{name = <<"OK">>}],
+                        catches = [],
+                        finally = [#constant{name = <<"END">>}]}]}],
+        ?PARSE("<? try { OK; } finally { END; }")),
+    ?_assertMatch(
+        [#eval{statements = [#try_catch{
+            code_block = [#constant{name = <<"OK">>}],
+            catches = [#catch_block{exception = #variable{name = <<"e">>},
+                                    code_block = [#constant{name = <<"FAIL">>}]}],
+            finally = []}]}],
+        ?PARSE("<? try { OK; } catch (Exception $e) { FAIL; }")),
+    ?_assertMatch(
+        [#eval{statements = [#try_catch{
+            code_block = [#constant{name = <<"OK">>}],
+            catches = [#catch_block{exception = #variable{name = <<"e">>},
+                                    code_block = [#constant{name = <<"FAIL">>}]}],
+            finally = [#constant{name = <<"END">>}]}]}],
+        ?PARSE("<? try { OK; } catch (Exception $e) { FAIL; } finally { END; }")),
+    ?_assertException(
+        throw,
+        {error, enocatch, {{line,1},{column,15}}, 4, <<"...">>},
+        ?PARSE("<? try { OK; }"))
+].

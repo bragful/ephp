@@ -7,6 +7,8 @@
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
 
+-export([constant/3]).
+
 -import(ephp_parser_expr, [
     expression/3, add_op/2, precedence/1
 ]).
@@ -58,8 +60,6 @@ document(<<L:1/binary,Rest/binary>>, Pos, Parsed) ->
 
 copy_level({Level,_,_}, {_,Row,Col}) -> {Level,Row,Col}.
 
-code(<<>>, Pos, Parsed) ->
-    {<<>>, Pos, Parsed};
 code(<<B:8,R:8,E:8,A:8,K:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(B,$B,$b) andalso ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso
         ?OR(A,$A,$a) andalso ?OR(K,$K,$k) andalso
@@ -88,6 +88,31 @@ code(<<T:8,H:8,R:8,O:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
         [] -> throw_error(eparse, Pos0, Rest);
         _ -> code(Rest0, Pos0, [add_line(#throw{value = Throw}, Pos)|Parsed])
     end;
+code(<<T:8,R:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso ?OR(Y,$Y,$y) andalso
+        (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
+    {Rest0, Pos0, Code} = code_block(<<SP:8, Rest/binary>>, add_pos(Pos, 3), []),
+    code(Rest0, copy_level(Pos, Pos0),
+         [add_line(#try_catch{code_block = Code}, Pos)|Parsed]);
+code(<<C:8,A:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Pos, [#try_catch{} = Try|Parsed])
+        when ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(T,$T,$t)
+        andalso ?OR(H,$H,$h) andalso
+        (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
+    {<<"(", Rest0/binary>>, Pos0} =
+        remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 5)),
+    {Rest1, Pos1, [Arg]} = ephp_parser_func:funct_args(Rest0, add_pos(Pos0, 1), []),
+    {Rest2, Pos2, Code} = code_block(Rest1, Pos1, []),
+    #try_catch{catches = Catches} = Try,
+    NewCatch = add_line(#catch_block{exception = Arg, code_block = Code}, Pos),
+    NewTry = Try#try_catch{catches = Catches ++ [NewCatch]},
+    code(Rest2, copy_level(Pos, Pos2), [NewTry|Parsed]);
+code(<<F:8,I:8,N:8,A:8,L:8,L:8,Y:8,SP:8,Rest/binary>>, Pos,
+     [#try_catch{} = Try|Parsed]) when
+        ?OR(F,$F,$f) andalso ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso
+        ?OR(A,$A,$a) andalso ?OR(L,$L,$l) andalso ?OR(Y,$Y,$y) andalso
+        (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
+    {Rest0, Pos0, Code} = code_block(<<SP:8, Rest/binary>>, add_pos(Pos, 7), []),
+    code(Rest0, copy_level(Pos, Pos0), [Try#try_catch{finally = Code}|Parsed]);
 code(<<"@",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, RParsed0} = code(Rest, add_pos(Pos,1), []),
     [ToSilent|Parsed0] = lists:reverse(RParsed0),
@@ -390,6 +415,11 @@ code(<<NewLine:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(NewLine) ->
     code(Rest, new_line(Pos), Parsed);
 code(<<";",Rest/binary>>, Pos, Parsed) ->
     code(Rest, add_pos(Pos,1), Parsed);
+code(Rest, Pos, [#try_catch{catches = C, finally = F}|_Parsed])
+        when C =:= [] andalso F =:= [] ->
+    throw_error(enocatch, Pos, Rest);
+code(<<>>, Pos, Parsed) ->
+    {<<>>, Pos, Parsed};
 code(Text, Pos, _Parsed) ->
     throw_error(eparse, Pos, Text).
 
@@ -793,7 +823,9 @@ add_line({object, Expr}, {_,R,C}) -> {object, Expr, {{line,R},{column,C}}};
 add_line({class, Expr}, {_,R,C}) -> {class, Expr, {{line,R},{column,C}}};
 add_line(#instance{}=I, {_,R,C}) -> I#instance{line={{line,R},{column,C}}};
 add_line(#cast{}=Cs, {_,R,C}) -> Cs#cast{line={{line,R},{column,C}}};
-add_line(#throw{}=T, {_,R,C}) -> T#throw{line={{line,R},{column,C}}}.
+add_line(#throw{}=T, {_,R,C}) -> T#throw{line={{line,R},{column,C}}};
+add_line(#try_catch{}=T, {_,R,C}) -> T#try_catch{line={{line,R},{column,C}}};
+add_line(#catch_block{}=B, {_,R,C}) -> B#catch_block{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));
