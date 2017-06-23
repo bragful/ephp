@@ -28,6 +28,8 @@
     init_static_value/5,
     set_static/4,
 
+    instance_of/2,
+
     register_class/4,
     set_alias/3,
     instance/5,
@@ -115,6 +117,14 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
         ephp_error:error({error, eundefclass, Line, File, ?E_ERROR,
                           {RawClassName}})
     end.
+
+instance_of(#reg_instance{class = #class{name = Name}}, Name) ->
+    true;
+instance_of(#reg_instance{class = #class{extends = Extends,
+                                         implements = Impl}}, Name) ->
+    lists:member(Name, Extends) orelse lists:member(Name, Impl);
+instance_of(_, _) ->
+    false.
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
     lists:foreach(fun

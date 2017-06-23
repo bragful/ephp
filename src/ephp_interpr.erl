@@ -295,7 +295,7 @@ run_depth(Context, #constant{type=define,name=Name,value=Expr,line=Line},
     ephp_context:register_const(Context, Name, Value),
     false;
 
-run_depth(Context, #constant{line=Line}, false, Cover) ->
+run_depth(Context, #constant{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, constant, Context, Line),
     false;
 
@@ -307,6 +307,29 @@ run_depth(Context, {silent, Statement}, false, Cover) ->
 run_depth(_Context, die, false, _Cover) ->
     throw(die);
 
+run_depth(Context, #try_catch{code_block = Code, catches = Catches,
+                              finally = Finally, line = Line}, false, Cover) ->
+    ok = ephp_cover:store(Cover, try_catch, Context, Line),
+    try
+        run(Context, #eval{statements = Code}, Cover)
+    catch
+        throw:Exception when ?IS_OBJECT(Exception) ->
+            Ret = lists:foldl(fun
+                (#catch_block{} = CatchBlock, throw) ->
+                    run_catch(Context, CatchBlock, Exception, Finally, Cover);
+                (#catch_block{}, Ret) ->
+                    Ret
+            end, throw, Catches),
+            case Ret of
+                throw ->
+                    run_finally(Context, Finally, Cover),
+                    throw(Exception);
+                _ ->
+                    Ret
+            end
+    end,
+    run_finally(Context, Finally, Cover);
+
 run_depth(_Context, Statement, false, _Cover) ->
     ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement}),
     break;
@@ -314,10 +337,40 @@ run_depth(_Context, Statement, false, _Cover) ->
 run_depth(_Context, _Statement, Break, _Cover) ->
     Break.
 
+-spec exit_cond(flow_status()) -> flow_status().
+
 exit_cond({return, Ret}) -> {return, Ret};
 exit_cond({break, 0}) -> false;
 exit_cond({break, N}) -> {break, N-1};
 exit_cond(false) -> false.
+
+-spec run_finally(context(), statements(), Cover :: boolean()) -> flow_status().
+
+run_finally(_Context, [], _Cover) ->
+    false;
+run_finally(Context, Finally, Cover) ->
+    run(Context, #eval{statements = Finally}, Cover).
+
+-spec run_catch(context(), catch_block(), Exception :: binary(),
+                Finally :: statements(), Cover :: boolean()) -> throw |
+                                                                flow_status().
+
+run_catch(Context,
+          #catch_block{exception = #variable{data_type = Catch} = Var,
+                       code_block = CatchCode},
+          Exception, Finally, Cover) ->
+    case ephp_class:instance_of(Exception, Catch) of
+        true ->
+            ephp_context:set(Context, Var, Exception),
+            try
+                run(Context, #eval{statements = CatchCode}, Cover)
+            catch throw:NewException when ?IS_OBJECT(NewException) ->
+                run_finally(Context, Finally, Cover),
+                throw(NewException)
+            end;
+        false ->
+            throw
+    end.
 
 -spec run_loop(
     PrePost :: (pre | post),
