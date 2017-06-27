@@ -376,6 +376,10 @@ get_message(euncaught, {File, Line, Exception}) ->
 get_message(enoobjectexception, {}) ->
     io_lib:format("Can only throw objects", []);
 
+get_message(errtype, {I, ReqType, GivenType, FuncName}) ->
+    io_lib:format("Argument ~p passed to ~s() must be an instance of ~s, "
+                  "~s given, called", [I, FuncName, ReqType, GivenType]);
+
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
 

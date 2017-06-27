@@ -118,6 +118,24 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
                           {RawClassName}})
     end.
 
+-spec instance_of(mixed(), DataType::binary()) -> boolean().
+
+instance_of(#ephp_array{}, <<"array">>) ->
+    true;
+instance_of(Boolean, <<"boolean">>) when is_boolean(Boolean) ->
+    true;
+instance_of(String, <<"string">>) when is_binary(String) ->
+    true;
+instance_of(Float, <<"float">>) when is_float(Float) ->
+    true;
+instance_of(Int, <<"integer">>) when is_integer(Int) ->
+    true;
+% TODO:
+% instance_of(Callable, <<"callable">>) ->
+%     false;
+% TODO:
+% instance_of(Self, <<"self">>) ->
+%     false;
 instance_of(#reg_instance{class = #class{name = Name}}, Name) ->
     true;
 instance_of(#reg_instance{class = #class{extends = Extends,

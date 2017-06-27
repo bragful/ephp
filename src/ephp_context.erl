@@ -639,7 +639,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
         global = Ref,
         active_fun = ?FUNC_ANON_NAME,
         active_fun_args = length(RawArgs)}),
-    ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Line),
+    ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line),
     lists:foreach(fun
         ({#variable{} = K,V}) ->
             ephp_vars:set(NewVars, K, V);
@@ -724,7 +724,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
             active_fun = Fun,
             active_class = <<>>,
             active_fun_args = length(Args)}),
-        ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Index),
+        ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index),
         register_superglobals(GlobalRef, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
         Refs = lists:map(fun
@@ -1041,7 +1041,8 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     end,
     case ClassMethod#class_method.code_type of
         php ->
-            ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs, Call#call.line),
+            ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs, MethodName,
+                               Call#call.line),
             {ok, SubContext} = start_mirror(NState#state{
                 vars = NewVars,
                 global = Ref,

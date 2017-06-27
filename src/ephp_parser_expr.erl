@@ -17,7 +17,7 @@
 ]).
 
 -import(ephp_parser_func, [
-    funct_args/3, st_use_or_block/3, funct_name/3
+    st_use_or_block/3, funct_name/3
 ]).
 
 array_def_54_level({_,Row,Col}) -> {{array_def,54},Row,Col}.
@@ -204,8 +204,8 @@ expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
     {<<"(",Rest0/binary>>, Pos0} =
         remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 9)),
-    {Rest1, Pos1, Args} = funct_args(Rest0, Pos0, []),
-    BaseFunction = add_line(#function{args=Args}, Pos),
+    {Rest1, Pos1, Args} = ephp_parser_func:funct_args(Rest0, Pos0, []),
+    BaseFunction = add_line(#function{args = Args}, Pos),
     {Rest2, Pos2, Function} = st_use_or_block(Rest1, Pos1, BaseFunction),
     expression(Rest2, copy_level(Pos, Pos2), add_op(Function, Parsed));
 % INSTANCEOF

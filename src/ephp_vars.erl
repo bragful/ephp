@@ -16,7 +16,7 @@
     isset/2,
     ref/4,
     del/2,
-    zip_args/5,
+    zip_args/6,
     destroy/1
 ]).
 
@@ -55,8 +55,8 @@ ref(Context, VarPath, VarsPID, RefVarPath) ->
 del(Context, VarPath) ->
     set(Context, VarPath, remove).
 
-zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, Line) ->
-    lists:foldl(fun
+zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line) ->
+    Zip = fun
         (#ref{var = VarRef}, [{#variable{} = VarName,_}|RestArgs]) ->
             ref(VarsDst, VarRef, VarsSrc, VarName),
             RestArgs;
@@ -70,7 +70,26 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, Line) ->
             [];
         (_FuncArg, []) ->
             []
-    end, ValArgs, FuncArgs),
+    end,
+    Check = fun
+        (_I, _Type, _Data, true) ->
+            ok;
+        (I, Type, Data, false) ->
+            ephp_error:error({error, errtype, Line, ?E_RECOVERABLE_ERROR,
+                              {I, Type, ephp_data:gettype(Data), FunctName}})
+    end,
+    lists:foldl(fun
+        (#ref{var = #variable{data_type = DataType}} = Ref,
+         {I, [{_, Value}|_] = Acc}) when DataType =/= undefined ->
+            Check(I, DataType, Value, ephp_class:instance_of(Value, DataType)),
+            {I+1, Zip(Ref, Acc)};
+        (#variable{data_type = DataType} = Var,
+         {I, [{_, Value}|_] = Acc}) when DataType =/= undefined ->
+            Check(I, DataType, Value, ephp_class:instance_of(Value, DataType)),
+            {I+1, Zip(Var, Acc)};
+        (VarOrRef, {I, Acc}) ->
+            {I+1, Zip(VarOrRef, Acc)}
+    end, {1, ValArgs}, FuncArgs),
     ok.
 
 -spec destroy(ephp:vars_id()) -> ok.
