@@ -136,20 +136,28 @@ funct_args(<<A:8,_/binary>> = Rest, Pos, Parsed)
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, [#constant{name = Constant}]} =
         ephp_parser:constant(Rest, Pos, []),
-    {Rest1, Pos1, FunctArgsRev} = funct_args(Rest0, Pos0, []),
-    [FunctArg|FunctArgs] = lists:reverse(FunctArgsRev),
-    NewFuncArg = FunctArg#variable{data_type = Constant},
-    NewParsed = lists:reverse([NewFuncArg|FunctArgs]) ++ Parsed,
-    {Rest1, Pos1, NewParsed};
+    {Rest1, Pos1, [Var]} = variable(Rest0, Pos0, []),
+    case remove_spaces(Rest1, Pos1) of
+        {<<"=",Rest2/binary>>, Pos2} ->
+            NewPos = arg_level(add_pos(Pos2, 1)),
+            {Rest3, Pos3, Default} =
+                ephp_parser_expr:expression(Rest2, NewPos, []),
+            NewVar = Var#variable{default_value = Default,
+                                  data_type = Constant},
+            funct_args(Rest3, copy_level(Pos, Pos3), [NewVar|Parsed]);
+        {Rest2, Pos2} ->
+            NewVar = Var#variable{data_type = Constant},
+            funct_args(Rest2, add_pos(Pos2, 1), [NewVar|Parsed])
+    end;
 funct_args(<<"$",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
     case remove_spaces(Rest0, Pos0) of
         {<<"=",Rest1/binary>>, Pos1} ->
-            NewPos = arg_level(add_pos(Pos1,1)),
+            NewPos = arg_level(add_pos(Pos1, 1)),
             {Rest2, Pos2, Default} =
                 ephp_parser_expr:expression(Rest1, NewPos, []),
-            NewVar = add_line(Var#variable{default_value = Default}, Pos),
+            NewVar = Var#variable{default_value = Default},
             funct_args(Rest2, copy_level(Pos, Pos2), [NewVar|Parsed]);
         {Rest1, Pos1} ->
-            funct_args(Rest1, add_pos(Pos1,1), [Var|Parsed])
+            funct_args(Rest1, add_pos(Pos1, 1), [Var|Parsed])
     end.
