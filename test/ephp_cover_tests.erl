@@ -1,6 +1,6 @@
 -module(ephp_cover_tests).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, export_all]).
+-compile([warnings_as_errors]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("ephp.hrl").

@@ -20,7 +20,7 @@
     zero_if_undef/1,
     pad_to_bin/2,
     ceiling/1,
-    floor/1
+    flooring/1
 ]).
 
 -spec gettype(mixed()) -> binary().
@@ -73,7 +73,7 @@ to_int(A) when is_binary(A) -> bin_to_number(A);
 
 to_int(A) when is_integer(A) -> A;
 
-to_int(A) when is_float(A) -> floor(A);
+to_int(A) when is_float(A) -> flooring(A);
 
 to_int(A) when ?IS_ARRAY(A) ->
     case ephp_array:size(A) of
@@ -155,7 +155,7 @@ to_bin(A) when is_integer(A) ->
 
 to_bin(A) when is_float(A) ->
     Precision = ephp_config:get(<<"precision">>),
-    case floor(A) of
+    case flooring(A) of
         F when A-F == 0 -> integer_to_binary(F);
         _ -> float_to_binary(A, [{decimals, Precision}, compact])
     end;
@@ -302,19 +302,24 @@ pad_to_bin(Num, Pad) when not is_binary(Num) ->
 pad_to_bin(Num, Pad) ->
     pad_to_bin(<<"0",Num/binary>>, Pad-1).
 
--spec floor(number()) -> integer().
-
-floor(X) when X < 0 ->
+-spec flooring(number()) -> integer().
+-ifdef(NATIVE_FLOOR).
+flooring(X) -> floor(X).
+-else.
+flooring(X) when X < 0 ->
     T = trunc(X),
     case X - T == 0 of
         true -> T;
         false -> T - 1
     end;
-floor(X) ->
+flooring(X) ->
     trunc(X).
+-endif.
 
 -spec ceiling(number()) -> integer().
-
+-ifdef(NATIVE_CEIL).
+ceiling(X) -> ceil(X).
+-else.
 ceiling(X) when X < 0 ->
     trunc(X);
 ceiling(X) ->
@@ -323,3 +328,4 @@ ceiling(X) ->
         true -> T;
         false -> T + 1
     end.
+-endif.

@@ -44,7 +44,7 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_message_handler-2">add_message_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-2">error_reporting/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_level-1">get_level/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_format-2">set_error_format/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_message_handler-2">add_message_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#clear_last-1">clear_last/1</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-2">error_reporting/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_error_handler_func-1">get_error_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_exception_handler_func-1">get_exception_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_last-1">get_last/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_level-1">get_level/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#remove_error_handler_func-1">remove_error_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#remove_exception_handler_func-1">remove_exception_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_format-2">set_error_format/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_handler_func-3">set_error_handler_func/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_exception_handler_func-2">set_exception_handler_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -56,7 +56,16 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 ### add_message_handler/2 ###
 
 <pre><code>
-add_message_handler(Context::<a href="ephp.md#type-context">ephp:context()</a>, Module::module()) -&gt; ok
+add_message_handler(Context::<a href="#type-context">context()</a>, Module::module()) -&gt; ok
+</code></pre>
+<br />
+
+<a name="clear_last-1"></a>
+
+### clear_last/1 ###
+
+<pre><code>
+clear_last(Context::<a href="#type-context">context()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -87,6 +96,33 @@ error_reporting(Context::<a href="#type-context">context()</a>, Level::integer()
 </code></pre>
 <br />
 
+<a name="get_error_handler_func-1"></a>
+
+### get_error_handler_func/1 ###
+
+<pre><code>
+get_error_handler_func(Context::<a href="#type-context">context()</a>) -&gt; <a href="#type-callable">callable()</a> | undefined
+</code></pre>
+<br />
+
+<a name="get_exception_handler_func-1"></a>
+
+### get_exception_handler_func/1 ###
+
+<pre><code>
+get_exception_handler_func(Context::<a href="#type-context">context()</a>) -&gt; <a href="#type-callable">callable()</a> | undefined
+</code></pre>
+<br />
+
+<a name="get_last-1"></a>
+
+### get_last/1 ###
+
+<pre><code>
+get_last(Context::<a href="#type-context">context()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a> | undefined
+</code></pre>
+<br />
+
 <a name="get_level-1"></a>
 
 ### get_level/1 ###
@@ -114,6 +150,24 @@ handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href
 </code></pre>
 <br />
 
+<a name="remove_error_handler_func-1"></a>
+
+### remove_error_handler_func/1 ###
+
+<pre><code>
+remove_error_handler_func(Context::<a href="#type-context">context()</a>) -&gt; ok
+</code></pre>
+<br />
+
+<a name="remove_exception_handler_func-1"></a>
+
+### remove_exception_handler_func/1 ###
+
+<pre><code>
+remove_exception_handler_func(Context::<a href="#type-context">context()</a>) -&gt; ok
+</code></pre>
+<br />
+
 <a name="run_quiet-2"></a>
 
 ### run_quiet/2 ###
@@ -129,6 +183,24 @@ run_quiet(Errors::<a href="ephp.md#type-errors_id">ephp:errors_id()</a>, Fun::fu
 
 <pre><code>
 set_error_format(Context::<a href="#type-context">context()</a>, Format::<a href="#type-error_format">error_format()</a>) -&gt; ok
+</code></pre>
+<br />
+
+<a name="set_error_handler_func-3"></a>
+
+### set_error_handler_func/3 ###
+
+<pre><code>
+set_error_handler_func(Context::<a href="#type-context">context()</a>, Callable::<a href="#type-callable">callable()</a>, ErrorLevel::non_neg_integer()) -&gt; ok
+</code></pre>
+<br />
+
+<a name="set_exception_handler_func-2"></a>
+
+### set_exception_handler_func/2 ###
+
+<pre><code>
+set_exception_handler_func(Context::<a href="#type-context">context()</a>, Callable::<a href="#type-callable">callable()</a>) -&gt; ok
 </code></pre>
 <br />
 

@@ -20,53 +20,80 @@
 
 ### erase/2 ###
 
-`erase(Key, Ephp_array) -> any()`
+<pre><code>
+erase(Key::<a href="#type-mixed">mixed()</a>, Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
 
 <a name="find-2"></a>
 
 ### find/2 ###
 
-`find(Key, Ephp_array) -> any()`
+<pre><code>
+find(Key::<a href="#type-mixed">mixed()</a>, Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, <a href="#type-mixed">mixed()</a>} | error
+</code></pre>
+<br />
 
 <a name="fold-3"></a>
 
 ### fold/3 ###
 
-`fold(Fun, Initial, Ephp_array) -> any()`
+<pre><code>
+fold(Fun::function(), Initial::<a href="#type-mixed">mixed()</a>, Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+</code></pre>
+<br />
 
 <a name="from_list-1"></a>
 
 ### from_list/1 ###
 
-`from_list(List) -> any()`
+<pre><code>
+from_list(List::[<a href="#type-mixed">mixed()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
 
 <a name="new-0"></a>
 
 ### new/0 ###
 
-`new() -> any()`
+<pre><code>
+new() -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
 
 <a name="new-3"></a>
 
 ### new/3 ###
 
-`new(Module, Function, Args) -> any()`
+<pre><code>
+new(Module::module(), Function::function(), Args::[any()]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
 
 <a name="size-1"></a>
 
 ### size/1 ###
 
-`size(Ephp_array) -> any()`
+<pre><code>
+size(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; non_neg_integer()
+</code></pre>
+<br />
 
 <a name="store-3"></a>
 
 ### store/3 ###
 
-`store(Key, Value, Ephp_array) -> any()`
+<pre><code>
+store(Key::auto | <a href="#type-mixed">mixed()</a>, Value::<a href="#type-mixed">mixed()</a>, Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
 
 <a name="to_list-1"></a>
 
 ### to_list/1 ###
 
-`to_list(Ephp_array) -> any()`
+<pre><code>
+to_list(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; [<a href="#type-mixed">mixed()</a>]
+</code></pre>
+<br />
 

@@ -1,13 +1,21 @@
 -module(ephp_parser).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, export_all]).
+-compile([warnings_as_errors]).
 
 -export([parse/1, file/1]).
 
+-export([
+    add_pos/2, new_line/1, copy_level/2, add_line/2, remove_spaces/2,
+    throw_error/3, code_block/3, code/3,
+
+    array_def_level/1, code_statement_level/1, arg_level/1,
+    code_block_level/1,
+
+    variable/3, comment_line/3, comment_block/3, constant/3
+]).
+
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
-
--export([constant/3]).
 
 -import(ephp_parser_expr, [
     expression/3, add_op/2, precedence/1

@@ -30,7 +30,7 @@ destroy(Ref::<a href="ephp.md#type-shutdown_id">ephp:shutdown_id()</a>) -&gt; ok
 ### get_funcs/1 ###
 
 <pre><code>
-get_funcs(Ref::reference()) -&gt; [<a href="#type-function_name">function_name()</a>]
+get_funcs(Ref::reference()) -&gt; [<a href="#type-callable">callable()</a>]
 </code></pre>
 <br />
 
@@ -39,7 +39,7 @@ get_funcs(Ref::reference()) -&gt; [<a href="#type-function_name">function_name()
 ### register_func/2 ###
 
 <pre><code>
-register_func(Ref::reference(), FuncName::<a href="#type-function_name">function_name()</a>) -&gt; ok
+register_func(Ref::reference(), FuncName::<a href="#type-callable">callable()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -66,7 +66,7 @@ start_link() -&gt; {ok, reference()}
 ### unregister_func/2 ###
 
 <pre><code>
-unregister_func(Ref::reference(), FuncName::<a href="#type-function_name">function_name()</a>) -&gt; ok
+unregister_func(Ref::reference(), FuncName::<a href="#type-callable">callable()</a>) -&gt; ok
 </code></pre>
 <br />
 

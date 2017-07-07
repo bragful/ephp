@@ -1,9 +1,11 @@
 -module(ephp_parser_string).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, export_all]).
+-compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
+
+-export([string/3]).
 
 -import(ephp_parser, [
     add_pos/2, new_line/1, add_line/2, variable/3, throw_error/3

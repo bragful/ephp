@@ -112,9 +112,9 @@ php_ceil(_Context, _Line, {_, Value}) ->
 -spec php_floor(context(), line(), var_value()) -> integer().
 
 php_floor(_Context, _Line, {_, Value}) when is_number(Value) ->
-    ephp_data:floor(Value);
+    ephp_data:flooring(Value);
 php_floor(_Context, _Line, {_, Value}) ->
-    ephp_data:floor(ephp_data:bin_to_number(Value)).
+    ephp_data:flooring(ephp_data:bin_to_number(Value)).
 
 -spec php_round(context(), line(), var_value()) -> integer().
 

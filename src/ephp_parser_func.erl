@@ -1,12 +1,12 @@
 -module(ephp_parser_func).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, export_all]).
+-compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
 
 -export([function/3, call_args/3, st_function/3, st_use_or_block/3, echo/3,
-         funct_args/3]).
+         funct_args/3, funct_name/3]).
 
 -import(ephp_parser, [
     add_line/2, add_pos/2, new_line/1, arg_level/1, copy_level/2,

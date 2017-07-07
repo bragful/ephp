@@ -1,6 +1,6 @@
 -module(ephp_parser_expr).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, export_all]).
+-compile([warnings_as_errors]).
 
 -export([expression/3, add_op/2, precedence/1]).
 
@@ -674,7 +674,7 @@ gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
 gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->
     gen_op(Rest, [I|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
-    gen_op(Rest, [add_line(#int{int=ephp_data:floor(F)}, Pos)|Stack]);
+    gen_op(Rest, [add_line(#int{int=ephp_data:flooring(F)}, Pos)|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#text{text=T}|Stack]) ->
     gen_op(Rest, [add_line(#int{int=ephp_data:bin_to_number(T)}, Pos)|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [A|Stack]) ->

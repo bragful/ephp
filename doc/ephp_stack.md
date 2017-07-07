@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_array-1">get_array/1</a></td><td></td></tr><tr><td valign="top"><a href="#pop-1">pop/1</a></td><td></td></tr><tr><td valign="top"><a href="#push-7">push/7</a></td><td></td></tr><tr><td valign="top"><a href="#size-1">size/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_array-1">get_array/1</a></td><td></td></tr><tr><td valign="top"><a href="#pop-1">pop/1</a></td><td></td></tr><tr><td valign="top"><a href="#push-7">push/7</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -21,6 +21,12 @@
 ### destroy/1 ###
 
 `destroy(Ref) -> any()`
+
+<a name="get-1"></a>
+
+### get/1 ###
+
+`get(Ref) -> any()`
 
 <a name="get_array-1"></a>
 
@@ -39,12 +45,6 @@
 ### push/7 ###
 
 `push(Ref, File, X3, Fun, Args, Class, Object) -> any()`
-
-<a name="size-1"></a>
-
-### size/1 ###
-
-`size(Ref) -> any()`
 
 <a name="start_link-1"></a>
 

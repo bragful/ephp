@@ -1,10 +1,13 @@
 -module(ephp_request_dets).
--compile([export_all]).
+-author('manuel@altenwald.com').
+-compile([warnings_as_errors]).
 
 -define(TABLE, request_ets).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("ephp.hrl").
+
+-export([ensure_array_exists/1, handle_array/3]).
 
 ensure_array_exists(_ID) ->
     case dets:info(?TABLE) of

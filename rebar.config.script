@@ -1,6 +1,18 @@
-PCRE_VERSION = case proplists:get_value(version, re:module_info(exports)) of
-    undefined -> {d, 'PCRE_VERSION', "8.02 2010-03-19"};
-    0 -> {d, 'PCRE_VERSION', re:version()}
+CheckFor = fun(Tuple, Module) ->
+    lists:member(Tuple, Module:module_info(exports))
+end,
+
+NATIVE_FLOOR = case CheckFor({floor, 1}, erlang) of
+    true -> [{d, 'NATIVE_FLOOR', "1"}];
+    false -> []
+end,
+NATIVE_CEIL = case CheckFor({ceil, 1}, erlang) of
+    true -> [{d, 'NATIVE_CEIL', "1"}];
+    false -> []
+end,
+PCRE_VERSION = case CheckFor({version, 0}, re) of
+    false -> {d, 'PCRE_VERSION', "8.02 2010-03-19"};
+    true -> {d, 'PCRE_VERSION', binary_to_list(re:version())}
 end,
 case filelib:is_regular(".build_date") of
     true -> ok;
@@ -15,5 +27,5 @@ OldErlOpts = [{erl_opts, ErlOpts}],
 NewErlOpts = [{erl_opts, [
     {d, 'BUILD_DATE', BuildDate},
     PCRE_VERSION
-|ErlOpts]}],
+|ErlOpts] ++ NATIVE_FLOOR ++ NATIVE_CEIL}],
 (CONFIG -- OldErlOpts) ++ NewErlOpts.
