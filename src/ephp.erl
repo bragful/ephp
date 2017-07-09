@@ -109,9 +109,9 @@ eval(Context, PHP) ->
 
 eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of
-        {error, eparse, Line, _ErrorLevel, _Text} ->
+        {error, eparse, Line, _ErrorLevel, Data} ->
             ephp_error:handle_error(Context, {error, eparse, Line,
-                Filename, ?E_PARSE, {}}),
+                Filename, ?E_PARSE, Data}),
             {error, eparse};
         Compiled ->
             Cover = ephp_cover:get_config(),

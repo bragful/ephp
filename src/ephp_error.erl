@@ -282,8 +282,11 @@ get_message([Module|Modules], Type, Level, Args) ->
 
 -spec get_message(error_type(), binary() | term()) -> string().
 
-get_message(eparse, {}) ->
+get_message(eparse, _Rest) when is_binary(_Rest) ->
     "parse error";
+
+get_message(eparse, {Type}) when is_binary(Type) ->
+    io_lib:format("parse error, expecting `\"~s\"'", [Type]);
 
 get_message(enofile, {OpenFile, Func}) ->
     io_lib:format(

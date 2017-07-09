@@ -73,8 +73,12 @@ st_class_content(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>,
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     st_class_content(<<SP:8,Rest/binary>>, static_level(add_pos(Pos,6)),
                      Class);
+st_class_content(<<V:8,A:8,R:8,SP:8,Rest/binary>>, Pos, Class) when
+        ?OR(V,$V,$v) andalso ?OR(A,$A,$a) andalso ?OR(R,$R,$r) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    st_class_content(<<SP:8,Rest/binary>>, public_level(add_pos(Pos,3)), Class);
 st_class_content(<<"$",_/binary>> = Rest, {{Access,Type},_,_}=Pos,
-                 #class{attrs=Attrs}=Class) ->
+                 #class{attrs=Attrs}=Class) when Access =/= unset ->
     {Rest0, Pos0, #assign{variable=#variable{name=VarName}, expression=Expr}} =
         ephp_parser_expr:expression(Rest, Pos, []),
     Attr = #class_attr{
@@ -84,8 +88,10 @@ st_class_content(<<"$",_/binary>> = Rest, {{Access,Type},_,_}=Pos,
         init_value = Expr},
     NewClass = Class#class{attrs=Attrs ++ [Attr]},
     st_class_content(Rest0, normal_public_level(Pos0), NewClass);
+st_class_content(<<"$",_/binary>> = _Rest, Pos, _Class) ->
+    ephp_parser:throw_error(eparse, Pos, {<<"function (T_FUNCTION)">>});
 st_class_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
-                 {{Access,Type},_,_}=Pos, #class{methods=Methods}=Class) when
+                 {{RawAccess,Type},_,_}=Pos, #class{methods=Methods}=Class) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
         ?OR(O,$O,$o) andalso ?IS_SPACE(SP) ->
@@ -96,7 +102,7 @@ st_class_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
         args = Fun#function.args,
         code = Fun#function.code,
         type = Type,
-        access = Access},
+        access = access(RawAccess)},
     NewClass = Class#class{methods=Methods ++ [Method]},
     st_class_content(Rest0, normal_public_level(Pos0), NewClass);
 st_class_content(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>,
@@ -120,6 +126,9 @@ st_class_content(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>,
     NewPos = abstract_level(add_pos(Pos,8)),
     st_class_content(<<SP:8,Rest/binary>>, NewPos, Class).
 
+access(unset) -> public;
+access(Other) -> Other.
+
 st_implements(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_implements(Rest, add_pos(Pos,1), Parsed);
 st_implements(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
@@ -132,7 +141,7 @@ st_implements(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_ALPHA(A) ->
 st_implements(<<"{",_/binary>> = Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
 
-normal_public_level({_,Row,Col}) -> {{public,normal},Row,Col}.
+normal_public_level({_,Row,Col}) -> {{unset,normal},Row,Col}.
 public_level({{_,Type},Row,Col}) -> {{public,Type},Row,Col}.
 protected_level({{_,Type},Row,Col}) -> {{protected,Type},Row,Col}.
 private_level({{_,Type},Row,Col}) -> {{private,Type},Row,Col}.

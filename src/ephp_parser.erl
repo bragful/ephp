@@ -850,9 +850,12 @@ get_print(Value, Pos) when is_atom(Value) ->
 get_print(Expr, Pos) ->
     add_line(#print{expression=Expr}, Pos).
 
-throw_error(Error, {_Level,Row,Col}, Data) ->
+throw_error(Error, {_Level, Row, Col}, Data) when is_binary(Data) ->
     Output = iolist_to_binary(Data),
     Size = min(byte_size(Output), 20),
-    Index = {{line,Row},{column,Col}},
-    ephp_error:error({error, Error, Index, ?E_PARSE,
-        <<Output:Size/binary, "...">>}).
+    Index = {{line, Row}, {column, Col}},
+    LimitedData = <<Output:Size/binary, "...">>,
+    ephp_error:error({error, Error, Index, ?E_PARSE, LimitedData});
+throw_error(Error, {_Level, Row, Col}, Data) when is_tuple(Data) ->
+    Index = {{line, Row}, {column, Col}},
+    ephp_error:error({error, Error, Index, ?E_PARSE, Data}).
