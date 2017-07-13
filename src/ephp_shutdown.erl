@@ -64,7 +64,8 @@ shutdown(Context) ->
             Break
     end, false, ephp_context:get_shutdown_funcs(Context)),
     if Result =:= false ->
-        Globals = ephp_context:get(Context, #variable{name = <<"GLOBALS">>}),
+        %% TODO: create a function for this (GLOBALS could be unset)
+        Globals = erlang:get(ephp_context:get_vars(Context)),
         ephp_array:fold(fun(K,V,Acc) ->
             ephp_lib_vars:unset(Context, Line, {#variable{name=K},V}),
             Acc

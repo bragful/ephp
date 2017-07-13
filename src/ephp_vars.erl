@@ -102,11 +102,6 @@ destroy(Context) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-exists(#variable{name = <<"GLOBALS">>, idx=[]}, _Vars) ->
-    true;
-exists(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars) ->
-    exists(#variable{name=Root, idx=Idx}, Vars);
-
 exists(#variable{name = Root, idx=[]}, Vars) ->
     case ephp_array:find(Root, Vars) of
         error -> false;
@@ -116,6 +111,8 @@ exists(#variable{name = Root, idx=[]}, Vars) ->
 
 exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
     case ephp_array:find(Root, Vars) of
+        {ok, #var_ref{ref=global}} ->
+            exists(#variable{name = NewRoot, idx = Idx}, Vars);
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             isset(RefVarsPID, NewRefVar);
@@ -128,11 +125,8 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
             false
     end.
 
-search(#variable{name = <<"GLOBALS">>, idx=[]}, Vars, _Context) ->
+search(global, Vars, _Context) ->
     Vars;
-
-search(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Vars, _Context) ->
-    search(#variable{name=Root, idx=Idx}, Vars, undefined);
 
 search(#variable{idx = []}, undefined, undefined) ->
     undefined;
@@ -152,6 +146,8 @@ search(#variable{name = Root, idx = [], line = Line}, Vars, Context) ->
             ephp_error:handle_error(Context,
                 {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
             undefined;
+        {ok, #var_ref{ref=global}} ->
+            Vars;
         {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
             get(RefVarsPID, RefVar);
         {ok, Value} ->
@@ -160,6 +156,8 @@ search(#variable{name = Root, idx = [], line = Line}, Vars, Context) ->
 
 search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
+        {ok, #var_ref{ref=global}} ->
+            search(#variable{name = NewRoot, idx = Idx}, Vars, undefined);
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             get(RefVarsPID, NewRefVar);
@@ -177,20 +175,13 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
             undefined
     end.
 
-change(#variable{name = <<"GLOBALS">>, idx=[]}, Value, _Vars)
-        when ?IS_ARRAY(Value) ->
-    ephp_array:fold(fun(Root, Val, NewVars) ->
-        ephp_array:store(Root, Val, NewVars)
-    end, ephp_array:new(), Value);
-
-change(#variable{name = <<"GLOBALS">>, idx=[Root|Idx]}, Value, Vars) ->
-    change(#variable{name=Root, idx=Idx}, Value, Vars);
-
 change(#variable{name=Root, idx=[]}=_Var, remove, Vars) ->
     ephp_array:erase(Root, Vars);
 
 change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
     case ephp_array:find(Root, Vars) of
+        {ok, #var_ref{ref=global}} ->
+            ephp_array:store(Root, Value, Vars);
         {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
             set(RefVarsPID, RefVar, Value),
             Vars;
@@ -215,6 +206,8 @@ change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     case ephp_array:find(Root, Vars) of
+        {ok, #var_ref{ref=global}} ->
+            change(#variable{name = NewRoot, idx = Idx}, Value, Vars);
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             set(RefVarsPID, NewRefVar, Value),
@@ -233,3 +226,4 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
                                     ephp_array:new()),
                              Vars)
     end.
+

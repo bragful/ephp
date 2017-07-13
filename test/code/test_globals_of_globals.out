@@ -1,0 +1,22 @@
+array(1) {
+  ["GLOBALS"]=>
+  string(4) "nada"
+}
+array(1) {
+  ["GLOBALS"]=>
+  string(4) "nada"
+}
+GLOBALS exists!
+GLOBALS['c'] exists!
+array(1) {
+  ["a"]=>
+  int(10)
+}
+array(1) {
+  ["a"]=>
+  int(11)
+}
+int(10)
+
+Notice: Undefined variable: GLOBALS in {{CWD}}/test/code/test_globals_of_globals.php on line 24
+NULL
