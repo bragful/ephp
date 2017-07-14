@@ -41,7 +41,7 @@
 
 -record(state, {
     output_handler = ?MODULE :: module(),
-    error_handler :: {callable(), non_neg_integer()},
+    error_handler = [] :: [{callable(), non_neg_integer()}],
     exception_handler :: callable(),
     silent = false :: boolean(),
     level = ?E_ALL :: non_neg_integer(),
@@ -98,22 +98,31 @@ remove_exception_handler_func(Context) ->
 set_error_handler_func(Context, Callable, ErrorLevel) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
-    erlang:put(ErrorsId, State#state{error_handler = {Callable, ErrorLevel}}),
+    ErrorHandlers = [{Callable, ErrorLevel}|State#state.error_handler],
+    erlang:put(ErrorsId, State#state{error_handler = ErrorHandlers}),
     ok.
 
 -spec get_error_handler_func(context()) -> callable() | undefined.
 
 get_error_handler_func(Context) ->
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
-    ErrorState#state.error_handler.
+    case ErrorState#state.error_handler of
+        [] -> undefined;
+        [ErrorHandler|_] -> ErrorHandler
+    end.
 
 -spec remove_error_handler_func(context()) -> ok.
 
 remove_error_handler_func(Context) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
-    erlang:put(ErrorsId, State#state{error_handler = undefined}),
-    ok.
+    case State#state.error_handler of
+        [] ->
+            ok;
+        [_|ErrorHandlers] ->
+            erlang:put(ErrorsId, State#state{error_handler = ErrorHandlers}),
+            ok
+    end.
 
 -spec set_error_format(context(), error_format()) -> ok.
 
@@ -197,7 +206,7 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
             ok
     end,
     case ErrorState of
-        #state{error_handler = {ErrHandler, CfgLevel}, output_handler = Module}
+        #state{error_handler = [{ErrHandler, CfgLevel}|_], output_handler = Module}
                 when (CfgLevel band Level) =/= 0
                 andalso (?E_HANDLE_ERRORS band Level) =/= 0 ->
             case run(Context, ErrHandler, Level, SimpleErrText, File, Index) of
@@ -382,6 +391,10 @@ get_message(enoobjectexception, {}) ->
 get_message(errtype, {I, ReqType, GivenType, FuncName}) ->
     io_lib:format("Argument ~p passed to ~s() must be an instance of ~s, "
                   "~s given, called", [I, FuncName, ReqType, GivenType]);
+
+get_message(einvalidcallback, {Func, Arg}) ->
+    io_lib:format("~s() expects the argument (~s) to be a valid callback",
+                  [Func, Arg]);
 
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).

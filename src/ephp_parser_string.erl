@@ -57,7 +57,7 @@ string_fixed(<<>>, {L,_,_}, #text{line={{line,R},{column,C}}}) ->
 string_fixed(<<"\\\\",Rest/binary>>, Pos, #text{text=C}=S) ->
     string_fixed(Rest, add_pos(Pos,1), S#text{text = <<C/binary, "\\\\">>});
 string_fixed(<<"\\'",Rest/binary>>, Pos, #text{text=C}=S) ->
-    string_fixed(Rest, add_pos(Pos,1), S#text{text = <<C/binary, "\\'">>});
+    string_fixed(Rest, add_pos(Pos,1), S#text{text = <<C/binary, "'">>});
 string_fixed(<<"'",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,1), Parsed};
 string_fixed(<<"\n",Rest/binary>>, Pos, #text{text=C}=S) ->
@@ -73,7 +73,7 @@ string_parsed(<<"\\\\",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
     string_parsed(Rest, add_pos(Pos,1), NewText);
 string_parsed(<<"\\\"",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
         when is_binary(C) ->
-    NewText = S#text_to_process{text = [<<C/binary, "\\\"">>|R]},
+    NewText = S#text_to_process{text = [<<C/binary, "\"">>|R]},
     string_parsed(Rest, add_pos(Pos,1), NewText);
 string_parsed(<<"\\$",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
         when is_binary(C) ->

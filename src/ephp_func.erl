@@ -66,6 +66,7 @@
     destroy/1,
 
     get/2,
+    is_defined/2,
     get_functions/1,
 
     get_static_value/3,
@@ -157,6 +158,10 @@ init_static_value(Ref, FuncName, VarName, Value) ->
         error ->
             throw({error, enofunc})
     end.
+
+is_defined(Ref, FuncName) ->
+    Funcs = erlang:get(Ref),
+    dict:is_key(FuncName, Funcs).
 
 get_functions(Ref) ->
     Funcs = erlang:get(Ref),

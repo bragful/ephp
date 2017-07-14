@@ -116,15 +116,25 @@ error_reporting(Context, _Line, {_, ErrorLevel}) when is_integer(ErrorLevel) ->
 
 -spec set_error_handler(context(), line(), var_value(), var_value()) -> mixed().
 
-set_error_handler(Context, _Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
-    case ephp_error:get_error_handler_func(Context) of
-        {OldErrorHandler, _} ->
+set_error_handler(Context, Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
+    %% FIXME: ErrorHandler maybe could be a callable instead...
+    case ephp_context:is_defined_function(Context, ErrorHandler) of
+        true ->
+            case ephp_error:get_error_handler_func(Context) of
+                {OldErrorHandler, _} ->
+                    OldErrorHandler;
+                undefined ->
+                    OldErrorHandler = undefined
+            end,
+            ephp_error:set_error_handler_func(Context, ErrorHandler, ErrorLevel),
             OldErrorHandler;
-        undefined ->
-            OldErrorHandler = undefined
-    end,
-    ephp_error:set_error_handler_func(Context, ErrorHandler, ErrorLevel),
-    OldErrorHandler.
+        false ->
+            Data = {<<"set_error_handler">>, ephp_data:to_bin(ErrorHandler)},
+            File = ephp_context:get_active_file(Context),
+            Error = {error, einvalidcallback, Line, File, ?E_WARNING, Data},
+            ephp_error:handle_error(Context, Error),
+            undefined
+    end.
 
 -spec restore_error_handler(context(), line()) -> true.
 

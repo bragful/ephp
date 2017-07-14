@@ -56,6 +56,7 @@
     register_func/6,
     get_functions/1,
     get_function/2,
+    is_defined_function/2,
 
     get_current_function/1,
     get_current_class/1,
@@ -228,6 +229,10 @@ get_functions(Context) ->
 get_function(Context, FuncName) ->
     #state{funcs=Funcs} = load_state(Context),
     ephp_func:get(Funcs, FuncName).
+
+is_defined_function(Context, FuncName) ->
+    #state{funcs=Funcs} = load_state(Context),
+    ephp_func:is_defined(Funcs, FuncName).
 
 get_current_function(Context) ->
     #state{active_fun=ActiveFun} = load_state(Context),

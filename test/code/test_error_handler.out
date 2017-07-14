@@ -1,8 +1,18 @@
-test_error_handler.php:14 [2] sqrt() expects parameter 1 to be double, string given
------
-test_error_handler.php:16 [2] sqrt() expects parameter 1 to be double, string given
+older error handler (0) = 
+test_error_handler.php:17 [2] set_error_handler() expects the argument (older_handle_error) to be a valid callback
+older error handler (1) = 
+test_error_handler.php:20 [2] sqrt() expects parameter 1 to be double, string given
 
-Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 16
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 20
+older error handler (2) = handle_error
+-----
+wow!
+
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 25
+-----
+test_error_handler.php:30 [2] sqrt() expects parameter 1 to be double, string given
+
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 30
 -----
 
-Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 21
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_error_handler.php on line 35
