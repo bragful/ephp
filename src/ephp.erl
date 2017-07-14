@@ -12,7 +12,8 @@
     eval/3,
 
     start/0,
-    main/1   %% for escriptize
+    main/1,   %% for escriptize
+    register_superglobals/2
 ]).
 
 -ifdef(TEST).
@@ -144,7 +145,7 @@ start() ->
 
 -spec main(Args :: [string()]) -> integer().
 
-main([Filename]) ->
+main([Filename|_] = RawArgs) ->
     start(),
     case file:read_file(Filename) of
     {ok, Content} ->
@@ -153,6 +154,7 @@ main([Filename]) ->
         AbsFilename = list_to_binary(filename:absname(Filename)),
         ephp_config:start_link(?PHP_INI_FILE),
         {ok, Ctx} = context_new(AbsFilename),
+        register_superglobals(Ctx, RawArgs),
         case eval(AbsFilename, Ctx, Content) of
             {ok, _Return} ->
                 Result = ephp_context:get_output(Ctx),
@@ -215,3 +217,30 @@ stop_cover() ->
         true -> ephp_cover:dump();
         false -> ok
     end.
+
+-spec register_superglobals(context(), [string()]) -> ok.
+
+register_superglobals(Ctx, [Filename|_] = RawArgs) ->
+    Args = [ ephp_data:to_bin(RawArg) || RawArg <- RawArgs ],
+    ArrayArgs = ephp_array:from_list(Args),
+    Server = [
+        %% TODO: add the rest of _SERVER vars
+        {<<"argc">>, ephp_array:size(ArrayArgs)},
+        {<<"argv">>, ArrayArgs},
+        {<<"PHP_SELF">>, Filename}
+    ],
+    ephp_context:set(Ctx, #variable{name = <<"_SERVER">>},
+                     ephp_array:from_list(Server)),
+    SuperGlobals = [
+        <<"_GET">>,
+        <<"_POST">>,
+        <<"_FILES">>,
+        <<"_COOKIE">>,
+        <<"_SESSION">>,
+        <<"_REQUEST">>,
+        <<"_ENV">>
+    ],
+    lists:foreach(fun(Global) ->
+        ephp_context:set(Ctx, #variable{name = Global}, ephp_array:new())
+    end, SuperGlobals),
+    ok.

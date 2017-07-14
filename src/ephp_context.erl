@@ -890,6 +890,7 @@ register_superglobals(GlobalCtx, Vars) ->
         <<"_REQUEST">>,
         <<"_ENV">>
     ],
+    ephp_vars:ref(Vars, #variable{name = <<"GLOBALS">>}, GlobalVars, global),
     lists:foreach(fun(GlobalName) ->
         GlobalVar = #variable{name = GlobalName},
         ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
