@@ -1,6 +1,6 @@
 -module(ephp_stack).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
+-compile([warnings_as_errors, {no_auto_import, [get/1]}]).
 
 -include("ephp.hrl").
 
@@ -14,7 +14,7 @@
 ]).
 
 start_link(Ref) ->
-    case erlang:get(get_id(Ref)) of
+    case get(Ref) of
         Stack when is_list(Stack) ->
             ok;
         _ ->
@@ -26,7 +26,7 @@ destroy(Ref) ->
     erlang:erase(get_id(Ref)).
 
 push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
-    Stack = erlang:get(get_id(Ref)),
+    Stack = get(Ref),
     Type = if
         Class =:= undefined -> undefined;
         Object =:= undefined -> <<"::">>;
@@ -45,7 +45,7 @@ push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
     ok.
 
 pop(Ref) ->
-    [Head|Stack] = erlang:get(get_id(Ref)),
+    [Head|Stack] = get(Ref),
     erlang:put(get_id(Ref), Stack),
     Head.
 
@@ -73,7 +73,7 @@ get_array(Ref) ->
           ++ add_type(Type)
           ++ add_args(Fun, Args)),
         ephp_array:store(auto, Element, Array)
-    end, ephp_array:new(), erlang:get(get_id(Ref))).
+    end, ephp_array:new(), get(Ref)).
 
 add_function(Fun) ->
     Incs = [<<"include">>, <<"include_once">>,

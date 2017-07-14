@@ -15,6 +15,10 @@
     main/1   %% for escriptize
 ]).
 
+-ifdef(TEST).
+-export([stop_cover/0]).
+-endif.
+
 -export_type([
     context_id/0,
     vars_id/0,

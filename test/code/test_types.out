@@ -1,0 +1,32 @@
+bool(true)
+ => is boolean
+NULL
+ => is NULL
+int(10)
+ => is integer
+float(5.5)
+ => is double
+string(5) "hello"
+ => is string
+array(0) {
+}
+ => is array
+object(stdClass)#1 (0) {
+}
+ => is object
+float(NAN)
+ => is double
+float(INF)
+ => is double
+
+Notice: Use of undefined constant nan - assumed 'nan' in {{CWD}}/test/code/test_types.php on line 21
+string(3) "nan"
+ => is string
+
+Notice: Use of undefined constant inf - assumed 'inf' in {{CWD}}/test/code/test_types.php on line 22
+string(3) "inf"
+ => is string
+'10' == 10 (OK)
+10 == '10' (OK)
+'10.1' == 10.1 (OK)
+10.1 == '10.1' (OK)

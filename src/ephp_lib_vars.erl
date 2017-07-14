@@ -185,7 +185,10 @@ empty(_Context, _Line, {_,Value}) ->
 -spec gettype(context(), line(), var_value()) -> binary().
 
 gettype(_Context, _Line, {_,Value}) ->
-    ephp_data:gettype(Value).
+    case ephp_data:gettype(Value) of
+        <<"float">> -> <<"double">>;
+        Other -> Other
+    end.
 
 -spec unset(context(), line(), var_value()) -> undefined.
 
