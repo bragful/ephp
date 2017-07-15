@@ -18,7 +18,14 @@
         erlang:'and'(X >= $a, X =< $z)
     )
 ).
--define(OR(I,X,Y), erlang:'or'(I =:= X,I =:= Y)).
+-define(IS_ALPHANUM(X), erlang:'or'(?IS_NUMBER(X), ?IS_ALPHA(X))).
+-define(IS_HEX(X),
+    erlang:'or'(
+        ?IS_NUMBER(X),
+        erlang:'and'(X >= $A, X =< $F)
+    )
+).
+-define(OR(I,X,Y), erlang:'or'(I =:= X, I =:= Y)).
 -define(IS_OP1_ARITH(X),
     X =:= <<"*">> orelse
     X =:= <<"/">> orelse
