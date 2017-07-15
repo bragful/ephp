@@ -15,6 +15,7 @@
     to_float/3,
     to_boolean/1,
     bin_to_number/1,
+    bin_to_number/2,
     increment_code/1,
     to_bool/1,
     zero_if_undef/1,
@@ -57,15 +58,22 @@ is_equal(A, B) ->
             end
     end.
 
--spec bin_to_number(binary()) -> integer() | float().
+-spec bin_to_number(binary(), Force :: true) -> integer() | float();
+                   (binary(), Force :: false) -> integer() | float() | undefined.
 
-bin_to_number(Bin) when is_binary(Bin) ->
+bin_to_number(Bin, Force) ->
     {ok, R} = re:compile("^[+-]?[0-9]*(\.[0-9]+(e[+-]?[1-9][0-9]*)?)?"),
     case re:run(Bin, R, [{capture, all, binary}]) of
-        {match, [<<>>]} -> 0;
+        {match, [<<>>]} when Force -> 0;
+        {match, [<<>>]} -> undefined;
         {match, [Num]} -> binary_to_integer(Num);
         {match, [Num|_]} -> binary_to_float(Num)
     end.
+
+-spec bin_to_number(binary()) -> integer() | float().
+
+bin_to_number(Bin) when is_binary(Bin) ->
+    bin_to_number(Bin, true).
 
 -spec to_int(A :: mixed()) -> integer().
 
