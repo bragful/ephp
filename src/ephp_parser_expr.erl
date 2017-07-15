@@ -237,7 +237,7 @@ expression(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, [Exp]) ->
     {Rest, add_pos(Pos,1), add_op('end', [Exp])};
 % FINAL -unclosed-
 expression(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [Exp])
-        when ?IS_SPACE(SP) ->
+        when ?IS_SPACE(SP) orelse SP =:= $" ->
     {Rest, Pos, add_op('end', [Exp])};
 % SPACE -all-
 expression(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
