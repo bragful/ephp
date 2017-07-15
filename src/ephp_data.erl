@@ -62,10 +62,12 @@ is_equal(A, B) ->
                    (binary(), Force :: false) -> integer() | float() | undefined.
 
 bin_to_number(Bin, Force) ->
-    {ok, R} = re:compile("^[+-]?[0-9]*(\.[0-9]+(e[+-]?[1-9][0-9]*)?)?"),
+    {ok, R} = re:compile("^[+-]?[0-9]*(\\.[0-9]+(e[+-]?[1-9][0-9]*)?)?"),
     case re:run(Bin, R, [{capture, all, binary}]) of
         {match, [<<>>]} when Force -> 0;
         {match, [<<>>]} -> undefined;
+        {match, [<<A:8>>]} when Force andalso (A =:= $+ orelse A =:= $-) -> 0;
+        {match, [<<A:8>>]} when A =:= $+ orelse A =:= $- -> undefined;
         {match, [Num]} -> binary_to_integer(Num);
         {match, [Num|_]} -> binary_to_float(Num)
     end.

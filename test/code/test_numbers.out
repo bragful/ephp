@@ -4,3 +4,5 @@ acos(1.01) = NAN
 Warning: Division by zero in {{CWD}}/test/code/test_numbers.php on line 6
 float(INF)
 float(NAN)
+int(0)
+int(0)

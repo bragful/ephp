@@ -7,3 +7,6 @@ print "acos(1.01) = " . acos(1.01) . "\n";
 
 var_dump(INF);
 var_dump(NAN);
+
+var_dump(round("+a123"));
+var_dump(round("-a123"));
