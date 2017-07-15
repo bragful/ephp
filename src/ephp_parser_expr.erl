@@ -643,6 +643,9 @@ solve(Expression) ->
 
 gen_op([], Stack) ->
     Stack;
+gen_op([{<<"=">>,{_,_},Pos}|Rest], [B,{operation_not, A, Line}|Stack]) ->
+    Assign = add_line(#assign{variable=A, expression=B}, Pos),
+    gen_op(Rest, [{operation_not, Assign, Line}|Stack]);
 gen_op([{<<"=">>,{_,_},Pos}|Rest], [B,A|Stack]) ->
     Assign = add_line(#assign{variable=A, expression=B}, Pos),
     gen_op(Rest, [Assign|Stack]);
