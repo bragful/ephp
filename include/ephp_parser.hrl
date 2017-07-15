@@ -22,7 +22,10 @@
 -define(IS_HEX(X),
     erlang:'or'(
         ?IS_NUMBER(X),
-        erlang:'and'(X >= $A, X =< $F)
+        erlang:'or'(
+            erlang:'and'(X >= $A, X =< $F),
+            erlang:'and'(X >= $a, X =< $f)
+        )
     )
 ).
 -define(OR(I,X,Y), erlang:'or'(I =:= X, I =:= Y)).
