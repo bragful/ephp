@@ -26,9 +26,11 @@ echo(<<";",Rest/binary>>, Pos, Parsed) ->
 echo(Rest, Pos, [#call{args=Args}=C|Parsed]) when Rest =/= <<>> ->
     case ephp_parser_expr:expression(Rest, arg_level(Pos), []) of
         {<<";",_/binary>> = Rest0, Pos0, []} ->
-            {Rest0, add_pos(Pos0,1), [C|Parsed]};
+            {Rest0, Pos0, [C|Parsed]};
         {<<";",_/binary>> = Rest0, Pos0, Arg} ->
-            {Rest0, add_pos(Pos0,1), [C#call{args=Args ++ [Arg]}|Parsed]};
+            {Rest0, Pos0, [C#call{args=Args ++ [Arg]}|Parsed]};
+        {<<"?>",_/binary>> = Rest0, Pos0, Arg} ->
+            {Rest0, Pos0, [C#call{args=Args ++ [Arg]}|Parsed]};
         {<<",",Rest0/binary>>, Pos0, Arg} ->
             NewCall = C#call{args=Args ++ [Arg]},
             echo(Rest0, add_pos(Pos0, 1), [NewCall|Parsed]);
