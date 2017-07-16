@@ -28,7 +28,10 @@
         )
     )
 ).
+-define(IS_OCT(X), erlang:'and'(X >= $0, X =< $7)).
+
 -define(OR(I,X,Y), erlang:'or'(I =:= X, I =:= Y)).
+
 -define(IS_OP1_ARITH(X),
     X =:= <<"*">> orelse
     X =:= <<"/">> orelse

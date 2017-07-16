@@ -92,25 +92,20 @@ string_parsed(<<"\\x", HexBin1:8, Rest/binary>>, Pos,
     string_parsed(Rest, add_pos(Pos, 4), NewText);
 string_parsed(<<"\\", OctBin1:8, OctBin2:8, OctBin3:8, Rest/binary>>, Pos,
               #text_to_process{text=[C|R]}=S)
-        when is_binary(C)
-        andalso OctBin1 >= $0 andalso OctBin1 =< $7
-        andalso OctBin2 >= $0 andalso OctBin2 =< $7
-        andalso OctBin3 >= $0 andalso OctBin3 =< $7 ->
+        when is_binary(C) andalso ?IS_OCT(OctBin1) andalso ?IS_OCT(OctBin2)
+        andalso ?IS_OCT(OctBin3) ->
     Data = binary_to_integer(<<OctBin1:8, OctBin2:8, OctBin3:8>>, 8),
     NewText = S#text_to_process{text = [<<C/binary, Data:8>>|R]},
     string_parsed(Rest, add_pos(Pos, 4), NewText);
 string_parsed(<<"\\", OctBin1:8, OctBin2:8, Rest/binary>>, Pos,
               #text_to_process{text=[C|R]}=S)
-        when is_binary(C)
-        andalso OctBin1 >= $0 andalso OctBin1 =< $7
-        andalso OctBin2 >= $0 andalso OctBin2 =< $7 ->
+        when is_binary(C) andalso ?IS_OCT(OctBin1) andalso ?IS_OCT(OctBin2) ->
     Data = binary_to_integer(<<OctBin1:8, OctBin2:8>>, 8),
     NewText = S#text_to_process{text = [<<C/binary, Data:8>>|R]},
     string_parsed(Rest, add_pos(Pos, 4), NewText);
 string_parsed(<<"\\", OctBin:8, Rest/binary>>, Pos,
               #text_to_process{text=[C|R]}=S)
-        when is_binary(C)
-        andalso OctBin >= $0 andalso OctBin =< $7 ->
+        when is_binary(C) andalso ?IS_OCT(OctBin) ->
     Data = binary_to_integer(<<OctBin:8>>, 8),
     NewText = S#text_to_process{text = [<<C/binary, Data:8>>|R]},
     string_parsed(Rest, add_pos(Pos, 4), NewText);
