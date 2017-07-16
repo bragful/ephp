@@ -17,7 +17,7 @@ Features
     - [x] References
     - [ ] Resources
     - [x] Objects
-    - [ ] Casting/Conversion
+    - [x] Casting/Conversion
 - Strings
     - [x] Single quote string
     - [x] Double quote string
@@ -58,8 +58,8 @@ Features
 - Error handling
     - [x] launch errors
     - [x] silent warnings/errors (@)
-    - [ ] launch exceptions (throw)
-    - [ ] catch exceptions (try...catch)
+    - [x] launch exceptions (throw)
+    - [x] catch exceptions (try...catch)
 - Exit functions
     - [x] return
     - [x] die / exit
@@ -104,32 +104,43 @@ Functions
    * [isset](http://www.php.net/isset)
    * [print_r](http://www.php.net/print_r)
    * [unset](http://www.php.net/unset)
-   * [var_dump](http://www.php.net/var_dump) (only accepts 1 param)
+   * [var_dump](http://www.php.net/var_dump)
 
  * Array related functions:
+   * [array_merge](http://www.php.net/array_merge)
    * [count](http://www.php.net/count)
    * [in_array](http://www.php.net/in_array) (not complete)
+   * [list](http://www.php.net/list)
    * [sizeof](http://www.php.net/sizeof)
 
  * String related functions:
    * [chr](http://www.php.net/chr)
+   * [echo](http://www.php.net/echo)
    * [explode](http://www.php.net/explode)
    * [implode](http://www.php.net/implode)
    * [join](http://www.php.net/join)
    * [ord](http://www.php.net/ord)
+   * [print](http://www.php.net/print)
+   * [printf](http://www.php.net/printf)
    * [split](http://www.php.net/split)
+   * [sprintf](http://www.php.net/sprintf)
    * [strlen](http://www.php.net/strlen)
+   * [strpos](http://www.php.net/strpos)
    * [strtolower](http://www.php.net/strtolower)
    * [strtoupper](http://www.php.net/strtoupper)
    * [str_replace](http://www.php.net/str_replace)
    * [str_split](http://www.php.net/str_split)
+   * [vprintf](http://www.php.net/vprintf)
+   * [vsprintf](http://www.php.net/vsprintf)
 
  * Date/Time related functions:
    * [date](http://www.php.net/date) (not complete)
    * [date_default_timezone_get](http://www.php.net/date_default_timezone_get)
    * [date_default_timezone_set](http://www.php.net/date_default_timezone_set)
    * [gmdate](http://www.php.net/gmdate)
+   * [microtime](http://www.php.net/microtime)
    * [time](http://www.php.net/time)
+   * [timezone_abbreviations_list](http://www.php.net/timezone_abbreviations_list)
 
 * Functions related functions:
    * [register_shutdown_function](http://www.php.net/register_shutdown_function)
@@ -166,6 +177,7 @@ Functions
 
 * Info related functions:
    * [ini_get](http://www.php.net/ini_get)
+   * [ini_set](http://www.php.net/ini_set)
    * [phpinfo](http://www.php.net/phpinfo)
    * [phpversion](http://www.php.net/phpversion)
    * [set_include_path](http://www.php.net/set_include_path)
@@ -173,8 +185,14 @@ Functions
 * Math related functions:
    * [abs](http://www.php.net/abs)
    * [acos](http://www.php.net/acos)
+   * [acosh](http://www.php.net/acosh)
    * [asin](http://www.php.net/asin)
+   * [asinh](http://www.php.net/asinh)
    * [atan](http://www.php.net/atan)
+   * [atanh](http://www.php.net/atanh)
+   * [atan2](http://www.php.net/atan2)
+   * [base_convert](http://www.php.net/base_convert)
+   * [bindec](http://www.php.net/bindec)
    * [ceil](http://www.php.net/ceil)
    * [cos](http://www.php.net/cos)
    * [cosh](http://www.php.net/cosh)
@@ -183,6 +201,7 @@ Functions
    * [floor](http://www.php.net/floor)
    * [max](http://www.php.net/max)
    * [min](http://www.php.net/min)
+   * [pi](http://www.php.net/pi)
    * [pow](http://www.php.net/pow)
    * [round](http://www.php.net/round)
    * [sin](http://www.php.net/sin)
@@ -192,4 +211,15 @@ Functions
    * [tanh](http://www.php.net/tanh)
 
 * Error related functions:
+   * [debug_backtrace](http://www.php.net/debug_backtrace)
+   * [debug_print_backtrace](http://www.php.net/debug_print_backtrace)
    * [error_reporting](http://www.php.net/error_reporting)
+   * [restore_error_handler](http://www.php.net/restore_error_handler)
+   * [restore_exception_handler](http://www.php.net/restore_exception_handler)
+   * [set_error_handler](http://www.php.net/set_error_handler)
+   * [set_exception_handler](http://www.php.net/set_exception_handler)
+   * [error_get_last](http://www.php.net/error_get_last)
+   * [error_clear_last](http://www.php.net/error_clear_last)
+
+ * PCRE related functions:
+   * [preg_match](http://www.php.net/preg_match)
