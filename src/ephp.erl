@@ -26,6 +26,7 @@
     output_id/0,
     funcs_id/0,
     classes_id/0,
+    objects_id/0,
     consts_id/0,
     includes_id/0,
     shutdown_id/0,
@@ -37,6 +38,7 @@
 -opaque output_id() :: reference().
 -opaque funcs_id() :: reference().
 -opaque classes_id() :: reference().
+-opaque objects_id() :: reference().
 -opaque consts_id() :: reference().
 -opaque includes_id() :: reference().
 -opaque shutdown_id() :: reference().

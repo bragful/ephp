@@ -84,7 +84,7 @@ php_is_string(_Context, _Line, {_,Value}) -> erlang:is_binary(Value).
 
 -spec php_is_object(context(), line(), var_value()) -> boolean().
 php_is_object(_Context, _Line, {_,Value}) ->
-    erlang:is_record(Value, reg_instance).
+    erlang:is_record(Value, ephp_object).
 
 -spec print_r(context(), line(), var_value()) -> true | binary().
 
@@ -108,9 +108,9 @@ var_dump(Context, Line, {Var,Value}) ->
             Value when ?IS_ARRAY(Value) ->
                 Size = ephp_data:to_bin(ephp_array:size(Value)),
                 <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-            #reg_instance{class=#class{attrs=Attrs}} ->
+            #ephp_object{class=#class{attrs=Attrs}} ->
                 Size = ephp_data:to_bin(length(Attrs)),
-                #reg_instance{id=InstanceID,class=Class} = Value,
+                #ephp_object{id=InstanceID,class=Class} = Value,
                 ID = integer_to_binary(InstanceID),
                 <<"object(", (Class#class.name)/binary, ")#", ID/binary,
                   " (", Size/binary, ") {\n", Data/binary, "}\n">>
@@ -124,7 +124,7 @@ var_dump(Context, Line, {Var,Value}) ->
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
     true | binary().
 
-print_r(_Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}},
+print_r(_Context, _Line, {Var,#ephp_object{class=Class, context=Ctx}},
         {_,true}) ->
     RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
@@ -135,7 +135,7 @@ print_r(_Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}},
     end, <<>>, Class#class.attrs),
     <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, _Line, {Var,#reg_instance{class=Class, context=Ctx}}=_Val,
+print_r(Context, _Line, {Var,#ephp_object{class=Class, context=Ctx}}=_Val,
         {_,false}) ->
     RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
@@ -202,7 +202,7 @@ unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
             ephp_array:fold(fun(K,V,_) ->
                 unset(Context, Line, {Var#variable{idx=Idx ++ [K]},V})
             end, undefined, Array);
-        #reg_instance{class=Class}=Instance ->
+        #ephp_object{class=Class}=Instance ->
             case ephp_class:get_destructor(Class) of
             undefined ->
                 ok;
@@ -258,7 +258,7 @@ var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_binary(Value) ->
     Size = ephp_data:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",Value/binary, "\"\n">>;
 
-var_dump_fmt(Context, Line, #reg_instance{class = Class, context = Ctx},
+var_dump_fmt(Context, Line, #ephp_object{class = Class, context = Ctx},
              Spaces, RecCtl) ->
     #class{name = ClassName} = Class,
     lists:foldl(fun(#class_attr{name = RawName, access = Access}, Output) ->
@@ -286,9 +286,9 @@ var_dump_fmt(Context, Line, #reg_instance{class = Class, context = Ctx},
                     <<Spaces/binary, "}\n">>
                 ];
             is_list(ValDumped) andalso ?IS_OBJECT(Value) ->
-                #reg_instance{class=#class{attrs = Attrs}} = Value,
+                #ephp_object{class=#class{attrs = Attrs}} = Value,
                 Size = ephp_data:to_bin(length(Attrs)),
-                #reg_instance{id = InstanceID, class = SClass} = Value,
+                #ephp_object{id = InstanceID, class = SClass} = Value,
                 ID = integer_to_binary(InstanceID),
                 [
                     <<Spaces/binary, "[", CompleteName/binary, "]=>\n",
@@ -334,9 +334,9 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                     <<Spaces/binary, "}\n">>
                 ];
             V when is_list(V) andalso ?IS_OBJECT(Val) ->
-                #reg_instance{class=#class{attrs=Attrs}} = Val,
+                #ephp_object{class=#class{attrs=Attrs}} = Val,
                 Size = ephp_data:to_bin(length(Attrs)),
-                #reg_instance{id=InstanceID,class=Class} = Val,
+                #ephp_object{id=InstanceID,class=Class} = Val,
                 ID = integer_to_binary(InstanceID),
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n",

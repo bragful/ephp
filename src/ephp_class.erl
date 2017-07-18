@@ -100,18 +100,14 @@ register_class(Ref, File, GlobalCtx,
 
 instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
     case get(Ref, RawClassName) of
-    {ok, #class{name=ClassName}=Class} ->
+    {ok, #class{} = Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_global(Ctx, GlobalCtx),
-        % FIXME: looks like the increment is global for all of the instances
-        InsCount = Class#class.instance_counter + 1,
-        RegClass = #reg_instance{
-            id = InsCount,
-            class = Class,
-            context = Ctx},
+        RegClass = #ephp_object{class = Class, context = Ctx},
+        Objects = ephp_context:get_objects(LocalCtx),
+        ObjectId = ephp_object:add(Objects, RegClass),
         initialize(Ctx, Class),
-        set(Ref, ClassName, Class#class{instance_counter = InsCount}),
-        RegClass;
+        RegClass#ephp_object{id = ObjectId, objects = Objects};
     {error, enoexist} ->
         File = ephp_context:get_active_file(LocalCtx),
         ephp_error:error({error, eundefclass, Line, File, ?E_ERROR,
@@ -136,9 +132,9 @@ instance_of(Int, <<"integer">>) when is_integer(Int) ->
 % TODO:
 % instance_of(Self, <<"self">>) ->
 %     false;
-instance_of(#reg_instance{class = #class{name = Name}}, Name) ->
+instance_of(#ephp_object{class = #class{name = Name}}, Name) ->
     true;
-instance_of(#reg_instance{class = #class{extends = Extends,
+instance_of(#ephp_object{class = #class{extends = Extends,
                                          implements = Impl}}, Name) ->
     lists:member(Name, Extends) orelse lists:member(Name, Impl);
 instance_of(_, _) ->

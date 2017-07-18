@@ -102,7 +102,7 @@ to_int(_) -> 0.
 
 -spec to_int(context(), line(), mixed()) -> integer().
 
-to_int(Ctx, Line, #reg_instance{class=#class{name=ClassName}}) ->
+to_int(Ctx, Line, #ephp_object{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Ctx),
     Data = {ClassName, <<"int">>},
     ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
@@ -140,7 +140,7 @@ to_float(undefined) -> 0.0.
 
 -spec to_float(context(), line(), mixed()) -> float().
 
-to_float(Ctx, Line, #reg_instance{class=#class{name=ClassName}}) ->
+to_float(Ctx, Line, #ephp_object{class=#class{name=ClassName}}) ->
     File = ephp_context:get_active_file(Ctx),
     Data = {ClassName, <<"double">>},
     ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
@@ -189,7 +189,7 @@ to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
     ephp_error:handle_error(Ctx, Error),
     <<"Array">>;
 
-to_bin(Context, Line, #reg_instance{class=#class{name=CN}}=RegInstance) ->
+to_bin(Context, Line, #ephp_object{class=#class{name=CN}}=RegInstance) ->
     try
         Call = #call{name = <<"__toString">>, line = Line},
         ephp_context:call_method(Context, RegInstance, Call)
@@ -231,7 +231,7 @@ to_boolean(Array) when ?IS_ARRAY(Array) ->
         _ -> true
     end;
 
-to_boolean(#reg_instance{}) -> true.
+to_boolean(#ephp_object{}) -> true.
 
 
 -spec increment_code(Code :: binary()) -> integer() | binary().

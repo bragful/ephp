@@ -56,7 +56,7 @@ process(Context, Statements, true) ->
     end,
     {ok, Value}.
 
--spec check_exception(context(), reg_instance()) -> ok.
+-spec check_exception(context(), ephp_object()) -> ok.
 
 check_exception(Context, Exception) ->
     L = ephp_class_exception:exception_get_line(Context, Exception, undefined),

@@ -112,13 +112,13 @@ get_class() ->
         ]
     }.
 
-get_trace(#reg_instance{context = ClassCtx}) ->
+get_trace(#ephp_object{context = ClassCtx}) ->
     ephp_context:get(ClassCtx, #variable{name = <<"trace">>}).
 
-get_message(#reg_instance{context = ClassCtx}) ->
+get_message(#ephp_object{context = ClassCtx}) ->
     ephp_context:get(ClassCtx, #variable{name = <<"message">>}).
 
-exception_construct(Ctx, #reg_instance{context = ClassCtx}, {{line,Line},_},
+exception_construct(Ctx, #ephp_object{context = ClassCtx}, {{line,Line},_},
                     [{_, Message}, {_, Code}, {_, Previous}]) ->
     File = ephp_context:get_active_file(Ctx),
     Traces = ephp_stack:get_array(Ctx),
@@ -133,24 +133,24 @@ exception_construct(Ctx, #reg_instance{context = ClassCtx}, {{line,Line},_},
 exception_get_message(_Ctx, Object, _Line) ->
     get_message(Object).
 
-exception_get_code(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
+exception_get_code(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"code">>}).
 
-exception_get_file(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
+exception_get_file(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"file">>}).
 
-exception_get_line(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
+exception_get_line(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"line">>}).
 
 exception_get_trace(_Ctx, Object, _Line) ->
     get_trace(Object).
 
-exception_get_previous(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
+exception_get_previous(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"previous">>}).
 
-exception_get_trace_as_string(_Ctx, #reg_instance{context = _ClassCtx}, _L) ->
+exception_get_trace_as_string(_Ctx, #ephp_object{context = _ClassCtx}, _L) ->
     %% TODO
     <<>>.
 
-exception_to_string(_Ctx, #reg_instance{context = ClassCtx}, _Line) ->
+exception_to_string(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
     ephp_context:get(ClassCtx, #variable{name = <<"file">>}).

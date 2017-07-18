@@ -62,7 +62,7 @@ handle_error(_Type, _Level, _Args) ->
 
 -spec get_class(context(), line(), Class :: var_value()) -> any().
 
-get_class(_Context, _Line, {_,#reg_instance{class=#class{name=ClassName}}}) ->
+get_class(_Context, _Line, {_,#ephp_object{class=#class{name=ClassName}}}) ->
     ClassName.
 
 -spec class_alias(context(), line(),

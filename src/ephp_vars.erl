@@ -116,7 +116,7 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             isset(RefVarsPID, NewRefVar);
-        {ok, #reg_instance{context=Ctx}} ->
+        {ok, #ephp_object{context=Ctx}} ->
             NewObjVar = #variable{name=NewRoot, idx=Idx},
             isset(Ctx, NewObjVar);
         {ok, NewVars} ->
@@ -161,7 +161,7 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             get(RefVarsPID, NewRefVar);
-        {ok, #reg_instance{context=Ctx}} ->
+        {ok, #ephp_object{context=Ctx}} ->
             NewObjVar = #variable{name=NewRoot, idx=Idx},
             get(Ctx, NewObjVar);
         {ok, NewVars} ->
@@ -190,17 +190,19 @@ change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
     end;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars) ->
-    {ok, #reg_instance{context=Ctx}=RI} = ephp_array:find(Root, Vars),
-    Class = ephp_class:add_if_no_exists_attrib(RI#reg_instance.class, NewRoot),
-    NewVars = ephp_array:store(Root, RI#reg_instance{class=Class}, Vars),
+    {ok, #ephp_object{context=Ctx} = RI} = ephp_array:find(Root, Vars),
+    Class = ephp_class:add_if_no_exists_attrib(RI#ephp_object.class, NewRoot),
+    NewVars = ephp_array:store(Root, RI#ephp_object{class=Class}, Vars),
+    ephp_object:set(RI#ephp_object.objects, RI#ephp_object.id, RI),
     ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
     NewVars;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
        Value, Vars) ->
-    {ok, #reg_instance{context=Ctx}=RI} = ephp_array:find(Root, Vars),
-    Class = ephp_class:add_if_no_exists_attrib(RI#reg_instance.class, NewRoot),
-    NewVars = ephp_array:store(Root, RI#reg_instance{class=Class}, Vars),
+    {ok, #ephp_object{context=Ctx} = RI} = ephp_array:find(Root, Vars),
+    Class = ephp_class:add_if_no_exists_attrib(RI#ephp_object.class, NewRoot),
+    NewVars = ephp_array:store(Root, RI#ephp_object{class=Class}, Vars),
+    ephp_object:set(RI#ephp_object.objects, RI#ephp_object.id, RI),
     ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
     NewVars;
 
@@ -212,7 +214,7 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             set(RefVarsPID, NewRefVar, Value),
             Vars;
-        {ok, #reg_instance{context=Ctx}} ->
+        {ok, #ephp_object{context=Ctx}} ->
             ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
             Vars;
         {ok, NewVars} when ?IS_ARRAY(NewVars) ->
@@ -226,4 +228,3 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
                                     ephp_array:new()),
                              Vars)
     end.
-

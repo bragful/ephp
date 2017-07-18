@@ -171,40 +171,40 @@ array(75) {
   [66]=>
   NULL
   [67]=>
-  object(stdClass)#2 (1) {
+  object(stdClass)#4 (1) {
     ["scalar"]=>
     int(100)
   }
   [68]=>
-  object(stdClass)#3 (1) {
+  object(stdClass)#5 (1) {
     ["scalar"]=>
     float(45.45)
   }
   [69]=>
-  object(B)#2 (1) {
+  object(B)#3 (1) {
     ["greet"]=>
     string(3) "hi!"
   }
   [70]=>
-  object(stdClass)#4 (0) {
+  object(stdClass)#6 (0) {
   }
   [71]=>
-  object(stdClass)#5 (1) {
+  object(stdClass)#7 (1) {
     [0]=>
     int(100)
   }
   [72]=>
-  object(stdClass)#6 (1) {
+  object(stdClass)#8 (1) {
     ["scalar"]=>
     float(INF)
   }
   [73]=>
-  object(stdClass)#7 (1) {
+  object(stdClass)#9 (1) {
     ["scalar"]=>
     float(NAN)
   }
   [74]=>
-  object(stdClass)#8 (0) {
+  object(stdClass)#10 (0) {
   }
 }
 

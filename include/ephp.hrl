@@ -22,7 +22,7 @@
 -define(FUNC_ANON_NAME, <<"{closure}">>).
 
 -define(IS_ARRAY(A), is_record(A, ephp_array)).
--define(IS_OBJECT(O), is_record(O, reg_instance)).
+-define(IS_OBJECT(O), is_record(O, ephp_object)).
 -define(IS_FUNCTION(F), is_record(F, function)).
 
 -define(PHP_INF, infinity).
@@ -322,7 +322,7 @@
     line :: integer() | undefined,
     file :: binary(),
     class :: binary() | undefined,
-    object :: reg_instance(),
+    object :: ephp_object(),
     type :: binary() | undefined, %% ::, -> or undefined
     args :: [mixed()]
 }).
@@ -430,14 +430,15 @@
     static = [] :: static()
 }).
 
--record(reg_instance, {
+-record(ephp_object, {
     id :: pos_integer(),
     class :: class(),
     instance :: instance(),
-    context :: context()
+    context :: context(),
+    objects :: ephp:objects_id()
 }).
 
--type reg_instance() :: #reg_instance{}.
+-type ephp_object() :: #ephp_object{}.
 
 -record(try_catch, {
     code_block :: statements(),

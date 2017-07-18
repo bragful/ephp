@@ -382,7 +382,7 @@ get_message(euncaught, {File, Line, Exception}) ->
     io_lib:format(
         "Uncaught exception '~s'" ++ MessageFmt ++
         " in ~s:~p~nStack trace:~n~s#~p {main}~n  thrown",
-        [(Exception#reg_instance.class)#class.name, Message, File, Line,
+        [(Exception#ephp_object.class)#class.name, Message, File, Line,
          Traces, ephp_array:size(StackTrace)]);
 
 get_message(enoobjectexception, {}) ->
