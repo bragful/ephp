@@ -1,0 +1,19 @@
+$a contents =>
+object(A)#1 (0) {
+}
+
+--------------
+now $a contents =>
+
+Notice: Undefined variable: a in {{CWD}}/test/code/test_class_unset_ref.php on line 15
+NULL
+
+--------------
+and $b contents =>
+object(A)#1 (0) {
+}
+
+--------------
+and $c contents =>
+object(A)#1 (0) {
+}

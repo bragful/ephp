@@ -50,8 +50,13 @@ set(Vars, VarPath, Value) ->
     ok.
 
 ref(Vars, VarPath, VarsPID, RefVarPath) ->
-    ValueFormatted = #var_ref{pid=VarsPID, ref=RefVarPath},
-    set(Vars, VarPath, ValueFormatted).
+    case get(VarsPID, RefVarPath) of
+        Value when ?IS_OBJECT(Value) ->
+            set(Vars, VarPath, Value);
+        _ ->
+            ValueFormatted = #var_ref{pid=VarsPID, ref=RefVarPath},
+            set(Vars, VarPath, ValueFormatted)
+    end.
 
 del(Vars, VarPath) ->
     set(Vars, VarPath, remove).
