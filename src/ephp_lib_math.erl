@@ -199,7 +199,8 @@ bindec(Context, Line, {Var, A}) when ?IS_ARRAY(A) ->
     ephp_error:handle_error(Context, Error),
     bindec(Context, Line, {Var, <<>>});
 
-bindec(_Context, Line, {_, #ephp_object{class=#class{name=ClassName}}}) ->
+bindec(_Context, Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
+    ClassName = ephp_object:get_class_name(Objects, ObjectId),
     ephp_error:error({error, enotostring, Line,
                       ?E_RECOVERABLE_ERROR, {ClassName}});
 
@@ -238,7 +239,8 @@ php_tanh(_Context, _Line, {_, Number}) ->
 
 -spec get_pow_value(context(), line(), ephp_object()) -> integer().
 
-get_pow_value(Context, Line, #ephp_object{class=#class{name=ClassName}}) ->
+get_pow_value(Context, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
+    ClassName = ephp_object:get_class_name(Objects, ObjectId),
     File = ephp_context:get_active_file(Context),
     Level = ?E_NOTICE,
     Data = {ClassName, <<"int">>},
@@ -328,8 +330,9 @@ base_convert(Context, Line, {Var, A}, From, To) when ?IS_ARRAY(A) ->
     ephp_error:handle_error(Context, Error),
     base_convert(Context, Line, {Var, <<>>}, From, To);
 
-base_convert(_Context, Line, {_, #ephp_object{class=#class{name=ClassName}}},
+base_convert(_Context, Line, {_, #obj_ref{pid = Objects, ref = ObjectId}},
              _From, _To) ->
+    ClassName = ephp_object:get_class_name(Objects, ObjectId),
     ephp_error:error({error, enotostring, Line,
                       ?E_RECOVERABLE_ERROR, {ClassName}});
 

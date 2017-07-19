@@ -250,6 +250,15 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
             add_line(#instance{name = ObjName}, Pos)
     end,
     expression(Rest3, copy_level(Pos, Pos3), add_op(Instance,Parsed));
+% CLONE ...
+expression(<<C:8,L:8,O:8,N:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(C,$C,$c) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
+        ?OR(N,$N,$n) andalso ?OR(E,$E,$e) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
+    OpL = <<"clone">>,
+    Pos1 = add_pos(Pos, 5),
+    Rest1 = <<SP:8, Rest/binary>>,
+    expression(Rest1, Pos1, add_op({OpL, precedence(OpL), Pos}, Parsed));
 % FINAL -enclosed-
 expression(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, [Exp]) ->
     {Rest, add_pos(Pos,1), add_op('end', [Exp])};

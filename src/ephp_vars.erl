@@ -17,7 +17,8 @@
     ref/4,
     del/2,
     zip_args/6,
-    destroy/1
+    destroy/2,
+    destroy_data/2
 ]).
 
 %% ------------------------------------------------------------------
@@ -35,25 +36,25 @@ start_link() ->
     erlang:put(Ref, ephp_array:new()),
     {ok, Ref}.
 
-get(Context, VarPath) ->
-    get(Context, VarPath, undefined).
+get(Vars, VarPath) ->
+    get(Vars, VarPath, undefined).
 
-get(Context, VarPath, ContextRef) ->
-    search(VarPath, erlang:get(Context), ContextRef).
+get(Vars, VarPath, Context) ->
+    search(VarPath, erlang:get(Vars), Context).
 
-isset(Context, VarPath) ->
-    exists(VarPath, erlang:get(Context)).
+isset(Vars, VarPath) ->
+    exists(VarPath, erlang:get(Vars)).
 
-set(Context, VarPath, Value) ->
-    erlang:put(Context, change(VarPath, Value, erlang:get(Context))),
+set(Vars, VarPath, Value) ->
+    erlang:put(Vars, change(VarPath, Value, erlang:get(Vars))),
     ok.
 
-ref(Context, VarPath, VarsPID, RefVarPath) ->
+ref(Vars, VarPath, VarsPID, RefVarPath) ->
     ValueFormatted = #var_ref{pid=VarsPID, ref=RefVarPath},
-    set(Context, VarPath, ValueFormatted).
+    set(Vars, VarPath, ValueFormatted).
 
-del(Context, VarPath) ->
-    set(Context, VarPath, remove).
+del(Vars, VarPath) ->
+    set(Vars, VarPath, remove).
 
 zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line) ->
     Zip = fun
@@ -92,10 +93,28 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line) ->
     end, {1, ValArgs}, FuncArgs),
     ok.
 
--spec destroy(ephp:vars_id()) -> ok.
+-spec destroy(context(), ephp:vars_id()) -> ok.
 
-destroy(Context) ->
-    erlang:erase(Context),
+destroy(Ctx, VarsRef) ->
+    Vars = erlang:get(VarsRef),
+    destroy_data(Ctx, Vars),
+    erlang:erase(VarsRef),
+    ok.
+
+destroy_data(_Context, undefined) ->
+    ok;
+
+destroy_data(Context, ObjRef) when ?IS_OBJECT(ObjRef) ->
+    ephp_object:remove_link(Context, ObjRef);
+
+destroy_data(Context, Vars) when ?IS_ARRAY(Vars) ->
+    ephp_array:fold(fun(_K, ObjRef, _) when ?IS_OBJECT(ObjRef) ->
+                        destroy_data(Context, ObjRef);
+                       (_K, V, _) when ?IS_ARRAY(V) ->
+                        destroy_data(Context, V);
+                       (_K, _V, _) ->
+                        ok
+                    end, undefined, Vars),
     ok.
 
 %% ------------------------------------------------------------------
@@ -116,7 +135,8 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             isset(RefVarsPID, NewRefVar);
-        {ok, #ephp_object{context=Ctx}} ->
+        {ok, #obj_ref{pid=Objects, ref=ObjectId}} ->
+            Ctx = ephp_object:get_context(Objects, ObjectId),
             NewObjVar = #variable{name=NewRoot, idx=Idx},
             isset(Ctx, NewObjVar);
         {ok, NewVars} ->
@@ -161,11 +181,12 @@ search(#variable{name=Root, idx=[NewRoot|Idx], line=Line}, Vars, Context) ->
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             get(RefVarsPID, NewRefVar);
-        {ok, #ephp_object{context=Ctx}} ->
-            NewObjVar = #variable{name=NewRoot, idx=Idx},
+        {ok, #obj_ref{pid = Objects, ref = ObjectId}} ->
+            Ctx = ephp_object:get_context(Objects, ObjectId),
+            NewObjVar = #variable{name = NewRoot, idx = Idx},
             get(Ctx, NewObjVar);
         {ok, NewVars} ->
-            search(#variable{name=NewRoot, idx=Idx}, NewVars, undefined);
+            search(#variable{name = NewRoot, idx = Idx}, NewVars, undefined);
         _ when Context =:= undefined ->
             undefined;
         _ ->
@@ -179,6 +200,11 @@ change(#variable{name=Root, idx=[]}=_Var, remove, Vars) ->
     ephp_array:erase(Root, Vars);
 
 change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
+    if
+        ?IS_OBJECT(Value) ->
+            ephp_object:add_link(Value);
+        true -> ok
+    end,
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref=global}} ->
             ephp_array:store(Root, Value, Vars);
@@ -190,21 +216,23 @@ change(#variable{name=Root, idx=[]}=_Var, Value, Vars) ->
     end;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars) ->
-    {ok, #ephp_object{context=Ctx} = RI} = ephp_array:find(Root, Vars),
+    {ok, #obj_ref{ref=ObjectId, pid=Objects}} = ephp_array:find(Root, Vars),
+    #ephp_object{context = Ctx} = RI = ephp_object:get(Objects, ObjectId),
     Class = ephp_class:add_if_no_exists_attrib(RI#ephp_object.class, NewRoot),
-    NewVars = ephp_array:store(Root, RI#ephp_object{class=Class}, Vars),
-    ephp_object:set(RI#ephp_object.objects, RI#ephp_object.id, RI),
+    NewRI = RI#ephp_object{class=Class},
+    ephp_object:set(Objects, ObjectId, NewRI),
     ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
-    NewVars;
+    Vars;
 
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
        Value, Vars) ->
-    {ok, #ephp_object{context=Ctx} = RI} = ephp_array:find(Root, Vars),
+    {ok, #obj_ref{ref=ObjectId, pid=Objects}} = ephp_array:find(Root, Vars),
+    #ephp_object{context = Ctx} = RI = ephp_object:get(Objects, ObjectId),
     Class = ephp_class:add_if_no_exists_attrib(RI#ephp_object.class, NewRoot),
-    NewVars = ephp_array:store(Root, RI#ephp_object{class=Class}, Vars),
-    ephp_object:set(RI#ephp_object.objects, RI#ephp_object.id, RI),
+    NewRI = RI#ephp_object{class=Class},
+    ephp_object:set(RI#ephp_object.objects, RI#ephp_object.id, NewRI),
     ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
-    NewVars;
+    Vars;
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
     case ephp_array:find(Root, Vars) of
@@ -214,7 +242,8 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars) ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             set(RefVarsPID, NewRefVar, Value),
             Vars;
-        {ok, #ephp_object{context=Ctx}} ->
+        {ok, #obj_ref{pid = Objects, ref = ObjectId}} ->
+            Ctx = ephp_object:get_context(Objects, ObjectId),
             ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
             Vars;
         {ok, NewVars} when ?IS_ARRAY(NewVars) ->

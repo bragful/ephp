@@ -379,11 +379,11 @@ get_message(euncaught, {File, Line, Exception}) ->
         <<>> -> "~s";
         _ -> " with message '~s'"
     end,
+    ClassName = ephp_object:get_class_name(Exception),
     io_lib:format(
         "Uncaught exception '~s'" ++ MessageFmt ++
         " in ~s:~p~nStack trace:~n~s#~p {main}~n  thrown",
-        [(Exception#ephp_object.class)#class.name, Message, File, Line,
-         Traces, ephp_array:size(StackTrace)]);
+        [ClassName, Message, File, Line, Traces, ephp_array:size(StackTrace)]);
 
 get_message(enoobjectexception, {}) ->
     io_lib:format("Can only throw objects", []);

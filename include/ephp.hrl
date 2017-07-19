@@ -22,7 +22,7 @@
 -define(FUNC_ANON_NAME, <<"{closure}">>).
 
 -define(IS_ARRAY(A), is_record(A, ephp_array)).
--define(IS_OBJECT(O), is_record(O, ephp_object)).
+-define(IS_OBJECT(O), is_record(O, obj_ref)).
 -define(IS_FUNCTION(F), is_record(F, function)).
 
 -define(PHP_INF, infinity).
@@ -322,7 +322,7 @@
     line :: integer() | undefined,
     file :: binary(),
     class :: binary() | undefined,
-    object :: ephp_object(),
+    object :: obj_ref(),
     type :: binary() | undefined, %% ::, -> or undefined
     args :: [mixed()]
 }).
@@ -346,9 +346,18 @@
 }).
 
 -record(var_ref, {
-    pid :: reference() | undefined,
+    pid :: context() | undefined,
     ref :: #variable{} | undefined
 }).
+
+-record(obj_ref, {
+    pid :: ephp:objects_id(),
+    ref :: object_id()
+}).
+
+-type obj_ref() :: #obj_ref{}.
+
+-type object_id() :: pos_integer().
 
 % classes
 
@@ -435,7 +444,8 @@
     class :: class(),
     instance :: instance(),
     context :: context(),
-    objects :: ephp:objects_id()
+    objects :: ephp:objects_id(),   %% TODO: check if objects is really needed
+    links = 1 :: pos_integer()
 }).
 
 -type ephp_object() :: #ephp_object{}.

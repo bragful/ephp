@@ -102,7 +102,8 @@ to_int(_) -> 0.
 
 -spec to_int(context(), line(), mixed()) -> integer().
 
-to_int(Ctx, Line, #ephp_object{class=#class{name=ClassName}}) ->
+to_int(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
+    ClassName = ephp_object:get_class_name(Objects, ObjectId),
     File = ephp_context:get_active_file(Ctx),
     Data = {ClassName, <<"int">>},
     ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
@@ -140,7 +141,8 @@ to_float(undefined) -> 0.0.
 
 -spec to_float(context(), line(), mixed()) -> float().
 
-to_float(Ctx, Line, #ephp_object{class=#class{name=ClassName}}) ->
+to_float(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
+    ClassName = ephp_object:get_class_name(Objects, ObjectId),
     File = ephp_context:get_active_file(Ctx),
     Data = {ClassName, <<"double">>},
     ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
@@ -189,13 +191,14 @@ to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
     ephp_error:handle_error(Ctx, Error),
     <<"Array">>;
 
-to_bin(Context, Line, #ephp_object{class=#class{name=CN}}=RegInstance) ->
+to_bin(Context, Line, #obj_ref{} = ObjRef) ->
+    #ephp_object{class = #class{name = ClassName}} = ephp_object:get(ObjRef),
     try
         Call = #call{name = <<"__toString">>, line = Line},
-        ephp_context:call_method(Context, RegInstance, Call)
+        ephp_context:call_method(Context, ObjRef, Call)
     catch
         throw:{error, eundefmethod, _, _, {<<"__toString">>}} ->
-            Data = {CN},
+            Data = {ClassName},
             Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
             ephp_error:error(Error)
     end;
@@ -231,7 +234,7 @@ to_boolean(Array) when ?IS_ARRAY(Array) ->
         _ -> true
     end;
 
-to_boolean(#ephp_object{}) -> true.
+to_boolean(#obj_ref{}) -> true.
 
 
 -spec increment_code(Code :: binary()) -> integer() | binary().

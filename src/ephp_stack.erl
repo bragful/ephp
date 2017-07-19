@@ -25,6 +25,8 @@ start_link(Ref) ->
 destroy(Ref) ->
     erlang:erase(get_id(Ref)).
 
+push(_Ref, _File, undefined, _Fun, _Args, _Class, _Object) ->
+    ok;
 push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
     Stack = get(Ref),
     Type = if
@@ -45,9 +47,13 @@ push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
     ok.
 
 pop(Ref) ->
-    [Head|Stack] = get(Ref),
-    erlang:put(get_id(Ref), Stack),
-    Head.
+    case get(Ref) of
+        [Head|Stack] ->
+            erlang:put(get_id(Ref), Stack),
+            Head;
+        [] ->
+            undefined
+    end.
 
 get(Ref) ->
     erlang:get(get_id(Ref)).

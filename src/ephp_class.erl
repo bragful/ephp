@@ -107,7 +107,7 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
         Objects = ephp_context:get_objects(LocalCtx),
         ObjectId = ephp_object:add(Objects, RegClass),
         initialize(Ctx, Class),
-        RegClass#ephp_object{id = ObjectId, objects = Objects};
+        #obj_ref{pid = Objects, ref = ObjectId};
     {error, enoexist} ->
         File = ephp_context:get_active_file(LocalCtx),
         ephp_error:error({error, eundefclass, Line, File, ?E_ERROR,
@@ -132,13 +132,22 @@ instance_of(Int, <<"integer">>) when is_integer(Int) ->
 % TODO:
 % instance_of(Self, <<"self">>) ->
 %     false;
-instance_of(#ephp_object{class = #class{name = Name}}, Name) ->
-    true;
-instance_of(#ephp_object{class = #class{extends = Extends,
-                                         implements = Impl}}, Name) ->
-    lists:member(Name, Extends) orelse lists:member(Name, Impl);
+instance_of(ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
+    #ephp_object{class = Class} = ephp_object:get(ObjRef),
+    #class{extends = Extends,
+           implements = Impl,
+           name = ClassName} = Class,
+    %% TODO: find another way to implement this in a lazy way (orelse break cover)
+    lists:any(fun(F) -> F() end, [
+        fun() -> ClassName =:= Name end,
+        fun() -> member(Name, Extends) end,
+        fun() -> member(Name, Impl) end
+    ]);
 instance_of(_, _) ->
     false.
+
+member(_, undefined) -> false;
+member(Name, List) when is_list(List) -> lists:member(Name, List).
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
     lists:foreach(fun

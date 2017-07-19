@@ -112,14 +112,17 @@ get_class() ->
         ]
     }.
 
-get_trace(#ephp_object{context = ClassCtx}) ->
+get_trace(ObjRef) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"trace">>}).
 
-get_message(#ephp_object{context = ClassCtx}) ->
+get_message(ObjRef) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"message">>}).
 
-exception_construct(Ctx, #ephp_object{context = ClassCtx}, {{line,Line},_},
+exception_construct(Ctx, ObjRef, {{line,Line},_},
                     [{_, Message}, {_, Code}, {_, Previous}]) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     File = ephp_context:get_active_file(Ctx),
     Traces = ephp_stack:get_array(Ctx),
     ephp_context:set(ClassCtx, #variable{name = <<"message">>}, Message),
@@ -133,24 +136,30 @@ exception_construct(Ctx, #ephp_object{context = ClassCtx}, {{line,Line},_},
 exception_get_message(_Ctx, Object, _Line) ->
     get_message(Object).
 
-exception_get_code(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
+exception_get_code(_Ctx, ObjRef, _Line) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"code">>}).
 
-exception_get_file(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
+exception_get_file(_Ctx, ObjRef, _Line) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"file">>}).
 
-exception_get_line(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
+exception_get_line(_Ctx, ObjRef, _Line) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"line">>}).
 
 exception_get_trace(_Ctx, Object, _Line) ->
     get_trace(Object).
 
-exception_get_previous(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
+exception_get_previous(_Ctx, ObjRef, _Line) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"previous">>}).
 
-exception_get_trace_as_string(_Ctx, #ephp_object{context = _ClassCtx}, _L) ->
+exception_get_trace_as_string(_Ctx, ObjRef, _L) ->
+    _ClassCtx = ephp_object:get_context(ObjRef),
     %% TODO
     <<>>.
 
-exception_to_string(_Ctx, #ephp_object{context = ClassCtx}, _Line) ->
+exception_to_string(_Ctx, ObjRef, _Line) ->
+    ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"file">>}).

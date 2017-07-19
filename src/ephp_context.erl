@@ -129,10 +129,7 @@ start_link(#state{ref=Ref, global=Global}=State) when is_reference(Ref) ->
                           #var_ref{pid = Vars, ref = global});
         true -> ok
     end,
-    save_state(State#state{
-        ref = Ref,
-        vars = Vars
-    }),
+    save_state(State#state{vars = Vars}),
     {ok, Ref}.
 
 start_mirror(#state{}=State) ->
@@ -183,14 +180,14 @@ destroy(Context) ->
 
 destroy_all(Context) ->
     State = load_state(Context),
+    ephp_object:destroy(Context, State#state.object),
+    ephp_class:destroy(State#state.class),
     ephp_output:destroy(State#state.output),
     ephp_const:destroy(State#state.const),
     ephp_include:destroy(State#state.include),
     ephp_func:destroy(State#state.funcs),
     ephp_error:destroy(State#state.errors),
-    ephp_class:destroy(State#state.class),
-    ephp_class:destroy(State#state.object),
-    ephp_vars:destroy(State#state.vars),
+    ephp_vars:destroy(Context, State#state.vars),
     ephp_shutdown:destroy(State#state.shutdown),
     ephp_stack:destroy(Context),
     destroy(Context).
@@ -590,7 +587,8 @@ resolve({operation_minus, Expr, Line}, #state{ref=Ctx}=State) ->
             {-ephp_data:bin_to_number(Binary), NewState};
         {Array, _NewState} when ?IS_ARRAY(Array) ->
             ephp_error:error({error, eunsupportop, Line, ?E_ERROR, {}});
-        {#ephp_object{class=#class{name=ClassName}}, NewState} ->
+        {#obj_ref{} = ObjRef, NewState} ->
+            ClassName = ephp_object:get(ObjRef),
             File = State#state.active_file,
             Data = {ClassName, <<"int">>},
             Error = {error, enocast, Line, File, ?E_NOTICE, Data},
@@ -679,7 +677,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
         _ -> undefined
     end,
     destroy(SubContext),
-    ephp_vars:destroy(NewVars),
+    ephp_vars:destroy(Ref, NewVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
     ephp_stack:pop(Ref),
     {Value, NState};
@@ -705,6 +703,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
             PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
             true -> erlang:apply(M,F,[Ref,Index|Args])
         end,
+        destroy_args(NState, Args),
         {Value, (load_state(Ref))#state{ref=Ref}};
     {ok, #reg_func{type = builtin, pack_args = PackArgs, builtin = {M, F},
                    validation_args = VA}} ->
@@ -724,8 +723,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
                     PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
                     true -> erlang:apply(M,F,[Ref,Index|Args])
                 end,
-                Unset = fun(Var) -> unset(Ref, Var) end,
-                lists:foreach(Unset, Args),
+                destroy_args(NState, Args),
                 {Value, (load_state(Ref))#state{ref=Ref}}
         catch
             throw:{return,Value} ->
@@ -761,7 +759,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         end,
         ephp_func:set_static(Funcs, Fun, NewVars),
         destroy(SubContext),
-        ephp_vars:destroy(NewVars),
+        ephp_vars:destroy(Ref, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
         ephp_stack:pop(Ref),
         {Value, NState};
@@ -783,9 +781,10 @@ resolve({object, Idx, Line}, State) ->
 
 resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
         #state{ref = LocalCtx, class = Classes, global = GlobalCtx} = State) ->
-    #ephp_object{id = ObjectId, objects = Objects, class = Class} = Object =
-        ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
-    ephp_object:set(Objects, ObjectId, Object#ephp_object{instance = Instance}),
+    Object = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    #obj_ref{pid = Objects, ref = ObjectId} = Object,
+    #ephp_object{class = Class} = Obj = ephp_object:get(Object),
+    ephp_object:set(Objects, ObjectId, Obj#ephp_object{instance = Instance}),
     case ephp_class:get_constructor(Class) of
         undefined ->
             {Object, State};
@@ -852,43 +851,6 @@ resolve(#cast{type=Type, content=C, line=Line}, State) ->
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
-
-
-unset(_, {#variable{}, _}) ->
-    ok;
-unset(Ctx, {#array{elements = Elements}, Array}) ->
-    Values = [ V || {_,V} <- ephp_array:to_list(Array) ],
-    Defs = [ E || #array_element{element = E} <- Elements ],
-    DefVals = lists:zip(Defs, Values),
-    lists:foreach(fun(X) -> unset(Ctx, X) end, DefVals);
-unset(Ctx, {#cast{type = object, line = Line},
-      #ephp_object{id = ObjectId, class = Class} = Instance}) ->
-    Objects = get_objects(Ctx),
-    ephp_object:remove(Objects, ObjectId),
-    case ephp_class:get_destructor(Class) of
-        undefined ->
-            ok;
-        _ ->
-            Call = #call{name = <<"__destruct">>, line = Line},
-            call_method(Ctx, Instance, Call),
-            % FIXME: add unset for every attribute inside of the instance
-            ok
-    end;
-unset(Ctx, {#instance{line = Line}, #ephp_object{id = ObjectId,
-                                                 class = Class} = Instance}) ->
-    Objects = get_objects(Ctx),
-    ephp_object:remove(Objects, ObjectId),
-    case ephp_class:get_destructor(Class) of
-        undefined ->
-            ok;
-        _ ->
-            Call = #call{name = <<"__destruct">>, line = Line},
-            call_method(Ctx, Instance, Call),
-            % FIXME: add unset for every attribute inside of the instance
-            ok
-    end;
-unset(_, _) ->
-    ok.
 
 
 register_superglobals(GlobalCtx, Vars) ->
@@ -1044,7 +1006,8 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {ok, NewVars} = ephp_vars:start_link(),
     Class = case RegInstance of
-        #ephp_object{class=C} ->
+        #obj_ref{} ->
+            #ephp_object{class = C} = ephp_object:get(RegInstance),
             ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance),
             Object = RegInstance,
             C;
@@ -1095,7 +1058,12 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
             end,
             ephp_class:set_static(Classes, ClassName, MethodName, NewVars),
             destroy(SubContext),
-            ephp_vars:destroy(NewVars),
+            if
+                MethodName =/= <<"__destruct">> ->
+                    ephp_vars:destroy(Ref, NewVars);
+                true ->
+                    ok
+            end,
             ephp_const:set_bulk(Const, [
                 {<<"__FUNCTION__">>, State#state.active_fun},
                 {<<"__CLASS__">>, State#state.active_class}
@@ -1124,12 +1092,30 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
                         true ->
                             erlang:apply(M, F, [Ref, RegInstance, Index|FMArgs])
                     end,
+                    destroy_args(NState, FMArgs),
                     {Value, (load_state(Ref))#state{ref=Ref}}
             catch
                 throw:{return,Value} ->
                     {Value, NState}
             end
     end.
+
+destroy_args(_State, []) ->
+    ok;
+destroy_args(State, [{#instance{}, ObjRef}|Rest]) when ?IS_OBJECT(ObjRef) ->
+    ephp_vars:destroy_data(State#state.ref, ObjRef),
+    destroy_args(State, Rest);
+destroy_args(State, [{#cast{}, ObjRef}|Rest]) when ?IS_OBJECT(ObjRef) ->
+    ephp_vars:destroy_data(State#state.ref, ObjRef),
+    destroy_args(State, Rest);
+destroy_args(State, [{#array{}, Array}|Rest]) when ?IS_ARRAY(Array) ->
+    ephp_vars:destroy_data(State#state.ref, Array),
+    destroy_args(State, Rest);
+destroy_args(State, [{#cast{}, Array}|Rest]) when ?IS_ARRAY(Array) ->
+    ephp_vars:destroy_data(State#state.ref, Array),
+    destroy_args(State, Rest);
+destroy_args(State, [{_, _}|Rest] = _Ignore) ->
+    destroy_args(State, Rest).
 
 resolve_var(#variable{type = normal, idx = []} = Var, State) ->
     {ephp_vars:get(State#state.vars, Var, State#state.ref), State};
@@ -1143,8 +1129,8 @@ resolve_var(#variable{name = <<"this">>,
 
 resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
     InstanceVar = Var#variable{idx = []},
-    #ephp_object{class = Class} = Instance =
-        ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
+    Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
+    #ephp_object{class = Class} = ephp_object:get(Instance),
     case ephp_class:get_method(Class, Call#call.name) of
         #class_method{access = public} ->
             run_method(Instance, Call#call{type = object}, State);
@@ -1161,7 +1147,7 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
 resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
             #state{ref = Ref, vars = Vars} = State) ->
     #ephp_object{class = Class, context = Context} =
-        ephp_vars:get(Vars, Var#variable{idx = []}, Ref),
+        ephp_object:get(ephp_vars:get(Vars, Var#variable{idx = []}, Ref)),
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} =
         resolve_indexes(#variable{name = SubVal, idx = Idx}, State2),
@@ -1181,7 +1167,7 @@ resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
 resolve_var(#variable{idx = [{object, VarName, _Line}|Idx]} = Var,
             #state{ref = Ref, vars = Vars} = State) when is_binary(VarName) ->
     #ephp_object{class = Class, context = Context} =
-        ephp_vars:get(Vars, Var#variable{idx = []}, Ref),
+        ephp_object:get(ephp_vars:get(Vars, Var#variable{idx = []}, Ref)),
     {NewVar, NewState} =
         resolve_indexes(#variable{name = VarName, idx = Idx}, State),
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
@@ -1240,7 +1226,9 @@ resolve_cast(_State, _Line, array, N) when
 resolve_cast(_State, _Line, array, Array) when ?IS_ARRAY(Array) ->
     Array;
 resolve_cast(_State, _Line, array,
-             #ephp_object{class = Class, context = Ctx}) ->
+             #obj_ref{pid = Objects, ref = ObjectId}) ->
+    #ephp_object{context = Ctx, class = Class} =
+        ephp_object:get(Objects, ObjectId),
     lists:foldl(fun(#class_attr{name=Name}, Array) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
         ephp_array:store(Name, Value, Array)
@@ -1250,28 +1238,34 @@ resolve_cast(_State, _Line, array, undefined) ->
 resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
              Line, object, Array) when ?IS_ARRAY(Array) ->
     ClassName = <<"stdClass">>,
-    Val = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
-    #ephp_object{context=Ctx} = Val,
-    NewClass = ephp_array:fold(fun(K, V, Class) ->
+    #obj_ref{pid = Objects, ref = ObjectId} = ObjRef =
+        ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    #ephp_object{context=Ctx, class=Class} = Val =
+        ephp_object:get(Objects, ObjectId),
+    NewClass = ephp_array:fold(fun(K, V, C) ->
         ephp_context:set(Ctx, #variable{name=K}, V),
-        ephp_class:add_if_no_exists_attrib(Class, K)
-    end, Val#ephp_object.class, Array),
-    Val#ephp_object{class=NewClass};
+        ephp_class:add_if_no_exists_attrib(C, K)
+    end, Class, Array),
+    ephp_object:set(Objects, ObjectId, Val#ephp_object{class=NewClass}),
+    ObjRef;
 resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
              Line, object, N) when
         is_number(N) orelse is_binary(N) orelse is_boolean(N) orelse
         N =:= infinity orelse N =:= nan ->
     ClassName = <<"stdClass">>,
-    Val = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
-    #ephp_object{context=Ctx, class=Class} = Val,
+    #obj_ref{pid = Objects, ref = ObjectId} = ObjRef =
+        ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    #ephp_object{context=Ctx, class=Class} = Val =
+        ephp_object:get(Objects, ObjectId),
     ephp_context:set(Ctx, #variable{name = <<"scalar">>}, N),
     NewClass = ephp_class:add_if_no_exists_attrib(Class, <<"scalar">>),
-    Val#ephp_object{class=NewClass};
+    ephp_object:set(Objects, ObjectId, Val#ephp_object{class=NewClass}),
+    ObjRef;
 resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
              Line, object, undefined) ->
     ClassName = <<"stdClass">>,
     ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line);
-resolve_cast(_State, _Line, object, #ephp_object{}=Object) ->
+resolve_cast(_State, _Line, object, #obj_ref{}=Object) ->
     Object.
 
 resolve_indexes(#variable{idx=Indexes}=Var, State) ->
@@ -1347,7 +1341,7 @@ resolve_op(#operation{type=instanceof, expression_left=Op1,
     {OpRes1, State1} = resolve(Op1, State),
     case ephp_class:get(Classes, ClassName) of
         {ok, #class{name=RealClassName}} ->
-            {get_class_name(OpRes1) =:= RealClassName, State1};
+            {ephp_object:get_class_name(OpRes1) =:= RealClassName, State1};
         {error, enoexist} ->
             {false, State1}
     end;
@@ -1400,10 +1394,8 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         <<"=<">> when OpRes1 =:= undefined -> false;
         <<"=<">> when OpRes2 =:= undefined -> true;
         <<"=<">> -> OpRes1 =< OpRes2;
-        <<"==">> when
-                is_record(OpRes1, ephp_object) andalso
-                is_record(OpRes2, ephp_object) ->
-            get_class_name(OpRes1) =:= get_class_name(OpRes2);
+        <<"==">> when ?IS_OBJECT(OpRes1) andalso ?IS_OBJECT(OpRes2) ->
+            ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2);
         <<"==">> -> ephp_data:is_equal(OpRes1, OpRes2);
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
@@ -1411,15 +1403,13 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         <<"^">> -> ephp_data:zero_if_undef(OpRes1) bxor ephp_data:zero_if_undef(OpRes2);
         <<"|">> -> ephp_data:zero_if_undef(OpRes1) bor ephp_data:zero_if_undef(OpRes2);
         <<"&">> -> ephp_data:zero_if_undef(OpRes1) band ephp_data:zero_if_undef(OpRes2);
-        instanceof -> get_class_name(OpRes1) =:= get_class_name(OpRes2)
+        instanceof -> ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2)
     end, State2};
 
 resolve_op(Cond, State) ->
     {Value, NewState} = resolve(Cond, State),
     BoolValue = ephp_data:to_bool(Value),
     {BoolValue, NewState}.
-
-get_class_name(#ephp_object{class=#class{name=Name}}) -> Name.
 
 -spec load_state(context()) -> #state{}.
 

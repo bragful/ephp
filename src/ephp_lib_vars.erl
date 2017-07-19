@@ -83,8 +83,7 @@ php_is_null(_Context, _Line, _Var) -> false.
 php_is_string(_Context, _Line, {_,Value}) -> erlang:is_binary(Value).
 
 -spec php_is_object(context(), line(), var_value()) -> boolean().
-php_is_object(_Context, _Line, {_,Value}) ->
-    erlang:is_record(Value, ephp_object).
+php_is_object(_Context, _Line, {_,Value}) -> ?IS_OBJECT(Value).
 
 -spec print_r(context(), line(), var_value()) -> true | binary().
 
@@ -108,11 +107,12 @@ var_dump(Context, Line, {Var,Value}) ->
             Value when ?IS_ARRAY(Value) ->
                 Size = ephp_data:to_bin(ephp_array:size(Value)),
                 <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-            #ephp_object{class=#class{attrs=Attrs}} ->
+            #obj_ref{pid = Objects, ref = ObjectId} ->
+                #ephp_object{class = #class{name = ClassName, attrs = Attrs}} =
+                    ephp_object:get(Objects, ObjectId),
                 Size = ephp_data:to_bin(length(Attrs)),
-                #ephp_object{id=InstanceID,class=Class} = Value,
-                ID = integer_to_binary(InstanceID),
-                <<"object(", (Class#class.name)/binary, ")#", ID/binary,
+                ID = integer_to_binary(ObjectId),
+                <<"object(", (ClassName)/binary, ")#", ID/binary,
                   " (", Size/binary, ") {\n", Data/binary, "}\n">>
         end;
     Element ->
@@ -124,19 +124,25 @@ var_dump(Context, Line, {Var,Value}) ->
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
     true | binary().
 
-print_r(_Context, _Line, {Var,#ephp_object{class=Class, context=Ctx}},
+print_r(Context, Line, {Var, #obj_ref{} = ObjRef},
         {_,true}) ->
-    RecCtl = gb_sets:add(Var, gb_sets:new()),
-    Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
-        Value = ephp_context:get(Ctx, #variable{name=Name}),
-        ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
-        <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
-          ValDumped/binary>>
-    end, <<>>, Class#class.attrs),
-    <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
+    case ephp_object:get(ObjRef) of
+        #ephp_object{class=Class, context=Ctx} ->
+            RecCtl = gb_sets:add(Var, gb_sets:new()),
+            Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
+                Value = ephp_context:get(Ctx, #variable{name=Name}),
+                ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
+                <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
+                  ValDumped/binary>>
+            end, <<>>, Class#class.attrs),
+            <<(Class#class.name)/binary, " Object\n(\n", Data/binary, ")\n">>;
+        undefined ->
+            ephp_data:to_bin(Context, Line, undefined)
+    end;
 
-print_r(Context, _Line, {Var,#ephp_object{class=Class, context=Ctx}}=_Val,
+print_r(Context, _Line, {Var, #obj_ref{} = ObjRef},
         {_,false}) ->
+    #ephp_object{class=Class, context=Ctx} = ephp_object:get(ObjRef),
     RecCtl = gb_sets:add(Var, gb_sets:new()),
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
@@ -196,22 +202,12 @@ unset(Context, _Line, {Var, #var_ref{}}) ->
     ephp_context:del(Context, Var),
     undefined;
 
-unset(Context, Line, {#variable{idx=Idx}=Var,_}) ->
+unset(Context, _Line, {#variable{} = Var, _}) ->
     case ephp_context:get(Context, Var) of
         Array when ?IS_ARRAY(Array) ->
-            ephp_array:fold(fun(K,V,_) ->
-                unset(Context, Line, {Var#variable{idx=Idx ++ [K]},V})
-            end, undefined, Array);
-        #ephp_object{class=Class}=Instance ->
-            case ephp_class:get_destructor(Class) of
-            undefined ->
-                ok;
-            _ ->
-                Call = #call{name = <<"__destruct">>, line = Line},
-                ephp_context:call_method(Context, Instance, Call),
-                % FIXME: add unset for every attribute inside of the instance
-                ok
-            end;
+            ephp_vars:destroy_data(Context, Array);
+        ObjRef when ?IS_OBJECT(ObjRef) ->
+            ephp_vars:destroy_data(Context, ObjRef);
         _ ->
             ok
     end,
@@ -258,8 +254,9 @@ var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_binary(Value) ->
     Size = ephp_data:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",Value/binary, "\"\n">>;
 
-var_dump_fmt(Context, Line, #ephp_object{class = Class, context = Ctx},
+var_dump_fmt(Context, Line, #obj_ref{} = ObjRef,
              Spaces, RecCtl) ->
+    #ephp_object{class = Class, context = Ctx} = ephp_object:get(ObjRef),
     #class{name = ClassName} = Class,
     lists:foldl(fun(#class_attr{name = RawName, access = Access}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=RawName}),
@@ -286,9 +283,10 @@ var_dump_fmt(Context, Line, #ephp_object{class = Class, context = Ctx},
                     <<Spaces/binary, "}\n">>
                 ];
             is_list(ValDumped) andalso ?IS_OBJECT(Value) ->
-                #ephp_object{class=#class{attrs = Attrs}} = Value,
+                #ephp_object{class=#class{attrs = Attrs}} = Object =
+                    ephp_object:get(Value),
                 Size = ephp_data:to_bin(length(Attrs)),
-                #ephp_object{id = InstanceID, class = SClass} = Value,
+                #ephp_object{id = InstanceID, class = SClass} = Object,
                 ID = integer_to_binary(InstanceID),
                 [
                     <<Spaces/binary, "[", CompleteName/binary, "]=>\n",
@@ -334,9 +332,10 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                     <<Spaces/binary, "}\n">>
                 ];
             V when is_list(V) andalso ?IS_OBJECT(Val) ->
-                #ephp_object{class=#class{attrs=Attrs}} = Val,
+                #ephp_object{id = InstanceID,
+                             class = Class
+                                   = #class{attrs=Attrs}} = ephp_object:get(Val),
                 Size = ephp_data:to_bin(length(Attrs)),
-                #ephp_object{id=InstanceID,class=Class} = Val,
                 ID = integer_to_binary(InstanceID),
                 [
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
