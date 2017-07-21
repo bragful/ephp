@@ -8,6 +8,7 @@
     start_link/0,
     stop/0,
     get/1,
+    get_with_links/1,
     remove/1,
     set/2,
     add_link/1,
@@ -20,8 +21,6 @@
 }).
 
 -type mem() :: #mem{}.
-
--type mem_id() :: pos_integer().
 
 -spec start_link() -> {ok, module()}.
 %% @doc starts the memory storage system for referenced data.
@@ -63,6 +62,17 @@ get(MemId) ->
     end.
 
 
+-spec get_with_links(mem_id()) -> {any(), pos_integer()}.
+%% @doc get the content for a specific MemId and the number of links.
+get_with_links(MemId) ->
+    Ref = get_id(),
+    Mem = erlang:get(Ref),
+    case array:get(MemId, Mem) of
+        free -> throw(segmentation_fault);
+        #mem{data = Data, links = Links} -> {Data, Links}
+    end.
+
+
 -spec remove(mem_id()) -> ok.
 %% @doc removes an entry given by MemId in the storage data.
 remove(MemId) ->
@@ -85,7 +95,10 @@ remove(MemId) ->
 set(MemId, Data) ->
     Ref = get_id(),
     Mem = erlang:get(Ref),
-    MemData = #mem{data = Data},
+    MemData = case array:get(MemId, Mem) of
+        free -> #mem{data = Data};
+        #mem{} = MD -> MD#mem{data = Data}
+    end,
     NewMem = array:set(MemId, MemData, Mem),
     erlang:put(Ref, NewMem),
     ok.

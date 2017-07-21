@@ -101,22 +101,22 @@ var_dump(Context, Line, Values) when is_list(Values) ->
 var_dump(Context, Line, {Var,Value}) ->
     RecCtl = gb_sets:add(Var, gb_sets:new()),
     Result = case var_dump_fmt(Context, Line, Value, <<?SPACES_VD>>, RecCtl) of
-    Elements when is_list(Elements) ->
-        Data = iolist_to_binary(Elements),
-        case Value of
-            Value when ?IS_ARRAY(Value) ->
-                Size = ephp_data:to_bin(ephp_array:size(Value)),
-                <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-            #obj_ref{pid = Objects, ref = ObjectId} ->
-                #ephp_object{class = #class{name = ClassName, attrs = Attrs}} =
-                    ephp_object:get(Objects, ObjectId),
-                Size = ephp_data:to_bin(length(Attrs)),
-                ID = integer_to_binary(ObjectId),
-                <<"object(", (ClassName)/binary, ")#", ID/binary,
-                  " (", Size/binary, ") {\n", Data/binary, "}\n">>
-        end;
-    Element ->
-        Element
+        Elements when is_list(Elements) ->
+            Data = iolist_to_binary(Elements),
+            case Value of
+                Value when ?IS_ARRAY(Value) ->
+                    Size = ephp_data:to_bin(ephp_array:size(Value)),
+                    <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
+                #obj_ref{pid = Objects, ref = ObjectId} ->
+                    #ephp_object{class = #class{name = ClassName, attrs = Attrs}} =
+                        ephp_object:get(Objects, ObjectId),
+                    Size = ephp_data:to_bin(length(Attrs)),
+                    ID = integer_to_binary(ObjectId),
+                    <<"object(", (ClassName)/binary, ")#", ID/binary,
+                      " (", Size/binary, ") {\n", Data/binary, "}\n">>
+            end;
+        Element ->
+            Element
     end,
     ephp_context:set_output(Context, Result),
     undefined.
@@ -202,8 +202,8 @@ unset(Context, _Line, {Var, #var_ref{}}) ->
     ephp_context:del(Context, Var),
     undefined;
 
-unset(Context, _Line, {#variable{} = Var, _}) ->
-    case ephp_context:get(Context, Var) of
+unset(Context, _Line, {#variable{} = Var, Value}) ->
+    case Value of
         Array when ?IS_ARRAY(Array) ->
             ephp_vars:destroy_data(Context, Array);
         ObjRef when ?IS_OBJECT(ObjRef) ->

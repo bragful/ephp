@@ -24,6 +24,7 @@
 -define(IS_ARRAY(A), is_record(A, ephp_array)).
 -define(IS_OBJECT(O), is_record(O, obj_ref)).
 -define(IS_FUNCTION(F), is_record(F, function)).
+-define(IS_MEM(M), is_record(M, mem_ref)).
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).
@@ -358,6 +359,12 @@
 -type obj_ref() :: #obj_ref{}.
 
 -type object_id() :: pos_integer().
+
+-record(mem_ref, {
+    mem_id :: mem_id()
+}).
+
+-type mem_id() :: pos_integer().
 
 % classes
 

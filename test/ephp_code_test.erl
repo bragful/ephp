@@ -49,7 +49,7 @@ test_code(File) ->
             ?assertEqual(OutFile, iolist_to_binary(OutCode)),
             true
         catch Type:Reason ->
-            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
+            ?debugFmt("~n *** ERROR in ~s.php why: ~p~nreason:~n~p~n~p~n",
                 [File, Type, Reason, erlang:get_stacktrace()]),
             false
         end

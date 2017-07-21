@@ -841,8 +841,8 @@ resolve(#function{name = undefined, use = Use} = Anon,
         #state{vars = Vars} = State) ->
     {NewUse, NState} = lists:foldl(fun
         (#variable{} = K, {Acc, S}) ->
-            {V,NewState} = resolve(K, S),
-            {Acc ++ [{K,V}], NewState};
+            {V, NewState} = resolve(K, S),
+            {Acc ++ [{K, V}], NewState};
         (#ref{var = #variable{} = V}, {Acc, S}) ->
             {Acc ++ [{#var_ref{pid = Vars, ref = V}, V}], S}
     end, {[], State}, Use),
@@ -857,7 +857,7 @@ resolve(Unknown, _State) ->
 
 
 register_superglobals(GlobalCtx, Vars) ->
-    #state{vars=GlobalVars} = load_state(GlobalCtx),
+    #state{vars = GlobalVars} = load_state(GlobalCtx),
     SuperGlobals = [
         <<"_SERVER">>,
         <<"_GET">>,
@@ -876,9 +876,9 @@ register_superglobals(GlobalCtx, Vars) ->
 
 resolve_func_args(RawFuncArgs, State) ->
     lists:foldl(fun
-        (#variable{default_value=Val}=Var, {Vars, S}) when Val =/= undefined ->
+        (#variable{default_value = Val} = Var, {Vars, S}) when Val =/= undefined ->
             {Value, NewState} = resolve(Val,S),
-            {Vars ++ [Var#variable{default_value=Value}], NewState};
+            {Vars ++ [Var#variable{default_value = Value}], NewState};
         (Var, {Vars, NewState}) ->
             {Vars ++ [Var], NewState}
     end, {[], State}, RawFuncArgs).
@@ -1402,15 +1402,20 @@ resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
         <<"=<">> when OpRes2 =:= undefined -> true;
         <<"=<">> -> OpRes1 =< OpRes2;
         <<"==">> when ?IS_OBJECT(OpRes1) andalso ?IS_OBJECT(OpRes2) ->
-            ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2);
+            ephp_object:get_class_name(OpRes1) =:=
+            ephp_object:get_class_name(OpRes2);
         <<"==">> -> ephp_data:is_equal(OpRes1, OpRes2);
         <<"===">> -> OpRes1 =:= OpRes2;
         <<"!=">> -> OpRes1 /= OpRes2;
         <<"!==">> -> OpRes1 =/= OpRes2;
-        <<"^">> -> ephp_data:zero_if_undef(OpRes1) bxor ephp_data:zero_if_undef(OpRes2);
-        <<"|">> -> ephp_data:zero_if_undef(OpRes1) bor ephp_data:zero_if_undef(OpRes2);
-        <<"&">> -> ephp_data:zero_if_undef(OpRes1) band ephp_data:zero_if_undef(OpRes2);
-        instanceof -> ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2)
+        <<"^">> -> ephp_data:zero_if_undef(OpRes1) bxor
+                   ephp_data:zero_if_undef(OpRes2);
+        <<"|">> -> ephp_data:zero_if_undef(OpRes1) bor
+                   ephp_data:zero_if_undef(OpRes2);
+        <<"&">> -> ephp_data:zero_if_undef(OpRes1) band
+                   ephp_data:zero_if_undef(OpRes2);
+        instanceof -> ephp_object:get_class_name(OpRes1) =:=
+                      ephp_object:get_class_name(OpRes2)
     end, State2};
 
 resolve_op(Cond, State) ->
