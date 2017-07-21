@@ -144,10 +144,20 @@ restore_error_handler(Context, _Line) ->
 
 -spec set_exception_handler(context(), line(), var_value()) -> callable().
 
-set_exception_handler(Context, _Line, {_, ExceptionHandler}) ->
-    OldExceptionHandler = ephp_error:get_exception_handler_func(Context),
-    ephp_error:set_exception_handler_func(Context, ExceptionHandler),
-    OldExceptionHandler.
+set_exception_handler(Context, Line, {_, ExceptionHandler}) ->
+    %% FIXME: ExceptionHandler maybe could be a callable instead...
+    case ephp_context:is_defined_function(Context, ExceptionHandler) of
+        true ->
+            OldExceptionHandler = ephp_error:get_exception_handler_func(Context),
+            ephp_error:set_exception_handler_func(Context, ExceptionHandler),
+            OldExceptionHandler;
+        false ->
+            Data = {<<"set_exception_handler">>, ephp_data:to_bin(ExceptionHandler)},
+            File = ephp_context:get_active_file(Context),
+            Error = {error, einvalidcallback, Line, File, ?E_WARNING, Data},
+            ephp_error:handle_error(Context, Error),
+            undefined
+    end.
 
 -spec restore_exception_handler(context(), line()) -> true.
 
