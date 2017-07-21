@@ -103,6 +103,7 @@ start_link() ->
     {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, Errors} = ephp_error:start_link(),
     {ok, _} = ephp_stack:start_link(Ref),
+    {ok, _} = ephp_mem:start_link(),
     start_link(#state{
         ref = Ref,
         output = Output,
@@ -190,6 +191,7 @@ destroy_all(Context) ->
     ephp_vars:destroy(Context, State#state.vars),
     ephp_shutdown:destroy(State#state.shutdown),
     ephp_stack:destroy(Context),
+    ephp_mem:stop(),
     destroy(Context).
 
 get_vars(Context) ->
