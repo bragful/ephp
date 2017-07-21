@@ -342,6 +342,7 @@ run_depth(_Context, _Statement, Break, _Cover) ->
 exit_cond({return, Ret}) -> {return, Ret};
 exit_cond({break, 0}) -> false;
 exit_cond({break, N}) -> {break, N-1};
+exit_cond(break) -> false;
 exit_cond(false) -> false.
 
 -spec run_finally(context(), statements(), Cover :: boolean()) -> flow_status().
