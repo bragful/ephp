@@ -79,13 +79,20 @@ st_class_content(<<V:8,A:8,R:8,SP:8,Rest/binary>>, Pos, Class) when
     st_class_content(<<SP:8,Rest/binary>>, public_level(add_pos(Pos,3)), Class);
 st_class_content(<<"$",_/binary>> = Rest, {{Access,Type},_,_}=Pos,
                  #class{attrs=Attrs}=Class) when Access =/= unset ->
-    {Rest0, Pos0, #assign{variable=#variable{name=VarName}, expression=Expr}} =
-        ephp_parser_expr:expression(Rest, Pos, []),
-    Attr = #class_attr{
-        access = Access,
-        name = VarName,
-        type = Type,
-        init_value = Expr},
+    Attr = case ephp_parser_expr:expression(Rest, Pos, []) of
+        {Rest0, Pos0, #assign{variable=#variable{name=VarName},
+                              expression=Expr}} ->
+            #class_attr{
+                access = Access,
+                name = VarName,
+                type = Type,
+                init_value = Expr};
+        {Rest0, Pos0, #variable{name = VarName}} ->
+            #class_attr{
+                access = Access,
+                name = VarName,
+                type = Type}
+    end,
     NewClass = Class#class{attrs=Attrs ++ [Attr]},
     st_class_content(Rest0, normal_public_level(Pos0), NewClass);
 st_class_content(<<"$",_/binary>> = _Rest, Pos, _Class) ->
