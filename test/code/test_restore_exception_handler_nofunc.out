@@ -1,0 +1,8 @@
+
+Warning: set_exception_handler() expects the argument (other) to be a valid callback in /Users/bombadil/Projects/BosqueViejo/ephp/test_restore_exception_handler_nofunc.php on line 7
+bool(true)
+
+Fatal error: Uncaught exception 'Exception' with message 'Excepción No Capturada' in /Users/bombadil/Projects/BosqueViejo/ephp/test_restore_exception_handler_nofunc.php:10
+Stack trace:
+#0 {main}
+  thrown in /Users/bombadil/Projects/BosqueViejo/ephp/test_restore_exception_handler_nofunc.php on line 10
