@@ -1,0 +1,3 @@
+My name is Rubio... Manuel Rubio
+
+Fatal error: Cannot access private property Person::$name in {{CWD}}/test/code/test_class_attrs.php on line 22

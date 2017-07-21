@@ -1153,17 +1153,18 @@ resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} =
         resolve_indexes(#variable{name = SubVal, idx = Idx}, State2),
+    ViaThis = (Var#variable.name =:= <<"this">>),
     case ephp_class:get_attribute(Class, SubVal) of
-        #class_attr{access = public} ->
-            {ephp_context:get(Context, NewVar), State3};
-        #class_attr{access = protected} ->
+        #class_attr{access = protected} when not ViaThis ->
             Data = {Class#class.name, SubVal, <<"protected">>},
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
                               ?E_ERROR, Data});
-        #class_attr{access = private} ->
+        #class_attr{access = private} when not ViaThis ->
             Data = {Class#class.name, SubVal, <<"private">>},
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
-                              ?E_ERROR, Data})
+                              ?E_ERROR, Data});
+        #class_attr{access = public} ->
+            {ephp_context:get(Context, NewVar), State3}
     end;
 
 resolve_var(#variable{idx = [{object, VarName, _Line}|Idx]} = Var,
@@ -1173,17 +1174,20 @@ resolve_var(#variable{idx = [{object, VarName, _Line}|Idx]} = Var,
     {NewVar, NewState} =
         resolve_indexes(#variable{name = VarName, idx = Idx}, State),
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
+    ViaThis = (Var#variable.name =:= <<"this">>),
     case ClassAttr of
-        #class_attr{access = public} ->
-            {ephp_context:get(Context, NewVar), NewState};
-        #class_attr{access = protected} ->
+        #class_attr{access = protected} when not ViaThis ->
             Data = {Class#class.name, NewVar#variable.name, <<"protected">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
                               ?E_ERROR, Data});
-        #class_attr{access = private} ->
+        #class_attr{access = private} when not ViaThis ->
             Data = {Class#class.name, NewVar#variable.name, <<"private">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
                               ?E_ERROR, Data});
+        #class_attr{access = Access} when Access =:= public orelse
+                                          Access =:= private orelse
+                                          Access =:= protected ->
+            {ephp_context:get(Context, NewVar), NewState};
         undefined -> % dynamic attribute, not defined
             {ephp_context:get(Context, NewVar), NewState}
     end;
