@@ -60,6 +60,14 @@ __abstract datatype__: `includes_id()`
 
 
 
+### <a name="type-objects_id">objects_id()</a> ###
+
+
+__abstract datatype__: `objects_id()`
+
+
+
+
 ### <a name="type-output_id">output_id()</a> ###
 
 

@@ -660,9 +660,9 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
         active_fun_args = length(RawArgs)}),
     ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line),
     lists:foreach(fun
-        ({#variable{} = K,V}) ->
+        ({#variable{} = K, V}) ->
             ephp_vars:set(NewVars, K, V);
-        ({#var_ref{pid = NVars, ref = V},N}) ->
+        ({#var_ref{pid = NVars, ref = V}, N}) ->
             ephp_vars:ref(NewVars, N, NVars, V)
     end, Use),
     register_superglobals(Ref, NewVars),
@@ -827,7 +827,7 @@ resolve(undefined, State) ->
     {undefined, State};
 
 resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
-    {{var_ref, Vars, Var}, State};
+    {#var_ref{pid = Vars, ref = Var}, State};
 
 resolve(auto, _State) ->
     ephp_error:error({error, earrayundef, undefined, ?E_ERROR, {<<>>}});
@@ -837,17 +837,18 @@ resolve({silent, Statement}, #state{errors=Errors}=State) ->
         resolve(Statement, State)
     end);
 
-resolve(#function{name=undefined,use=Use}=Anon, #state{vars=Vars}=State) ->
+resolve(#function{name = undefined, use = Use} = Anon,
+        #state{vars = Vars} = State) ->
     {NewUse, NState} = lists:foldl(fun
-        (#variable{}=K, {Acc, S}) ->
+        (#variable{} = K, {Acc, S}) ->
             {V,NewState} = resolve(K, S),
             {Acc ++ [{K,V}], NewState};
-        (#ref{var=#variable{}=V}, {Acc, S}) ->
-            {Acc ++ [{{var_ref,Vars,V},V}], S}
+        (#ref{var = #variable{} = V}, {Acc, S}) ->
+            {Acc ++ [{#var_ref{pid = Vars, ref = V}, V}], S}
     end, {[], State}, Use),
-    {Anon#function{use=NewUse}, NState};
+    {Anon#function{use = NewUse}, NState};
 
-resolve(#cast{type=Type, content=C, line=Line}, State) ->
+resolve(#cast{type = Type, content = C, line = Line}, State) ->
     {Value, NState} = resolve(C, State),
     {resolve_cast(State, Line, Type, Value), NState};
 

@@ -158,7 +158,7 @@ print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### print_r/4 ###
 
 <pre><code>
-print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Val::<a href="#type-var_value">var_value()</a>, Output::boolean()) -&gt; true | binary()
+print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, Output::boolean()) -&gt; true | binary()
 </code></pre>
 <br />
 

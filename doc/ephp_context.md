@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#call_method-3">call_method/3</a></td><td></td></tr><tr><td valign="top"><a href="#del-2">del/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#destroy_all-1">destroy_all/1</a></td><td></td></tr><tr><td valign="top"><a href="#generate_subcontext-1">generate_subcontext/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_active_file-1">get_active_file/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_const-3">get_const/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_current_class-1">get_current_class/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_current_function-1">get_current_function/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_current_function_arity-1">get_current_function_arity/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_errors_id-1">get_errors_id/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_function-2">get_function/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_functions-1">get_functions/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_meta-2">get_meta/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_output-1">get_output/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_output_handler-1">get_output_handler/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_shutdown_funcs-1">get_shutdown_funcs/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_state-1">get_state/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_tz-1">get_tz/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_vars-1">get_vars/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_defined_function-2">is_defined_function/2</a></td><td></td></tr><tr><td valign="top"><a href="#isset-2">isset/2</a></td><td></td></tr><tr><td valign="top"><a href="#load-2">load/2</a></td><td></td></tr><tr><td valign="top"><a href="#load_once-2">load_once/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-2">register_class/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_const-3">register_const/3</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_shutdown_func-2">register_shutdown_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#set-3">set/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_active_file-2">set_active_file/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_class_alias-3">set_class_alias/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_errors_id-2">set_errors_id/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_global-2">set_global/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_meta-3">set_meta/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_tz-2">set_tz/2</a></td><td></td></tr><tr><td valign="top"><a href="#solve-2">solve/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#unregister_shutdown_func-2">unregister_shutdown_func/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#call_method-3">call_method/3</a></td><td></td></tr><tr><td valign="top"><a href="#del-2">del/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#destroy_all-1">destroy_all/1</a></td><td></td></tr><tr><td valign="top"><a href="#generate_subcontext-1">generate_subcontext/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_active_file-1">get_active_file/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_classes-1">get_classes/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_const-3">get_const/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_current_class-1">get_current_class/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_current_function-1">get_current_function/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_current_function_arity-1">get_current_function_arity/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_errors_id-1">get_errors_id/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_function-2">get_function/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_functions-1">get_functions/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_meta-2">get_meta/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_objects-1">get_objects/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_output-1">get_output/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_output_handler-1">get_output_handler/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_shutdown_funcs-1">get_shutdown_funcs/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_tz-1">get_tz/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_vars-1">get_vars/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_defined_function-2">is_defined_function/2</a></td><td></td></tr><tr><td valign="top"><a href="#isset-2">isset/2</a></td><td></td></tr><tr><td valign="top"><a href="#load-2">load/2</a></td><td></td></tr><tr><td valign="top"><a href="#load_once-2">load_once/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-2">register_class/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_const-3">register_const/3</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_shutdown_func-2">register_shutdown_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#set-3">set/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_active_file-2">set_active_file/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_class_alias-3">set_class_alias/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_errors_id-2">set_errors_id/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_global-2">set_global/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_meta-3">set_meta/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_tz-2">set_tz/2</a></td><td></td></tr><tr><td valign="top"><a href="#solve-2">solve/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#unregister_shutdown_func-2">unregister_shutdown_func/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -57,6 +57,12 @@
 ### get_active_file/1 ###
 
 `get_active_file(Context) -> any()`
+
+<a name="get_classes-1"></a>
+
+### get_classes/1 ###
+
+`get_classes(Context) -> any()`
 
 <a name="get_const-3"></a>
 
@@ -106,6 +112,12 @@
 
 `get_meta(Context, Key) -> any()`
 
+<a name="get_objects-1"></a>
+
+### get_objects/1 ###
+
+`get_objects(Context) -> any()`
+
 <a name="get_output-1"></a>
 
 ### get_output/1 ###
@@ -123,12 +135,6 @@
 ### get_shutdown_funcs/1 ###
 
 `get_shutdown_funcs(Context) -> any()`
-
-<a name="get_state-1"></a>
-
-### get_state/1 ###
-
-`get_state(Context) -> any()`
 
 <a name="get_tz-1"></a>
 

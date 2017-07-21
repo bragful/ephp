@@ -1,7 +1,3 @@
--module(ephp_object).
--author('manuel@altenwald.com').
--compile([warnings_as_errors, {no_auto_import, [get/1]}]).
-
 %% @doc
 %% This module is intended to store the object collection based on an array.
 %% The original PHP has an array to collect all of the instances from all of the
@@ -11,6 +7,9 @@
 %% The variables only referenciate to that object so, all of the variables
 %% which contains objects are pointers indeed.
 %% @end
+-module(ephp_object).
+-author('manuel@altenwald.com').
+-compile([warnings_as_errors, {no_auto_import, [get/1]}]).
 
 -include("ephp.hrl").
 

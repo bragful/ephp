@@ -6,6 +6,7 @@
           ephp_lib_class,ephp_lib_control,ephp_lib_date,ephp_lib_error,
           ephp_lib_file,ephp_lib_func,ephp_lib_info,ephp_lib_math,
           ephp_lib_misc,ephp_lib_ob,ephp_lib_pcre,ephp_lib_string,
-          ephp_lib_vars,ephp_output,ephp_parser,ephp_parser_class,
-          ephp_parser_expr,ephp_parser_func,ephp_parser_string,ephp_shutdown,
-          ephp_stack,ephp_string,ephp_timezone,ephp_vars]}.
+          ephp_lib_vars,ephp_mem,ephp_object,ephp_output,ephp_parser,
+          ephp_parser_class,ephp_parser_expr,ephp_parser_func,
+          ephp_parser_string,ephp_shutdown,ephp_stack,ephp_string,
+          ephp_timezone,ephp_vars]}.

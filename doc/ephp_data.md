@@ -150,7 +150,7 @@ to_float(I::<a href="#type-mixed">mixed()</a>) -&gt; float()
 ### to_float/3 ###
 
 <pre><code>
-to_float(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Reg_instance::<a href="#type-mixed">mixed()</a>) -&gt; float()
+to_float(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; float()
 </code></pre>
 <br />
 
@@ -168,7 +168,7 @@ to_int(A::<a href="#type-mixed">mixed()</a>) -&gt; integer()
 ### to_int/3 ###
 
 <pre><code>
-to_int(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Reg_instance::<a href="#type-mixed">mixed()</a>) -&gt; integer()
+to_int(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; integer()
 </code></pre>
 <br />
 
