@@ -51,9 +51,9 @@ stop() ->
     ok.
 
 
--spec get(mem_id()) -> any().
+-spec get(mem_ref()) -> any().
 %% @doc get the content for a specific MemId.
-get(MemId) ->
+get(#mem_ref{mem_id = MemId}) ->
     Ref = get_id(),
     Mem = erlang:get(Ref),
     case array:get(MemId, Mem) of
@@ -62,9 +62,9 @@ get(MemId) ->
     end.
 
 
--spec get_with_links(mem_id()) -> {any(), pos_integer()}.
+-spec get_with_links(mem_ref()) -> {any(), pos_integer()}.
 %% @doc get the content for a specific MemId and the number of links.
-get_with_links(MemId) ->
+get_with_links(#mem_ref{mem_id = MemId}) ->
     Ref = get_id(),
     Mem = erlang:get(Ref),
     case array:get(MemId, Mem) of
@@ -73,9 +73,9 @@ get_with_links(MemId) ->
     end.
 
 
--spec remove(mem_id()) -> ok.
+-spec remove(mem_ref()) -> ok.
 %% @doc removes an entry given by MemId in the storage data.
-remove(MemId) ->
+remove(#mem_ref{mem_id = MemId}) ->
     Ref = get_id(),
     Mem = erlang:get(Ref),
     NewMem = case array:get(MemId, Mem) of
@@ -90,9 +90,9 @@ remove(MemId) ->
     ok.
 
 
--spec set(mem_id(), Data :: any()) -> ok.
+-spec set(mem_ref(), Data :: any()) -> ok.
 %% @doc stores the element in the position required.
-set(MemId, Data) ->
+set(#mem_ref{mem_id = MemId}, Data) ->
     Ref = get_id(),
     Mem = erlang:get(Ref),
     MemData = case array:get(MemId, Mem) of
@@ -104,9 +104,9 @@ set(MemId, Data) ->
     ok.
 
 
--spec add_link(mem_id()) -> ok.
+-spec add_link(mem_ref()) -> ok.
 %% @doc increase the links attribute for a specific MemId.
-add_link(MemId) ->
+add_link(#mem_ref{mem_id = MemId}) ->
     Ref = get_id(),
     Mem = erlang:get(Ref),
     NewMem = case array:get(MemId, Mem) of
@@ -118,7 +118,7 @@ add_link(MemId) ->
     erlang:put(Ref, NewMem),
     ok.
 
--spec add(Data :: any()) -> mem_id().
+-spec add(Data :: any()) -> mem_ref().
 %% @doc adds information for the storage and returns the MemId to access later
 %%      to that information.
 %% @end
@@ -126,23 +126,23 @@ add(Data) ->
     MemData = #mem{data = Data},
     Ref = get_id(),
     Mem = erlang:get(Ref),
-    MemId = search_empty(Mem),
+    #mem_ref{mem_id = MemId} = MemRef = search_empty(Mem),
     NewMem = array:set(MemId, MemData, Mem),
     erlang:put(Ref, NewMem),
-    MemId.
+    MemRef.
 
 
--spec search_empty(mem()) -> mem_id().
+-spec search_empty(mem()) -> mem_ref().
 %% @hidden
 %% @doc search for a free index inside of the storage.
 search_empty(Mem) ->
     search_empty(1, Mem).
 
--spec search_empty(I :: pos_integer(), mem()) -> mem_id().
+-spec search_empty(I :: pos_integer(), mem()) -> mem_ref().
 %% @hidden
 %% @doc search for a free index inside of the storage. Recursive function.
 search_empty(I, Mem) ->
     case array:get(I, Mem) of
-        free -> I;
+        free -> #mem_ref{mem_id = I};
         _ -> search_empty(I+1, Mem)
     end.

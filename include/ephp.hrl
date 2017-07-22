@@ -364,6 +364,8 @@
     mem_id :: mem_id()
 }).
 
+-type mem_ref() :: #mem_ref{}.
+
 -type mem_id() :: pos_integer().
 
 % classes

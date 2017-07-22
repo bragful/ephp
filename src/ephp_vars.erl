@@ -110,7 +110,10 @@ destroy_data(_Context, undefined) ->
     ok;
 
 destroy_data(Context, ObjRef) when ?IS_OBJECT(ObjRef) ->
-    ephp_object:remove_link(Context, ObjRef);
+    ephp_object:remove(Context, ObjRef);
+
+destroy_data(_Context, MemRef) when ?IS_MEM(MemRef) ->
+    ephp_mem:remove(MemRef);
 
 destroy_data(Context, Vars) when ?IS_ARRAY(Vars) ->
     ephp_array:fold(fun(_K, ObjRef, _) when ?IS_OBJECT(ObjRef) ->

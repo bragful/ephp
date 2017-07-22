@@ -26,8 +26,6 @@
     add/2,
     add_link/1,
     add_link/2,
-    remove_link/2,
-    remove_link/3,
     remove_all/2,
     remove/2,
     remove/3
@@ -59,44 +57,44 @@ get(Ref, ObjectId) ->
 
 -spec get(obj_ref()) -> undefined | ephp_object().
 %% @doc retrieves an object based on the Object ID.
-get(#obj_ref{pid = Ref, ref = ObjectId}) ->
-    get(Ref, ObjectId).
+get(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    get(Objects, ObjectId).
 
 
 -spec get_class_name(ephp:objects_id(), object_id()) -> class_name().
 %% @doc retrieves the class name for an provided Object ID.
-get_class_name(Ref, ObjectId) ->
-    Objects = erlang:get(Ref),
-    ((array:get(ObjectId, Objects))#ephp_object.class)#class.name.
+get_class_name(Objects, ObjectId) ->
+    ObjectsData = erlang:get(Objects),
+    ((array:get(ObjectId, ObjectsData))#ephp_object.class)#class.name.
 
 
 -spec get_class_name(obj_ref()) -> class_name().
 %% @doc retrieves the class name for an provided Object ID.
-get_class_name(#obj_ref{pid = Ref, ref = ObjectId}) ->
-    get_class_name(Ref, ObjectId).
+get_class_name(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    get_class_name(Objects, ObjectId).
 
 
 -spec get_context(obj_ref()) -> context().
 %% @doc retrieves the object context for an provided Object ID.
-get_context(#obj_ref{pid = Ref, ref = ObjectId}) ->
-    get_context(Ref, ObjectId).
+get_context(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    get_context(Objects, ObjectId).
 
 
 -spec get_context(ephp:objects_id(), object_id()) -> context().
 %% @doc retrieves the object context for an provided Object ID.
-get_context(Ref, ObjectId) ->
-    Objects = erlang:get(Ref),
-    (array:get(ObjectId, Objects))#ephp_object.context.
+get_context(Objects, ObjectId) ->
+    ObjectsData = erlang:get(Objects),
+    (array:get(ObjectId, ObjectsData))#ephp_object.context.
 
 
 -spec set(ephp:objects_id(), object_id(), ephp_object()) -> ok.
 %% @doc stores an object given the Object ID.
-set(Ref, ObjectId, Object) ->
-    Objects = erlang:get(Ref),
+set(Objects, ObjectId, Object) ->
+    ObjectsData = erlang:get(Objects),
     NewObjects = array:set(ObjectId,
                            Object#ephp_object{id = ObjectId,
-                                              objects = Ref}, Objects),
-    erlang:put(Ref, NewObjects),
+                                              objects = Objects}, ObjectsData),
+    erlang:put(Objects, NewObjects),
     ok.
 
 
@@ -104,79 +102,71 @@ set(Ref, ObjectId, Object) ->
 %% @doc stores an object searching an empty slot for it and returning the
 %%      Object ID where it was stored.
 %% @end
-add(Ref, Object) ->
-    Objects = erlang:get(Ref),
-    ObjectId = search_empty(Objects),
-    set(Ref, ObjectId, Object#ephp_object{id = ObjectId}),
+add(Objects, Object) ->
+    ObjectsData = erlang:get(Objects),
+    ObjectId = search_empty(ObjectsData),
+    set(Objects, ObjectId, Object),
     ObjectId.
 
 
 -spec add_link(obj_ref()) -> ok.
 %% @doc increases the number of links for an object.
-add_link(#obj_ref{pid = Ref, ref = ObjectId}) ->
-    add_link(Ref, ObjectId).
+add_link(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    add_link(Objects, ObjectId).
 
 
 -spec add_link(ephp:objects_id(), object_id()) -> ok.
 %% @doc increases the number of links for an object.
-add_link(Ref, ObjectId) ->
-    #ephp_object{links = Links} = Object = get(Ref, ObjectId),
-    set(Ref, ObjectId, Object#ephp_object{links = Links + 1}),
+add_link(Objects, ObjectId) ->
+    #ephp_object{links = Links} = Object = get(Objects, ObjectId),
+    set(Objects, ObjectId, Object#ephp_object{links = Links + 1}),
     ok.
-
-
--spec remove_link(context(), obj_ref()) -> ok.
-%% @doc decreases the number of links for an object. If arrives to zero,
-%%      the object is removed.
-%% @end
-remove_link(Context, #obj_ref{pid = Ref, ref = ObjectId}) ->
-    remove_link(Context, Ref, ObjectId).
 
 
 -spec remove_all(context(), ephp:objects_id()) -> ok.
 %% @doc removes all of the objects stored using objects_id.
-remove_all(Context, Ref) ->
-    Objects = erlang:get(Ref),
+remove_all(Context, Objects) ->
+    ObjectsData = erlang:get(Objects),
     array:foldl(fun(_, #ephp_object{id = ObjectId}, _) ->
-                    remove(Context, Ref, ObjectId);
+                    remove_complete(Context, Objects, ObjectId);
                    (_, undefined, _) ->
                     ok
-                end, undefined, Objects),
-    erlang:put(Ref, array:new()),
+                end, undefined, ObjectsData),
+    erlang:put(Objects, array:new()),
     ok.
 
 
--spec remove_link(context(), ephp:objects_id(), object_id()) -> ok.
+-spec remove(context(), obj_ref()) -> ok.
 %% @doc decreases the number of links for an object. If arrives to zero,
 %%      the object is removed.
 %% @end
-remove_link(Context, Ref, ObjectId) ->
-    case get(Ref, ObjectId) of
+remove(Context, #obj_ref{pid = Objects, ref = ObjectId}) ->
+    remove(Context, Objects, ObjectId).
+
+
+-spec remove(context(), ephp:objects_id(), object_id()) -> ok.
+%% @doc decreases the number of links for an object. If arrives to zero,
+%%      the object is removed.
+%% @end
+remove(Context, Objects, ObjectId) ->
+    case get(Objects, ObjectId) of
         undefined ->
             ok;
         #ephp_object{links = Links} = Object ->
             case Links of
                 1 ->
-                    remove(Context, Ref, ObjectId);
+                    remove_complete(Context, Objects, ObjectId);
                 _ ->
-                    set(Ref, ObjectId, Object#ephp_object{links = Links - 1})
+                    set(Objects, ObjectId, Object#ephp_object{links = Links - 1})
             end
     end,
     ok.
 
 
--spec remove(context(), obj_ref() | object_id()) -> ok.
+-spec remove_complete(context(), ephp:objects_id(), object_id()) -> ok.
 %% @doc removes an object from the storage given the object or its ID.
-remove(Context, #obj_ref{pid = Ref, ref = ObjectId}) ->
-    remove(Context, Ref, ObjectId).
-
-
--spec remove(context(), ephp:objects_id(), ephp_object() | object_id()) -> ok.
-%% @doc removes an object from the storage given the object or its ID.
-remove(Context, Ref, #ephp_object{id = ObjectId}) ->
-    remove(Context, Ref, ObjectId);
-remove(Context, Ref, ObjectId) when is_integer(ObjectId) andalso ObjectId > 0 ->
-    ObjRef = #obj_ref{pid = Ref, ref = ObjectId},
+remove_complete(Context, Objects, ObjectId) ->
+    ObjRef = #obj_ref{pid = Objects, ref = ObjectId},
     #ephp_object{class = Class} = get(ObjRef),
     case ephp_class:get_destructor(Class) of
         undefined ->
@@ -186,9 +176,10 @@ remove(Context, Ref, ObjectId) when is_integer(ObjectId) andalso ObjectId > 0 ->
             ephp_context:call_method(Context, ObjRef, Call),
             ok
     end,
-    NewObjects = array:set(ObjectId, undefined, erlang:get(Ref)),
-    erlang:put(Ref, NewObjects),
+    NewObjects = array:set(ObjectId, undefined, erlang:get(Objects)),
+    erlang:put(Objects, NewObjects),
     ok.
+
 
 -spec search_empty(ephp:objects_id()) -> object_id().
 %% @doc search an empty slot and returns the Object ID.
