@@ -26,10 +26,10 @@
 %% @doc starts the memory storage system for referenced data.
 start_link() ->
     case erlang:get(get_id()) of
-        Mem when is_list(Mem) ->
-            ok;
-        _ ->
-            erlang:put(get_id(), array:new({default, free}))
+        undefined ->
+            erlang:put(get_id(), array:new({default, free}));
+        _Mem ->
+            ok
     end,
     {ok, get_id()}.
 
@@ -117,6 +117,7 @@ add_link(#mem_ref{mem_id = MemId}) ->
     end,
     erlang:put(Ref, NewMem),
     ok.
+
 
 -spec add(Data :: any()) -> mem_ref().
 %% @doc adds information for the storage and returns the MemId to access later

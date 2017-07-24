@@ -36,6 +36,8 @@ escape(Bin, Escape) when is_binary(Bin) ->
         (C, Acc) -> <<Acc/binary, C:8>>
     end, <<>>, binary_to_list(Bin)),
     <<"'", Bin2/binary, "'">>;
+escape(MemRef, Escape) when ?IS_MEM(MemRef) ->
+    escape(ephp_mem:get(MemRef), Escape);
 escape(Mixed, _Escape) ->
     ephp_data:to_bin(Mixed).
 

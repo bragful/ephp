@@ -98,8 +98,8 @@ var_dump(Context, Line, Values) when is_list(Values) ->
     end, Values),
     undefined;
 
-var_dump(Context, Line, {Var,Value}) ->
-    RecCtl = gb_sets:add(Var, gb_sets:new()),
+var_dump(Context, Line, {_, Value}) ->
+    RecCtl = gb_sets:new(),
     Result = case var_dump_fmt(Context, Line, Value, <<?SPACES_VD>>, RecCtl) of
         Elements when is_list(Elements) ->
             Data = iolist_to_binary(Elements),
@@ -122,13 +122,12 @@ var_dump(Context, Line, {Var,Value}) ->
     undefined.
 
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
-    true | binary().
+      true | binary().
 
-print_r(Context, Line, {Var, #obj_ref{} = ObjRef},
-        {_,true}) ->
+print_r(Context, Line, {_, #obj_ref{} = ObjRef}, {_, true}) ->
     case ephp_object:get(ObjRef) of
         #ephp_object{class=Class, context=Ctx} ->
-            RecCtl = gb_sets:add(Var, gb_sets:new()),
+            RecCtl = gb_sets:new(),
             Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
                 Value = ephp_context:get(Ctx, #variable{name=Name}),
                 ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
@@ -140,10 +139,9 @@ print_r(Context, Line, {Var, #obj_ref{} = ObjRef},
             ephp_data:to_bin(Context, Line, undefined)
     end;
 
-print_r(Context, _Line, {Var, #obj_ref{} = ObjRef},
-        {_,false}) ->
+print_r(Context, _Line, {_, #obj_ref{} = ObjRef}, {_, false}) ->
     #ephp_object{class=Class, context=Ctx} = ephp_object:get(ObjRef),
-    RecCtl = gb_sets:add(Var, gb_sets:new()),
+    RecCtl = gb_sets:new(),
     Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
         Value = ephp_context:get(Ctx, #variable{name=Name}),
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
@@ -154,16 +152,19 @@ print_r(Context, _Line, {Var, #obj_ref{} = ObjRef},
     ephp_context:set_output(Context, Out),
     true;
 
-print_r(Context, _Line, {Var,Value}, {_,true}) when ?IS_ARRAY(Value) ->
-    RecCtl = gb_sets:add(Var, gb_sets:new()),
+print_r(Context, _Line, {_, Value}, {_,true}) when ?IS_ARRAY(Value) ->
+    RecCtl = gb_sets:new(),
     Data = iolist_to_binary(print_r_fmt(Context, Value, <<?SPACES>>, RecCtl)),
     <<"Array\n(\n", Data/binary, ")\n">>;
 
-print_r(Context, _Line, {Var,Value}, {_,false}) when ?IS_ARRAY(Value) ->
-    RecCtl = gb_sets:add(Var, gb_sets:new()),
+print_r(Context, _Line, {_, Value}, {_,false}) when ?IS_ARRAY(Value) ->
+    RecCtl = gb_sets:new(),
     Data = iolist_to_binary(print_r_fmt(Context, Value, <<?SPACES>>, RecCtl)),
     ephp_context:set_output(Context, <<"Array\n(\n", Data/binary, ")\n">>),
     true;
+
+print_r(Context, Line, {Var, MemRef}, Output) when ?IS_MEM(MemRef) ->
+    print_r(Context, Line, {Var, ephp_mem:get(MemRef)}, Output);
 
 print_r(Context, Line, {_,Value}, {_,true}) ->
     ephp_data:to_bin(Context, Line, Value);
@@ -208,6 +209,8 @@ unset(Context, _Line, {#variable{} = Var, Value}) ->
             ephp_vars:destroy_data(Context, Array);
         ObjRef when ?IS_OBJECT(ObjRef) ->
             ephp_vars:destroy_data(Context, ObjRef);
+        MemRef when ?IS_MEM(MemRef) ->
+            ephp_mem:remove(MemRef);
         _ ->
             ok
     end,
@@ -235,6 +238,54 @@ var_dump_fmt(Context, Line, {var_ref,VarPID,VarRef}, Spaces, RecCtl) ->
                       PrevSpace/binary, "}\n">>;
                 Res ->
                     <<"&", Res/binary>>
+            end
+    end;
+
+var_dump_fmt(Context, Line, #mem_ref{} = MemRef,
+             <<?SPACES_VD>> = Spaces, RecCtl) ->
+    case gb_sets:is_element(MemRef, RecCtl) of
+        true ->
+            <<"*RECURSION*\n">>;
+        false ->
+            case ephp_mem:get_with_links(MemRef) of
+                {Var, 1} ->
+                    var_dump_fmt(Context, Line, Var, Spaces, RecCtl);
+                {Var, _} ->
+                    case var_dump_fmt(Context, Line, Var, Spaces, RecCtl) of
+                        Res when is_list(Res) ->
+                            Size = integer_to_binary(length(Res)),
+                            LessSize = byte_size(<<?SPACES_VD>>),
+                            <<_:LessSize/binary,PrevSpace/binary>> = Spaces,
+                            <<"array(", Size/binary, ") {\n",
+                              (iolist_to_binary(Res))/binary,
+                              PrevSpace/binary, "}\n">>;
+                        Res ->
+                            Res
+                    end
+            end
+    end;
+
+var_dump_fmt(Context, Line, #mem_ref{} = MemRef, Spaces, RecCtl) ->
+    case gb_sets:is_element(MemRef, RecCtl) of
+        true ->
+            <<"*RECURSION*\n">>;
+        false ->
+            NewRecCtl = gb_sets:add(MemRef, RecCtl),
+            case ephp_mem:get_with_links(MemRef) of
+                {Var, 1} ->
+                    var_dump_fmt(Context, Line, Var, Spaces, NewRecCtl);
+                {Var, _} ->
+                    case var_dump_fmt(Context, Line, Var, Spaces, NewRecCtl) of
+                        Res when is_list(Res) ->
+                            Size = integer_to_binary(length(Res)),
+                            LessSize = byte_size(<<?SPACES_VD>>),
+                            <<_:LessSize/binary,PrevSpace/binary>> = Spaces,
+                            <<"&array(", Size/binary, ") {\n",
+                              (iolist_to_binary(Res))/binary,
+                              PrevSpace/binary, "}\n">>;
+                        Res ->
+                            <<"&", Res/binary>>
+                    end
             end
     end;
 
@@ -278,10 +329,9 @@ var_dump_fmt(Context, Line, #obj_ref{} = ObjRef,
             is_list(ValDumped) andalso ?IS_ARRAY(Value) ->
                 Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Value)),
                 [<<Spaces/binary, "[", CompleteName/binary, "]=>\n",
-                   Spaces/binary,"array(", Elements/binary, ") {\n">>
-                ] ++ ValDumped ++ [
-                    <<Spaces/binary, "}\n">>
-                ];
+                   Spaces/binary,"array(", Elements/binary, ") {\n",
+                   (iolist_to_binary(ValDumped))/binary, Spaces/binary,
+                   "}\n">>];
             is_list(ValDumped) andalso ?IS_OBJECT(Value) ->
                 #ephp_object{class=#class{attrs = Attrs}} = Object =
                     ephp_object:get(Value),
@@ -326,11 +376,10 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
             V when is_list(V) andalso ?IS_ARRAY(Val) ->
                 Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Val)),
                 [
-                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
-                    <<Spaces/binary,"array(", Elements/binary, ") {\n">>
-                ] ++ V ++ [
-                    <<Spaces/binary, "}\n">>
-                ];
+                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
+                      Spaces/binary,"array(", Elements/binary, ") {\n",
+                      (iolist_to_binary(V))/binary, Spaces/binary,
+                      "}\n">>];
             V when is_list(V) andalso ?IS_OBJECT(Val) ->
                 #ephp_object{id = InstanceID,
                              class = Class
@@ -347,13 +396,23 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
         end
     end, [], Value).
 
-print_r_fmt(Context, {var_ref,VarPID,VarRef}, Spaces, RecCtl) ->
+print_r_fmt(Context, {var_ref, VarPID, VarRef}, Spaces, RecCtl) ->
     case gb_sets:is_member(VarRef, RecCtl) of
         true ->
             <<"Array\n *RECURSION*\n">>;
         false ->
             NewRecCtl = gb_sets:add(VarRef, RecCtl),
             Var = ephp_vars:get(VarPID, VarRef, Context),
+            print_r_fmt(Context, Var, Spaces, NewRecCtl)
+    end;
+
+print_r_fmt(Context, #mem_ref{} = MemRef, Spaces, RecCtl) ->
+    case gb_sets:is_member(MemRef, RecCtl) of
+        true ->
+            <<"Array\n *RECURSION*\n">>;
+        false ->
+            NewRecCtl = gb_sets:add(MemRef, RecCtl),
+            Var = ephp_mem:get(MemRef),
             print_r_fmt(Context, Var, Spaces, NewRecCtl)
     end;
 

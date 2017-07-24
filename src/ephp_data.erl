@@ -180,7 +180,9 @@ to_bin(nan) -> <<"NAN">>;
 
 to_bin(infinity) -> <<"INF">>;
 
-to_bin(undefined) -> <<>>.
+to_bin(undefined) -> <<>>;
+
+to_bin(MemRef) when ?IS_MEM(MemRef) -> to_bin(ephp_mem:get(MemRef)).
 
 -spec to_bin(context(), line(), mixed()) -> binary().
 
@@ -202,6 +204,9 @@ to_bin(Context, Line, #obj_ref{} = ObjRef) ->
             Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
             ephp_error:error(Error)
     end;
+
+to_bin(Context, Line, MemRef) when ?IS_MEM(MemRef) ->
+    to_bin(Context, Line, ephp_mem:get(MemRef));
 
 to_bin(_Context, _Line, Val) ->
     to_bin(Val).

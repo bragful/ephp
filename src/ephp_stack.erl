@@ -17,7 +17,7 @@ start_link(Ref) ->
     case get(Ref) of
         Stack when is_list(Stack) ->
             ok;
-        _ ->
+        undefined ->
             erlang:put(get_id(Ref), [])
     end,
     {ok, get_id(Ref)}.

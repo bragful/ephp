@@ -127,7 +127,7 @@ start_link(#state{ref=Ref, global=Global}=State) when is_reference(Ref) ->
     if
         Global =:= undefined ->
             ephp_vars:set(Vars, #variable{name = <<"GLOBALS">>},
-                          #var_ref{pid = Vars, ref = global});
+                          #var_ref{pid = Vars, ref = global}, Ref);
         true -> ok
     end,
     save_state(State#state{vars = Vars}),
@@ -148,12 +148,12 @@ isset(Context, VarPath) ->
 
 set(Context, VarPath, Value) ->
     State = load_state(Context),
-    ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value),
+    ephp_vars:set(State#state.vars, get_var_path(VarPath, State), Value, Context),
     ok.
 
 del(Context, VarPath) ->
     State = load_state(Context),
-    ephp_vars:del(State#state.vars, get_var_path(VarPath, State)),
+    ephp_vars:del(State#state.vars, get_var_path(VarPath, State), Context),
     ok.
 
 get_meta(Context, Key) ->
@@ -389,21 +389,29 @@ resolve(undefined, State) ->
     {undefined, State};
 
 %% TODO: reference from/to class var
-resolve(#assign{
-        variable=#variable{type=normal}=Var,
-        expression=#ref{var=RefVar}}, State) ->
-    ephp_vars:ref(State#state.vars, Var, State#state.vars, RefVar),
-    resolve(RefVar, State);
+resolve(#assign{variable = #variable{type = normal} = Var,
+                expression = #ref{var = RefVar}},
+        #state{ref = Ref, vars = Vars} = State) ->
+    case catch get_var_path(Var, State) of
+        #variable{} = VarPath ->
+            ephp_vars:ref(Vars, VarPath, Vars, RefVar, Ref),
+            resolve(RefVar, State);
+        {error, _Reason} ->
+            {undefined, State}
+    end;
 
-resolve(#assign{variable=#variable{name = <<"this">>, idx=[]}}=Assign, _State) ->
+resolve(#assign{variable = #variable{name = <<"this">>, idx = []}} = Assign,
+        _State) ->
     ephp_error:error({error, eassignthis, Assign#assign.line,
         ?E_ERROR, {}});
 
-resolve(#assign{variable=#variable{type=normal}=Var,expression=Expr}, State) ->
+resolve(#assign{variable = #variable{type = normal} = Var,
+                expression = Expr},
+        #state{ref = Ref} = State) ->
     {Value, NState} = resolve(Expr, State),
     case catch get_var_path(Var, NState) of
-        #variable{}=VarPath ->
-            ephp_vars:set(NState#state.vars, VarPath, Value),
+        #variable{} = VarPath ->
+            ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
             {Value, NState};
         {error, _Reason} ->
             {undefined, NState}
@@ -441,18 +449,18 @@ resolve(#assign{variable = #variable{type = class,
     end;
 
 resolve(#assign{variable = #assign{} = A, expression = Expr}, State) ->
-    #assign{variable = V1, expression=V2} = A,
+    #assign{variable = V1, expression = V2} = A,
     {Value, NState} = resolve(#assign{variable = V2, expression = Expr}, State),
     resolve(#assign{variable = V1, expression = Value}, NState);
 
 resolve(#assign{variable = #variable{type = static, idx = []} = Var,
                 expression = Expr},
-        #state{active_class = <<>>, active_fun = <<>>} = State) ->
+        #state{active_class = <<>>, active_fun = <<>>, ref = Ref} = State) ->
     %% TODO check if with include the normal behaviour changes
     {Value, NState} = resolve(Expr, State),
     case catch get_var_path(Var, NState) of
         #variable{}=VarPath ->
-            ephp_vars:set(NState#state.vars, VarPath, Value),
+            ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
             {Value, NState};
         {error, _Reason} ->
             {undefined, NState}
@@ -460,23 +468,23 @@ resolve(#assign{variable = #variable{type = static, idx = []} = Var,
 
 resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
                 expression = Expr},
-        #state{funcs = Funcs,
+        #state{funcs = Funcs, ref = Ref, vars = Vars,
                active_fun = ActiveFun,
                active_class = <<>>} = State) ->
     {Value, NState} = resolve(Expr, State),
     RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, Value),
-    ephp_vars:set(NState#state.vars, #variable{name = VarName}, RealValue),
+    ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
     {Value, NState};
 
 resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
                 expression = Expr},
-        #state{class = Classes,
+        #state{class = Classes, ref = Ref, vars = Vars,
                active_fun = ActiveFun,
                active_class = ActiveClass} = State) ->
     {Value, NState} = resolve(Expr, State),
     RealValue = ephp_class:init_static_value(Classes, ActiveClass,
                                              ActiveFun, VarName, Value),
-    ephp_vars:set(NState#state.vars, #variable{name = VarName}, RealValue),
+    ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
     {Value, NState};
 
 resolve(#assign{variable = #call{name = <<"list">>, args = Args}=List,
@@ -511,15 +519,15 @@ resolve(#text_to_process{text=Texts, line=Line}, State) ->
 resolve(Object, State) when ?IS_OBJECT(Object) ->
     {Object, State};
 
-resolve({pre_incr, Var, _Line}, State) ->
+resolve({pre_incr, Var, _Line}, #state{ref = Ref} = State) ->
     case catch get_var_path(Var, State) of
         #variable{}=VarPath ->
-            case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
+            case ephp_vars:get(State#state.vars, VarPath, Ref) of
                 undefined ->
-                    ephp_vars:set(State#state.vars, VarPath, 1),
+                    ephp_vars:set(State#state.vars, VarPath, 1, Ref),
                     {1, State};
                 V when is_number(V) ->
-                    ephp_vars:set(State#state.vars, VarPath, V+1),
+                    ephp_vars:set(State#state.vars, VarPath, V+1, Ref),
                     {V+1, State};
                 V when is_binary(V) andalso byte_size(V) > 0 ->
                     NewVal = try
@@ -527,7 +535,7 @@ resolve({pre_incr, Var, _Line}, State) ->
                     catch error:badarg ->
                         ephp_data:increment_code(V)
                     end,
-                    ephp_vars:set(State#state.vars, VarPath, NewVal),
+                    ephp_vars:set(State#state.vars, VarPath, NewVal, Ref),
                     {NewVal, State};
                 V ->
                     {V, State}
@@ -536,26 +544,26 @@ resolve({pre_incr, Var, _Line}, State) ->
             {undefined, State}
     end;
 
-resolve({pre_decr, Var, _Line}, State) ->
+resolve({pre_decr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
+    case ephp_vars:get(State#state.vars, VarPath, Ref) of
         undefined ->
             {undefined, State};
         V when is_number(V) ->
-            ephp_vars:set(State#state.vars, VarPath, V-1),
+            ephp_vars:set(State#state.vars, VarPath, V-1, Ref),
             {V-1, State};
         V ->
             {V, State}
     end;
 
-resolve({post_incr, Var, _Line}, State) ->
+resolve({post_incr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
+    case ephp_vars:get(State#state.vars, VarPath, Ref) of
         undefined ->
-            ephp_vars:set(State#state.vars, VarPath, 1),
+            ephp_vars:set(State#state.vars, VarPath, 1, Ref),
             {undefined, State};
         V when is_number(V) ->
-            ephp_vars:set(State#state.vars, VarPath, V+1),
+            ephp_vars:set(State#state.vars, VarPath, V+1, Ref),
             {V, State};
         V when is_binary(V) andalso byte_size(V) > 0 ->
             NewVal = try
@@ -563,25 +571,25 @@ resolve({post_incr, Var, _Line}, State) ->
             catch error:badarg ->
                 ephp_data:increment_code(V)
             end,
-            ephp_vars:set(State#state.vars, VarPath, NewVal),
+            ephp_vars:set(State#state.vars, VarPath, NewVal, Ref),
             {V, State};
         V ->
             {V, State}
     end;
 
-resolve({post_decr, Var, _Line}, State) ->
+resolve({post_decr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath, State#state.ref) of
+    case ephp_vars:get(State#state.vars, VarPath, Ref) of
         undefined ->
             {undefined, State};
         V when is_number(V) ->
-            ephp_vars:set(State#state.vars, VarPath, V-1),
+            ephp_vars:set(State#state.vars, VarPath, V-1, Ref),
             {V, State};
         V ->
             {V, State}
     end;
 
-resolve({operation_minus, Expr, Line}, #state{ref=Ctx}=State) ->
+resolve({operation_minus, Expr, Line}, #state{ref = Ctx} = State) ->
     case resolve(Expr, State) of
         {Number, NewState} when is_number(Number) ->
             {-Number, NewState};
@@ -630,16 +638,16 @@ resolve(#if_block{conditions=Cond}=IfBlock, State) ->
 resolve(#variable{}=Var, State) ->
     resolve_var(Var, State);
 
-resolve(#array{elements=ArrayElements}, State) ->
+resolve(#array{elements = ArrayElements}, State) ->
     {Array,NState} = lists:foldl(fun
-        (#array_element{idx=auto,element=Element}, {Dict,NS}) ->
-            {Value, NewState} = resolve(Element,NS),
-            {ephp_array:store(auto,Value,Dict),NewState};
-        (#array_element{idx=I, element=Element}, {Dict,NS}) ->
-            {Value, NewState} = resolve(Element,NS),
-            {Idx, ReNewState} = resolve(I,NewState),
-            {ephp_array:store(Idx,Value,Dict), ReNewState}
-    end, {ephp_array:new(),State}, ArrayElements),
+        (#array_element{idx = auto, element = Element}, {Dict, NS}) ->
+            {Value, NewState} = resolve(Element, NS),
+            {ephp_array:store(auto, Value, Dict), NewState};
+        (#array_element{idx = I, element = Element}, {Dict, NS}) ->
+            {Value, NewState} = resolve(Element, NS),
+            {Idx, ReNewState} = resolve(I, NewState),
+            {ephp_array:store(Idx, Value, Dict), ReNewState}
+    end, {ephp_array:new(), State}, ArrayElements),
     {Array, NState};
 
 resolve(#concat{texts = Texts, line = Line}, State) ->
@@ -658,12 +666,12 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
         global = Ref,
         active_fun = ?FUNC_ANON_NAME,
         active_fun_args = length(RawArgs)}),
-    ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line),
+    ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line, Ref),
     lists:foreach(fun
         ({#variable{} = K, V}) ->
-            ephp_vars:set(NewVars, K, V);
+            ephp_vars:set(NewVars, K, V, Ref);
         ({#var_ref{pid = NVars, ref = V}, N}) ->
-            ephp_vars:ref(NewVars, N, NVars, V)
+            ephp_vars:ref(NewVars, N, NVars, V, Ref)
     end, Use),
     register_superglobals(Ref, NewVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, ?FUNC_ANON_NAME),
@@ -743,7 +751,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
             active_fun = Fun,
             active_class = <<>>,
             active_fun_args = length(Args)}),
-        ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index),
+        ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
         register_superglobals(GlobalRef, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
         Refs = lists:map(fun
@@ -799,35 +807,45 @@ resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
             {Object, NState}
     end;
 
-resolve({global, _Var,_Line}, #state{global=undefined}=State) ->
+resolve({global, _Var, _Line}, #state{global = undefined} = State) ->
     {undefined, State};
 
-resolve({global, GVars,_Line}, #state{
-        global=GlobalCtx,
-        vars=Vars}=State) ->
+resolve({global, GVars, _Line},
+        #state{global = GlobalCtx, vars = Vars} = State) ->
     #state{vars=GlobalVars} = load_state(GlobalCtx),
     lists:foreach(fun(GlobalVar) ->
-        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
+        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar, State#state.ref)
     end, GVars),
     {undefined, State};
 
-resolve(#constant{type=class,class=ClassName,name=Name},
-        #state{class=Classes}=State) ->
+resolve(#constant{type = class, class = ClassName, name = Name},
+        #state{class = Classes} = State) ->
     {ephp_class:get_const(Classes, ClassName, Name), State};
 
-resolve(#constant{type=normal,name=Name,line=Line},
-        #state{ref=Ref, const=Const}=State) ->
+resolve(#constant{type = normal, name = Name, line = Line},
+        #state{ref = Ref, const = Const} = State) ->
     {ephp_const:get(Const, Name, Line, Ref), State};
 
-resolve(#print_text{text=Text}, #state{output=Output}=State) ->
+resolve(#print_text{text = Text}, #state{output = Output} = State) ->
     ephp_output:push(Output, Text),
     {1, State};
 
 resolve(undefined, State) ->
     {undefined, State};
 
-resolve({ref, Var, _Line}, #state{vars=Vars}=State) ->
-    {#var_ref{pid = Vars, ref = Var}, State};
+resolve(#ref{var = #variable{} = Var}, #state{ref = Ctx, vars = Vars} = State) ->
+    Ref = case ephp_vars:get(Vars, Var) of
+        ObjRef when ?IS_OBJECT(ObjRef) ->
+            ObjRef;
+        MemRef when ?IS_MEM(MemRef) ->
+            ephp_mem:add_link(MemRef),
+            MemRef;
+        Other ->
+            MemRef = ephp_mem:add(Other),
+            ephp_vars:set(Vars, Var, MemRef, Ctx),
+            MemRef
+    end,
+    {Ref, State};
 
 resolve(auto, _State) ->
     ephp_error:error({error, earrayundef, undefined, ?E_ERROR, {<<>>}});
@@ -868,10 +886,11 @@ register_superglobals(GlobalCtx, Vars) ->
         <<"_REQUEST">>,
         <<"_ENV">>
     ],
-    ephp_vars:ref(Vars, #variable{name = <<"GLOBALS">>}, GlobalVars, global),
+    ephp_vars:ref(Vars, #variable{name = <<"GLOBALS">>}, GlobalVars,
+                  global, GlobalCtx),
     lists:foreach(fun(GlobalName) ->
         GlobalVar = #variable{name = GlobalName},
-        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar)
+        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar, GlobalCtx)
     end, SuperGlobals).
 
 resolve_func_args(RawFuncArgs, State) ->
@@ -1011,7 +1030,7 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     Class = case RegInstance of
         #obj_ref{} ->
             #ephp_object{class = C} = ephp_object:get(RegInstance),
-            ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance),
+            ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance, Ref),
             Object = RegInstance,
             C;
         #class{}=C ->
@@ -1033,7 +1052,7 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     case ClassMethod#class_method.code_type of
         php ->
             ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs, MethodName,
-                               Call#call.line),
+                               Call#call.line, Ref),
             {ok, SubContext} = start_mirror(NState#state{
                 vars = NewVars,
                 global = Ref,
@@ -1289,15 +1308,15 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
     NewIndexes = lists:foldl(fun
         (auto, LIdx) ->
             NewEntry = Var#variable{idx=LIdx},
-            Value = case ephp_vars:get(Vars, NewEntry, State#state.ref) of
-            undefined ->
-                auto;
-            Array when ?IS_ARRAY(Array) ->
-                auto;
-            _Array ->
-                ephp_error:handle_error(State#state.ref, {error, enoarray,
-                    Var#variable.line, State#state.active_file, ?E_WARNING, {}}),
-                throw({error, enoarray})
+            Value = case get_var_path_data(Vars, NewEntry, State#state.ref) of
+                undefined ->
+                    auto;
+                Array when ?IS_ARRAY(Array) ->
+                    auto;
+                _Array ->
+                    ephp_error:handle_error(State#state.ref, {error, enoarray,
+                        Var#variable.line, State#state.active_file, ?E_WARNING, {}}),
+                    throw({error, enoarray})
             end,
             LIdx ++ [Value];
         (Idx, LIdx) ->
@@ -1306,6 +1325,13 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
     end, [], Indexes),
     Var#variable{idx=NewIndexes}.
 
+get_var_path_data(Vars, Entry, Ref) ->
+    case ephp_vars:get(Vars, Entry, Ref) of
+        MemRef when ?IS_MEM(MemRef) ->
+            ephp_mem:get(MemRef);
+        Other ->
+            Other
+    end.
 
 resolve_txt(Texts, Line, State) ->
     lists:foldr(fun

@@ -40,7 +40,6 @@ start_link() ->
 
 
 -spec destroy(context(), ephp:objects_id()) -> ok.
-%% @private
 %% @doc Destroy the Objects storage.
 destroy(Context, Ref) ->
     remove_all(Context, Ref),
@@ -69,15 +68,9 @@ get_class_name(Objects, ObjectId) ->
 
 
 -spec get_class_name(obj_ref()) -> class_name().
-%% @doc retrieves the class name for an provided Object ID.
+%% @equiv get_class_name/2
 get_class_name(#obj_ref{pid = Objects, ref = ObjectId}) ->
     get_class_name(Objects, ObjectId).
-
-
--spec get_context(obj_ref()) -> context().
-%% @doc retrieves the object context for an provided Object ID.
-get_context(#obj_ref{pid = Objects, ref = ObjectId}) ->
-    get_context(Objects, ObjectId).
 
 
 -spec get_context(ephp:objects_id(), object_id()) -> context().
@@ -85,6 +78,12 @@ get_context(#obj_ref{pid = Objects, ref = ObjectId}) ->
 get_context(Objects, ObjectId) ->
     ObjectsData = erlang:get(Objects),
     (array:get(ObjectId, ObjectsData))#ephp_object.context.
+
+
+-spec get_context(obj_ref()) -> context().
+%% @equiv get_context/2
+get_context(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    get_context(Objects, ObjectId).
 
 
 -spec set(ephp:objects_id(), object_id(), ephp_object()) -> ok.
@@ -109,18 +108,18 @@ add(Objects, Object) ->
     ObjectId.
 
 
--spec add_link(obj_ref()) -> ok.
-%% @doc increases the number of links for an object.
-add_link(#obj_ref{pid = Objects, ref = ObjectId}) ->
-    add_link(Objects, ObjectId).
-
-
 -spec add_link(ephp:objects_id(), object_id()) -> ok.
 %% @doc increases the number of links for an object.
 add_link(Objects, ObjectId) ->
     #ephp_object{links = Links} = Object = get(Objects, ObjectId),
     set(Objects, ObjectId, Object#ephp_object{links = Links + 1}),
     ok.
+
+
+-spec add_link(obj_ref()) -> ok.
+%% @equiv add_link/2
+add_link(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    add_link(Objects, ObjectId).
 
 
 -spec remove_all(context(), ephp:objects_id()) -> ok.
@@ -134,14 +133,6 @@ remove_all(Context, Objects) ->
                 end, undefined, ObjectsData),
     erlang:put(Objects, array:new()),
     ok.
-
-
--spec remove(context(), obj_ref()) -> ok.
-%% @doc decreases the number of links for an object. If arrives to zero,
-%%      the object is removed.
-%% @end
-remove(Context, #obj_ref{pid = Objects, ref = ObjectId}) ->
-    remove(Context, Objects, ObjectId).
 
 
 -spec remove(context(), ephp:objects_id(), object_id()) -> ok.
@@ -161,6 +152,12 @@ remove(Context, Objects, ObjectId) ->
             end
     end,
     ok.
+
+
+-spec remove(context(), obj_ref()) -> ok.
+%% @equiv remove/3
+remove(Context, #obj_ref{pid = Objects, ref = ObjectId}) ->
+    remove(Context, Objects, ObjectId).
 
 
 -spec remove_complete(context(), ephp:objects_id(), object_id()) -> ok.

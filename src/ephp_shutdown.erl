@@ -64,8 +64,8 @@ shutdown(Context) ->
             Break
     end, false, ephp_context:get_shutdown_funcs(Context)),
     if Result =:= false ->
-        ephp_vars:destroy(Context, ephp_context:get_vars(Context)),
-        ephp_object:remove_all(Context, ephp_context:get_objects(Context));
+        ephp_object:remove_all(Context, ephp_context:get_objects(Context)),
+        ephp_vars:destroy(Context, ephp_context:get_vars(Context));
     true ->
         undefined
     end.

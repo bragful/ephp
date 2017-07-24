@@ -84,8 +84,8 @@ global_test(Ctx) ->
     ?_assertEqual(<<"hello">>, ephp_context:solve(Ctx, #assign{variable=Var, expression=#text{text = <<"hello">>}})),
     ?_assertEqual(undefined, ephp_context:solve(SubCtx, {global, [Var], Line})),
     ?_assertEqual(10, ephp_context:solve(SubCtx, #assign{variable=Var, expression=#int{int=10}})),
-    ?_assertEqual(10, ephp_context:get(SubCtx, #variable{name = <<"a">>})),
-    ?_assertEqual(10, ephp_context:get(Ctx, #variable{name = <<"a">>}))
+    ?_assertEqual(10, ephp_mem:get(ephp_context:get(SubCtx, #variable{name = <<"a">>}))),
+    ?_assertEqual(10, ephp_mem:get(ephp_context:get(Ctx, #variable{name = <<"a">>})))
 ].
 
 meta_test(Ctx) -> [
