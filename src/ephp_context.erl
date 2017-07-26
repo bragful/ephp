@@ -412,6 +412,10 @@ resolve(#assign{variable = #variable{type = normal} = Var,
     case catch get_var_path(Var, NState) of
         #variable{} = VarPath ->
             ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
+            case Expr of
+                #instance{} -> ephp_object:remove(Ref, Value);
+                _ -> ok
+            end,
             {Value, NState};
         {error, _Reason} ->
             {undefined, NState}
@@ -432,16 +436,21 @@ resolve(#assign{variable = #variable{type = class,
                                      class = ClassName,
                                      line = Index} = Var,
                 expression = Expr},
-        #state{class = Classes} = State) ->
+        #state{ref = Ref, class = Classes} = State) ->
     case catch get_var_path(Var, State) of
         #variable{} = VarPath ->
             {Value, NState} = resolve(Expr, State),
             case ephp_class:get(Classes, ClassName) of
-            {ok, #class{static_context = ClassCtx}} ->
-                set(ClassCtx, VarPath, Value);
-            {error, enoexist} ->
-                ephp_error:error({error, eundefclass, Index,
-                    ?E_ERROR, {ClassName}})
+                {ok, #class{static_context = ClassCtx}} ->
+                    Result = set(ClassCtx, VarPath, Value),
+                    case Expr of
+                        #instance{} -> ephp_object:remove(Ref, Value);
+                        _ -> ok
+                    end,
+                    Result;
+                {error, enoexist} ->
+                    ephp_error:error({error, eundefclass, Index,
+                        ?E_ERROR, {ClassName}})
             end,
             {Value, NState};
         {error, _Reason} ->
@@ -461,6 +470,10 @@ resolve(#assign{variable = #variable{type = static, idx = []} = Var,
     case catch get_var_path(Var, NState) of
         #variable{}=VarPath ->
             ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
+            case Expr of
+                #instance{} -> ephp_object:remove(Ref, Value);
+                _ -> ok
+            end,
             {Value, NState};
         {error, _Reason} ->
             {undefined, NState}
@@ -474,6 +487,10 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
     {Value, NState} = resolve(Expr, State),
     RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, Value),
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
+    case Expr of
+        #instance{} -> ephp_object:remove(Ref, Value);
+        _ -> ok
+    end,
     {Value, NState};
 
 resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
@@ -485,6 +502,10 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
     RealValue = ephp_class:init_static_value(Classes, ActiveClass,
                                              ActiveFun, VarName, Value),
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
+    case Expr of
+        #instance{} -> ephp_object:remove(Ref, Value);
+        _ -> ok
+    end,
     {Value, NState};
 
 resolve(#assign{variable = #call{name = <<"list">>, args = Args}=List,
