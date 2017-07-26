@@ -459,6 +459,13 @@
 
 -type ephp_object() :: #ephp_object{}.
 
+-record(clone, {
+    var :: variable(),
+    line :: line()
+}).
+
+-type clone() :: #clone{}.
+
 -record(try_catch, {
     code_block :: statements(),
     catches = [] :: [catch_block()],

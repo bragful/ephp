@@ -57,6 +57,9 @@ handle_error(enostatic, _Level, {Class, Method}) ->
     io_lib:format("Non-static method ~s::~s() should not be called statically",
                   [Class, Method]);
 
+handle_error(enoclone, _Level, {}) ->
+    "__clone method called on non-object";
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 

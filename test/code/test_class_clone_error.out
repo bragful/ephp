@@ -1,0 +1,2 @@
+
+Fatal error: __clone method called on non-object in {{CWD}}/test/code/test_class_clone_error.php on line 4
