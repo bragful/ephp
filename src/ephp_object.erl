@@ -169,8 +169,8 @@ remove_complete(Context, Objects, ObjectId) ->
     case ephp_class:get_destructor(Class) of
         undefined ->
             ok;
-        #class_method{line = Line} ->
-            Call = #call{name = <<"__destruct">>, line = Line},
+        #class_method{name = Name, line = Line} ->
+            Call = #call{name = Name, line = Line},
             ephp_context:call_method(Context, ObjRef, Call),
             ok
     end,
