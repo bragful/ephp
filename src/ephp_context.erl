@@ -31,6 +31,7 @@
 
 -export([
     start_link/0,
+    clone/1,
     get/2,
     set/3,
     del/2,
@@ -132,6 +133,13 @@ start_link(#state{ref=Ref, global=Global}=State) when is_reference(Ref) ->
     end,
     save_state(State#state{vars = Vars}),
     {ok, Ref}.
+
+clone(Ref) ->
+    NewRef = make_ref(),
+    State = load_state(Ref),
+    save_state(State#state{ref = NewRef,
+                           vars = ephp_vars:clone(State#state.vars)}),
+    {ok, NewRef}. 
 
 start_mirror(#state{}=State) ->
     Ref = make_ref(),
@@ -414,6 +422,7 @@ resolve(#assign{variable = #variable{type = normal} = Var,
             ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
             case Expr of
                 #instance{} -> ephp_object:remove(Ref, Value);
+                {clone,_,_} -> ephp_object:remove(Ref, Value);
                 _ -> ok
             end,
             {Value, NState};
@@ -890,6 +899,10 @@ resolve(#function{name = undefined, use = Use} = Anon,
 resolve(#cast{type = Type, content = C, line = Line}, State) ->
     {Value, NState} = resolve(C, State),
     {resolve_cast(State, Line, Type, Value), NState};
+
+resolve({clone, Var, _Line}, State) ->
+    {#obj_ref{} = ObjRef, NState} = resolve(Var, State),
+    {ephp_object:clone(State#state.ref, ObjRef), NState};
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).

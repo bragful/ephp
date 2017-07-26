@@ -746,6 +746,8 @@ gen_op([{<<"(object)">>,{_,_},Pos}|Rest], [A|Stack]) ->
     gen_op(Rest, [add_line(#cast{type=object, content=A}, Pos)|Stack]);
 gen_op([{<<"(unset)">>,{_,_},_Pos}|Rest], [_|Stack]) ->
     gen_op(Rest, [undefined|Stack]);
+gen_op([{<<"clone">>,{_,_},{_,Row,Col}}|Rest], [A|Stack]) ->
+    gen_op(Rest, [{clone, A, {{line,Row},{column,Col}}}|Stack]);
 % TODO add the rest of casting operators
 gen_op([{<<"?">>,{_,_},Pos}|Rest],
        [#operation{type = <<":">>}=OpElse,Cond|Stack]) ->

@@ -1,0 +1,17 @@
+created!
+cloned!
+object(Simple)#1 (2) {
+  ["a"]=>
+  int(25)
+  ["name"]=>
+  string(7) "created"
+}
+object(Simple)#2 (2) {
+  ["a"]=>
+  int(35)
+  ["name"]=>
+  string(6) "cloned"
+}
+destroyed! created
+destroyed! cloned
+END

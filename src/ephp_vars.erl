@@ -10,6 +10,7 @@
 
 -export([
     start_link/0,
+    clone/1,
     get/2,
     get/3,
     set/4,
@@ -29,6 +30,11 @@ start_link() ->
     Ref = make_ref(),
     erlang:put(Ref, ephp_array:new()),
     {ok, Ref}.
+
+clone(Vars) ->
+    NewVars = make_ref(),
+    erlang:put(NewVars, erlang:get(Vars)),
+    NewVars.
 
 get(Vars, VarPath) ->
     get(Vars, VarPath, undefined).

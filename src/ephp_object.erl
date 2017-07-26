@@ -28,7 +28,8 @@
     add_link/2,
     remove_all/2,
     remove/2,
-    remove/3
+    remove/3,
+    clone/2
 ]).
 
 -spec start_link() -> {ok, ephp:objects_id()}.
@@ -176,6 +177,32 @@ remove_complete(Context, Objects, ObjectId) ->
     NewObjects = array:set(ObjectId, undefined, erlang:get(Objects)),
     erlang:put(Objects, NewObjects),
     ok.
+
+
+-spec clone(context(), obj_ref()) -> obj_ref().
+%% @doc clones an object generating a new one and executing its `__clone`
+%%      function by the way.
+%% @end
+clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->
+    #ephp_object{class = Class, context = Ctx} = Object = get(ObjRef),
+    ObjectsData = erlang:get(Objects),
+    NewObjectId = search_empty(ObjectsData),
+    {ok, ClonedContext} = ephp_context:clone(Ctx),
+    NewObject = Object#ephp_object{context = ClonedContext,
+                                   id = NewObjectId,
+                                   links = 1},
+    NewObjectsData = array:set(NewObjectId, NewObject, ObjectsData),
+    erlang:put(Objects, NewObjectsData),
+    NewObjRef = #obj_ref{pid = Objects, ref = NewObjectId},
+    case ephp_class:get_method(Class, <<"__clone">>) of
+        undefined ->
+            ok;
+        #class_method{name = Name, line = Line} ->
+            Call = #call{name = Name, line = Line},
+            ephp_context:call_method(Context, NewObjRef, Call),
+            ok
+    end,
+    NewObjRef.
 
 
 -spec search_empty(ephp:objects_id()) -> object_id().
