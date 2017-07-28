@@ -44,7 +44,7 @@
     error_handler = [] :: [{callable(), non_neg_integer()}],
     exception_handler :: callable(),
     silent = false :: boolean(),
-    level = ?E_ALL :: non_neg_integer(),
+    level = ?E_ALL band (bnot ?E_STRICT) :: non_neg_integer(),
     format = text :: error_format(),
     modules = [] :: [module()],
     last_error :: ephp_array() | undefined
@@ -211,7 +211,12 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
                 andalso (?E_HANDLE_ERRORS band Level) =/= 0 ->
             case run(Context, ErrHandler, Level, SimpleErrText, File, Index) of
                 false ->
-                    Module:set_output(Context, iolist_to_binary(ErrorText));
+                    Module:set_output(Context, iolist_to_binary(ErrorText)),
+                    if
+                        (?E_EXIT_ON_FALSE band Level) =/= 0 ->
+                            throw({ok, die});
+                        true -> ok
+                    end;
                 _ ->
                     ok
             end;
@@ -220,7 +225,12 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
         #state{level = CfgLevel} when (CfgLevel band Level) =:= 0 ->
             ok;
         #state{output_handler = Module} ->
-            Module:set_output(Context, iolist_to_binary(ErrorText))
+            Module:set_output(Context, iolist_to_binary(ErrorText)),
+            if
+                (?E_EXIT_ON_FALSE band Level) =/= 0 ->
+                   throw({ok, die});
+                true -> ok
+            end
     end,
     get_return(Type).
 

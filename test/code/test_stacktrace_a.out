@@ -6,7 +6,7 @@ array(1) {
     ["file"]=>
     string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_a.php"
     ["line"]=>
-    int(15)
+    int(17)
     ["function"]=>
     string(6) "a_test"
     ["args"]=>
@@ -17,7 +17,7 @@ array(1) {
   }
 }
 
-Strict Standards: Non-static method A::other_test() should not be called statically in {{CWD}}/test/code/test_stacktrace_a.php on line 16
+Strict Standards: Non-static method A::other_test() should not be called statically in {{CWD}}/test/code/test_stacktrace_a.php on line 18
 
 Hello: friend class
 
@@ -28,7 +28,7 @@ array(2) {
     ["file"]=>
     string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_a.php"
     ["line"]=>
-    int(6)
+    int(8)
     ["function"]=>
     string(6) "a_test"
     ["args"]=>
@@ -42,7 +42,7 @@ array(2) {
     ["file"]=>
     string({{CWDLEN+32}}) "{{CWD}}/test/code/test_stacktrace_a.php"
     ["line"]=>
-    int(16)
+    int(18)
     ["function"]=>
     string(10) "other_test"
     ["class"]=>

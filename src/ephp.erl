@@ -130,7 +130,7 @@ eval(Filename, Context, PHP) ->
                 {error, Reason, Index, Level, Data} ->
                     File = ephp_context:get_active_file(Context),
                     Error = {error, Reason, Index, File, Level, Data},
-                    ephp_error:handle_error(Context, Error),
+                    catch ephp_error:handle_error(Context, Error),
                     ephp_shutdown:shutdown(Context),
                     {error, Reason}
             end

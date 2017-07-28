@@ -17,7 +17,11 @@ eval(Filename) ->
         ephp:register_superglobals(Ctx, [Filename]),
         {ok, Output} = ephp_output:start_link(Ctx, false),
         ephp_context:set_output_handler(Ctx, Output),
-        ephp:eval(AbsFilename, Ctx, Content),
+        try
+            ephp:eval(AbsFilename, Ctx, Content)
+        catch
+            throw:{ok, die} -> ok
+        end,
         Out = ephp_context:get_output(Ctx),
         ephp_context:destroy_all(Ctx),
         ephp_config:stop_local(),

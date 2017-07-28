@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL);
+
 class A {
   public function other_test($str) {
     echo "\nHello: $str\n";

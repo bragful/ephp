@@ -86,8 +86,11 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line, Context) ->
         (_I, _Type, _Data, true) ->
             ok;
         (I, Type, Data, false) ->
-            ephp_error:error({error, errtype, Line, ?E_RECOVERABLE_ERROR,
-                              {I, Type, ephp_data:gettype(Data), FunctName}})
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                                    {error, errtype, Line, File,
+                                     ?E_RECOVERABLE_ERROR,
+                                     {I, Type, ephp_data:gettype(Data), FunctName}})
     end,
     lists:foldl(fun
         (#ref{var = #variable{data_type = DataType}} = Ref,
