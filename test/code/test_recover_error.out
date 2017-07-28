@@ -1,0 +1,5 @@
+4096: Argument 1 passed to data() must be an instance of Array, integer given, called
+int(15)
+4096: Argument 1 passed to data() must be an instance of Array, integer given, called
+
+Catchable fatal error: Argument 1 passed to data() must be an instance of Array, integer given, called in {{CWD}}/test/code/test_recover_error.php on line 11
