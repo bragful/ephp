@@ -1,6 +1,6 @@
-1
-2
-3
-4
+hello world: 1
+hello world: 2
+hello world: 3
+hello world: 4
 
 Catchable fatal error: Argument 1 passed to data() must be an instance of array, string given, called in {{CWD}}/test/code/test_func_datatypes.php on line 10

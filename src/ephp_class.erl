@@ -109,8 +109,7 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
         initialize(Ctx, Class),
         #obj_ref{pid = Objects, ref = ObjectId};
     {error, enoexist} ->
-        File = ephp_context:get_active_file(LocalCtx),
-        ephp_error:error({error, eundefclass, Line, File, ?E_ERROR,
+        ephp_error:error({error, eundefclass, Line, ?E_ERROR,
                           {RawClassName}})
     end.
 
@@ -118,13 +117,13 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
 
 instance_of(#ephp_array{}, <<"array">>) ->
     true;
-instance_of(Boolean, <<"boolean">>) when is_boolean(Boolean) ->
+instance_of(Boolean, <<"bool">>) when is_boolean(Boolean) ->
     true;
 instance_of(String, <<"string">>) when is_binary(String) ->
     true;
 instance_of(Float, <<"float">>) when is_float(Float) ->
     true;
-instance_of(Int, <<"integer">>) when is_integer(Int) ->
+instance_of(Int, <<"int">>) when is_integer(Int) ->
     true;
 % TODO:
 % instance_of(Callable, <<"callable">>) ->
