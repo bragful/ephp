@@ -1,0 +1,6 @@
+construct!
+Unset $a
+Unset $b
+destruct!
+END
+
