@@ -53,7 +53,7 @@ store(Key, Value, #ephp_array{last_num_index = Last, values = Values} = Array)
         when is_integer(Key) andalso Key >= 0
         andalso Last =< Key ->
     report(Array#ephp_array{
-        last_num_index = Key,
+        last_num_index = Key + 1,
         values = Values ++ [{Key, Value}],
         size = Array#ephp_array.size + 1
     }, {add, Key, Value});
