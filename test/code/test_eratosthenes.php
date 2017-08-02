@@ -1,6 +1,6 @@
 <?php
 
-define('SIEVE', 1000);
+define('SIEVE', 100);
 
 $sieve = [];
 for ($i=0; $i<SIEVE; $i++) {
@@ -8,9 +8,12 @@ for ($i=0; $i<SIEVE; $i++) {
 }
 
 $max = round(sqrt(SIEVE));
+print "max: $max\n";
 for ($i=2; $i<SIEVE; $i++) {
-    for ($j=2; $j<=$max; $j++) {
-        $sieve[$i*$j] = false;
+    if ($sieve[$i]) {
+        for ($j=2; $j<$max; $j++) {
+            $sieve[$i*$j] = false;
+        }
     }
 }
 
@@ -22,3 +25,4 @@ for ($i=2; $i<SIEVE; $i++) {
 }
 
 print "primes: 1$res\n";
+
