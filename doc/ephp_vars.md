@@ -9,18 +9,24 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#del-2">del/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-2">destroy/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy_data-2">destroy_data/2</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get-3">get/3</a></td><td></td></tr><tr><td valign="top"><a href="#isset-2">isset/2</a></td><td></td></tr><tr><td valign="top"><a href="#ref-4">ref/4</a></td><td></td></tr><tr><td valign="top"><a href="#set-3">set/3</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#zip_args-6">zip_args/6</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#clone-1">clone/1</a></td><td></td></tr><tr><td valign="top"><a href="#del-3">del/3</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-2">destroy/2</a></td><td></td></tr><tr><td valign="top"><a href="#destroy_data-2">destroy_data/2</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get-3">get/3</a></td><td></td></tr><tr><td valign="top"><a href="#isset-2">isset/2</a></td><td></td></tr><tr><td valign="top"><a href="#ref-5">ref/5</a></td><td></td></tr><tr><td valign="top"><a href="#set-4">set/4</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr><tr><td valign="top"><a href="#zip_args-7">zip_args/7</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
 
 ## Function Details ##
 
-<a name="del-2"></a>
+<a name="clone-1"></a>
 
-### del/2 ###
+### clone/1 ###
 
-`del(Vars, VarPath) -> any()`
+`clone(Vars) -> any()`
+
+<a name="del-3"></a>
+
+### del/3 ###
+
+`del(Vars, VarPath, Context) -> any()`
 
 <a name="destroy-2"></a>
 
@@ -55,17 +61,17 @@ destroy(Ctx::<a href="#type-context">context()</a>, VarsRef::<a href="ephp.md#ty
 
 `isset(Vars, VarPath) -> any()`
 
-<a name="ref-4"></a>
+<a name="ref-5"></a>
 
-### ref/4 ###
+### ref/5 ###
 
-`ref(Vars, VarPath, VarsPID, RefVarPath) -> any()`
+`ref(Vars, VarPath, VarsPID, RefVarPath, Context) -> any()`
 
-<a name="set-3"></a>
+<a name="set-4"></a>
 
-### set/3 ###
+### set/4 ###
 
-`set(Vars, VarPath, Value) -> any()`
+`set(Vars, VarPath, Value, Context) -> any()`
 
 <a name="start_link-0"></a>
 
@@ -73,9 +79,9 @@ destroy(Ctx::<a href="#type-context">context()</a>, VarsRef::<a href="ephp.md#ty
 
 `start_link() -> any()`
 
-<a name="zip_args-6"></a>
+<a name="zip_args-7"></a>
 
-### zip_args/6 ###
+### zip_args/7 ###
 
-`zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line) -> any()`
+`zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line, Context) -> any()`
 

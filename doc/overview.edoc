@@ -3,9 +3,9 @@
 @title ePHP
 
 @doc
-<a href="https://travis-ci.org/altenwald/ephp"><img src="https://img.shields.io/travis/altenwald/ephp/master.svg" alt="Build Status"/></a>
-<a href='https://codecov.io/gh/altenwald/ephp'><img src='https://img.shields.io/codecov/c/github/altenwald/ephp.svg' alt='Codecov' /></a>
-<a href='https://raw.githubusercontent.com/altenwald/ephp/master/COPYING'><img src='https://img.shields.io/github/license/altenwald/ephp.svg' alt='License: LGPL 2.1'/></a>
+<a href="https://travis-ci.org/bragful/ephp"><img src="https://img.shields.io/travis/bragful/ephp/master.svg" alt="Build Status"/></a>
+<a href='https://codecov.io/gh/bragful/ephp'><img src='https://img.shields.io/codecov/c/github/bragful/ephp.svg' alt='Codecov' /></a>
+<a href='https://raw.githubusercontent.com/bragful/ephp/master/COPYING'><img src='https://img.shields.io/github/license/bragful/ephp.svg' alt='License: LGPL 2.1'/></a>
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
@@ -44,7 +44,7 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 
 A simple way to use, is include in your project <code>rebar.config</code> the following dependency line:
 
-<pre lang="erlang">    {ephp, ".*", {git, "git://github.com/altenwald/ephp.git", master}}</pre>
+<pre lang="erlang">    {ephp, ".*", {git, "git://github.com/bragful/ephp.git", master}}</pre>
 
 And use the following code in your project:
 

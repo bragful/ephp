@@ -180,7 +180,7 @@ remove_complete(Context, Objects, ObjectId) ->
 
 
 -spec clone(context(), obj_ref()) -> obj_ref().
-%% @doc clones an object generating a new one and executing its `__clone`
+%% @doc clones an object generating a new one and executing its `__clone'
 %%      function by the way.
 %% @end
 clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->

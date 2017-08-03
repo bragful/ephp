@@ -6,9 +6,9 @@ Copyright (c) 2013-2017 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
-[![Build Status](https://img.shields.io/travis/altenwald/ephp/master.svg)](https://travis-ci.org/altenwald/ephp)
-[![Codecov](https://img.shields.io/codecov/c/github/altenwald/ephp.svg)](https://codecov.io/gh/altenwald/ephp)
-[![License: LGPL 2.1](https://img.shields.io/github/license/altenwald/ephp.svg)](https://raw.githubusercontent.com/altenwald/ephp/master/COPYING)
+[![Build Status](https://img.shields.io/travis/bragful/ephp/master.svg)](https://travis-ci.org/bragful/ephp)
+[![Codecov](https://img.shields.io/codecov/c/github/bragful/ephp.svg)](https://codecov.io/gh/bragful/ephp)
+[![License: LGPL 2.1](https://img.shields.io/github/license/bragful/ephp.svg)](https://raw.githubusercontent.com/bragful/ephp/master/COPYING)
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
@@ -50,7 +50,7 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 A simple way to use, is include in your project `rebar.config` the following dependency line:
 
 ```erlang
-    {ephp, ".*", {git, "git://github.com/altenwald/ephp.git", master}}
+    {ephp, ".*", {git, "git://github.com/bragful/ephp.git", master}}
 ```
 
 And use the following code in your project:
