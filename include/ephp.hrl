@@ -84,7 +84,8 @@
 -type ephp_array() :: #ephp_array{}.
 
 -type mixed() ::
-    integer() | float() | binary() | boolean() | ephp_array() | undefined.
+    integer() | float() | binary() | boolean() | ephp_array() |
+    obj_ref() | mem_ref() | var_ref() | undefined.
 
 -type var_value() :: {variable(), mixed()}.
 
@@ -351,6 +352,8 @@
     pid :: context() | undefined,
     ref :: #variable{} | undefined
 }).
+
+-type var_ref() :: #var_ref{}.
 
 -record(obj_ref, {
     pid :: ephp:objects_id(),
