@@ -970,9 +970,9 @@ resolve_func_args(RawFuncArgs, State) ->
 resolve_args(undefined, State) ->
     {[], State};
 resolve_args(RawArgs, State) ->
-    lists:foldl(fun(Arg, {Args,S}) ->
-        {A,NewState} = resolve(Arg,S),
-        {Args ++ [{Arg,A}], NewState}
+    lists:foldl(fun(Arg, {Args, S}) ->
+        {A, NewState} = resolve(Arg, S),
+        {Args ++ [{Arg, A}], NewState}
     end, {[], State}, RawArgs).
 
 expected_min_args(VArgs) ->
