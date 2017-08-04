@@ -279,10 +279,12 @@ get_const(Ref, ClassName, ConstName) ->
     {ok, Class} = get(Ref, ClassName),
     get_const(Class, ConstName).
 
-get_const(#class{constants=Const}, ConstName) ->
+get_const(#class{constants = Const, line = Index}, ConstName) ->
     case dict:find(ConstName, Const) of
-        {ok, Value} -> Value;
-        error -> ConstName
+        {ok, Value} ->
+            Value;
+        error ->
+            ephp_error:error({error, enoconst, Index, ?E_ERROR, {ConstName}})
     end.
 
 add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->

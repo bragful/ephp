@@ -83,7 +83,8 @@
     X =:= <<"&=">> orelse
     X =:= <<"|=">> orelse
     X =:= <<"^=">> orelse
-    X =:= <<"->">>
+    X =:= <<"->">> orelse
+    X =:= <<"::">>
 ).
 -define(IS_OP3(X),
     X =:= <<"===">> orelse

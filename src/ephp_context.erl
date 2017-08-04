@@ -861,6 +861,20 @@ resolve({global, GVars, _Line},
     end, GVars),
     {undefined, State};
 
+resolve(#constant{type = class, class = <<"self">>, line = Index},
+        #state{active_class = <<>>}) ->
+    ephp_error:error({error, enoclassscope, Index, ?E_ERROR, {<<"self">>}});
+
+resolve(#constant{type = class, class = <<"self">>, name = Name},
+        #state{class = Classes, active_class = ClassName} = State) ->
+    {ephp_class:get_const(Classes, ClassName, Name), State};
+
+resolve(#constant{type = class, class = #variable{} = Var, name = Name},
+        #state{class = Classes} = State) ->
+    {ObjRef, NState} = resolve(Var, State),
+    #ephp_object{class = #class{name = ClassName}} = ephp_object:get(ObjRef),
+    {ephp_class:get_const(Classes, ClassName, Name), NState};
+
 resolve(#constant{type = class, class = ClassName, name = Name},
         #state{class = Classes} = State) ->
     {ephp_class:get_const(Classes, ClassName, Name), State};

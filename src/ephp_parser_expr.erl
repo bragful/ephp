@@ -542,6 +542,7 @@ precedence(<<"clone">>) -> {no_assoc, 1};
 precedence(<<"new">>) -> {no_assoc, 1};
 precedence(<<"[">>) -> {left, 2}; %% array
 precedence(<<"->">>) -> {left, 2}; %% object
+precedence(<<"::">>) -> {left, 2}; %% class
 precedence(<<"**">>) -> {right, 3}; %% arith
 precedence(<<"++">>) -> {right, 4};
 precedence(<<"--">>) -> {right, 4};
@@ -713,6 +714,8 @@ gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
             add_line({object, B}, Pos)
     end,
     gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
+gen_op([{<<"::">>,{_,_},_Pos}|Rest], [#constant{} = A,B|Stack]) ->
+    gen_op(Rest, [A#constant{type = class, class = B}|Stack]);
 gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->
     gen_op(Rest, [I|Stack]);
 gen_op([{<<"(int)">>,{_,_},Pos}|Rest], [#float{float=F}|Stack]) ->
