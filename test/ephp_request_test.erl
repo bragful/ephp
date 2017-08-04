@@ -50,6 +50,6 @@ test_code(File) ->
 code_to_test_() ->
     ephp:start(),
     {ok, Files} = file:list_dir(?CODE_PATH),
-    Codes = [ filename:rootname(File) || File <- Files,
+    Codes = [ filename:rootname(File) || File <- lists:sort(Files),
         filename:extension(File) =:= ".out" ],
     lists:map(fun(X) -> test_code(X) end, Codes).
