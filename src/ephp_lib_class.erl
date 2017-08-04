@@ -60,6 +60,17 @@ handle_error(enostatic, _Level, {Class, Method}) ->
 handle_error(enoclone, _Level, {}) ->
     "__clone method called on non-object";
 
+handle_error(enoconst, _Level, {ConstName}) ->
+    io_lib:format("Undefined class constant '~s'", [ConstName]);
+
+handle_error(enointerface, _Level, {InterfaceName}) ->
+    io_lib:format("Interface '~s' not found", [InterfaceName]);
+
+handle_error(enomethods, _Level, {ClassName, Methods, Params}) ->
+    io_lib:format("Class ~s contains ~b abstract methods and must therefore "
+                  "be declared abstract or implement the remaining methods "
+                  "(~s)", [ClassName, Params, iolist_to_binary(Methods)]);
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 

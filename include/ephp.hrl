@@ -418,6 +418,7 @@
     implements = [] :: [class_name()],
     constants = [] :: [class_const()],
     methods = [] :: [class_method()],
+    file :: binary(),
     line :: line()
 }).
 

@@ -30,7 +30,7 @@
 
     instance_of/2,
 
-    register_class/4,
+    register_class/5,
     set_alias/3,
     instance/5,
 
@@ -82,16 +82,45 @@ set_alias(Ref, ClassName, AliasName) ->
             {error, enoexist}
     end.
 
-register_class(Ref, File, GlobalCtx,
-               #class{name=Name,constants=ConstDef}=PHPClass) ->
+register_class(Ref, File, GlobalCtx, RefInterfaces,
+               #class{name = Name, constants = ConstDef0,
+                      line = Index} = PHPClass) ->
     Classes = erlang:get(Ref),
     {ok, Ctx} = ephp_context:start_link(),
     ephp_context:set_global(Ctx, GlobalCtx),
+    ConstDef = lists:flatmap(fun(I) ->
+        case ephp_interface:get(RefInterfaces, I) of
+            {error, enoexist} ->
+                ephp_error:error({error, enointerface, Index, ?E_ERROR, {I}});
+            {ok, Interface} ->
+                ephp_interface:get_consts(Interface)
+        end
+    end, PHPClass#class.implements) ++ ConstDef0,
+    Check = fun(I) ->
+        {ok, Interface} = ephp_interface:get(RefInterfaces, I),
+        case ephp_interface:check_methods(Interface, PHPClass#class.methods) of
+            ok ->
+                false;
+            {missing, MethodData} ->
+                Methods = [ io_lib:format("~s::~s",
+                                          [IntName, Method#class_method.name]) ||
+                            {IntName, Method} <- MethodData ],
+                {true, string:join(Methods, ", ")}
+        end
+    end,
+    case lists:filtermap(Check, lists:reverse(PHPClass#class.implements)) of
+        [] ->
+            ok;
+        Errors when is_list(Errors) ->
+            Names = string:join(Errors, ", "),
+            Params = length(Errors),
+            ephp_error:error({error, enomethods, Index, ?E_ERROR, {Name, Names, Params}})
+    end,
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         file = File,
-        constants = lists:foldl(fun(#class_const{name=N,value=V}, D) ->
-            dict:store(N,ephp_context:solve(Ctx, V),D)
+        constants = lists:foldl(fun(#class_const{name = N,value = V}, D) ->
+            dict:store(N, ephp_context:solve(Ctx, V), D)
         end, dict:new(), ConstDef)
     },
     initialize_class(ActivePHPClass),

@@ -9,6 +9,7 @@
     vars :: ephp:vars_id(),
     funcs :: ephp:funcs_id(),
     class :: ephp:classes_id(),
+    interface :: ephp:interfaces_id(),
     object :: ephp:objects_id(),
     timezone = "Europe/Madrid" :: string(),
     output :: ephp:output_id(),
@@ -76,6 +77,7 @@
 
     call_method/3,
     register_class/2,
+    register_interface/2,
     set_class_alias/3,
 
     set_global/2,
@@ -100,6 +102,7 @@ start_link() ->
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
     {ok, Class} = ephp_class:start_link(),
+    {ok, Interface} = ephp_interface:start_link(),
     {ok, Object} = ephp_object:start_link(),
     {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, Errors} = ephp_error:start_link(),
@@ -110,6 +113,7 @@ start_link() ->
         output = Output,
         funcs = Funcs,
         class = Class,
+        interface = Interface,
         object = Object,
         const = Const,
         include = Inc,
@@ -191,6 +195,7 @@ destroy_all(Context) ->
     State = load_state(Context),
     ephp_object:destroy(Context, State#state.object),
     ephp_class:destroy(State#state.class),
+    ephp_interface:destroy(State#state.interface),
     ephp_output:destroy(State#state.output),
     ephp_const:destroy(State#state.const),
     ephp_include:destroy(State#state.include),
@@ -350,10 +355,18 @@ load_once(Context, File) ->
     ephp_include:load_once(Inc, File).
 
 register_class(Context, Class) ->
-    #state{class=Classes, active_file=File, global=GlobalCtx} =
-        load_state(Context),
+    #state{class = Classes,
+           active_file = File,
+           global = GlobalCtx,
+           interface = Interfaces} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_class:register_class(Classes, AbsFile, GlobalCtx, Class),
+    ephp_class:register_class(Classes, AbsFile, GlobalCtx, Interfaces, Class),
+    ok.
+
+register_interface(Context, Interface) ->
+    #state{interface = Interfaces, active_file = File} = load_state(Context),
+    AbsFile = filename:absname(File),
+    ephp_interface:register_interface(Interfaces, AbsFile, Interface),
     ok.
 
 set_class_alias(Context, ClassName, ClassAlias) ->
