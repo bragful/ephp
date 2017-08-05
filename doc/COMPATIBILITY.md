@@ -73,7 +73,7 @@ Features
     - [x] check public, private and/or protected for attributes
     - [x] define constants
     - [ ] inheritance
-    - [ ] implementations (or interfaces)
+    - [x] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
 - Functional

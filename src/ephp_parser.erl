@@ -282,7 +282,7 @@ code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(E,$E,$e) andalso ?OR(R,$R,$r) andalso ?OR(F,$F,$f) andalso
         ?OR(A,$A,$a) andalso ?OR(C,$C,$c) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    Interface = add_line(#interface{}, Pos),
+    Interface = add_line(#class{type = interface}, Pos),
     {Rest0, Pos0, Interface0} =
         ephp_parser_class:st_interface(<<SP:8,Rest/binary>>, add_pos(Pos, 9), Interface),
     code(Rest0, Pos0, [Interface0|Parsed]);
@@ -843,8 +843,7 @@ add_line(#cast{}=Cs, {_,R,C}) -> Cs#cast{line={{line,R},{column,C}}};
 add_line(#throw{}=T, {_,R,C}) -> T#throw{line={{line,R},{column,C}}};
 add_line(#try_catch{}=T, {_,R,C}) -> T#try_catch{line={{line,R},{column,C}}};
 add_line(#catch_block{}=B, {_,R,C}) -> B#catch_block{line={{line,R},{column,C}}};
-add_line(#clone{}=L, {_,R,C}) -> L#clone{line={{line,R},{column,C}}};
-add_line(#interface{}=I, {_,R,C}) -> I#interface{line={{line,R},{column,C}}}.
+add_line(#clone{}=L, {_,R,C}) -> L#clone{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos,1));

@@ -71,6 +71,14 @@ handle_error(enomethods, _Level, {ClassName, Methods, Params}) ->
                   "be declared abstract or implement the remaining methods "
                   "(~s)", [ClassName, Params, iolist_to_binary(Methods)]);
 
+handle_error(ecannotimpl, _Level, {ClassName, NoInterfaceName}) ->
+    io_lib:format("~s cannot implement ~s - it is not an interface",
+                  [ClassName, NoInterfaceName]);
+
+handle_error(eimpl, _Level, {PrevClass, Method, Class, Args}) ->
+    io_lib:format("Declaration of ~s::~s() must be compatible with ~s::~s(~s)",
+                  [PrevClass, Method, Class, Method, Args]);
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 

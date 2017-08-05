@@ -60,6 +60,14 @@ __abstract datatype__: `includes_id()`
 
 
 
+### <a name="type-interfaces_id">interfaces_id()</a> ###
+
+
+__abstract datatype__: `interfaces_id()`
+
+
+
+
 ### <a name="type-objects_id">objects_id()</a> ###
 
 

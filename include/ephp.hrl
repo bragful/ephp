@@ -413,17 +413,6 @@
 -type class_method() :: #class_method{}.
 -type class_type() :: normal | static | abstract.
 
--record(interface, {
-    name :: class_name(),
-    implements = [] :: [class_name()],
-    constants = [] :: [class_const()],
-    methods = [] :: [class_method()],
-    file :: binary(),
-    line :: line()
-}).
-
--type interface() :: #interface{}.
-
 -record(class, {
     name :: class_name(),
     type = normal :: class_type(),

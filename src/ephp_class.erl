@@ -19,6 +19,8 @@
     get_method/2,
     get_const/2,
     get_const/3,
+    get_consts/1,
+    get_consts/2,
 
     class_attr/1,
     class_attr/2,
@@ -30,7 +32,8 @@
 
     instance_of/2,
 
-    register_class/5,
+    register_class/4,
+    register_interface/3,
     set_alias/3,
     instance/5,
 
@@ -82,50 +85,118 @@ set_alias(Ref, ClassName, AliasName) ->
             {error, enoexist}
     end.
 
-register_class(Ref, File, GlobalCtx, RefInterfaces,
+register_class(Ref, File, GlobalCtx,
                #class{name = Name, constants = ConstDef0,
                       line = Index} = PHPClass) ->
     Classes = erlang:get(Ref),
     {ok, Ctx} = ephp_context:start_link(),
     ephp_context:set_global(Ctx, GlobalCtx),
     ConstDef = lists:flatmap(fun(I) ->
-        case ephp_interface:get(RefInterfaces, I) of
-            {error, enoexist} ->
-                ephp_error:error({error, enointerface, Index, ?E_ERROR, {I}});
-            {ok, Interface} ->
-                ephp_interface:get_consts(Interface)
+        case get(Ref, I) of
+            {ok, #class{type = interface} = Interface} ->
+                get_consts(Interface);
+            _ ->
+                ephp_error:error({error, enointerface, Index, ?E_ERROR, {I}})
         end
-    end, PHPClass#class.implements) ++ ConstDef0,
-    Check = fun(I) ->
-        {ok, Interface} = ephp_interface:get(RefInterfaces, I),
-        case ephp_interface:check_methods(Interface, PHPClass#class.methods) of
-            ok ->
-                false;
-            {missing, MethodData} ->
-                Methods = [ io_lib:format("~s::~s",
-                                          [IntName, Method#class_method.name]) ||
-                            {IntName, Method} <- MethodData ],
-                {true, string:join(Methods, ", ")}
-        end
-    end,
-    case lists:filtermap(Check, lists:reverse(PHPClass#class.implements)) of
+    end, PHPClass#class.implements) ++
+         get_extends_consts(Ref, PHPClass) ++
+         ConstDef0,
+    Methods = extract_methods(Ref, Index, PHPClass#class.implements),
+    case check_methods(Methods, PHPClass#class.methods) of
         [] ->
             ok;
         Errors when is_list(Errors) ->
-            Names = string:join(Errors, ", "),
             Params = length(Errors),
-            ephp_error:error({error, enomethods, Index, ?E_ERROR, {Name, Names, Params}})
+            Names = string:join(Errors, ", "),
+            ephp_error:error({error, enomethods, Index, ?E_ERROR,
+                              {Name, Names, Params}})
     end,
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         file = File,
         constants = lists:foldl(fun(#class_const{name = N,value = V}, D) ->
+            %% FIXME: check duplicates
             dict:store(N, ephp_context:solve(Ctx, V), D)
         end, dict:new(), ConstDef)
     },
     initialize_class(ActivePHPClass),
     erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
     ok.
+
+extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
+    AllMethodsDict = lists:foldl(fun(I, D) ->
+        {ok, #class{name = Name,
+                    methods = ClassMethods}} = get(Ref, I),
+        extract_methods(Name, Index, ClassMethods, D)
+    end, [], lists:reverse(Implements)),
+    [ V || {_,V} <- AllMethodsDict ].
+
+extract_methods(_Name, _Index, [], MethodsDict) ->
+    MethodsDict;
+extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
+    #class_method{name = MethodName, args = Args} = Method,
+    case lists:keyfind(MethodName, 1, MethodsDict) of
+        false ->
+            extract_methods(Name, Index, Methods,
+                            [{MethodName, {Name, Method}}|MethodsDict]);
+        {_, {PrevClassName, #class_method{args = PrevArgs}}} ->
+            case length(PrevArgs) =:= length(Args) of
+                true ->
+                    extract_methods(Name, Index, Methods, MethodsDict);
+                false ->
+                    TxtArgs = ephp_string:join([ arg_to_text(Arg) || Arg <- Args ],
+                                               <<", ">>),
+                    ephp_error:error({error, eimpl, Index, ?E_ERROR,
+                                      {PrevClassName, MethodName, Name, TxtArgs}})
+            end
+    end.
+
+arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>;
+arg_to_text(#var_ref{ref = #variable{name = Name}}) -> <<"$", Name/binary>>.
+
+check_methods(Interface, ClassMethods) ->
+    lists:map(fun({IntName, #class_method{name = Name}}) ->
+        io_lib:format("~s::~s", [IntName, Name])
+    end, check_methods(Interface, ClassMethods, [])).
+
+check_methods([], _ClassMethods, Error) ->
+    Error;
+check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
+    Res = lists:any(fun(#class_method{name = Name, args = Args}) ->
+        (Name =:= Method#class_method.name) and
+        (length(Args) =:= length(Method#class_method.args))
+    end, ClassMethods),
+    NewError = case Res of
+        true -> Error;
+        false -> [{ClassName, Method}|Error]
+    end,
+    check_methods(Methods, ClassMethods, NewError).
+
+register_interface(Ref, File, #class{name = Name, line = Index,
+                                     constants = Constants} = PHPInterface) ->
+    Interfaces = erlang:get(Ref),
+    ConstDef = get_extends_consts(Ref, PHPInterface) ++ Constants,
+    ActivePHPInterface = PHPInterface#class{file = File, constants = ConstDef},
+    case dict:find(Name, Interfaces) of
+        error ->
+            erlang:put(Ref, dict:store(Name, ActivePHPInterface, Interfaces)),
+            ok;
+        {ok, _} ->
+            ephp_error:error({error, eredefinedclass, Index, ?E_ERROR, {Name}})
+    end.
+
+get_extends_consts(_Ref, #class{extends = undefined}) ->
+    [];
+get_extends_consts(Ref, #class{name = Name, extends = Extends, line = Index}) ->
+    case get(Ref, Extends) of
+        {ok, #class{type = interface} = Interface} ->
+            get_consts(Interface);
+        {ok, #class{}} ->
+            ephp_error:error({error, ecannotimpl, Index, ?E_ERROR,
+                              {Name, Extends}});
+        _ ->
+            ephp_error:error({error, enointerface, Index, ?E_ERROR, {Extends}})
+    end.
 
 instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
     case get(Ref, RawClassName) of
@@ -286,6 +357,13 @@ get_const(#class{constants = Const, line = Index}, ConstName) ->
         error ->
             ephp_error:error({error, enoconst, Index, ?E_ERROR, {ConstName}})
     end.
+
+get_consts(#class{constants = Constants}) ->
+    Constants.
+
+get_consts(Ref, ClassName) ->
+    {ok, Class} = get(Ref, ClassName),
+    get_consts(Class).
 
 add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
     case get_attribute(Class, Name) of

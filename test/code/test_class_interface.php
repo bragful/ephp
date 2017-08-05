@@ -5,15 +5,13 @@ interface A {
     public function foo();
 }
 
-## ONLY IN PHP 7
-#interface B implements A {
-interface B {
+interface B extends A {
     const BAR = 200;
     public function bar($text);
     public function alice();
 }
 
-class C implements A, B {
+class C implements B {
     public function foo() {
         print self::FOO . "\n";
     }

@@ -8,7 +8,8 @@
     to_lower/1,
     to_upper/1,
     escape/2,
-    trim/1
+    trim/1,
+    join/2
 ]).
 
 -spec to_lower(binary() | undefined) -> binary() | undefined.
@@ -49,3 +50,17 @@ trim(undefined) ->
 
 trim(Text) ->
     re:replace(Text, "^\\s+|\\s+$", "", [{return, binary}, global]).
+
+
+-spec join([binary()], binary()) -> binary().
+
+join([], _Sep) ->
+    <<>>;
+
+join([Part], _Sep) ->
+    Part;
+
+join([Head|Tail], Sep) ->
+    lists:foldl(fun (Value, Acc) ->
+        <<Acc/binary, Sep/binary, Value/binary>>
+    end, Head, Tail).

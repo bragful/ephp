@@ -1,0 +1,2 @@
+
+Fatal error: Declaration of A::abc() must be compatible with B::abc($b, $c) in {{CWD}}/test/code/test_class_interface_extends_error4.php on line 11

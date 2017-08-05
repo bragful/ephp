@@ -222,14 +222,15 @@ run_depth(Context, #operation{line=Line}=Op, false, Cover) ->
     ephp_context:solve(Context, Op),
     false;
 
+run_depth(Context, #class{type = interface, line = Line} = Interface,
+          Return, Cover) ->
+    ok = ephp_cover:store(Cover, interface, Context, Line),
+    ephp_context:register_interface(Context, Interface),
+    Return;
+
 run_depth(Context, #class{line = Line} = Class, Return, Cover) ->
     ok = ephp_cover:store(Cover, class, Context, Line),
     ephp_context:register_class(Context, Class),
-    Return;
-
-run_depth(Context, #interface{line = Line} = Interface, Return, Cover) ->
-    ok = ephp_cover:store(Cover, interface, Context, Line),
-    ephp_context:register_interface(Context, Interface),
     Return;
 
 run_depth(Context, #function{name=Name, args=Args, code=Code, line=Line},

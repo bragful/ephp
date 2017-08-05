@@ -1,0 +1,2 @@
+
+Fatal error: B cannot implement A - it is not an interface in {{CWD}}/test/code/test_class_interface_extends_error2.php on line 4
