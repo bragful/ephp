@@ -1,0 +1,2 @@
+
+Fatal error: Class C cannot implement previously implemented interface A in {{CWD}}/test/code/test_class_interface_extends_error5.php on line 7

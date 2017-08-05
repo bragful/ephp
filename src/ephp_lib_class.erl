@@ -79,6 +79,10 @@ handle_error(eimpl, _Level, {PrevClass, Method, Class, Args}) ->
     io_lib:format("Declaration of ~s::~s() must be compatible with ~s::~s(~s)",
                   [PrevClass, Method, Class, Method, Args]);
 
+handle_error(edupinterface, _Level, {Class, Interface}) ->
+    io_lib:format("Class ~s cannot implement previously implemented interface ~s",
+                  [Class, Interface]);
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 

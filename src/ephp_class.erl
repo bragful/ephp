@@ -102,6 +102,13 @@ register_class(Ref, File, GlobalCtx,
          get_extends_consts(Ref, PHPClass) ++
          ConstDef0,
     Methods = extract_methods(Ref, Index, PHPClass#class.implements),
+    case check_dup(PHPClass#class.implements) of
+        ok ->
+            ok;
+        DupInterface ->
+            ephp_error:error({error, edupinterface, Index, ?E_ERROR,
+                              {Name, DupInterface}})
+    end,
     case check_methods(Methods, PHPClass#class.methods) of
         [] ->
             ok;
@@ -111,6 +118,7 @@ register_class(Ref, File, GlobalCtx,
             ephp_error:error({error, enomethods, Index, ?E_ERROR,
                               {Name, Names, Params}})
     end,
+    %% TODO: implement extends
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         file = File,
@@ -153,6 +161,14 @@ extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
 
 arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>;
 arg_to_text(#var_ref{ref = #variable{name = Name}}) -> <<"$", Name/binary>>.
+
+check_dup([]) -> ok;
+check_dup([_Interface]) -> ok;
+check_dup([Interface|Interfaces]) ->
+    case lists:member(Interface, Interfaces) of
+        true -> Interface;
+        false -> check_dup(Interfaces)
+    end.
 
 check_methods(Interface, ClassMethods) ->
     lists:map(fun({IntName, #class_method{name = Name}}) ->
