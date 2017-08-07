@@ -220,6 +220,8 @@ Functions
    * [set_exception_handler](http://www.php.net/set_exception_handler)
    * [error_get_last](http://www.php.net/error_get_last)
    * [error_clear_last](http://www.php.net/error_clear_last)
+   * [trigger_error](http://www.php.net/trigger_error)
+   * [user_error](http://www.php.net/user_error)
 
  * PCRE related functions:
    * [preg_match](http://www.php.net/preg_match)
