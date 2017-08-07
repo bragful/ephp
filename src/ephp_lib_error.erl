@@ -17,7 +17,9 @@
     set_exception_handler/3,
     restore_exception_handler/2,
     error_get_last/2,
-    error_clear_last/2
+    error_clear_last/2,
+    trigger_error/3,
+    trigger_error/4
 ]).
 
 -include("ephp.hrl").
@@ -39,7 +41,10 @@ init_func() -> [
     restore_exception_handler,
     error_get_last,
     error_clear_last,
-    error_reporting
+    error_reporting,
+    {trigger_error, [
+        {args, {1, 2, false, [string, {integer, ?E_USER_NOTICE}]}}
+    ]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -185,3 +190,18 @@ error_get_last(Context, _Line) ->
 error_clear_last(Context, _Line) ->
     ephp_error:clear_last(Context),
     undefined.
+
+-spec trigger_error(context(), line(), ErrStr :: var_value()) -> boolean().
+
+trigger_error(Context, Line, ErrStr) ->
+    trigger_error(Context, Line, ErrStr, {undefined, ?E_USER_NOTICE}).
+
+-spec trigger_error(context(), line(), ErrStr :: var_value(),
+                    ErrLevel :: var_value()) -> boolean().
+
+trigger_error(Context, Line, {_, ErrStr}, {_, ErrLevel}) ->
+    %% TODO: check ErrLevel will be a valid Error Level value
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context, {error, trigger, Line, File, ErrLevel,
+                                      {ErrStr}}).
+

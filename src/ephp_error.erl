@@ -307,6 +307,9 @@ get_message(eparse, _Rest) when is_binary(_Rest) ->
 get_message(eparse, {Type}) when is_binary(Type) ->
     io_lib:format("parse error, expecting `\"~s\"'", [Type]);
 
+get_message(trigger, {ErrStr}) when is_binary(ErrStr) ->
+    ErrStr;
+
 get_message(enofile, {OpenFile, Func}) ->
     io_lib:format(
         "~s(~s): failed to open stream: No such file or directory",
