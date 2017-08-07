@@ -203,8 +203,12 @@ trigger_error(Context, Line, ErrStr) ->
 -spec trigger_error(context(), line(), ErrStr :: var_value(),
                     ErrLevel :: var_value()) -> boolean().
 
+trigger_error(Context, Line, _ErrStr, {_, ErrLevel})
+        when ErrLevel band (bnot ?E_USER) =/= 0 ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context,
+                            {error, enolevel, Line, File, ?E_WARNING, {}});
 trigger_error(Context, Line, {_, ErrStr}, {_, ErrLevel}) ->
-    %% TODO: check ErrLevel will be a valid Error Level value
     File = ephp_context:get_active_file(Context),
     ephp_error:handle_error(Context, {error, trigger, Line, File, ErrLevel,
                                       {ErrStr}}).

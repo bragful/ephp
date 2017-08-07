@@ -40,6 +40,7 @@
 -type error_type() :: atom().
 
 -record(state, {
+    ref :: ephp:errors_id(),
     output_handler = ?MODULE :: module(),
     error_handler = [] :: [{callable(), non_neg_integer()}],
     exception_handler :: callable(),
@@ -54,7 +55,7 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, #state{}),
+    erlang:put(Ref, #state{ref = Ref}),
     {ok, Ref}.
 
 -spec destroy(ephp:errors_id()) -> ok.
@@ -213,7 +214,8 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
         #state{error_handler = [{ErrHandler, CfgLevel}|_], output_handler = Module}
                 when (CfgLevel band Level) =/= 0
                 andalso (?E_HANDLE_ERRORS band Level) =/= 0 ->
-            case run(Context, ErrHandler, Level, SimpleErrText, File, Index) of
+            case run(Context, ErrorState, ErrHandler, Level, SimpleErrText,
+                     File, Index) of
                 false ->
                     Module:set_output(Context, iolist_to_binary(ErrorText)),
                     if
@@ -238,17 +240,23 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     end,
     get_return(Type).
 
--spec run(context(), callable(), integer(), string(), binary(), line()) ->
-      boolean().
+-spec run(context(), #state{}, callable(), integer(), string(), binary(),
+          line()) -> boolean().
 
-run(Context, ErrHandler, Level, ErrorText, File, Index) ->
+run(Context, State, ErrHandler, Level, ErrorText, File, Index) ->
+    erlang:put(State#state.ref, State#state{error_handler = []}),
     Args = [#int{int = Level}, #text{text = iolist_to_binary(ErrorText)},
             #text{text = File}, #int{int = get_line(Index)}],
     Call = #call{name = ErrHandler, args = Args, line = Index},
-    case ephp_context:solve(Context, Call) of
+    Return = case ephp_context:solve(Context, Call) of
         false -> false;
         _ -> true
-    end.
+    end,
+    case (erlang:get(State#state.ref))#state.error_handler of
+        [] -> erlang:put(State#state.ref, State);
+        _ -> ok
+    end,
+    Return.
 
 -spec set_output(context(), binary()) -> ok.
 
@@ -448,7 +456,7 @@ get_level(?E_CORE_ERROR) -> <<"Error">>;
 get_level(?E_CORE_WARNING) -> <<"Warning">>;
 get_level(?E_COMPILE_ERROR) -> <<"Error">>;
 get_level(?E_COMPILE_WARNING) -> <<"Warning">>;
-get_level(?E_USER_ERROR) -> <<"Error">>;
+get_level(?E_USER_ERROR) -> <<"Fatal error">>;
 get_level(?E_USER_WARNING) -> <<"Warning">>;
 get_level(?E_USER_NOTICE) -> <<"Notice">>;
 get_level(?E_STRICT) -> <<"Strict Standards">>;

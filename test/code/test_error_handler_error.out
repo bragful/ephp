@@ -1,0 +1,3 @@
+test_error_handler_error.php:13 [2] sqrt() expects parameter 1 to be double, string given
+
+Fatal error: whoops! in {{CWD}}/test/code/test_error_handler_error.php on line 7

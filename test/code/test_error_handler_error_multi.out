@@ -1,0 +1,4 @@
+test_error_handler_error_multi.php:18 [2] sqrt() expects parameter 1 to be double, string given
+SECOND(256): whoops!
+SECOND(2): Invalid error type specified
+NO OK
