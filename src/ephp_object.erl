@@ -194,7 +194,7 @@ clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->
     NewObjectsData = array:set(NewObjectId, NewObject, ObjectsData),
     erlang:put(Objects, NewObjectsData),
     NewObjRef = #obj_ref{pid = Objects, ref = NewObjectId},
-    case ephp_class:get_method(Class, <<"__clone">>) of
+    case ephp_class:get_method(Class, undefined, <<"__clone">>) of
         undefined ->
             ok;
         #class_method{name = Name, line = Line} ->

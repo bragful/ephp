@@ -199,7 +199,7 @@ to_bin(Context, Line, #obj_ref{} = ObjRef) ->
         Call = #call{name = <<"__toString">>, line = Line},
         ephp_context:call_method(Context, ObjRef, Call)
     catch
-        throw:{error, eundefmethod, _, _, {<<"__toString">>}} ->
+        throw:{error, eundefmethod, _, _, {ClassName, <<"__toString">>}} ->
             Data = {ClassName},
             Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
             ephp_error:error(Error)

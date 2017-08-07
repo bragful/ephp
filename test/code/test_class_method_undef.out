@@ -1,0 +1,2 @@
+
+Fatal error: Call to undefined method A::no_exists() in {{CWD}}/test/code/test_class_method_undef.php on line 5

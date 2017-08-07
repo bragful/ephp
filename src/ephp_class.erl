@@ -16,7 +16,7 @@
     get_constructor/1,
     get_destructor/1,
     get_attribute/2,
-    get_method/2,
+    get_method/3,
     get_const/2,
     get_const/3,
     get_consts/1,
@@ -313,11 +313,12 @@ get_attribute(#class{attrs=Attrs}, AttributeName) ->
         ClassAttr
     end.
 
-get_method(#class{methods=Methods,line=Index}, MethodName) ->
+get_method(#class{name= Name, methods = Methods}, Index, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        ephp_error:error({error, eundefmethod, Index, ?E_ERROR, {MethodName}});
+        ephp_error:error({error, eundefmethod, Index, ?E_ERROR,
+                          {Name, MethodName}});
     #class_method{}=ClassMethod ->
         ClassMethod
     end.

@@ -1099,7 +1099,7 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     end,
     #class{name = ClassName, file = ClassFile} = Class,
     #class_method{name=MethodName, args=RawMethodArgs} = ClassMethod =
-        ephp_class:get_method(Class, Call#call.name),
+        ephp_class:get_method(Class, Call#call.line, Call#call.name),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     if
         ClassMethod#class_method.type =/= static andalso Object =:= undefined ->
@@ -1213,7 +1213,7 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
     InstanceVar = Var#variable{idx = []},
     Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     #ephp_object{class = Class} = ephp_object:get(Instance),
-    case ephp_class:get_method(Class, Call#call.name) of
+    case ephp_class:get_method(Class, Call#call.line, Call#call.name) of
         #class_method{access = public} ->
             run_method(Instance, Call#call{type = object}, State);
         #class_method{access = protected} ->

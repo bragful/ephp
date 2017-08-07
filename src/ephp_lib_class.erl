@@ -39,6 +39,9 @@ handle_error(enoclassscope, _Level, {<<"self">>}) ->
 handle_error(eundefclass, _Level, {Class}) ->
     io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
 
+handle_error(eundefmethod, _Level, {Class, MethodName}) ->
+    io_lib:format("Call to undefined method ~s::~s()", [Class, MethodName]);
+
 handle_error(eprivateaccess, _Level, {Class, Element, Access}) ->
     io_lib:format(
         "Cannot access ~s property ~s::$~s",
