@@ -11,8 +11,11 @@
 -export([
     start_link/0,
     get/4,
+    get/5,
     set/3,
+    set/4,
     set_bulk/2,
+    set_bulk/3,
     destroy/1
 ]).
 
@@ -23,7 +26,7 @@
 start_link() ->
     Ref = make_ref(),
     Init = [
-        {<<"__FILE__">>, <<>>}
+        {{undefined, <<"__FILE__">>}, <<>>}
     ],
     Consts = lists:foldl(fun({K,V},C) ->
         dict:store(K,V,C)
@@ -34,27 +37,38 @@ start_link() ->
     {ok, Ref}.
 
 get(Ref, Name, Line, Context) ->
+    get(Ref, undefined, Name, Line, Context).
+
+get(Ref, ClassName, Name, Line, Context) ->
     Const = erlang:get(Ref),
-    case dict:find(Name, Const) of
+    case dict:find({ClassName, Name}, Const) of
         {ok, Value} ->
             Value;
-        error when Line =/= false ->
+        error when Line =/= false andalso ClassName =:= undefined ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
                 {error, eundefconst, Line, File, ?E_NOTICE, {Name}}),
             Name;
+        error when Line =/= false ->
+            ephp_error:error({error, enoconst, Line, ?E_ERROR, {Name}});
         error ->
             false
     end.
 
 set_bulk(Ref, Values) ->
+    set_bulk(Ref, undefined, Values).
+
+set_bulk(Ref, ClassName, Values) ->
     erlang:put(Ref, lists:foldl(fun({Name, Value}, Const) ->
-        dict:store(Name, Value, Const)
+        dict:store({ClassName, Name}, Value, Const)
     end, erlang:get(Ref), Values)).
 
 set(Ref, Name, Value) ->
+    set(Ref, undefined, Name, Value).
+
+set(Ref, ClassName, Name, Value) ->
     Const = erlang:get(Ref),
-    erlang:put(Ref, dict:store(Name, Value, Const)),
+    erlang:put(Ref, dict:store({ClassName, Name}, Value, Const)),
     ok.
 
 destroy(Const) ->

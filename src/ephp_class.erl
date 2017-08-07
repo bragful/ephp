@@ -17,10 +17,6 @@
     get_destructor/1,
     get_attribute/2,
     get_method/3,
-    get_const/2,
-    get_const/3,
-    get_consts/1,
-    get_consts/2,
 
     class_attr/1,
     class_attr/2,
@@ -119,17 +115,21 @@ register_class(Ref, File, GlobalCtx,
                               {Name, Names, Params}})
     end,
     %% TODO: implement extends
+    Consts = ephp_context:get_consts(GlobalCtx),
+    ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
-        file = File,
-        constants = lists:foldl(fun(#class_const{name = N,value = V}, D) ->
-            %% FIXME: check duplicates
-            dict:store(N, ephp_context:solve(Ctx, V), D)
-        end, dict:new(), ConstDef)
+        file = File
     },
     initialize_class(ActivePHPClass),
     erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
     ok.
+
+tr_consts(Consts, Context) ->
+    lists:map(fun(#class_const{name = N, value = V}) ->
+        Val = ephp_context:solve(Context, V),
+        {N, Val}
+    end, Consts).
 
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     AllMethodsDict = lists:foldl(fun(I, D) ->
@@ -370,24 +370,8 @@ set_static(Ref, ClassName, MethodName, Vars) ->
     set(Ref, ClassName, NewClass),
     ok.
 
-get_const(Ref, ClassName, ConstName) ->
-    {ok, Class} = get(Ref, ClassName),
-    get_const(Class, ConstName).
-
-get_const(#class{constants = Const, line = Index}, ConstName) ->
-    case dict:find(ConstName, Const) of
-        {ok, Value} ->
-            Value;
-        error ->
-            ephp_error:error({error, enoconst, Index, ?E_ERROR, {ConstName}})
-    end.
-
 get_consts(#class{constants = Constants}) ->
     Constants.
-
-get_consts(Ref, ClassName) ->
-    {ok, Class} = get(Ref, ClassName),
-    get_consts(Class).
 
 add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
     case get_attribute(Class, Name) of

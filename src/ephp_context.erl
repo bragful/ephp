@@ -41,6 +41,7 @@
     destroy_all/1,
 
     get_vars/1,
+    get_consts/1,
     get_objects/1,
     get_classes/1,
 
@@ -206,6 +207,9 @@ destroy_all(Context) ->
 get_vars(Context) ->
     (load_state(Context))#state.vars.
 
+get_consts(Context) ->
+    (load_state(Context))#state.const.
+
 get_objects(Context) ->
     (load_state(Context))#state.object.
 
@@ -361,7 +365,11 @@ register_class(Context, Class) ->
            active_file = File,
            global = GlobalCtx} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_class:register_class(Classes, AbsFile, GlobalCtx, Class),
+    RealCtx = case GlobalCtx of
+        undefined -> Context;
+        _ -> GlobalCtx
+    end,
+    ephp_class:register_class(Classes, AbsFile, RealCtx, Class),
     ok.
 
 register_interface(Context, Interface) ->
@@ -866,19 +874,20 @@ resolve(#constant{type = class, class = <<"self">>, line = Index},
         #state{active_class = <<>>}) ->
     ephp_error:error({error, enoclassscope, Index, ?E_ERROR, {<<"self">>}});
 
-resolve(#constant{type = class, class = <<"self">>, name = Name},
-        #state{class = Classes, active_class = ClassName} = State) ->
-    {ephp_class:get_const(Classes, ClassName, Name), State};
+resolve(#constant{type = class, class = <<"self">>, name = Name, line = Index},
+        #state{ref = Ref, const = Const, active_class = ClassName} = State) ->
+    {ephp_const:get(Const, ClassName, Name, Index, Ref), State};
 
-resolve(#constant{type = class, class = #variable{} = Var, name = Name},
-        #state{class = Classes} = State) ->
+resolve(#constant{type = class, class = #variable{} = Var, name = Name,
+                  line = Line},
+        #state{ref = Ref, const = Const} = State) ->
     {ObjRef, NState} = resolve(Var, State),
     #ephp_object{class = #class{name = ClassName}} = ephp_object:get(ObjRef),
-    {ephp_class:get_const(Classes, ClassName, Name), NState};
+    {ephp_const:get(Const, ClassName, Name, Line, Ref), NState};
 
-resolve(#constant{type = class, class = ClassName, name = Name},
-        #state{class = Classes} = State) ->
-    {ephp_class:get_const(Classes, ClassName, Name), State};
+resolve(#constant{type = class, class = ClassName, name = Name, line =  Line},
+        #state{ref = Ref, const = Const} = State) ->
+    {ephp_const:get(Const, ClassName, Name, Line, Ref), State};
 
 resolve(#constant{type = normal, name = Name, line = Line},
         #state{ref = Ref, const = Const} = State) ->

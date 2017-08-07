@@ -1,2 +1,2 @@
 
-Fatal error: Undefined class constant 'NO_EXISTS_THIS_CONST' in {{CWD}}/test/code/test_class_const_noexist.php on line 3
+Fatal error: Undefined class constant 'NO_EXISTS_THIS_CONST' in {{CWD}}/test/code/test_class_const_noexist.php on line 6
