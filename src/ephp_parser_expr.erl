@@ -505,11 +505,11 @@ expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,[]}|_]=Parsed) when
     expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
 expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
+    {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
     case lists:last(Ops) of
         #constant{} ->
-            throw_error(eparse, Pos, Rest);
+            throw_error(eparse, Pos, {Constant#constant.name, <<"T_STRING">>});
         _ ->
-            {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
             expression(Rest0, {L,R,C}, add_op(Constant, Parsed))
     end;
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when

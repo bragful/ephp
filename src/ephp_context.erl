@@ -301,7 +301,7 @@ set_active_file(Context, undefined) ->
     ok;
 
 set_active_file(Context, Filename) ->
-    #state{const=Const} = State = load_state(Context),
+    #state{const = Const} = State = load_state(Context),
     save_state(State#state{active_file=Filename}),
     ephp_const:set_bulk(Const, [
         {<<"__FILE__">>, Filename},
@@ -343,12 +343,18 @@ get_output_handler(Context) ->
     Output.
 
 load(Context, File) ->
-    #state{include=Inc} = load_state(Context),
-    ephp_include:load(Inc, File).
+    #state{include = Inc, active_file = CFile} = State = load_state(Context),
+    set_active_file(State#state.ref, File),
+    Return = ephp_include:load(Inc, File),
+    set_active_file(State#state.ref, CFile),
+    Return.
 
 load_once(Context, File) ->
-    #state{include=Inc} = load_state(Context),
-    ephp_include:load_once(Inc, File).
+    #state{include = Inc, active_file = CFile} = State = load_state(Context),
+    set_active_file(State#state.ref, File),
+    Return = ephp_include:load_once(Inc, File),
+    set_active_file(State#state.ref, CFile),
+    Return.
 
 register_class(Context, Class) ->
     #state{class = Classes,

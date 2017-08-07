@@ -1,2 +1,2 @@
 
-Parse error: parse error in {{CWD}}/test/code/test_parse_error.php on line 3
+Parse error: syntax error, unexpected 'is' (T_STRING) in {{CWD}}/test/code/test_parse_error.php on line 3
