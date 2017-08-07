@@ -186,6 +186,10 @@ handle_error(Context, {error, euncaught, Index, File, Level,
     end,
     get_return(euncaught);
 
+handle_error(Context, {error, _Type, Index, File, Level, _Data}) when
+        Level =:= 0 orelse Level band (bnot ?E_ALL) =/= 0 ->
+    handle_error(Context, {error, enolevel, Index, File, ?E_WARNING, {}});
+
 handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -309,6 +313,9 @@ get_message(eparse, {Type}) when is_binary(Type) ->
 
 get_message(trigger, {ErrStr}) when is_binary(ErrStr) ->
     ErrStr;
+
+get_message(enolevel, {}) ->
+    "Invalid error type specified";
 
 get_message(enofile, {OpenFile, Func}) ->
     io_lib:format(

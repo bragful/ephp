@@ -1,0 +1,4 @@
+
+Warning: Invalid error type specified in {{CWD}}/test/code/test_user_error_error.php on line 3
+
+Warning: user_error() expects parameter 1 to be string, array given in {{CWD}}/test/code/test_user_error_error.php on line 4

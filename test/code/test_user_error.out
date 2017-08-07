@@ -1,0 +1,6 @@
+
+Notice: This message is not important in {{CWD}}/test/code/test_user_error.php on line 3
+
+Warning: This message could be important in {{CWD}}/test/code/test_user_error.php on line 4
+
+Error: This message breaks the system! in {{CWD}}/test/code/test_user_error.php on line 5

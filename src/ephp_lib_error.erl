@@ -44,6 +44,10 @@ init_func() -> [
     error_reporting,
     {trigger_error, [
         {args, {1, 2, false, [string, {integer, ?E_USER_NOTICE}]}}
+    ]},
+    {trigger_error, [
+        {alias, <<"user_error">>},
+        {args, {1, 2, false, [string, {integer, ?E_USER_NOTICE}]}}
     ]}
 ].
 
