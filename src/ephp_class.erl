@@ -133,9 +133,16 @@ register_class(Ref, File, GlobalCtx,
 
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     AllMethodsDict = lists:foldl(fun(I, D) ->
-        {ok, #class{name = Name,
+        {ok, #class{extends = Extends,
                     methods = ClassMethods}} = get(Ref, I),
-        extract_methods(Name, Index, ClassMethods, D)
+        NewD = extract_methods(I, Index, ClassMethods, D),
+        case Extends of
+            undefined ->
+                NewD;
+            Parent ->
+                {ok, #class{methods = ParentMethods}} = get(Ref, Parent),
+                extract_methods(Parent, Index, ParentMethods, NewD)
+        end
     end, [], lists:reverse(Implements)),
     [ V || {_,V} <- AllMethodsDict ].
 
