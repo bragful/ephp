@@ -125,7 +125,11 @@ eval(Filename, Context, PHP) ->
             ok = ephp_cover:init_file(Cover, Filename, Compiled),
             case catch ephp_interpr:process(Context, Compiled, Cover) of
                 {ok, Return} ->
-                    ephp_shutdown:shutdown(Context),
+                    try
+                        ephp_shutdown:shutdown(Context)
+                    catch
+                        throw:{ok, die} -> ok
+                    end,
                     {ok, Return};
                 {error, Reason, Index, Level, Data} ->
                     File = ephp_context:get_active_file(Context),
