@@ -47,6 +47,7 @@
 
     get_active_file/1,
     set_active_file/2,
+    get_active_class/1,
 
     set_tz/2,
     get_tz/1,
@@ -290,8 +291,10 @@ call_method(Context, Instance, Call) ->
     Val.
 
 get_active_file(Context) ->
-    #state{active_file=Filename} = load_state(Context),
-    Filename.
+    (load_state(Context))#state.active_file.
+
+get_active_class(Context) ->
+    (load_state(Context))#state.active_class.
 
 set_active_file(Context, undefined) ->
     Filename = <<"php shell code">>,
@@ -462,6 +465,14 @@ resolve(#assign{variable = #variable{type = class,
                                      class = <<"self">>} = Var} = Assign,
         #state{active_class = ClassName} = State) ->
     resolve(Assign#assign{variable = Var#variable{class = ClassName}}, State);
+
+%% TODO errors for parent
+resolve(#assign{variable = #variable{type = class,
+                                     class = <<"parent">>} = Var} = Assign,
+        #state{class = Classes, active_class = ClassName} = State) ->
+    %% TODO error in case there are no parent
+    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
+    resolve(Assign#assign{variable = Var#variable{class = ParentName}}, State);
 
 resolve(#assign{variable = #variable{type = class,
                                      class = ClassName,
@@ -829,6 +840,19 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         ephp_error:error({error, eundefun, Index, ?E_ERROR, {Fun}})
     end;
 
+%% TODO error if no class scope
+resolve(#call{type = class, class = <<"self">>} = Call,
+        #state{active_class = Name} = State) ->
+    resolve(Call#call{class = Name}, State);
+
+%% TODO error if no class scope
+resolve(#call{type = class, class = <<"parent">>} = Call,
+        #state{active_class = Name, class = Classes} = State) ->
+    %% TODO error if no parent defined
+    {ok, #class{extends = Extends}} = ephp_class:get(Classes, Name),
+    %% TODO check name for class (parent or grandpa, ...)
+    resolve(Call#call{class = Extends}, State);
+
 resolve(#call{type = class, class = Name, line = Index} = Call,
         #state{class = Classes} = State) ->
     case ephp_class:get(Classes, Name) of
@@ -847,7 +871,7 @@ resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
     #obj_ref{pid = Objects, ref = ObjectId} = Object,
     #ephp_object{class = Class} = Obj = ephp_object:get(Object),
     ephp_object:set(Objects, ObjectId, Obj#ephp_object{instance = Instance}),
-    case ephp_class:get_constructor(Class) of
+    case ephp_class:get_constructor(Classes, Class) of
         undefined ->
             {Object, State};
         #class_method{name = ConstructorName} ->
@@ -877,6 +901,16 @@ resolve(#constant{type = class, class = <<"self">>, line = Index},
 resolve(#constant{type = class, class = <<"self">>, name = Name, line = Index},
         #state{ref = Ref, const = Const, active_class = ClassName} = State) ->
     {ephp_const:get(Const, ClassName, Name, Index, Ref), State};
+
+%% TODO error if there are no active class
+resolve(#constant{type = class, class = <<"parent">>, name = Name,
+                  line = Index},
+        #state{ref = Ref, const = Const, class = Classes,
+               active_class = ClassName} = State) ->
+    %% TODO: error if the parent isn't defined
+    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
+    %% TODO check if there are a parent of a parent...
+    {ephp_const:get(Const, ParentName, Name, Index, Ref), State};
 
 resolve(#constant{type = class, class = #variable{} = Var, name = Name,
                   line = Line},
@@ -1097,7 +1131,7 @@ zip_args(ValArgs, FuncArgs) ->
     end, {[], ValArgs}, FuncArgs),
     Result.
 
-run_method(RegInstance, #call{args = RawArgs} = Call,
+run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
            #state{ref = Ref, const = Const, vars = Vars,
                   class = Classes} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
@@ -1114,7 +1148,12 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
     end,
     #class{name = ClassName, file = ClassFile} = Class,
     #class_method{name=MethodName, args=RawMethodArgs} = ClassMethod =
-        ephp_class:get_method(Class, Call#call.line, Call#call.name),
+        case Call#call.name of
+            <<"__construct">> ->
+                ephp_class:get_constructor(Classes, Class);
+            _ ->
+                ephp_class:get_method(Classes, Class, Line, Call#call.name)
+        end,
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     if
         ClassMethod#class_method.type =/= static andalso Object =:= undefined ->
@@ -1138,7 +1177,8 @@ run_method(RegInstance, #call{args = RawArgs} = Call,
             register_superglobals(Ref, NewVars),
             ephp_const:set_bulk(Const, [
                 {<<"__FUNCTION__">>, MethodName},
-                {<<"__CLASS__">>, ClassName}
+                %% TODO: with static (late binding) this changes
+                {<<"__CLASS__">>, ClassMethod#class_method.class_name}
             ]),
             Refs = lists:map(fun
                 (#variable{} = Var) ->
@@ -1228,7 +1268,8 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
     InstanceVar = Var#variable{idx = []},
     Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     #ephp_object{class = Class} = ephp_object:get(Instance),
-    case ephp_class:get_method(Class, Call#call.line, Call#call.name) of
+    #state{class = Classes} = State,
+    case ephp_class:get_method(Classes, Class, Call#call.line, Call#call.name) of
         #class_method{access = public} ->
             run_method(Instance, Call#call{type = object}, State);
         #class_method{access = protected} ->
@@ -1299,6 +1340,13 @@ resolve_var(#variable{type = class, class = <<"self">>, line = Index},
 resolve_var(#variable{type = class, class = <<"self">>} = Var,
             #state{active_class = ClassName} = State) ->
     resolve_var(Var#variable{class = ClassName}, State);
+
+%% TODO error if it's out of scope to use parent
+resolve_var(#variable{type = class, class = <<"parent">>} = Var,
+            #state{class = Classes, active_class = ClassName} = State) ->
+    %% TODO error if the parent is not defined
+    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
+    resolve_var(Var#variable{class = ParentName}, State);
 
 resolve_var(#variable{type = class, class = ClassName, line = Index} = Var,
             #state{class = Classes} = State) ->
@@ -1443,16 +1491,11 @@ resolve_op(#operation{
             {ephp_data:to_bool(OpRes2), State2}
     end;
 
-resolve_op(#operation{type=instanceof, expression_left=Op1,
-        expression_right=#constant{name=ClassName}},
-        #state{class=Classes}=State) ->
+resolve_op(#operation{type = instanceof, expression_left = Op1,
+                      expression_right = #constant{name = ClassName}},
+           #state{ref = Ref} = State) ->
     {OpRes1, State1} = resolve(Op1, State),
-    case ephp_class:get(Classes, ClassName) of
-        {ok, #class{name=RealClassName}} ->
-            {ephp_object:get_class_name(OpRes1) =:= RealClassName, State1};
-        {error, enoexist} ->
-            {false, State1}
-    end;
+    {ephp_class:instance_of(Ref, OpRes1, ClassName), State1};
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
                       line=Index},

@@ -408,6 +408,7 @@
     validation_args :: ephp_func:validation_args(),
     static = [] :: static(),
     final = false :: boolean(),
+    class_name :: class_name(),
     line :: line()
 }).
 

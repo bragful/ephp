@@ -95,11 +95,13 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line, Context) ->
     lists:foldl(fun
         (#ref{var = #variable{data_type = DataType}} = Ref,
          {I, [{_, Value}|_] = Acc}) when DataType =/= undefined ->
-            Check(I, DataType, Value, ephp_class:instance_of(Value, DataType)),
+            Check(I, DataType, Value,
+                  ephp_class:instance_of(Context, Value, DataType)),
             {I+1, Zip(Ref, Acc)};
         (#variable{data_type = DataType} = Var,
          {I, [{_, Value}|_] = Acc}) when DataType =/= undefined ->
-            Check(I, DataType, Value, ephp_class:instance_of(Value, DataType)),
+            Check(I, DataType, Value,
+                  ephp_class:instance_of(Context, Value, DataType)),
             {I+1, Zip(Var, Acc)};
         (VarOrRef, {I, Acc}) ->
             {I+1, Zip(VarOrRef, Acc)}

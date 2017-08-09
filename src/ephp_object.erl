@@ -166,7 +166,8 @@ remove(Context, #obj_ref{pid = Objects, ref = ObjectId}) ->
 remove_complete(Context, Objects, ObjectId) ->
     ObjRef = #obj_ref{pid = Objects, ref = ObjectId},
     #ephp_object{class = Class} = get(ObjRef),
-    case ephp_class:get_destructor(Class) of
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get_destructor(Classes, Class) of
         undefined ->
             ok;
         #class_method{name = Name, line = Line} ->
@@ -194,7 +195,8 @@ clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->
     NewObjectsData = array:set(NewObjectId, NewObject, ObjectsData),
     erlang:put(Objects, NewObjectsData),
     NewObjRef = #obj_ref{pid = Objects, ref = NewObjectId},
-    case ephp_class:get_method(Class, undefined, <<"__clone">>) of
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get_method(Classes, Class, undefined, <<"__clone">>) of
         undefined ->
             ok;
         #class_method{name = Name, line = Line} ->

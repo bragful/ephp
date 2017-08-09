@@ -305,6 +305,12 @@ run_depth(Context, #constant{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, constant, Context, Line),
     false;
 
+run_depth(Context, #instance{line = Line} = Instance, false, Cover) ->
+    ok = ephp_cover:store(Cover, new, Context, Line),
+    ObjRef = ephp_context:solve(Context, Instance),
+    ephp_object:remove(Context, ObjRef),
+    false;
+
 run_depth(Context, {silent, Statement}, false, Cover) ->
     ephp_error:run_quiet(ephp_context:get_errors_id(Context), fun() ->
         run_depth(Context, Statement, false, Cover)
@@ -366,7 +372,7 @@ run_catch(Context,
           #catch_block{exception = #variable{data_type = Catch} = Var,
                        code_block = CatchCode},
           Exception, Finally, Cover) ->
-    case ephp_class:instance_of(Exception, Catch) of
+    case ephp_class:instance_of(Context, Exception, Catch) of
         true ->
             ephp_context:set(Context, Var, Exception),
             try

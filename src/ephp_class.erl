@@ -13,10 +13,10 @@
     destroy/1,
 
     get/2,
-    get_constructor/1,
-    get_destructor/1,
+    get_constructor/2,
+    get_destructor/2,
     get_attribute/2,
-    get_method/3,
+    get_method/4,
 
     class_attr/1,
     class_attr/2,
@@ -26,7 +26,7 @@
     init_static_value/5,
     set_static/4,
 
-    instance_of/2,
+    instance_of/3,
 
     register_class/4,
     register_interface/3,
@@ -83,6 +83,7 @@ set_alias(Ref, ClassName, AliasName) ->
 
 register_class(Ref, File, GlobalCtx,
                #class{name = Name, constants = ConstDef0,
+                      methods = ClassMethods,
                       line = Index} = PHPClass) ->
     Classes = erlang:get(Ref),
     {ok, Ctx} = ephp_context:start_link(),
@@ -119,7 +120,8 @@ register_class(Ref, File, GlobalCtx,
     ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
-        file = File
+        file = File,
+        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ]
     },
     initialize_class(ActivePHPClass),
     erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
@@ -210,7 +212,8 @@ register_interface(Ref, File, #class{name = Name, line = Index,
 
 get_extends_consts(_Ref, #class{extends = undefined}) ->
     [];
-get_extends_consts(Ref, #class{name = Name, extends = Extends, line = Index}) ->
+get_extends_consts(Ref, #class{name = Name, extends = Extends,
+                               type = interface, line = Index}) ->
     case get(Ref, Extends) of
         {ok, #class{type = interface} = Interface} ->
             get_consts(Interface);
@@ -219,6 +222,17 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends, line = Index}) ->
                               {Name, Extends}});
         _ ->
             ephp_error:error({error, enointerface, Index, ?E_ERROR, {Extends}})
+    end;
+get_extends_consts(Ref, #class{name = Name, extends = Extends,
+                               line = Index}) ->
+    case get(Ref, Extends) of
+        {ok, #class{type = interface}} ->
+            ephp_error:error({error, ecannotextends, Index, ?E_ERROR,
+                              {Name, Extends}});
+        {ok, #class{} = Class} ->
+            get_consts(Class);
+        _ ->
+            ephp_error:error({error, enoclass, Index, ?E_ERROR, {Extends}})
     end.
 
 instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
@@ -236,36 +250,42 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
                           {RawClassName}})
     end.
 
--spec instance_of(mixed(), DataType::binary()) -> boolean().
+-spec instance_of(context(), mixed(), DataType::binary()) -> boolean().
 
-instance_of(#ephp_array{}, <<"array">>) ->
+instance_of(_Context, #ephp_array{}, <<"array">>) ->
     true;
-instance_of(Boolean, <<"bool">>) when is_boolean(Boolean) ->
+instance_of(_Context, Boolean, <<"bool">>) when is_boolean(Boolean) ->
     true;
-instance_of(String, <<"string">>) when is_binary(String) ->
+instance_of(_Context, String, <<"string">>) when is_binary(String) ->
     true;
-instance_of(Float, <<"float">>) when is_float(Float) ->
+instance_of(_Context, Float, <<"float">>) when is_float(Float) ->
     true;
-instance_of(Int, <<"int">>) when is_integer(Int) ->
+instance_of(_Context, Int, <<"int">>) when is_integer(Int) ->
     true;
 % TODO:
 % instance_of(Callable, <<"callable">>) ->
 %     false;
-% TODO:
-% instance_of(Self, <<"self">>) ->
-%     false;
-instance_of(ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
+instance_of(Context, Self, <<"self">>) ->
+    %% TODO scope error if active_class is not defined
+    SelfClass = ephp_context:get_active_class(Context),
+    instance_of(Context, Self, SelfClass);
+instance_of(Context, ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
     #ephp_object{class = Class} = ephp_object:get(ObjRef),
     #class{extends = Extends,
            implements = Impl,
-           name = ClassName} = Class,
-    %% TODO: find another way to implement this in a lazy way (orelse break cover)
-    lists:any(fun(F) -> F() end, [
-        fun() -> ClassName =:= Name end,
-        fun() -> member(Name, Extends) end,
-        fun() -> member(Name, Impl) end
-    ]);
-instance_of(_, _) ->
+           name = InstanceName} = Class,
+    Classes = ephp_context:get_classes(Context),
+    case get(Classes, Name) of
+        {ok, #class{name = ClassName}} ->
+            lists:any(fun(F) -> F() end, [
+                fun() -> ClassName =:= InstanceName end,
+                fun() -> member(ClassName, Extends) end,
+                fun() -> member(ClassName, Impl) end
+            ]);
+        {error, _} ->
+            false
+    end;
+instance_of(_Context, _Data, _Type) ->
     false.
 
 member(_, undefined) -> false;
@@ -289,13 +309,20 @@ initialize(Ctx, #class{attrs=Attrs}) ->
             ignore
     end, Attrs).
 
-get_constructor(#class{name=Name, methods=Methods}) ->
+get_constructor(Ref, #class{name = Name, methods = Methods,
+                            extends = Extends}) ->
     MethodName = <<"__construct">>,
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         case lists:keyfind(Name, #class_method.name, Methods) of
         false ->
-            undefined;
+            case Extends of
+                undefined ->
+                    undefined;
+                Extends ->
+                    {ok, Parent} = get(Ref, Extends),
+                    get_constructor(Ref, Parent)
+            end;
         #class_method{}=ClassMethod ->
             ClassMethod
         end;
@@ -303,11 +330,17 @@ get_constructor(#class{name=Name, methods=Methods}) ->
         ClassMethod
     end.
 
-get_destructor(#class{methods=Methods}) ->
+get_destructor(Ref, #class{methods = Methods, extends = Extends}) ->
     MethodName = <<"__destruct">>,
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
-        undefined;
+        case Extends of
+            undefined ->
+                undefined;
+            Extends ->
+                {ok, Parent} = get(Ref, Extends),
+                get_destructor(Ref, Parent)
+        end;
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
@@ -320,12 +353,19 @@ get_attribute(#class{attrs=Attrs}, AttributeName) ->
         ClassAttr
     end.
 
-get_method(#class{name= Name, methods = Methods}, Index, MethodName) ->
+get_method(Ref, #class{name = Name, methods = Methods, extends = Extends},
+           Index, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
         %% TODO: search "__call" method
-        ephp_error:error({error, eundefmethod, Index, ?E_ERROR,
-                          {Name, MethodName}});
+        case Extends of
+            undefined ->
+                ephp_error:error({error, eundefmethod, Index, ?E_ERROR,
+                                  {Name, MethodName}});
+            Extends ->
+                {ok, Parent} = get(Ref, Extends),
+                get_method(Ref, Parent, Index, MethodName)
+        end;
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
@@ -354,20 +394,23 @@ init_static_value(Ref, ClassName, MethodName, VarName, Value) ->
 
 set_static(Ref, ClassName, MethodName, Vars) ->
     {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
-    #class_method{static = Static} = Method =
-        lists:keyfind(MethodName, #class_method.name, Methods),
-    NewStatic = lists:map(fun({Key, _}) ->
-        %% TODO check behaviour when use unset
-        NewValue = ephp_vars:get(Vars, #variable{name = Key}),
-        {Key, NewValue}
-    end, Static),
-    NewMethod = Method#class_method{static = NewStatic},
-    NewMethods = lists:keyreplace(MethodName,
-                                  #class_method.name,
-                                  Methods,
-                                  NewMethod),
-    NewClass = Class#class{methods = NewMethods},
-    set(Ref, ClassName, NewClass),
+    case lists:keyfind(MethodName, #class_method.name, Methods) of
+        #class_method{static = Static} = Method ->
+            NewStatic = lists:map(fun({Key, _}) ->
+                %% TODO check behaviour when use unset
+                NewValue = ephp_vars:get(Vars, #variable{name = Key}),
+                {Key, NewValue}
+            end, Static),
+            NewMethod = Method#class_method{static = NewStatic},
+            NewMethods = lists:keyreplace(MethodName,
+                                          #class_method.name,
+                                          Methods,
+                                          NewMethod),
+            NewClass = Class#class{methods = NewMethods},
+            set(Ref, ClassName, NewClass);
+        false when Class#class.extends =/= undefined ->
+            set_static(Ref, Class#class.extends, MethodName, Vars)
+    end,
     ok.
 
 get_consts(#class{constants = Constants}) ->
