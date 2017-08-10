@@ -419,6 +419,7 @@
 -record(class, {
     name :: class_name(),
     type = normal :: class_type(),
+    final = false :: boolean(),
     extends :: undefined | class_name(),
     implements = [] :: [class_name()],
     constants = [] :: [class_const()],

@@ -1,0 +1,2 @@
+
+Fatal error: Class B may not inherit from final class (A) in {{CWD}}/test/code/test_class_final.php on line 5

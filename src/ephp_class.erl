@@ -238,6 +238,9 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
 get_extends_consts(Ref, #class{name = Name, extends = Extends,
                                line = Index}) ->
     case get(Ref, Extends) of
+        {ok, #class{name = FName, final = true}} ->
+            ephp_error:error({error, efinalclass, Index, ?E_ERROR,
+                              {FName, Name}});
         {ok, #class{type = interface}} ->
             ephp_error:error({error, ecannotextends, Index, ?E_ERROR,
                               {Name, Extends}});

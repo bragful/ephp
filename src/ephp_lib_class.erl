@@ -36,6 +36,10 @@ init_const() -> [].
 handle_error(enoclassscope, _Level, {<<"self">>}) ->
     "Cannot access self:: when no class scope is active";
 
+handle_error(efinalclass, _Level, {FName, Name}) ->
+    io_lib:format("Class ~s may not inherit from final class (~s)",
+                  [Name, FName]);
+
 handle_error(eundefclass, _Level, {Class}) ->
     io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
 

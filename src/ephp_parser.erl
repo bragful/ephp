@@ -270,12 +270,24 @@ code(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>, Pos, Parsed) when
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0, [#class{}=C|Parsed0]} = code(Rest, add_pos(Pos,9), []),
     {Rest0, Pos0, [C#class{type=abstract}|Parsed0] ++ Parsed};
+code(<<F:8,I:8,N:8,A:8,L:8,SP:8,Rest/binary>>, Pos, Parsed) when
+        ?OR(F,$F,$f) andalso ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso
+        ?OR(A,$A,$a) andalso ?OR(L,$L,$l) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    Class = add_line(#class{final = true}, Pos),
+    code(<<SP:8,Rest/binary>>, add_pos(Pos, 5), [Class|Parsed]);
 code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(C,$C,$c) andalso ?OR(L,$L,$l) andalso ?OR(A,$A,$a) andalso
         ?OR(S,$S,$s) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    Class = add_line(#class{}, Pos),
-    {Rest0, Pos0, Class0} =
-        ephp_parser_class:st_class(<<SP:8,Rest/binary>>, add_pos(Pos,5), Class),
+    {Rest0, Pos0, Class0} = case Parsed of
+        [#class{name = undefined} = Class|_] ->
+            ephp_parser_class:st_class(<<SP:8,Rest/binary>>, add_pos(Pos, 5),
+                                       Class);
+        _ ->
+            Class = add_line(#class{}, Pos),
+            ephp_parser_class:st_class(<<SP:8,Rest/binary>>, add_pos(Pos, 5),
+                                       Class)
+    end,
     code(Rest0, Pos0, [Class0|Parsed]);
 code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) andalso
