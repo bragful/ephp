@@ -85,9 +85,6 @@ register_class(Ref, File, GlobalCtx,
                #class{name = Name, constants = ConstDef0,
                       methods = ClassMethods,
                       line = Index} = PHPClass) ->
-    Classes = erlang:get(Ref),
-    {ok, Ctx} = ephp_context:start_link(),
-    ephp_context:set_global(Ctx, GlobalCtx),
     ConstDef = lists:flatmap(fun(I) ->
         case get(Ref, I) of
             {ok, #class{type = interface} = Interface} ->
@@ -118,6 +115,8 @@ register_class(Ref, File, GlobalCtx,
     %% TODO: implement extends
     Consts = ephp_context:get_consts(GlobalCtx),
     ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
+    {ok, Ctx} = ephp_context:start_link(),
+    ephp_context:set_global(Ctx, GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         file = File,
@@ -125,7 +124,7 @@ register_class(Ref, File, GlobalCtx,
         attrs = get_attrs(Ref, PHPClass)
     },
     initialize_class(ActivePHPClass),
-    erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
+    erlang:put(Ref, dict:store(Name, ActivePHPClass, erlang:get(Ref))),
     ok.
 
 get_attrs(_Classes, #class{name = Name, extends = undefined, attrs = Attrs}) ->
