@@ -121,11 +121,23 @@ register_class(Ref, File, GlobalCtx,
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         file = File,
-        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ]
+        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ],
+        attrs = get_attrs(Ref, PHPClass)
     },
     initialize_class(ActivePHPClass),
     erlang:put(Ref, dict:store(Name, ActivePHPClass, Classes)),
     ok.
+
+get_attrs(_Classes, #class{name = Name, extends = undefined, attrs = Attrs}) ->
+    attrs_set_class_name(Name, Attrs);
+get_attrs(Classes, #class{name = Name, extends = Extends, attrs = Attrs}) ->
+    %% TODO check if the inherited class doesn't exist
+    {ok, Class} = get(Classes, Extends),
+    %% TODO check duplicated
+    attrs_set_class_name(Name, Attrs) ++  get_attrs(Classes, Class).
+
+attrs_set_class_name(Name, Attrs) ->
+    [ A#class_attr{class_name = Name} || A <- Attrs ].    
 
 tr_consts(Consts, Context) ->
     lists:map(fun(#class_const{name = N, value = V}) ->

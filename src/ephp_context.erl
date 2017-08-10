@@ -1284,11 +1284,12 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
 
 resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
             #state{ref = Ref, vars = Vars} = State) ->
-    #ephp_object{class = Class, context = Context} =
+    #ephp_object{class = #class{name = ClassName} = Class,
+                 context = Context} =
         ephp_object:get(ephp_vars:get(Vars, Var#variable{idx = []}, Ref)),
     {SubVal, State2} = resolve(SubVar, State),
-    {NewVar, State3} =
-        resolve_indexes(#variable{name = SubVal, idx = Idx}, State2),
+    {NewVar, State3} = resolve_indexes(#variable{name = SubVal,
+                                                 idx = Idx}, State2),
     ViaThis = (Var#variable.name =:= <<"this">>),
     case ephp_class:get_attribute(Class, SubVal) of
         #class_attr{access = protected} when not ViaThis ->
@@ -1297,6 +1298,16 @@ resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
                               ?E_ERROR, Data});
         #class_attr{access = private} when not ViaThis ->
             Data = {Class#class.name, SubVal, <<"private">>},
+            ephp_error:error({error, eprivateaccess, SubVar#variable.line,
+                              ?E_ERROR, Data});
+        #class_attr{access = private, class_name = CName}
+                when CName =/= ClassName ->
+            Data = {Class#class.name, SubVal, <<"private">>},
+            ephp_error:error({error, eprivateaccess, SubVar#variable.line,
+                              ?E_ERROR, Data});
+        #class_attr{access = protected, class_name = CName}
+                when CName =/= Class#class.extends ->
+            Data = {Class#class.name, SubVal, <<"protected">>},
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
                               ?E_ERROR, Data});
         #class_attr{access = public} ->

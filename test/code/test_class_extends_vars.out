@@ -1,0 +1,16 @@
+object(B)#1 (3) {
+  ["b"]=>
+  int(200)
+  ["a":protected]=>
+  int(100)
+  ["aa"]=>
+  int(100)
+}
+object(B)#1 (3) {
+  ["b"]=>
+  int(200)
+  ["a":protected]=>
+  int(125)
+  ["aa"]=>
+  int(150)
+}

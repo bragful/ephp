@@ -391,6 +391,7 @@
     type = normal :: normal | static,
     init_value = undefined :: mixed(),
     final = false :: boolean(),
+    class_name :: class_name(),
     line :: line()
 }).
 
