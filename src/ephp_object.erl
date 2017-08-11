@@ -165,7 +165,7 @@ remove(Context, #obj_ref{pid = Objects, ref = ObjectId}) ->
 %% @doc removes an object from the storage given the object or its ID.
 remove_complete(Context, Objects, ObjectId) ->
     ObjRef = #obj_ref{pid = Objects, ref = ObjectId},
-    #ephp_object{class = Class} = get(ObjRef),
+    #ephp_object{class = Class, context = Ctx} = get(ObjRef),
     Classes = ephp_context:get_classes(Context),
     case ephp_class:get_destructor(Classes, Class) of
         undefined ->
@@ -175,6 +175,8 @@ remove_complete(Context, Objects, ObjectId) ->
             ephp_context:call_method(Context, ObjRef, Call),
             ok
     end,
+    Vars = ephp_context:get_vars(Ctx),
+    ephp_vars:destroy(Context, Vars),
     NewObjects = array:set(ObjectId, undefined, erlang:get(Objects)),
     erlang:put(Objects, NewObjects),
     ok.
