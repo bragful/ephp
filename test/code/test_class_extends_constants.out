@@ -1,2 +1,4 @@
-FOO = 10
-BAR = 20
+FOO (B) = 10
+BAR (B) = 20
+FOO (C) = 10
+BAR (C) = 20

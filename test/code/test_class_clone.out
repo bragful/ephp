@@ -12,6 +12,24 @@ object(Simple)#2 (2) {
   ["name"]=>
   string(6) "cloned"
 }
-destroyed! created
+object(stdClass)#3 (1) {
+  ["simple"]=>
+  object(Simple)#1 (2) {
+    ["a"]=>
+    int(25)
+    ["name"]=>
+    string(7) "created"
+  }
+}
+object(stdClass)#4 (1) {
+  ["simple"]=>
+  object(Simple)#1 (2) {
+    ["a"]=>
+    int(25)
+    ["name"]=>
+    string(7) "created"
+  }
+}
 destroyed! cloned
+destroyed! created
 END

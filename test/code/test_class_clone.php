@@ -20,12 +20,19 @@ class Simple {
 
 $s1 = new Simple;
 $s2 = clone $s1;
+$s3 = new stdClass;
+$s3->simple = $s1;
+$s4 = clone $s3;
 
 var_dump($s1);
 var_dump($s2);
+var_dump($s3);
+var_dump($s4);
 
 unset($s1);
 unset($s2);
+unset($s3);
+unset($s4);
 
 print "END\n";
 

@@ -16,6 +16,7 @@
     get_constructor/2,
     get_destructor/2,
     get_attribute/2,
+    get_clone/2,
     get_method/4,
 
     class_attr/1,
@@ -227,7 +228,7 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
                                type = interface, line = Index}) ->
     case get(Ref, Extends) of
         {ok, #class{type = interface} = Interface} ->
-            get_consts(Interface);
+            get_consts(Interface) ++ get_extends_consts(Ref, Interface);
         {ok, #class{}} ->
             ephp_error:error({error, ecannotimpl, Index, ?E_ERROR,
                               {Name, Extends}});
@@ -244,7 +245,7 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
             ephp_error:error({error, ecannotextends, Index, ?E_ERROR,
                               {Name, Extends}});
         {ok, #class{} = Class} ->
-            get_consts(Class);
+            get_consts(Class) ++ get_extends_consts(Ref, Class);
         _ ->
             ephp_error:error({error, enoclass, Index, ?E_ERROR, {Extends}})
     end.
@@ -336,6 +337,26 @@ get_constructor(Ref, #class{name = Name, methods = Methods,
                 Extends ->
                     {ok, Parent} = get(Ref, Extends),
                     get_constructor(Ref, Parent)
+            end;
+        #class_method{}=ClassMethod ->
+            ClassMethod
+        end;
+    #class_method{}=ClassMethod ->
+        ClassMethod
+    end.
+
+get_clone(Ref, #class{name = Name, methods = Methods, extends = Extends}) ->
+    MethodName = <<"__clone">>,
+    case lists:keyfind(MethodName, #class_method.name, Methods) of
+    false ->
+        case lists:keyfind(Name, #class_method.name, Methods) of
+        false ->
+            case Extends of
+                undefined ->
+                    undefined;
+                Extends ->
+                    {ok, Parent} = get(Ref, Extends),
+                    get_clone(Ref, Parent)
             end;
         #class_method{}=ClassMethod ->
             ClassMethod
