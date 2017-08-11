@@ -154,12 +154,8 @@ extract_parents(Ref, #class{extends = Extends, implements = Impl}) ->
     ParentImpl = lists:flatten([ extract_parents(Ref, I) || I <- Impl ]),
     ParentExt ++ ParentImpl;
 extract_parents(Ref, Name) when is_binary(Name) ->
-    case get(Ref, Name) of
-        {ok, Class} ->
-            [Name|extract_parents(Ref, Class)];
-        {error, enoexist} ->
-            []
-    end.
+    {ok, Class} = get(Ref, Name),
+    [Name|extract_parents(Ref, Class)].
 
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     AllMethodsDict = lists:foldl(fun(I, D) ->
