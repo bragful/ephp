@@ -24,7 +24,6 @@
     run_quiet/2,
 
     error_reporting/2,
-    set_error_format/2,
     error/1,
     handle_error/2,
     get_line/1,
@@ -46,7 +45,6 @@
     exception_handler :: callable(),
     silent = false :: boolean(),
     level = ?E_ALL band (bnot ?E_STRICT) :: non_neg_integer(),
-    format = text :: error_format(),
     modules = [] :: [module()],
     last_error :: ephp_array() | undefined
 }).
@@ -125,14 +123,6 @@ remove_error_handler_func(Context) ->
             ok
     end.
 
--spec set_error_format(context(), error_format()) -> ok.
-
-set_error_format(Context, Format) ->
-    ErrorsId = ephp_context:get_errors_id(Context),
-    State = erlang:get(ErrorsId),
-    erlang:put(ErrorsId, State#state{format = Format}),
-    ok.
-
 -spec get_last(context()) -> ephp_array() | undefined.
 
 get_last(Context) ->
@@ -173,9 +163,9 @@ handle_error(Context, {error, euncaught, Index, File, Level,
     ErrorsId = ephp_context:get_errors_id(Context),
     case erlang:get(ErrorsId) of
         #state{exception_handler = undefined,
-               format = Format,
                modules = Modules,
                output_handler = OutputHandler} ->
+            Format = get_format(),
             {_, ErrorText} = get_message(Modules, Format, euncaught, Line, File,
                                          Level, {File, Line, Exception}),
             OutputHandler:set_output(Context, iolist_to_binary(ErrorText));
@@ -195,7 +185,8 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     Line = get_line(Index),
     ErrorsId = ephp_context:get_errors_id(Context),
     ErrorState = erlang:get(ErrorsId),
-    #state{format = Format, modules = Modules} = ErrorState,
+    #state{modules = Modules} = ErrorState,
+    Format = get_format(),
     {SimpleErrText, ErrorText} =
         get_message(Modules, Format, Type, Line, File, Level, Data),
     if
@@ -467,6 +458,14 @@ get_level(?E_RECOVERABLE_ERROR) -> <<"Catchable fatal error">>;
 get_level(?E_DEPRECATED) -> <<"Deprecated">>;
 get_level(?E_USER_DEPRECATED) -> <<"Deprecated">>;
 get_level(_) -> <<"Unknown">>.
+
+-spec get_format() -> error_format().
+
+get_format() ->
+    case ephp_config:get_bool(<<"html_errors">>, false) of
+        true -> html;
+        false -> text
+    end.
 
 -spec get_line(line() | undefined) -> non_neg_integer() | undefined.
 
