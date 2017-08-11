@@ -11,6 +11,8 @@
 
     get/1,
     get/2,
+    get_bool/1,
+    get_bool/2,
 
     set/2,
 
@@ -67,6 +69,28 @@ get(Key, Default) ->
                     application:get_env(ephp, Key, Default);
                 {ok, Value} ->
                     Value
+            end
+    end.
+
+-spec get_bool(Key :: binary()) -> boolean().
+
+get_bool(Key) ->
+    get_bool(Key, false).
+
+-spec get_bool(Key :: binary(), Default :: boolean())  -> boolean().
+
+get_bool(Key, Default) ->
+    case get(Key, Default) of
+        Val when is_boolean(Val) -> Val;
+        Text ->
+            case ephp_string:to_lower(Text) of
+                <<"on">> -> true;
+                <<"off">> -> false;
+                <<"yes">> -> true;
+                <<"no">> -> false;
+                <<"1">> -> true;
+                <<"0">> -> false;
+                Other -> ephp_data:to_bool(Other)
             end
     end.
 
