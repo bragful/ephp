@@ -54,6 +54,10 @@ handle_error(eprivateaccess, _Level, {Class, Element, Access}) ->
 handle_error(ecallprivate, _Level, {Class, Element, Access}) ->
     io_lib:format("Call to ~s method ~s::~s()", [Access, Class, Element]);
 
+handle_error(ecallprivate, _Level, {CClass, Class, Element, Access}) ->
+    io_lib:format("Call to ~s method ~s::~s() from context '~s'",
+                  [Access, Class, Element, CClass]);
+
 handle_error(eredefinedclass, _Level, {ClassName}) ->
     io_lib:format("Cannot redeclare class ~s", [ClassName]);
 

@@ -97,6 +97,7 @@ register_class(Ref, File, GlobalCtx,
          get_extends_consts(Ref, PHPClass) ++
          ConstDef0,
     Methods = extract_methods(Ref, Index, PHPClass#class.implements),
+    Parents = extract_parents(Ref, PHPClass),
     case check_dup(PHPClass#class.implements) of
         ok ->
             ok;
@@ -120,6 +121,7 @@ register_class(Ref, File, GlobalCtx,
     ephp_context:set_global(Ctx, GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
+        parents = Parents,
         file = File,
         methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ],
         attrs = get_attrs(Ref, PHPClass)
@@ -144,6 +146,20 @@ tr_consts(Consts, Context) ->
         Val = ephp_context:solve(Context, V),
         {N, Val}
     end, Consts).
+
+extract_parents(_Ref, undefined) ->
+    [];
+extract_parents(Ref, #class{extends = Extends, implements = Impl}) ->
+    ParentExt = extract_parents(Ref, Extends),
+    ParentImpl = lists:flatten([ extract_parents(Ref, I) || I <- Impl ]),
+    ParentExt ++ ParentImpl;
+extract_parents(Ref, Name) when is_binary(Name) ->
+    case get(Ref, Name) of
+        {ok, Class} ->
+            [Name|extract_parents(Ref, Class)];
+        {error, enoexist} ->
+            []
+    end.
 
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     AllMethodsDict = lists:foldl(fun(I, D) ->
@@ -286,25 +302,19 @@ instance_of(Context, Self, <<"self">>) ->
     instance_of(Context, Self, SelfClass);
 instance_of(Context, ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
     #ephp_object{class = Class} = ephp_object:get(ObjRef),
-    #class{extends = Extends,
-           implements = Impl,
-           name = InstanceName} = Class,
+    #class{parents = Parents, name = InstanceName} = Class,
     Classes = ephp_context:get_classes(Context),
     case get(Classes, Name) of
         {ok, #class{name = ClassName}} ->
             lists:any(fun(F) -> F() end, [
                 fun() -> ClassName =:= InstanceName end,
-                fun() -> member(ClassName, Extends) end,
-                fun() -> member(ClassName, Impl) end
+                fun() -> lists:member(ClassName, Parents) end
             ]);
         {error, _} ->
             false
     end;
 instance_of(_Context, _Data, _Type) ->
     false.
-
-member(_, undefined) -> false;
-member(Name, List) when is_list(List) -> lists:member(Name, List).
 
 initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
     lists:foreach(fun

@@ -48,6 +48,7 @@
     get_active_file/1,
     set_active_file/2,
     get_active_class/1,
+    set_active_class/2,
 
     set_tz/2,
     get_tz/1,
@@ -63,9 +64,8 @@
     get_function/2,
     is_defined_function/2,
 
-    get_current_function/1,
-    get_current_class/1,
-    get_current_function_arity/1,
+    get_active_function/1,
+    get_active_function_arity/1,
 
     set_errors_id/2,
     get_errors_id/1,
@@ -255,17 +255,13 @@ is_defined_function(Context, FuncName) ->
     #state{funcs=Funcs} = load_state(Context),
     ephp_func:is_defined(Funcs, FuncName).
 
-get_current_function(Context) ->
+get_active_function(Context) ->
     #state{active_fun=ActiveFun} = load_state(Context),
     ActiveFun.
 
-get_current_function_arity(Context) ->
+get_active_function_arity(Context) ->
     #state{active_fun_args=ActiveFunArgs} = load_state(Context),
     ActiveFunArgs.
-
-get_current_class(Context) ->
-    #state{active_class = ActiveClass} = load_state(Context),
-    ActiveClass.
 
 get_errors_id(Context) ->
     #state{errors=Errors} = load_state(Context),
@@ -314,6 +310,12 @@ set_active_file(Context, Filename) ->
         {<<"__FILE__">>, Filename},
         {<<"__DIR__">>, filename:dirname(Filename)}
     ]),
+    ok.
+
+set_active_class(Context, ClassName) ->
+    #state{const = Const} = State = load_state(Context),
+    save_state(State#state{active_class = ClassName}),
+    ephp_const:set(Const, <<"__CLASS__">>, ClassName),
     ok.
 
 get_tz(Context) ->
@@ -1147,12 +1149,25 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
             C
     end,
     #class{name = ClassName, file = ClassFile} = Class,
-    #class_method{name=MethodName, args=RawMethodArgs} = ClassMethod =
-        case Call#call.name of
-            <<"__construct">> ->
+    #class_method{args=RawMethodArgs} = ClassMethod = case Call#call.name of
+        <<"__construct">> ->
+            #class_method{name = MethodName} =
                 ephp_class:get_constructor(Classes, Class);
-            _ ->
-                ephp_class:get_method(Classes, Class, Line, Call#call.name)
+        _ ->
+            CallName = Call#call.name,
+            #class_method{class_name = MCName,
+                          access = Access, name = MethodName} = CM =
+                ephp_class:get_method(Classes, Class, Line, CallName),
+            IsChild = ephp_class:instance_of(Ref, RegInstance, MCName),
+            if
+                (Access =:= private andalso MCName =/= ClassName) orelse
+                (Access =:= protected andalso not IsChild) ->
+                    ephp_error:error({error, ecallprivate, Line, ?E_ERROR,
+                                      {ClassName, MCName, MethodName, Access}});
+                true ->
+                    ok
+            end,
+            CM
         end,
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     if
@@ -1175,11 +1190,9 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                 active_fun_args = length(Args),
                 active_class = ClassName}),
             register_superglobals(Ref, NewVars),
-            ephp_const:set_bulk(Const, [
-                {<<"__FUNCTION__">>, MethodName},
-                %% TODO: with static (late binding) this changes
-                {<<"__CLASS__">>, ClassMethod#class_method.class_name}
-            ]),
+            ephp_const:set(Const, <<"__FUNCTION__">>, MethodName),
+            %% TODO: with static (late binding) this changes
+            set_active_class(Ref, ClassMethod#class_method.class_name),
             Refs = lists:map(fun
                 (#variable{} = Var) ->
                     #var_ref{pid = NewVars, ref = Var};
@@ -1201,10 +1214,8 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                 true ->
                     ok
             end,
-            ephp_const:set_bulk(Const, [
-                {<<"__FUNCTION__">>, State#state.active_fun},
-                {<<"__CLASS__">>, State#state.active_class}
-            ]),
+            ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
+            set_active_class(Ref, State#state.active_class),
             ephp_stack:pop(Ref),
             {Value, NState};
         builtin ->

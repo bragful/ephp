@@ -420,6 +420,7 @@
     name :: class_name(),
     type = normal :: class_type(),
     final = false :: boolean(),
+    parents = [] :: [class_name()],
     extends :: undefined | class_name(),
     implements = [] :: [class_name()],
     constants = [] :: [class_const()],

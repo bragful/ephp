@@ -43,7 +43,7 @@ register_shutdown_function(Context, _Line, [{_,Callback}|_RawArgs]) ->
 -spec func_num_args(context(), line()) -> non_neg_integer().
 
 func_num_args(Context, _Line) ->
-    ephp_context:get_current_function_arity(Context).
+    ephp_context:get_active_function_arity(Context).
 
 -spec get_defined_functions(context(), line()) -> ephp_array().
 

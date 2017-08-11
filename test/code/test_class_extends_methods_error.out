@@ -1,0 +1,2 @@
+calling to protected B -> b1() who is 
+Fatal error: Call to private method A::a1() from context 'B' in {{CWD}}/test/code/test_class_extends_methods_error.php on line 16
