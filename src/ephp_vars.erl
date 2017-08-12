@@ -141,6 +141,9 @@ destroy_data(Context, Vars) when ?IS_ARRAY(Vars) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
+exists(#variable{} = Var, MemRef) when ?IS_MEM(MemRef) ->
+    exists(Var, ephp_mem:get(MemRef));
+
 exists(#variable{name = Root, idx=[]}, Vars) ->
     case ephp_array:find(Root, Vars) of
         error -> false;
@@ -202,11 +205,11 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line},
         {ok, #var_ref{pid = RefVarsPID, ref = #variable{idx = NewIdx} = RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             get(RefVarsPID, NewRefVar);
-        {ok, #mem_ref{} = MemRef} ->
+        {ok, MemRef} when ?IS_MEM(MemRef) ->
             search(#variable{name = NewRoot, idx = Idx},
                    ephp_mem:get(MemRef), Context);
-        {ok, #obj_ref{pid = Objects, ref = ObjectId}} ->
-            Ctx = ephp_object:get_context(Objects, ObjectId),
+        {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
+            Ctx = ephp_object:get_context(ObjRef),
             NewObjVar = #variable{name = NewRoot, idx = Idx},
             get(Ctx, NewObjVar);
         {ok, NewVars} ->
