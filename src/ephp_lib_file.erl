@@ -33,13 +33,17 @@ init_const() -> [].
 
 -spec basename(context(), line(), var_value()) -> binary().
 
-basename(_Context, _Line, {_Var,PathFile}) ->
-    filename:basename(PathFile).
+basename(_Context, _Line, {_Var, undefined}) ->
+    <<>>;
+basename(_Context, _Line, {_Var, PathFile}) ->
+    filename:basename(ephp_data:to_binary(PathFile)).
 
 -spec dirname(context(), line(), var_value()) -> binary().
 
-dirname(_Context, _Line, {_Var,PathFile}) ->
-    filename:dirname(PathFile).
+dirname(_Context, _Line, {_Var, undefined}) ->
+    <<>>;
+dirname(_Context, _Line, {_Var, PathFile}) ->
+    filename:dirname(ephp_data:to_binary(PathFile)).
 
 -spec file_exists(context(), line(), var_value()) -> boolean().
 

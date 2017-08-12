@@ -1059,15 +1059,15 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
             {RRArg, NewState} = resolve_indexes(RArg, S),
             {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
         ({type_ref, _Default}, {[RArg|RArgs], I, Args, S}) ->
-            {A,NewState} = resolve(RArg,S),
+            {A,NewState} = resolve(RArg, S),
             {RArgs, I+1, Args ++ [{RArg,A}], NewState};
         (type_ref, {[RArg|RArgs], I, Args, S}) ->
-            {A,NewState} = resolve(RArg,S),
+            {A,NewState} = resolve(RArg, S),
             {RArgs, I+1, Args ++ [{RArg,A}], NewState};
         ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
             {A, NewState} = case resolve(RArg,S) of
                 {MemRef, NS} when ?IS_MEM(MemRef) ->
-                    {ephp_mem:get(MemRef), NS};
+                    resolve(ephp_mem:get(MemRef), NS);
                 {A0, NS} ->
                     {A0, NS}
             end,
@@ -1076,7 +1076,7 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
         (VArg, {[RArg|RArgs], I, Args, S}) ->
             {A, NewState} = case resolve(RArg,S) of
                 {MemRef, NS} when ?IS_MEM(MemRef) ->
-                    {ephp_mem:get(MemRef), NS};
+                    resolve(ephp_mem:get(MemRef), NS);
                 {A0, NS} ->
                     {A0, NS}
             end,
