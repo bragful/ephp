@@ -28,7 +28,8 @@
                     array |
                     object |
                     resource |
-                    raw.
+                    raw |
+                    type_ref.
 -type validation_arg() ::
     {type_arg(), default_value()} |
     type_arg().

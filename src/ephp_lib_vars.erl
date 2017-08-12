@@ -48,7 +48,7 @@ init_func() -> [
     {isset, [{args, [raw]}]},
     empty,
     gettype,
-    unset,
+    {unset, [{args, [type_ref]}]},
     {var_dump, [pack_args]}
 ].
 

@@ -1017,7 +1017,10 @@ resolve_args(undefined, State) ->
     {[], State};
 resolve_args(RawArgs, State) ->
     lists:foldl(fun(Arg, {Args, S}) ->
-        {A, NewState} = resolve(Arg, S),
+        case resolve(Arg, S) of
+            {M, NewState} when ?IS_MEM(M) -> A = ephp_mem:get(M);
+            {A, NewState} -> ok
+        end,
         {Args ++ [{Arg, A}], NewState}
     end, {[], State}, RawArgs).
 
@@ -1055,12 +1058,28 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
         (raw, {[RArg|RArgs], I, Args, S}) ->
             {RRArg, NewState} = resolve_indexes(RArg, S),
             {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
-        ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
+        ({type_ref, _Default}, {[RArg|RArgs], I, Args, S}) ->
             {A,NewState} = resolve(RArg,S),
+            {RArgs, I+1, Args ++ [{RArg,A}], NewState};
+        (type_ref, {[RArg|RArgs], I, Args, S}) ->
+            {A,NewState} = resolve(RArg,S),
+            {RArgs, I+1, Args ++ [{RArg,A}], NewState};
+        ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
+            {A, NewState} = case resolve(RArg,S) of
+                {MemRef, NS} when ?IS_MEM(MemRef) ->
+                    {ephp_mem:get(MemRef), NS};
+                {A0, NS} ->
+                    {A0, NS}
+            end,
             check_arg(State, Line, I, VArg, A, ReturnError),
             {RArgs, I+1, Args ++ [{RArg,A}], NewState};
         (VArg, {[RArg|RArgs], I, Args, S}) ->
-            {A,NewState} = resolve(RArg,S),
+            {A, NewState} = case resolve(RArg,S) of
+                {MemRef, NS} when ?IS_MEM(MemRef) ->
+                    {ephp_mem:get(MemRef), NS};
+                {A0, NS} ->
+                    {A0, NS}
+            end,
             check_arg(State, Line, I, VArg, A, ReturnError),
             {RArgs, I+1, Args ++ [{RArg,A}], NewState}
     end, {RawArgs, 1, [], State}, VArgs),
@@ -1076,6 +1095,8 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
             throw({return, ReturnError})
     end.
 
+check_arg(State, Line, I, Type, MemRef, ReturnError) when ?IS_MEM(MemRef) ->
+    check_arg(State, Line, I, Type, ephp_mem:get(MemRef), ReturnError);
 check_arg(_State, _Line, _I, mixed, _A, _ReturnError) ->
     ok;
 check_arg(State, Line, I, string, A, ReturnError)
