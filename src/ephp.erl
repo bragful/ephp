@@ -237,7 +237,7 @@ register_superglobals(Ctx, [Filename|_] = RawArgs) ->
         %% TODO: add the rest of _SERVER vars
         {<<"argc">>, ephp_array:size(ArrayArgs)},
         {<<"argv">>, ArrayArgs},
-        {<<"PHP_SELF">>, Filename}
+        {<<"PHP_SELF">>, ephp_data:to_bin(Filename)}
     ],
     ephp_context:set(Ctx, #variable{name = <<"_SERVER">>},
                      ephp_array:from_list(Server)),
