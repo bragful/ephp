@@ -12,7 +12,8 @@
     phpversion/2,
     ini_get/3,
     ini_set/4,
-    set_include_path/3
+    set_include_path/3,
+    version_compare/5
 ]).
 
 -spec init_func() -> ephp_func:php_function_results().
@@ -22,7 +23,10 @@ init_func() -> [
     phpversion,
     ini_get,
     ini_set,
-    set_include_path
+    set_include_path,
+    {version_compare, [
+        {args, {2, 2, undefined, [string, string, {string, undefined}]}}
+    ]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -106,6 +110,33 @@ ini_set(_Context, _Line, {_,Key}, {_,Value}) ->
 set_include_path(_Context, _Line, {_,NewPath}) ->
     ephp_config:set(<<"include_path">>, NewPath),
     NewPath.
+
+-spec version_compare(context(), line(),
+                      Vsn1::var_value(),
+                      Vsn2::var_value(),
+                      Op::var_value()) -> boolean() | integer().
+
+version_compare(_Context, _Line, {_, Vsn1}, {_, Vsn2}, {_, undefined}) ->
+    ephp_string:vsn_cmp(Vsn1, Vsn2);
+
+version_compare(_Context, _Line, {_, Vsn1}, {_, Vsn2}, {_, Op}) ->
+    case {Op, ephp_string:vsn_cmp(Vsn1, Vsn2)} of
+        {<<"<">>, -1} -> true;
+        {<<"lt">>, -1} -> true;
+        {<<"<=">>, I} when I =< 0 -> true;
+        {<<"le">>, I} when I =< 0 -> true;
+        {<<">">>, 1} -> true;
+        {<<"gt">>, 1} -> true;
+        {<<">=">>, I} when I >= 0 -> true;
+        {<<"ge">>, I} when I >= 0 -> true;
+        {<<"==">>, 0} -> true;
+        {<<"=">>, 0} -> true;
+        {<<"eq">>, 0} -> true;
+        {<<"!=">>, I} when I =/= 0 -> true;
+        {<<"<>">>, I} when I =/= 0 -> true;
+        {<<"ne">>, I} when I =/= 0 -> true;
+        _ -> false
+    end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

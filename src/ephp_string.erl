@@ -11,7 +11,8 @@
     trim/1,
     rtrim/2,
     ltrim/2,
-    join/2
+    join/2,
+    vsn_cmp/2
 ]).
 
 -spec to_lower(binary() | undefined) -> binary() | undefined.
@@ -98,3 +99,21 @@ join([Head|Tail], Sep) ->
     lists:foldl(fun (Value, Acc) ->
         <<Acc/binary, Sep/binary, Value/binary>>
     end, Head, Tail).
+
+-spec vsn_cmp(binary(), binary()) -> integer();
+             ([binary()], [binary()]) -> integer().
+
+vsn_cmp(Vsn1, Vsn2) when is_binary(Vsn1) andalso is_binary(Vsn2) ->
+    Vsn01 = hd(binary:split(Vsn1, <<"-">>)),
+    Vsn1parts = binary:split(Vsn01, <<".">>, [global]),
+    Vsn02 = hd(binary:split(Vsn2, <<"-">>)),
+    Vsn2parts = binary:split(Vsn02, <<".">>, [global]),
+    vsn_cmp([ binary_to_integer(B) || B <- Vsn1parts ],
+            [ binary_to_integer(B) || B <- Vsn2parts ]);
+
+vsn_cmp([], []) -> 0;
+vsn_cmp([_|_], []) -> 1;
+vsn_cmp([], [_|_]) -> -1;
+vsn_cmp([A|_], [B|_]) when A > B -> 1;
+vsn_cmp([A|_], [B|_]) when A < B -> -1;
+vsn_cmp([A|ARest], [A|BRest]) -> vsn_cmp(ARest, BRest).
