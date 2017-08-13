@@ -648,6 +648,15 @@ st_if(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_if(Rest, new_line(Pos), Parsed);
 st_if(<<";",Rest/binary>>, Pos, [#if_block{}] = Parsed) ->
     st_if(Rest, add_pos(Pos, 1), Parsed);
+st_if(<<"//",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    st_if(Rest0, Pos0, Parsed);
+st_if(<<"#",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    st_if(Rest0, Pos0, Parsed);
+st_if(<<"/*",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
+    st_if(Rest0, Pos0, Parsed);
 st_if(<<"(",Rest/binary>>, Pos, []) ->
     NewPos = add_pos(Pos,1),
     {<<")",Rest1/binary>>, Pos1, Conditions} =
