@@ -13,7 +13,8 @@
     ini_get/3,
     ini_set/4,
     set_include_path/3,
-    version_compare/5
+    version_compare/5,
+    extension_loaded/3
 ]).
 
 -spec init_func() -> ephp_func:php_function_results().
@@ -26,6 +27,9 @@ init_func() -> [
     set_include_path,
     {version_compare, [
         {args, {2, 2, undefined, [string, string, {string, undefined}]}}
+    ]},
+    {extension_loaded, [
+        {args, {1, 1, undefined, [string]}}
     ]}
 ].
 
@@ -137,6 +141,17 @@ version_compare(_Context, _Line, {_, Vsn1}, {_, Vsn2}, {_, Op}) ->
         {<<"ne">>, I} when I =/= 0 -> true;
         _ -> false
     end.
+
+-spec extension_loaded(context(), line(), Name :: var_value()) -> boolean().
+
+extension_loaded(_Context, _Line, {_, ModuleName}) ->
+    Modules = lists:map(fun(M) ->
+        case atom_to_binary(M, utf8) of
+            <<"ephp_lib_", Module/binary>> -> Module;
+            Module -> Module
+        end
+    end, ephp_config:get(modules)),
+    lists:member(ModuleName, Modules).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
