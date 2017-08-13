@@ -27,7 +27,9 @@
     str_split/3,
     str_split/4,
     strpos/4,
-    strpos/5
+    strpos/5,
+    rtrim/4,
+    ltrim/4
 ]).
 
 -include("ephp.hrl").
@@ -56,7 +58,13 @@ init_func() -> [
     strtolower,
     strtoupper,
     str_split,
-    strpos
+    strpos,
+    {ltrim, [
+        {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
+    ]},
+    {rtrim, [
+        {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
+    ]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -330,6 +338,19 @@ strpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
             end
     end.
 
+-spec rtrim(context(), line(), Str::var_value(), CharMask::var_value()) ->
+      binary() | undefined.
+
+rtrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
+    Chars = binary_to_list(CharMask),
+    ephp_string:rtrim(Str, Chars).
+
+-spec ltrim(context(), line(), Str::var_value(), CharMask::var_value()) ->
+      binary() | undefined.
+
+ltrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
+    Chars = binary_to_list(CharMask),
+    ephp_string:ltrim(Str, Chars).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

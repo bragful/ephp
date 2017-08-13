@@ -9,6 +9,8 @@
     to_upper/1,
     escape/2,
     trim/1,
+    rtrim/2,
+    ltrim/2,
     join/2
 ]).
 
@@ -51,6 +53,38 @@ trim(undefined) ->
 trim(Text) ->
     re:replace(Text, "^\\s+|\\s+$", "", [{return, binary}, global]).
 
+
+-spec rtrim(binary(), [byte()]) -> binary().
+
+rtrim(<<>>, _Chars) ->
+    <<>>;
+rtrim(<<A:8>>, Chars) ->
+    case lists:member(A, Chars) of
+        true -> <<>>;
+        false -> <<A:8>>
+    end;
+rtrim(Text, Chars) ->
+    Size = byte_size(Text) - 1,
+    <<Rest:Size/binary,A:8>> = Text,
+    case lists:member(A, Chars) of
+        true -> rtrim(Rest, Chars);
+        false -> Text
+    end.
+
+-spec ltrim(binary(), [byte()]) -> binary().
+
+ltrim(<<>>, _Chars) ->
+    <<>>;
+ltrim(<<A:8>>, Chars) ->
+    case lists:member(A, Chars) of
+        true -> <<>>;
+        false -> <<A:8>>
+    end;
+ltrim(<<A:8,Rest/binary>> = Text, Chars) ->
+    case lists:member(A, Chars) of
+        true -> ltrim(Rest, Chars);
+        false -> Text
+    end.
 
 -spec join([binary()], binary()) -> binary().
 
