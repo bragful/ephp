@@ -150,6 +150,8 @@ parse_regexp(<<>>, _Result, _EndDelim) ->
     throw({error, enodelim});
 parse_regexp(<<EndDelim:8,Rest/binary>>, Result, EndDelim) ->
     {Result, Rest};
+parse_regexp(<<"\\",EndDelim:8,Rest/binary>>, Result, EndDelim) ->
+    parse_regexp(Rest, <<Result/binary, "\\", EndDelim:8>>, EndDelim);
 parse_regexp(<<"(",Rest/binary>>, Result, EndDelim) ->
     {NewResult, NewRest} = parse_regexp(Rest, $)),
     parse_regexp(NewRest, <<Result/binary,"(",NewResult/binary,")">>, EndDelim);
