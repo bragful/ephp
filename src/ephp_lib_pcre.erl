@@ -9,7 +9,8 @@
     init_config/0,
     init_const/0,
 
-    preg_match/7
+    preg_match/7,
+    preg_replace/7
 ]).
 
 -define(PREG_OFFSET_CAPTURE, 256).
@@ -22,9 +23,12 @@
 init_func() -> [
     {preg_match, [{args, {2, 5, false, [string,
                                         string,
-                                        raw,
+                                        {raw, ephp_array:new()},
                                         {integer, ?PREG_OFFSET_CAPTURE},
-                                        {integer, 0}]}}]}
+                                        {integer, 0}]}}]},
+    {preg_replace, [{args, {3, 5, undefined, [mixed, mixed, mixed,
+                                              {integer, -1},
+                                              {integer, 0}]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -49,6 +53,24 @@ init_const() ->
         {<<"PREG_BAD_UTF8_OFFSET_ERROR">>, 5},
         {<<"PCRE_VERSION">>, <<?PCRE_VERSION>>}
     ].
+
+-spec preg_replace(context(), line(),
+                   Pattern :: var_value(),
+                   Replacement :: var_value(),
+                   Subject :: var_value(),
+                   Limit :: var_value(),
+                   Count :: var_value()) -> binary() | ephp_array() | undefined.
+
+%% TODO: check when Pattern, Replacement and Subject are arrays
+preg_replace(_Context, _Line, {_, Pattern}, {_, Replacement}, {_, Subject},
+                              {_, Limit}, {undefined, _}) ->
+    {RegExp, Flags} = get_parts(Pattern),
+    PMFlags = case Limit of
+        -1 -> Flags;
+        _ -> [{match_limit, Limit}|Flags]
+    end,
+    Replace = parse_replace(Replacement),
+    re:replace(Subject, RegExp, Replace, [{return, binary}|PMFlags]).
 
 -spec preg_match(
     context(), line(),
@@ -94,6 +116,32 @@ get_parts(<<InitDelim:8,Rest/binary>>) ->
     {RegExp, RawFlags} = parse_regexp(Rest, EndDelim),
     Flags = parse_flags(RawFlags),
     {RegExp, Flags}.
+
+parse_replace(Replacement) ->
+    parse_replace(Replacement, <<>>).
+
+parse_replace(<<>>, Result) ->
+    Result;
+parse_replace(<<"\\",Rest/binary>>, Result) ->
+    parse_replace(Rest, <<Result/binary, "\\\\">>);
+parse_replace(<<"${",Rest/binary>>, Result) ->
+    case binary:split(Rest, <<"}">>) of
+        [Num, NewRest] ->
+            parse_replace(NewRest, <<Result/binary,"\\",Num/binary>>);
+        _ ->
+            %% TODO: error?
+            ok
+    end;
+parse_replace(<<"$",Rest/binary>>, Result) ->
+    {NewRest, Num} = parse_number(Rest, <<>>),
+    parse_replace(NewRest, <<Result/binary,"\\",Num/binary>>);
+parse_replace(<<A/utf8,Rest/binary>>, Result) ->
+    parse_replace(Rest, <<Result/binary,A/utf8>>).
+
+parse_number(<<A:8,Rest/binary>>, Result) when A >= 0 andalso A =< 9 ->
+    parse_number(Rest, <<Result/binary, A:8>>);
+parse_number(Rest, Result) ->
+    {Rest, Result}.
 
 parse_regexp(String, EndDelim) ->
     parse_regexp(String, <<>>, EndDelim).
