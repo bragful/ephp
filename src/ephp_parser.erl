@@ -184,8 +184,8 @@ code(<<F:8,A:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
 code(<<I:8,F:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(I,$i,$I) andalso ?OR(F,$f,$F) andalso ?OR(SP,32,$() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
-    {Rest1, Pos1, NewParsed} = st_if(Rest0, Pos0, Parsed),
-    code(Rest1, copy_level(Pos,Pos1), NewParsed);
+    {Rest1, Pos1, [If]} = st_if(Rest0, Pos0, []),
+    code(Rest1, copy_level(Pos,Pos1), [If|Parsed]);
 code(<<W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(W,$w,$W) andalso ?OR(H,$h,$H) andalso ?OR(I,$i,$I)
         andalso ?OR(L,$l,$L) andalso ?OR(E,$e,$E) andalso ?OR(SP,32,$() ->
@@ -215,13 +215,6 @@ code(<<E:8,L:8,S:8,E:8,SP:8,_/binary>> = Rest, {if_old_block,_,_}=Pos, Parsed)
         when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
         andalso (SP =:= $: orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I)) ->
     {Rest, Pos, Parsed};
-code(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, [#if_block{}|_]=Parsed) when
-        ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S) andalso
-        (?OR(SP,${,$:) orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I) orelse
-         ?IS_NEWLINE(SP)) ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
-    {Rest1, Pos1, NewParsed} = st_else(Rest0, Pos0, Parsed),
-    code(Rest1, copy_level(Pos, Pos1), NewParsed);
 code(<<S:8,W:8,I:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(S,$S,$s) andalso ?OR(W,$W,$w) andalso ?OR(I,$I,$i) andalso
         ?OR(T,$T,$t) andalso ?OR(C,$C,$c) andalso ?OR(H,$H,$h) andalso
@@ -653,7 +646,9 @@ st_if(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     st_if(Rest, add_pos(Pos,1), Parsed);
 st_if(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_if(Rest, new_line(Pos), Parsed);
-st_if(<<"(",Rest/binary>>, Pos, Parsed) ->
+st_if(<<";",Rest/binary>>, Pos, [#if_block{}] = Parsed) ->
+    st_if(Rest, add_pos(Pos, 1), Parsed);
+st_if(<<"(",Rest/binary>>, Pos, []) ->
     NewPos = add_pos(Pos,1),
     {<<")",Rest1/binary>>, Pos1, Conditions} =
         expression(Rest, arg_level(NewPos), []),
@@ -662,21 +657,29 @@ st_if(<<"(",Rest/binary>>, Pos, Parsed) ->
         conditions=Conditions,
         true_block=CodeBlock
     }, Pos),
-    {Rest2, copy_level(Pos, Pos2), [If|Parsed]};
+    st_if(Rest2, copy_level(Pos, Pos2), [If]);
+st_if(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, [#if_block{} = If|Parsed]) when
+        ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S) andalso
+        (?OR(SP,${,$:) orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 4)),
+    BlockPos = if_block_level(Pos0),
+    {Rest1, Pos1, CodeBlock} = code_block(Rest0, BlockPos, []),
+    IfWithElse = If#if_block{false_block = CodeBlock},
+    {Rest1, copy_level(Pos, Pos1), [IfWithElse|Parsed]};
+st_if(<<E:8,L:8,S:8,E:8,I:8,F:8,SP:8,Rest/binary>>, Pos,
+      [#if_block{} = If|Parsed]) when
+        ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S) andalso
+        ?OR(I,$i,$I) andalso ?OR(F,$f,$F) andalso
+        (SP =:= $( orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest1, Pos1, CodeBlock} = st_if(<<SP:8,Rest/binary>>, add_pos(Pos, 6), []),
+    IfWithElse = If#if_block{false_block = CodeBlock},
+    {Rest1, copy_level(Pos, Pos1), [IfWithElse|Parsed]};
+st_if(<<>>, Pos, [#if_block{}] = Parsed) ->
+    {<<>>, Pos, Parsed};
 st_if(<<>>, Pos, _Parsed) ->
-    throw_error(eparse, Pos, <<>>).
-
-st_else(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
-    st_else(Rest, add_pos(Pos,1), Parsed);
-st_else(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
-    st_else(Rest, new_line(Pos), Parsed);
-st_else(Rest0, {Level,_,_}=Pos0, [#if_block{}=If|Parsed]) ->
-    BlockPos = if_block_level(add_pos(Pos0,4)),
-    {Rest1, {_,Row1,Col1}, CodeBlock} = code_block(Rest0, BlockPos, []),
-    IfWithElse = If#if_block{false_block=CodeBlock},
-    {Rest1, {Level,Row1,Col1}, [IfWithElse|Parsed]};
-st_else(<<>>, Pos, _Parsed) ->
-    throw_error(eparse, Pos, <<>>).
+    throw_error(eparse, Pos, <<>>);
+st_if(Rest, Pos, [#if_block{}]=Parsed) ->
+    {Rest, Pos, Parsed}.
 
 args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     args(Rest, add_pos(Pos,1), Parsed);
