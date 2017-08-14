@@ -86,6 +86,10 @@ handle_error(ecannotimpl, _Level, {ClassName, NoInterfaceName}) ->
     io_lib:format("~s cannot implement ~s - it is not an interface",
                   [ClassName, NoInterfaceName]);
 
+handle_error(ecannotextends, _Level, {ClassName, Interface}) ->
+    io_lib:format("Class ~s cannot extend from interface ~s",
+                  [ClassName, Interface]);
+
 handle_error(eimpl, _Level, {PrevClass, Method, Class, Args}) ->
     io_lib:format("Declaration of ~s::~s() must be compatible with ~s::~s(~s)",
                   [PrevClass, Method, Class, Method, Args]);
