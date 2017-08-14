@@ -710,6 +710,11 @@ resolve(#array{elements = ArrayElements}, State) ->
             {ephp_array:store(auto, Value, Dict), NewState};
         (#array_element{idx = I, element = Element}, {Dict, NS}) ->
             {Value, NewState} = resolve(Element, NS),
+            if
+                ?IS_OBJECT(Value) -> ephp_object:add_link(Value);
+                ?IS_MEM(Value) -> ephp_mem:add_link(Value);
+                true -> ok
+            end,
             {Idx, ReNewState} = resolve(I, NewState),
             {ephp_array:store(Idx, Value, Dict), ReNewState}
     end, {ephp_array:new(), State}, ArrayElements),
@@ -939,6 +944,7 @@ resolve(undefined, State) ->
 resolve(#ref{var = #variable{} = Var}, #state{ref = Ctx, vars = Vars} = State) ->
     Ref = case ephp_vars:get(Vars, Var) of
         ObjRef when ?IS_OBJECT(ObjRef) ->
+            ephp_object:add_link(ObjRef),
             ObjRef;
         MemRef when ?IS_MEM(MemRef) ->
             ephp_mem:add_link(MemRef),
