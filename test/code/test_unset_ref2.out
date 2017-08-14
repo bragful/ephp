@@ -1,0 +1,21 @@
+$b = int(1)
+$a = array(3) {
+  [0]=>
+  &int(1)
+  [1]=>
+  int(2)
+  [2]=>
+  int(3)
+}
+we remove $b
+$a = array(3) {
+  [0]=>
+  int(1)
+  [1]=>
+  int(2)
+  [2]=>
+  int(3)
+}
+$b = 
+Notice: Undefined variable: b in {{CWD}}/test/code/test_unset_ref2.php on line 14
+NULL

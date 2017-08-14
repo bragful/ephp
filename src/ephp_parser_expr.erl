@@ -491,7 +491,7 @@ expression(<<"{",Rest/binary>>, Pos,
             expression(RealRest, NewPos, NewParsed);
         _ ->
             throw_error(eparse, Pos, Rest)
-    end; 
+    end;
 % OPERATORS 2 LETTERS
 expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     expression(Rest, add_pos(Pos,2), add_op({Op,precedence(Op),Pos}, Parsed));
@@ -508,7 +508,8 @@ expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
     {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
     case lists:last(Ops) of
         #constant{} ->
-            throw_error(eparse, Pos, {Constant#constant.name, <<"T_STRING">>});
+            throw_error(eparse, Pos, {Constant#constant.name,
+                                      <<"`\"T_STRING\"'">>});
         _ ->
             expression(Rest0, {L,R,C}, add_op(Constant, Parsed))
     end;
@@ -708,10 +709,13 @@ gen_op([#constant{name = <<"break">>}, #int{int=I}], []) ->
     [{break, I}];
 gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
     Object = case B of
-        #constant{name=Name} ->
-            add_line({object, Name}, Pos);
-        _ ->
-            add_line({object, B}, Pos)
+        #constant{name=Name} -> add_line({object, Name}, Pos);
+        #variable{} -> add_line({object, B}, Pos);
+        #call{} -> add_line({object, B}, Pos);
+        _ -> throw_error(eparse, Pos,
+                         {<<"`\"identifier (T_STRING)\"' or "
+                            "`\"variable (T_VARIABLE)\"' or "
+                            "`'{'' or `'$''">>})
     end,
     gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
 gen_op([{<<"::">>,{_,_},_Pos}|Rest], [#constant{} = A,B|Stack]) ->

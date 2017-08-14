@@ -66,6 +66,15 @@ st_interface_content(<<"}", Rest/binary>>, Pos, Class) ->
     {Rest, add_pos(Pos, 1), Class};
 st_interface_content(<<";", Rest/binary>>, Pos, Interface) ->
     st_interface_content(Rest, normal_public_level(add_pos(Pos, 1)), Interface);
+st_interface_content(<<"//",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_line(Rest, Pos, Parsed),
+    st_interface_content(Rest0, Pos0, Parsed);
+st_interface_content(<<"#",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_line(Rest, Pos, Parsed),
+    st_interface_content(Rest0, Pos0, Parsed);
+st_interface_content(<<"/*",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_block(Rest, Pos, Parsed),
+    st_interface_content(Rest0, Pos0, Parsed);
 st_interface_content(<<P:8,U:8,B:8,L:8,I:8,C:8,SP:8,Rest/binary>>, Pos, Interface) when
         ?OR(P,$P,$p) andalso ?OR(U,$U,$u) andalso ?OR(B,$B,$b) andalso
         ?OR(L,$L,$l) andalso ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
@@ -122,6 +131,15 @@ st_class_content(<<"}",Rest/binary>>, Pos, Class) ->
     {Rest, add_pos(Pos,1), Class};
 st_class_content(<<";",Rest/binary>>, Pos, Class) ->
     st_class_content(Rest, normal_public_level(add_pos(Pos, 1)), Class);
+st_class_content(<<"//",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_line(Rest, Pos, Parsed),
+    st_class_content(Rest0, Pos0, Parsed);
+st_class_content(<<"#",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_line(Rest, Pos, Parsed),
+    st_class_content(Rest0, Pos0, Parsed);
+st_class_content(<<"/*",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_block(Rest, Pos, Parsed),
+    st_class_content(Rest0, Pos0, Parsed);
 st_class_content(<<P:8,U:8,B:8,L:8,I:8,C:8,SP:8,Rest/binary>>, Pos, Class) when
         ?OR(P,$P,$p) andalso ?OR(U,$U,$u) andalso ?OR(B,$B,$b) andalso
         ?OR(L,$L,$l) andalso ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
