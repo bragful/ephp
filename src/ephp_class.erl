@@ -124,7 +124,11 @@ register_class(Ref, File, GlobalCtx,
     %% TODO: implement extends
     Consts = ephp_context:get_consts(GlobalCtx),
     ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
+    %% TODO: create function to create better a context for classes/objects
     {ok, Ctx} = ephp_context:start_link(),
+    ephp_context:set_active_file(Ctx, ephp_context:get_active_file(GlobalCtx)),
+    ephp_context:set_errors_id(Ctx, ephp_context:get_errors_id(GlobalCtx)),
+    ephp_context:set_output_handler(Ctx, ephp_context:get_output_handler(GlobalCtx)),
     ephp_context:set_global(Ctx, GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
@@ -295,11 +299,14 @@ instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
     case get(Ref, RawClassName) of
     {ok, #class{} = Class} ->
         {ok, Ctx} = ephp_context:start_link(),
+        ephp_context:set_active_file(Ctx, ephp_context:get_active_file(LocalCtx)),
+        ephp_context:set_errors_id(Ctx, ephp_context:get_errors_id(LocalCtx)),
+        ephp_context:set_output_handler(Ctx, ephp_context:get_output_handler(LocalCtx)),
         ephp_context:set_global(Ctx, GlobalCtx),
         RegClass = #ephp_object{class = Class, context = Ctx},
         Objects = ephp_context:get_objects(LocalCtx),
         ObjectId = ephp_object:add(Objects, RegClass),
-        initialize(Ctx, Class),
+        initialize(Ctx, Class#class.name, Class),
         #obj_ref{pid = Objects, ref = ObjectId};
     {error, enoexist} ->
         ephp_error:error({error, eundefclass, Line, ?E_ERROR,
@@ -350,12 +357,15 @@ initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
             ignore
     end, Attrs).
 
-initialize(Ctx, #class{attrs=Attrs}) ->
+initialize(Ctx, ClassName, #class{attrs=Attrs}) ->
     lists:foreach(fun
-        (#class_attr{type=normal, name=Name, init_value=RawVal}) ->
+        (#class_attr{type = normal, access = private, class_name = CName})
+                when ClassName =/= CName ->
+            ignore;
+        (#class_attr{type = normal, name = Name, init_value = RawVal}) ->
             Val = ephp_context:solve(Ctx, RawVal),
             ephp_context:set(Ctx, #variable{name=Name}, Val);
-        (#class_attr{type=static}) ->
+        (#class_attr{type = static}) ->
             ignore
     end, Attrs).
 

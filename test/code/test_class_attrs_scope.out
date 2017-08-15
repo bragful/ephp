@@ -1,0 +1,5 @@
+a => 100
+b => 200
+
+Notice: Undefined property: A::$c in {{CWD}}/test/code/test_class_attrs_scope.php on line 13
+c => 

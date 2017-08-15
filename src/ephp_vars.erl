@@ -174,15 +174,30 @@ search(global, Vars, _Context) ->
 search(#variable{idx = []}, undefined, undefined) ->
     undefined;
 
+search(#variable{name = Root, idx = [], line = Line, type = object,
+                 class = ClassName},
+       undefined, Context) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context,
+        {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
+    undefined;
+
 search(#variable{name = Root, idx = [], line = Line}, undefined, Context) ->
     File = ephp_context:get_active_file(Context),
     ephp_error:handle_error(Context,
         {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
     undefined;
 
-search(#variable{name = Root, idx = [], line = Line}, Vars, Context) ->
+search(#variable{name = Root, idx = [], line = Line, type = Type,
+                 class = ClassName},
+       Vars, Context) ->
     case ephp_array:find(Root, Vars) of
         error when Context =:= undefined ->
+            undefined;
+        error when Type =:= object ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
             undefined;
         error ->
             File = ephp_context:get_active_file(Context),
@@ -197,7 +212,8 @@ search(#variable{name = Root, idx = [], line = Line}, Vars, Context) ->
             Value
     end;
 
-search(#variable{name = Root, idx = [NewRoot|Idx], line = Line},
+search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
+                 class = ClassName},
        Vars, Context) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
@@ -211,11 +227,18 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line},
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             Ctx = ephp_object:get_context(ObjRef),
             {object, ObjRoot, _} = NewRoot,
-            NewObjVar = #variable{name = ObjRoot, idx = Idx},
-            ephp_context:get(Ctx, NewObjVar);
+            NewObjVar = #variable{type = object, line = Line, name = ObjRoot,
+                                  idx = Idx},
+            ObjVars = erlang:get(ephp_context:get_vars(Ctx)),
+            search(NewObjVar, ObjVars, Context);
         {ok, NewVars} ->
             search(#variable{name = NewRoot, idx = Idx}, NewVars, undefined);
         _ when Context =:= undefined ->
+            undefined;
+        _ when Type =:= object ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
             undefined;
         _ ->
             File = ephp_context:get_active_file(Context),

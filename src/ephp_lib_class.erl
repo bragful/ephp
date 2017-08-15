@@ -46,6 +46,9 @@ handle_error(eundefclass, _Level, {Class}) ->
 handle_error(eundefmethod, _Level, {Class, MethodName}) ->
     io_lib:format("Call to undefined method ~s::~s()", [Class, MethodName]);
 
+handle_error(eundefattr, _Level, {Attr, ClassName}) ->
+    io_lib:format("Undefined property: ~s::$~s", [ClassName, Attr]);
+
 handle_error(eprivateaccess, _Level, {Class, Element, Access}) ->
     io_lib:format(
         "Cannot access ~s property ~s::$~s",

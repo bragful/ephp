@@ -1150,7 +1150,9 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
     Class = case RegInstance of
         #obj_ref{} ->
             #ephp_object{class = C} = ephp_object:get(RegInstance),
-            ephp_vars:set(NewVars, #variable{name = <<"this">>}, RegInstance, Ref),
+            ephp_vars:set(NewVars, #variable{name = <<"this">>, type = object,
+                                             class = C#class.name, line = Line},
+                          RegInstance, Ref),
             Object = RegInstance,
             C;
         #class{}=C ->
@@ -1280,7 +1282,7 @@ resolve_var(#variable{type = normal, idx = []} = Var, State) ->
 resolve_var(#variable{name = <<"this">>,
                       idx = [{object, #call{} = Call, _}]} = Var,
             State) ->
-    InstanceVar = Var#variable{idx = []},
+    InstanceVar = Var#variable{idx = [], type = object},
     Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     run_method(Instance, Call#call{type = object}, State);
 
@@ -1302,13 +1304,17 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
                               ?E_ERROR, Data})
     end;
 
-resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
+resolve_var(#variable{idx = [{object,#variable{} = SubVar, Line}|Idx]} = Var,
             #state{ref = Ref, vars = Vars} = State) ->
+    InstanceVar = Var#variable{idx = []},
     #ephp_object{class = #class{name = ClassName} = Class,
                  context = Context} =
-        ephp_object:get(ephp_vars:get(Vars, Var#variable{idx = []}, Ref)),
+        ephp_object:get(ephp_vars:get(Vars, InstanceVar, Ref)),
     {SubVal, State2} = resolve(SubVar, State),
     {NewVar, State3} = resolve_indexes(#variable{name = SubVal,
+                                                 type = object,
+                                                 class = ClassName,
+                                                 line = Line,
                                                  idx = Idx}, State2),
     ViaThis = (Var#variable.name =:= <<"this">>),
     case ephp_class:get_attribute(Class, SubVal) of
@@ -1331,15 +1337,20 @@ resolve_var(#variable{idx = [{object,#variable{} = SubVar, _Line}|Idx]} = Var,
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
                               ?E_ERROR, Data});
         #class_attr{access = public} ->
-            {ephp_context:get(Context, NewVar), State3}
+            {ephp_context:get(Context, NewVar#variable{class = ClassName,
+                                                       type = object}),
+                              State3}
     end;
 
-resolve_var(#variable{idx = [{object, VarName, _Line}|Idx]} = Var,
+resolve_var(#variable{idx = [{object, VarName, Line}|Idx]} = Var,
             #state{ref = Ref, vars = Vars} = State) when is_binary(VarName) ->
+    InstanceVar = Var#variable{idx = []},
     #ephp_object{class = Class, context = Context} =
-        ephp_object:get(ephp_vars:get(Vars, Var#variable{idx = []}, Ref)),
+        ephp_object:get(ephp_vars:get(Vars, InstanceVar, Ref)),
     {NewVar, NewState} =
-        resolve_indexes(#variable{name = VarName, idx = Idx}, State),
+        resolve_indexes(#variable{name = VarName, idx = Idx,
+                                  type = object, class = Class#class.name,
+                                  line = Line}, State),
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
     ViaThis = (Var#variable.name =:= <<"this">>),
     case ClassAttr of
@@ -1351,15 +1362,18 @@ resolve_var(#variable{idx = [{object, VarName, _Line}|Idx]} = Var,
             Data = {Class#class.name, NewVar#variable.name, <<"private">>},
             ephp_error:error({error, eprivateaccess, Var#variable.line,
                               ?E_ERROR, Data});
-        #class_attr{access = Access} when Access =:= public orelse
+        #class_attr{class_name = ClassName,
+                    access = Access} when Access =:= public orelse
                                           Access =:= private orelse
                                           Access =:= protected ->
-            {ephp_context:get(Context, NewVar), NewState};
+            {ephp_context:get(Context, NewVar#variable{class = ClassName,
+                                                       type = object}), NewState};
         undefined -> % dynamic attribute, not defined
-            {ephp_context:get(Context, NewVar), NewState}
+            {ephp_context:get(Context, NewVar#variable{class = Class#class.name,
+                                                       type = object}), NewState}
     end;
 
-resolve_var(#variable{type=normal}=Var, State) ->
+resolve_var(#variable{type = normal} = Var, State) ->
     {NewVar, NewState} = resolve_indexes(Var, State),
     Value = ephp_vars:get(NewState#state.vars, NewVar, State#state.ref),
     {Value, NewState};
