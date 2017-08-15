@@ -114,6 +114,13 @@ register_class(Ref, File, GlobalCtx,
             ephp_error:error({error, enomethods, Index, ?E_ERROR,
                               {Name, Names, Params}})
     end,
+    case check_final_methods(Ref, PHPClass#class.methods, PHPClass#class.extends) of
+        ok ->
+            ok;
+        {error, {Class, Method}} ->
+            ephp_error:error({error, efinalmethod, Index, ?E_ERROR,
+                              {Class, Method}})
+    end,
     %% TODO: implement extends
     Consts = ephp_context:get_consts(GlobalCtx),
     ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
@@ -220,6 +227,28 @@ check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
         false -> [{ClassName, Method}|Error]
     end,
     check_methods(Methods, ClassMethods, NewError).
+
+check_final_methods(_Ref, [], _Extends) ->
+    ok;
+check_final_methods(_Ref, _Methods, undefined) ->
+    ok;
+check_final_methods(Ref, Methods, ParentClass) ->
+    {ok, #class{methods = ParentMethods,
+                extends = Extends}} = get(Ref, ParentClass),
+    case check_final_methods(Methods, ParentMethods) of
+        ok -> check_final_methods(Ref, Methods, Extends);
+        {error, MethodError} ->{error, {ParentClass, MethodError}}
+    end.
+
+check_final_methods([], _ParentMethods) ->
+    ok;
+check_final_methods([#class_method{name = MethodName}|Methods], ParentMethods) ->
+    case lists:keyfind(MethodName, #class_method.name, ParentMethods) of
+        #class_method{name = MethodName, final = true} ->
+            {error, MethodName};
+        _ ->
+            check_final_methods(Methods, ParentMethods)
+    end.
 
 register_interface(Ref, File, #class{name = Name, line = Index,
                                      constants = Constants} = PHPInterface) ->
