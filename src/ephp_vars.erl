@@ -210,8 +210,9 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line},
                    ephp_mem:get(MemRef), Context);
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             Ctx = ephp_object:get_context(ObjRef),
-            NewObjVar = #variable{name = NewRoot, idx = Idx},
-            get(Ctx, NewObjVar);
+            {object, ObjRoot, _} = NewRoot,
+            NewObjVar = #variable{name = ObjRoot, idx = Idx},
+            ephp_context:get(Ctx, NewObjVar);
         {ok, NewVars} ->
             search(#variable{name = NewRoot, idx = Idx}, NewVars, undefined);
         _ when Context =:= undefined ->
@@ -247,13 +248,14 @@ change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
         {ok, #var_ref{pid = RefVarsPID, ref = RefVar}} ->
             set(RefVarsPID, RefVar, Value, Context),
             Vars;
-        {ok, #obj_ref{} = ObjRef} ->
+        {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             ephp_object:remove(Context, ObjRef),
             ephp_array:store(Root, Value, Vars);
-        {ok, #mem_ref{} = MemRef} when ?IS_OBJECT(Value) orelse ?IS_MEM(Value) ->
+        {ok, MemRef} when (?IS_OBJECT(Value) orelse ?IS_MEM(Value)) andalso
+                          ?IS_MEM(MemRef) ->
             ephp_mem:remove(MemRef),
             ephp_array:store(Root, Value, Vars);
-        {ok, #mem_ref{} = MemRef} ->
+        {ok, MemRef} when ?IS_MEM(MemRef) ->
             ephp_mem:set(MemRef, Value),
             Vars;
         _ ->
@@ -288,8 +290,8 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars, Ctx) ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             set(RefVarsPID, NewRefVar, Value, Ctx),
             Vars;
-        {ok, #obj_ref{pid = Objects, ref = ObjectId}} ->
-            Ctx = ephp_object:get_context(Objects, ObjectId),
+        {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
+            Ctx = ephp_object:get_context(ObjRef),
             ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
             Vars;
         {ok, NewVars} when ?IS_ARRAY(NewVars) ->

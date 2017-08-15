@@ -717,6 +717,10 @@ gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
                             "`'{'' or `'$''">>})
     end,
     gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
+gen_op([{<<"++">>, {_,_}, Pos}|Rest], [V|Stack]) ->
+    gen_op(Rest, [{post_incr, V, Pos}|Stack]);
+gen_op([{<<"--">>, {_,_}, Pos}|Rest], [V|Stack]) ->
+    gen_op(Rest, [{post_decr, V, Pos}|Stack]);
 gen_op([{<<"::">>,{_,_},_Pos}|Rest], [#constant{} = A,B|Stack]) ->
     gen_op(Rest, [A#constant{type = class, class = B}|Stack]);
 gen_op([{<<"(int)">>,{_,_},_Pos}|Rest], [#int{}=I|Stack]) ->

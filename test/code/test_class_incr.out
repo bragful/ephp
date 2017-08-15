@@ -1,0 +1,17 @@
+sum => 0
+object(A)#1 (1) {
+  ["sum"]=>
+  int(1)
+}
+object(A)#1 (1) {
+  ["sum"]=>
+  int(2)
+}
+object(A)#1 (1) {
+  ["sum"]=>
+  int(3)
+}
+object(A)#1 (1) {
+  ["sum"]=>
+  int(4)
+}
