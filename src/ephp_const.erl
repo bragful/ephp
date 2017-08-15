@@ -26,7 +26,10 @@
 start_link() ->
     Ref = make_ref(),
     Init = [
-        {{undefined, <<"__FILE__">>}, <<>>}
+        {{undefined, <<"__FILE__">>}, <<>>},
+        {{undefined, <<"__CLASS__">>}, <<>>},
+        {{undefined, <<"__METHOD__">>}, <<>>},
+        {{undefined, <<"__FUNCTION__">>}, <<>>}
     ],
     Consts = lists:foldl(fun({K,V},C) ->
         dict:store(K,V,C)

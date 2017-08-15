@@ -1201,7 +1201,13 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                 active_fun_args = length(Args),
                 active_class = ClassName}),
             register_superglobals(Ref, NewVars),
-            ephp_const:set(Const, <<"__FUNCTION__">>, MethodName),
+            OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
+            ephp_const:set_bulk(Const, [
+                {<<"__FUNCTION__">>, MethodName},
+                {<<"__METHOD__">>,
+                 <<(ClassMethod#class_method.class_name)/binary,
+                   "::", MethodName/binary>>}
+            ]),
             %% TODO: with static (late binding) this changes
             set_active_class(Ref, ClassMethod#class_method.class_name),
             Refs = lists:map(fun
@@ -1225,7 +1231,10 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                 true ->
                     ok
             end,
-            ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
+            ephp_const:set_bulk(Const, [
+                {<<"__FUNCTION__">>, State#state.active_fun},
+                {<<"__METHOD__">>, OldMethodName}
+            ]),
             set_active_class(Ref, State#state.active_class),
             ephp_stack:pop(Ref),
             {Value, NState};

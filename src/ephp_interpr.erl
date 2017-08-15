@@ -172,6 +172,30 @@ run_depth(Context, #foreach{kiter = Key,
         ProcElements when ?IS_ARRAY(ProcElements) ->
             Elements = ephp_array:to_list(ProcElements),
             run_foreach(Context, Key, Var, Elements, LoopBlock, Cover);
+        Object when ?IS_OBJECT(Object) ->
+            case ephp_class:instance_of(Context, Object, <<"Iterator">>) of
+                true ->
+                    ClassName = ephp_object:get_class_name(Object),
+                    CallGen = #call{type = object, class = ClassName},
+                    CallRewind = CallGen#call{name = <<"rewind">>},
+                    CallValid = CallGen#call{name = <<"valid">>},
+                    %% TODO check die or other breaks with these method calls
+                    ephp_context:call_method(Context, Object, CallRewind),
+                    case ephp_context:call_method(Context, Object, CallValid) of
+                        true ->
+                            run_foreach(Context, Key, Var, Object,
+                                        LoopBlock, Cover);
+                        false ->
+                            false
+                    end;
+                false ->
+                    Line = FE#foreach.line,
+                    File = ephp_context:get_active_file(Context),
+                    Data = {<<"foreach">>},
+                    Error = {error, eargsupplied, Line, File, ?E_WARNING, Data},
+                    ephp_error:handle_error(Context, Error),
+                    false
+            end;
         _ ->
             Line = FE#foreach.line,
             File = ephp_context:get_active_file(Context),
@@ -429,6 +453,40 @@ run_loop(post, Context, Cond, Statements, Cover) ->
 
 run_foreach(_Context, _Key, _Var, [], _Statements, _Cover) ->
     false;
+
+run_foreach(Context, Key, Var, Object, Statements, Cover) when ?IS_OBJECT(Object) ->
+    ClassName = ephp_object:get_class_name(Object),
+    CallGen = #call{type = object, class = ClassName},
+    CallValid = CallGen#call{name = <<"valid">>},
+    CallNext = CallGen#call{name = <<"next">>},
+    CallKey = CallGen#call{name = <<"key">>},
+    CallCurrent = CallGen#call{name = <<"current">>},
+    VarVal = ephp_context:call_method(Context, Object, CallCurrent),
+    ephp_context:set(Context, Var, VarVal),
+    case Key of
+        undefined -> ok;
+        _ ->
+            KeyVal = ephp_context:call_method(Context, Object, CallKey),
+            ephp_context:set(Context, Key, KeyVal)
+    end,
+    Break = run(Context, #eval{statements=Statements}, Cover),
+    if
+        Break =/= break andalso not is_tuple(Break) ->
+            ephp_context:call_method(Context, Object, CallNext),
+            case ephp_context:call_method(Context, Object, CallValid) of
+                true ->
+                    run_foreach(Context, Key, Var, Object, Statements, Cover);
+                false ->
+                    false
+            end;
+        true ->
+            case Break of
+                {return,Ret} -> {return,Ret};
+                {break,0} -> false;
+                {break,N} -> {break,N-1};
+                _ -> false
+            end
+    end;
 
 run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements, Cover) ->
     case Key of

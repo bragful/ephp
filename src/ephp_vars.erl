@@ -160,8 +160,9 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
             isset(RefVarsPID, NewRefVar);
         {ok, #obj_ref{pid=Objects, ref=ObjectId}} ->
             Ctx = ephp_object:get_context(Objects, ObjectId),
-            NewObjVar = #variable{name=NewRoot, idx=Idx},
-            isset(Ctx, NewObjVar);
+            {object, ObjRoot, _} = NewRoot,
+            NewObjVar = #variable{name=ObjRoot, idx=Idx},
+            isset(ephp_context:get_vars(Ctx), NewObjVar);
         {ok, NewVars} ->
             exists(#variable{name=NewRoot, idx=Idx}, NewVars);
         error ->

@@ -152,6 +152,12 @@ array_def(Rest, Pos, Args) when Rest =/= <<>> ->
             array_def(Rest0, add_pos(Pos0, 1), Args ++ [NewArg])
     end.
 
+% CONSTANT / FUNCTION when -> is used
+expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos,
+           [{op,[_,{<<"->">>,_,_}]}|_]=Parsed) when
+        ?IS_ALPHA(A) orelse A =:= $_ ->
+    {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
+    expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
 % ARRAY(...) -old-
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
