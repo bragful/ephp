@@ -10,3 +10,7 @@ string(9) "Hello Wor"
 string(30) "These are a few words :) ...  "
 string(30) "These are a few words :) ...  "
 string(7) "o World"
+
+string(28) "These are a few words :) ..."
+string(24) "These are a few words :)"
+string(5) "o Wor"

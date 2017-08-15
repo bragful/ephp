@@ -27,3 +27,14 @@ var_dump($trimmed);
 $trimmed = ltrim($hello, "Hdle");
 var_dump($trimmed);
 
+print "\n";
+
+$trimmed = trim($text);
+var_dump($trimmed);
+
+$trimmed = trim($text, " \t.");
+var_dump($trimmed);
+
+$trimmed = trim($hello, "Hdle");
+var_dump($trimmed);
+

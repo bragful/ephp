@@ -9,6 +9,7 @@
     to_upper/1,
     escape/2,
     trim/1,
+    trim/2,
     rtrim/2,
     ltrim/2,
     join/2,
@@ -53,6 +54,12 @@ trim(undefined) ->
 
 trim(Text) ->
     re:replace(Text, "^\\s+|\\s+$", "", [{return, binary}, global]).
+
+
+-spec trim(binary(), [byte()]) -> binary().
+
+trim(Text, Chars) ->
+    rtrim(ltrim(Text, Chars), Chars).
 
 
 -spec rtrim(binary(), [byte()]) -> binary().
