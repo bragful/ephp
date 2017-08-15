@@ -1,6 +1,11 @@
+exp(3) = 20.08553692318767
+max(2,5) = 5
+max(5,2) = 5
+min(2,5) = 2
+min(5,2) = 2
 sqrt(3) = 1.73205080756888
 
-Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 4
+Warning: sqrt() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 9
 sqrt('11.1a') = 
 ceil(sqrt(3)) = 2
 ceil(-10.5) = -10
@@ -18,56 +23,56 @@ abs('a') = 0
 abs([]) = 
 acos(1.0) = 0
 
-Warning: acos() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 20
+Warning: acos() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 25
 acos('a') = 
 acosh(1.0) = 0
 
-Warning: acosh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 22
+Warning: acosh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 27
 acosh('a') = 
 asin(1.0) = 1.5707963267949
 
-Warning: asin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 24
+Warning: asin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 29
 asin('a') = 
 asinh(1.0) = 0.88137358701954
 
-Warning: asinh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 26
+Warning: asinh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 31
 asinh('a') = 
 atan(1.0) = 0.78539816339745
 
-Warning: atan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 28
+Warning: atan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 33
 atan('a') = 
 atanh(0.5) = 0.54930614433406
 
-Warning: atanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 30
+Warning: atanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 35
 atanh('a') = 
 atan2(1.0, 1.0) = 0.78539816339745
 
-Warning: atan2() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 32
+Warning: atan2() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 37
 atan2('a', 'b') = 
 
-Warning: atan2() expects parameter 2 to be double, string given in {{CWD}}/test/code/test_math.php on line 33
+Warning: atan2() expects parameter 2 to be double, string given in {{CWD}}/test/code/test_math.php on line 38
 atan2(1.0, 'b') = 
 cos(1.0) = 0.54030230586814
 
-Warning: cos() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 35
+Warning: cos() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 40
 cos('a') = 
 cosh(1.0) = 1.54308063481524
 
-Warning: cosh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 37
+Warning: cosh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 42
 cosh('a') = 
 sin(1.0) = 0.8414709848079
 
-Warning: sin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 39
+Warning: sin() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 44
 sin('a') = 
 sinh(1.0) = 1.1752011936438
 
-Warning: sinh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 41
+Warning: sinh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 46
 sinh('a') = 
 tan(1.0) = 1.5574077246549
 
-Warning: tan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 43
+Warning: tan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 48
 tan('a') = 
 tanh(0.5) = 0.46211715726001
 
-Warning: tanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 45
+Warning: tanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 50
 tanh('a') = 

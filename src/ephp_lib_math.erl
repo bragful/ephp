@@ -30,7 +30,10 @@
     php_cosh/3,
     php_pow/4,
     base_convert/5,
-    pi/2
+    pi/2,
+    php_max/4,
+    php_min/4,
+    php_exp/3
 ]).
 
 -include("ephp.hrl").
@@ -343,3 +346,24 @@ base_convert(Context, Line, {Var, Other}, From, To) ->
 
 pi(Context, Line) ->
     ephp_context:get_const(Context, <<"M_PI">>, Line).
+
+-spec php_min(context(), line(), Num1 :: var_value(), Num2 :: var_value()) ->
+      integer().
+
+php_min(_Context, _Line, {_, Num1}, {_, Num2}) ->
+    if Num1 < Num2 -> Num1;
+       true -> Num2
+   end.
+
+-spec php_max(context(), line(), Num1 :: var_value(), Num2 :: var_value()) ->
+      integer().
+
+php_max(_Context, _Line, {_, Num1}, {_, Num2}) ->
+    if Num1 > Num2 -> Num1;
+       true -> Num2
+   end.
+
+-spec php_exp(context(), line(), Arg :: var_value()) -> float().
+
+php_exp(_Context, _Line, {_, Arg}) ->
+    math:exp(Arg).

@@ -1,5 +1,10 @@
 <?php
 
+print "exp(3) = " . exp(3) . "\n";
+print "max(2,5) = " . max(2,5) . "\n";
+print "max(5,2) = " . max(5,2) . "\n";
+print "min(2,5) = " . min(2,5) . "\n";
+print "min(5,2) = " . min(5,2) . "\n";
 print "sqrt(3) = " . sqrt(3) . "\n";
 print "sqrt('11.1a') = " . sqrt('a') . "\n";
 print "ceil(sqrt(3)) = " . ceil(sqrt(3)) . "\n";
