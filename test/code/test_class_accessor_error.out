@@ -1,2 +1,2 @@
 
-Parse error: parse error, expecting `"identifier (T_STRING)"' or `"variable (T_VARIABLE)"' or `'{'' or `'$'' in {{CWD}}/test_class_accessor_error.php on line 3
+Parse error: parse error, expecting `"identifier (T_STRING)"' or `"variable (T_VARIABLE)"' or `'{'' or `'$'' in {{CWD}}/test/code/test_class_accessor_error.php on line 3

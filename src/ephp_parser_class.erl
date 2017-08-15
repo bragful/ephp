@@ -189,7 +189,7 @@ st_class_content(<<"$",_/binary>> = Rest, {{Access,Type},_,_}=Pos,
     NewClass = Class#class{attrs=Attrs ++ [Attr]},
     st_class_content(Rest0, normal_public_level(Pos0), NewClass);
 st_class_content(<<"$",_/binary>> = _Rest, Pos, _Class) ->
-    ephp_parser:throw_error(eparse, Pos, {<<"function (T_FUNCTION)">>});
+    ephp_parser:throw_error(eparse, Pos, {<<"`\"function (T_FUNCTION)\"'">>});
 st_class_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
                  {{RawAccess,Type},_,_}=Pos, #class{methods=Methods}=Class) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso

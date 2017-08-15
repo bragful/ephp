@@ -5,6 +5,8 @@
 -include("ephp.hrl").
 
 -export([
+    get_tz/2,
+    set_tz/1,
     get_abbr_weekday/1,
     get_abbr_month/1,
     get_timestamp/1,
@@ -19,6 +21,30 @@
     to_bmt/1,
     get_tz_time/3
 ]).
+
+-spec get_tz(context(), line()) -> binary().
+
+get_tz(Context, Line) ->
+    case ephp_config:get(<<"date.timezone">>) of
+        undefined ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context, {error, enotimezone, Line, File,
+                                              ?E_WARNING, {<<"date">>}}),
+            ?PHP_DEFAULT_TIMEZONE;
+        Timezone ->
+            Timezone
+    end.
+
+-spec set_tz(binary()) -> boolean().
+
+set_tz(TZ) ->
+    case ephp_timezone:is_valid(TZ) of
+        true ->
+            ephp_config:set(<<"date.timezone">>, TZ),
+            true;
+        false ->
+            false
+    end.
 
 -spec get_timestamp(TS::integer() | float()) -> timer:timestamp().
 

@@ -10,7 +10,6 @@
     funcs :: ephp:funcs_id(),
     class :: ephp:classes_id(),
     object :: ephp:objects_id(),
-    timezone = "Europe/Madrid" :: string(),
     output :: ephp:output_id(),
     const :: ephp:consts_id(),
     global :: ephp:context_id(),
@@ -49,9 +48,6 @@
     set_active_file/2,
     get_active_class/1,
     set_active_class/2,
-
-    set_tz/2,
-    get_tz/1,
 
     get_output/1,
     set_output/2,
@@ -317,20 +313,6 @@ set_active_class(Context, ClassName) ->
     save_state(State#state{active_class = ClassName}),
     ephp_const:set(Const, <<"__CLASS__">>, ClassName),
     ok.
-
-get_tz(Context) ->
-    #state{timezone=TZ} = load_state(Context),
-    TZ.
-
-set_tz(Context, TZ) ->
-    State = load_state(Context),
-    case ephp_timezone:is_valid(TZ) of
-        true ->
-            save_state(State#state{timezone=TZ}),
-            true;
-        false ->
-            false
-    end.
 
 get_output(Context) ->
     #state{output=Output} = load_state(Context),

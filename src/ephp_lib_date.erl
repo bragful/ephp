@@ -46,6 +46,16 @@ init_const() -> [].
 handle_error(etimezone, _Level, {Function, TZ}) ->
     io_lib:format("~s(): Timezone ID '~s' is invalid", [Function, TZ]);
 
+handle_error(enotimezone, _Level, {Function}) ->
+    io_lib:format("~s(): It is not safe to rely on the system's timezone "
+                  "settings. You are *required* to use the date.timezone "
+                  "setting or the date_default_timezone_set() function. "
+                  "In case you used any of those methods and you are still "
+                  "getting this warning, you most likely misspelled the "
+                  "timezone identifier. We selected the timezone 'UTC' for "
+                  "now, but please set date.timezone to select your "
+                  "timezone.", [Function]);
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
@@ -82,9 +92,9 @@ date(Context, Line, {_,Format}) ->
     Format :: {variable(),binary()},
     Timestamp :: {variable(),(integer() | float())}) -> binary().
 
-date(Context, _Line, {_,Format}, {_,Timestamp}) ->
+date(Context, Line, {_,Format}, {_,Timestamp}) ->
     {M,S,U} = ephp_datetime:get_timestamp(Timestamp),
-    TZ = ephp_context:get_tz(Context),
+    TZ = ephp_datetime:get_tz(Context, Line),
     Date = ephp_datetime:to_zone({M,S,U}, TZ),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
@@ -107,15 +117,15 @@ gmdate(_Context, _Line, Format, Timestamp) ->
 
 -spec date_default_timezone_get(context(), line()) -> binary().
 
-date_default_timezone_get(Context, _Line) ->
-    ephp_data:to_bin(ephp_context:get_tz(Context)).
+date_default_timezone_get(Context, Line) ->
+    ephp_datetime:get_tz(Context, Line).
 
 -spec date_default_timezone_set(
     context(), line(),
     TZ :: {variable(),binary()}) -> binary().
 
 date_default_timezone_set(Context, Line, {_,TZ}) ->
-    case ephp_context:set_tz(Context, TZ) of
+    case ephp_datetime:set_tz(TZ) of
         true ->
             undefined;
         false ->

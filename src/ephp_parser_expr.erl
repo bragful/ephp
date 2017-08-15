@@ -508,8 +508,7 @@ expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, [{op,Ops}|_]=Parsed) when
     {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
     case lists:last(Ops) of
         #constant{} ->
-            throw_error(eparse, Pos, {Constant#constant.name,
-                                      <<"`\"T_STRING\"'">>});
+            throw_error(eparse, Pos, {Constant#constant.name, <<"T_STRING">>});
         _ ->
             expression(Rest0, {L,R,C}, add_op(Constant, Parsed))
     end;

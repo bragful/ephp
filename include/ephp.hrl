@@ -69,6 +69,8 @@
 -define(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1).
 -define(DEBUG_BACKTRACE_IGNORE_ARGS, 2).
 
+-define(PHP_DEFAULT_TIMEZONE, <<"UTC">>).
+
 -type error_level() :: pos_integer().
 
 -type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.
