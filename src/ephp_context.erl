@@ -43,6 +43,7 @@
     get_consts/1,
     get_objects/1,
     get_classes/1,
+    get_funcs/1,
 
     get_active_file/1,
     set_active_file/2,
@@ -212,6 +213,9 @@ get_objects(Context) ->
 
 get_classes(Context) ->
     (load_state(Context))#state.class.
+
+get_funcs(Context) ->
+    (load_state(Context))#state.funcs.
 
 register_func(Context, PHPFunc, Module, Fun, PackArgs, VA)
         when is_atom(Module) andalso is_atom(Fun) ->

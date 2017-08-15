@@ -366,6 +366,14 @@ run_depth(Context, #try_catch{code_block = Code, catches = Catches,
     end,
     run_finally(Context, Finally, Cover);
 
+run_depth(Context, #variable{type = static, name = VarName} = Var,
+          false, _Cover) ->
+    Funcs = ephp_context:get_funcs(Context),
+    ActiveFun = ephp_context:get_active_function(Context),
+    RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, undefined),
+    ephp_context:set(Context, Var, RealValue),
+    false;
+
 run_depth(_Context, Statement, false, _Cover) ->
     ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement}),
     break;
