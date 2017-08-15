@@ -112,7 +112,7 @@ eval(Context, PHP) ->
 
 -spec eval(Filename :: binary(), context(), PHP :: string() | binary()) ->
     {ok, Result :: binary()} | {error, reason()} |
-    {error, {Code::binary(), Line::integer(), Col::integer()}}.
+    {error, reason(), line(), File::binary(), error_level(), Data::any()}.
 
 eval(Filename, Context, PHP) ->
     case catch ephp_parser:parse(PHP) of
@@ -140,7 +140,7 @@ eval(Filename, Context, PHP) ->
                         throw:{ok, die} -> ok
                     end,
                     ephp_shutdown:shutdown(Context),
-                    {error, Reason}
+                    Error
             end
     end.
 
@@ -174,6 +174,9 @@ main([Filename|_] = RawArgs) ->
                 stop_cover(),
                 quit(0);
             {error, _Reason} ->
+                stop_profiling(),
+                quit(1);
+            {error, _Reason, _Index, _File, _Level, _Data} ->
                 stop_profiling(),
                 quit(1)
         end;

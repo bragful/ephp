@@ -139,7 +139,7 @@ get_attrs(Classes, #class{name = Name, extends = Extends, attrs = Attrs}) ->
     attrs_set_class_name(Name, Attrs) ++  get_attrs(Classes, Class).
 
 attrs_set_class_name(Name, Attrs) ->
-    [ A#class_attr{class_name = Name} || A <- Attrs ].    
+    [ A#class_attr{class_name = Name} || A <- Attrs ].
 
 tr_consts(Consts, Context) ->
     lists:map(fun(#class_const{name = N, value = V}) ->
@@ -498,6 +498,9 @@ class_attr(Name, Access, InitValue, Final) ->
 register_classes(Ref) ->
     Classes = [
         get_stdclass(),
+        get_traversable(),
+        ephp_class_arrayaccess:get_class(),
+        ephp_class_iterator:get_class(),
         ephp_class_exception:get_class()
     ],
     ClassesDict = lists:foldl(fun(#class{name=Name} = Class, Dict) ->
@@ -505,3 +508,9 @@ register_classes(Ref) ->
     end, erlang:get(Ref), Classes),
     erlang:put(Ref, ClassesDict),
     ok.
+
+get_traversable() ->
+    #class{
+        name = <<"Traversable">>,
+        type = interface
+    }.

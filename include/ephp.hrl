@@ -416,7 +416,7 @@
 }).
 
 -type class_method() :: #class_method{}.
--type class_type() :: normal | static | abstract.
+-type class_type() :: normal | static | abstract | interface.
 
 -record(class, {
     name :: class_name(),
@@ -430,7 +430,6 @@
     methods = [] :: [class_method()],
     file :: binary(),
     line :: line(),
-    instance_counter = 0 :: integer(),
     static_context :: context()
 }).
 
