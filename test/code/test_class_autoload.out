@@ -1,0 +1,4 @@
+object(myclass)#1 (1) {
+  ["a"]=>
+  int(100)
+}

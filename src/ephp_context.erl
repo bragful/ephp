@@ -58,6 +58,7 @@
     set_output_handler/2,
     get_output_handler/1,
 
+    call_function/2,
     register_func/5,
     register_func/6,
     get_functions/1,
@@ -228,9 +229,15 @@ register_func(Context, PHPFunc, Module, Fun, PackArgs, VA)
     ok;
 
 register_func(Context, PHPFunc, Args, Code, PackArgs, VA) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    #state{funcs=Funcs, active_file=File,
+           class = Classes} = load_state(Context),
     AbsFile = filename:absname(File),
     ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, PackArgs, VA),
+    if  % XXX: this method is deprecated in PHP 7.2
+        PHPFunc =:= <<"__autoload">> ->
+            ephp_class:register_loader(Classes, PHPFunc);
+        true -> ok
+    end,
     ok.
 
 register_func(Context, PHPFunc, Module, Fun, VA)
@@ -241,9 +248,15 @@ register_func(Context, PHPFunc, Module, Fun, VA)
     ok;
 
 register_func(Context, PHPFunc, Args, Code, VA) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    #state{funcs=Funcs, active_file=File,
+           class = Classes} = load_state(Context),
     AbsFile = filename:absname(File),
     ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, false, VA),
+    if  % XXX: this method is deprecated in PHP 7.2
+        PHPFunc =:= <<"__autoload">> ->
+            ephp_class:register_loader(Classes, PHPFunc);
+        true -> ok
+    end,
     ok.
 
 get_functions(Context) ->
@@ -283,6 +296,11 @@ register_const(Context, Name, Value) ->
     #state{const=Const} = load_state(Context),
     ephp_const:set(Const, Name, Value),
     ok.
+
+call_function(Context, Call) ->
+    {Val, NS} = resolve(Call, load_state(Context)),
+    save_state(NS),
+    Val.
 
 call_method(Context, Instance, Call) ->
     {Val, NS} = run_method(Instance, Call, load_state(Context)),

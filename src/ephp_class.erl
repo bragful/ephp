@@ -13,6 +13,7 @@
     destroy/1,
 
     get/2,
+    get/3,
     get_constructor/2,
     get_destructor/2,
     get_attribute/2,
@@ -35,8 +36,14 @@
     instance/5,
 
     get_stdclass/0,
-    add_if_no_exists_attrib/2
+    add_if_no_exists_attrib/2,
+    register_loader/2
 ]).
+
+-record(class_state, {
+    classes = dict:new(),
+    loaders = [] :: [callable()]
+}).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -44,7 +51,7 @@
 
 start_link() ->
     Ref = make_ref(),
-    erlang:put(Ref, dict:new()),
+    erlang:put(Ref, #class_state{}),
     ok = register_classes(Ref),
     {ok, Ref}.
 
@@ -52,8 +59,33 @@ destroy(Classes) ->
     erlang:erase(Classes),
     ok.
 
+get(Context, ClassName, false) ->
+    Classes = ephp_context:get_classes(Context),
+    get(Classes, ClassName);
+get(Context, ClassName, true) ->
+    Classes = ephp_context:get_classes(Context),
+    case erlang:get(Classes) of
+        #class_state{loaders = []} ->
+            get(Classes, ClassName);
+        #class_state{loaders = Loaders} ->
+            get(Context, Classes, ClassName, Loaders)
+    end.
+
+get(_Context, Classes, ClassName, []) ->
+    get(Classes, ClassName);
+get(Context, Classes, ClassName, [Loader|Loaders]) ->
+    case get(Classes, ClassName) of
+        {ok, Class} ->
+            {ok, Class};
+        {error, enoexist} ->
+            %% TODO check callable for Loader
+            Call = #call{name = Loader, args = [ClassName]},
+            ephp_context:call_function(Context, Call),
+            get(Context, Classes, ClassName, Loaders)
+    end.
+
 get(Ref, ClassName) ->
-    Classes = erlang:get(Ref),
+    #class_state{classes = Classes} = erlang:get(Ref),
     case dict:find(ClassName, Classes) of
         {ok, {alias, NewClassName}} ->
             get(Ref, NewClassName);
@@ -64,9 +96,9 @@ get(Ref, ClassName) ->
     end.
 
 set(Ref, ClassName, Class) ->
-    Classes = erlang:get(Ref),
+    #class_state{classes = Classes} = State = erlang:get(Ref),
     NC = dict:store(ClassName, Class, Classes),
-    erlang:put(Ref, NC),
+    erlang:put(Ref, State#class_state{classes = NC}),
     ok.
 
 set_alias(Ref, ClassName, AliasName) ->
@@ -81,6 +113,10 @@ set_alias(Ref, ClassName, AliasName) ->
         {error, enoexist} ->
             {error, enoexist}
     end.
+
+register_loader(Ref, Loader) ->
+    #class_state{loaders = Loaders} = State = erlang:get(Ref),
+    erlang:put(Ref, State#class_state{loaders = [Loader|Loaders]}).
 
 register_class(Ref, File, GlobalCtx,
                #class{name = Name, constants = ConstDef0,
@@ -139,7 +175,7 @@ register_class(Ref, File, GlobalCtx,
         attrs = get_attrs(Ref, PHPClass)
     },
     initialize_class(ActivePHPClass),
-    erlang:put(Ref, dict:store(Name, ActivePHPClass, erlang:get(Ref))),
+    set(Ref, Name, ActivePHPClass),
     ok.
 
 get_methods(_Classes, undefined) ->
@@ -263,12 +299,14 @@ check_final_methods([#class_method{name = MethodName}|Methods], ParentMethods) -
 
 register_interface(Ref, File, #class{name = Name, line = Index,
                                      constants = Constants} = PHPInterface) ->
-    Interfaces = erlang:get(Ref),
+    #class_state{classes = Interfaces} = State = erlang:get(Ref),
     ConstDef = get_extends_consts(Ref, PHPInterface) ++ Constants,
     ActivePHPInterface = PHPInterface#class{file = File, constants = ConstDef},
     case dict:find(Name, Interfaces) of
         error ->
-            erlang:put(Ref, dict:store(Name, ActivePHPInterface, Interfaces)),
+            NewClasses = dict:store(Name, ActivePHPInterface, Interfaces),
+            NewState = State#class_state{classes = NewClasses},
+            erlang:put(Ref, NewState),
             ok;
         {ok, _} ->
             ephp_error:error({error, eredefinedclass, Index, ?E_ERROR, {Name}})
@@ -302,8 +340,8 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
             ephp_error:error({error, enoclass, Index, ?E_ERROR, {Extends}})
     end.
 
-instance(Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
-    case get(Ref, RawClassName) of
+instance(_Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
+    case get(LocalCtx, RawClassName, true) of
     {ok, #class{} = Class} ->
         {ok, Ctx} = ephp_context:start_link(),
         ephp_context:set_active_file(Ctx, ephp_context:get_active_file(LocalCtx)),
@@ -545,14 +583,16 @@ register_classes(Ref) ->
     Classes = [
         get_stdclass(),
         get_traversable(),
-        ephp_class_arrayaccess:get_class(),
-        ephp_class_iterator:get_class(),
+        get_iterator(),
+        get_iterator_aggregate(),
+        get_array_access(),
         ephp_class_exception:get_class()
     ],
-    ClassesDict = lists:foldl(fun(#class{name=Name} = Class, Dict) ->
+    State = erlang:get(Ref),
+    ClassesDict = lists:foldl(fun(#class{name = Name} = Class, Dict) ->
         dict:store(Name, Class, Dict)
-    end, erlang:get(Ref), Classes),
-    erlang:put(Ref, ClassesDict),
+    end, State#class_state.classes, Classes),
+    erlang:put(Ref, State#class_state{classes = ClassesDict}),
     ok.
 
 get_traversable() ->
@@ -560,3 +600,46 @@ get_traversable() ->
         name = <<"Traversable">>,
         type = interface
     }.
+
+get_iterator_aggregate() ->
+    M = #class_method{type = abstract},
+    #class{
+        name = <<"IteratorAggregate">>,
+        type = interface,
+        extends = <<"Traversable">>,
+        methods = [
+            M#class_method{name = <<"getIterator">>}
+        ]
+    }.
+
+get_iterator() ->
+    M = #class_method{type = abstract},
+    #class{
+        name = <<"Iterator">>,
+        type = interface,
+        extends = <<"Traversable">>,
+        methods = [
+            M#class_method{name = <<"current">>},
+            M#class_method{name = <<"key">>},
+            M#class_method{name = <<"next">>},
+            M#class_method{name = <<"rewind">>},
+            M#class_method{name = <<"valid">>}
+        ]
+    }.
+
+get_array_access() ->
+    M = #class_method{type = abstract},
+    MO = M#class_method{args = [#variable{name = <<"offset">>}]},
+    MV = M#class_method{args = [#variable{name = <<"offset">>},
+                                #variable{name = <<"value">>}]},
+    #class{
+        name = <<"ArrayAccess">>,
+        type = interface,
+        methods = [
+            MO#class_method{name = <<"offsetExists">>},
+            MO#class_method{name = <<"offsetGet">>},
+            MV#class_method{name = <<"offsetSet">>},
+            MO#class_method{name = <<"offsetUnset">>}
+        ]
+    }.
+
