@@ -18,7 +18,8 @@
     get_destructor/2,
     get_attribute/2,
     get_clone/2,
-    get_method/4,
+    get_method/2,
+    get_method/3,
     get_parent/2,
 
     class_attr/1,
@@ -479,21 +480,22 @@ get_attribute(#class{attrs=Attrs}, AttributeName) ->
         ClassAttr
     end.
 
-get_method(Ref, #class{name = Name, methods = Methods, extends = Extends},
-           Index, MethodName) ->
+get_method(#class{methods = Methods}, MethodName) ->
     case lists:keyfind(MethodName, #class_method.name, Methods) of
-    false ->
-        %% TODO: search "__call" method
-        case Extends of
-            undefined ->
-                ephp_error:error({error, eundefmethod, Index, ?E_ERROR,
-                                  {Name, MethodName}});
-            Extends ->
-                {ok, Parent} = get(Ref, Extends),
-                get_method(Ref, Parent, Index, MethodName)
-        end;
-    #class_method{}=ClassMethod ->
-        ClassMethod
+        false ->
+            undefined;
+        #class_method{} = ClassMethod ->
+            ClassMethod
+    end.
+
+get_method(Class, Index, MethodName) ->
+    case get_method(Class, MethodName) of
+        undefined ->
+            %% TODO: search "__call" method
+            ephp_error:error({error, eundefmethod, Index, ?E_ERROR,
+                              {Class#class.name, MethodName}});
+        #class_method{} = ClassMethod ->
+            ClassMethod
     end.
 
 get_parent(Context, Name) ->

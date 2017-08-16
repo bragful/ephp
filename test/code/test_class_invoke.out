@@ -1,0 +1,4 @@
+Hello world!
+Hello world!
+
+Fatal error: Function name must be a string in {{CWD}}/test/code/test_class_invoke.php on line 19

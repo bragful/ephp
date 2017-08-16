@@ -777,6 +777,16 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
     ephp_stack:pop(Ref),
     {Value, NState};
 
+resolve(#call{name = Object} = Call, State) when ?IS_OBJECT(Object) ->
+    Invoke = Call#call{name = <<"__invoke">>, type = object},
+    Class = ephp_object:get_class(Object),
+    case ephp_class:get_method(Class, <<"__invoke">>) of
+        #class_method{} ->
+            run_method(Object, Invoke, State);
+        undefined ->
+            ephp_error:error({error, enostrfunc, Call#call.line, ?E_ERROR, {}})
+    end;
+
 resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     resolve(Call#call{name = Name}, NewState);
@@ -1203,7 +1213,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
             CallName = Call#call.name,
             #class_method{class_name = MCName,
                           access = Access, name = MethodName} = CM =
-                ephp_class:get_method(Classes, Class, Line, CallName),
+                ephp_class:get_method(Class, Line, CallName),
             IsChild = ephp_class:instance_of(Ref, RegInstance, MCName),
             if
                 (Access =:= private andalso MCName =/= ClassName) orelse
@@ -1337,8 +1347,7 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
     InstanceVar = Var#variable{idx = []},
     Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     #ephp_object{class = Class} = ephp_object:get(Instance),
-    #state{class = Classes} = State,
-    case ephp_class:get_method(Classes, Class, Call#call.line, Call#call.name) of
+    case ephp_class:get_method(Class, Call#call.line, Call#call.name) of
         #class_method{access = public} ->
             run_method(Instance, Call#call{type = object}, State);
         #class_method{access = protected} ->

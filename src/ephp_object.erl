@@ -20,6 +20,8 @@
     get/2,
     get_class_name/1,
     get_class_name/2,
+    get_class/1,
+    get_class/2,
     get_context/1,
     get_context/2,
     set/3,
@@ -62,10 +64,23 @@ get(#obj_ref{pid = Objects, ref = ObjectId}) ->
 
 
 -spec get_class_name(ephp:objects_id(), object_id()) -> class_name().
-%% @doc retrieves the class name for an provided Object ID.
+%% @doc retrieves the class name for a provided Object ID.
 get_class_name(Objects, ObjectId) ->
     ObjectsData = erlang:get(Objects),
     ((array:get(ObjectId, ObjectsData))#ephp_object.class)#class.name.
+
+
+-spec get_class(obj_ref()) -> class().
+%% @doc retrieves the class record for a provided Object ID.
+get_class(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    get_class(Objects, ObjectId).
+
+
+-spec get_class(ephp:objects_id(), object_id()) -> class().
+%% @doc retrieves the class record for a provided Object ID.
+get_class(Objects, ObjectId) ->
+    ObjectsData = erlang:get(Objects),
+    (array:get(ObjectId, ObjectsData))#ephp_object.class.
 
 
 -spec get_class_name(obj_ref()) -> class_name().

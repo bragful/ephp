@@ -319,6 +319,9 @@ get_message(trigger, {ErrStr}) when is_binary(ErrStr) ->
 get_message(enolevel, {}) ->
     "Invalid error type specified";
 
+get_message(enostrfunc, {}) ->
+    "Function name must be a string";
+
 get_message(enofile, {OpenFile, Func}) ->
     io_lib:format(
         "~s(~s): failed to open stream: No such file or directory",
