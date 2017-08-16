@@ -21,7 +21,8 @@
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
     active_fun_args = 0 :: non_neg_integer(),
-    active_class = <<>> :: class_name()
+    active_class = <<>> :: class_name(),
+    active_real_class = <<>> :: class_name()
 }).
 
 %% ------------------------------------------------------------------
@@ -49,6 +50,8 @@
     set_active_file/2,
     get_active_class/1,
     set_active_class/2,
+    get_active_real_class/1,
+    set_active_real_class/2,
 
     get_output/1,
     set_output/2,
@@ -152,7 +155,7 @@ get(Context, VarPath) ->
 
 isset(Context, VarPath) ->
     #state{vars=Vars} = load_state(Context),
-    ephp_vars:isset(Vars, VarPath).
+    ephp_vars:isset(Vars, VarPath, Context).
 
 set(Context, VarPath, Value) ->
     State = load_state(Context),
@@ -292,6 +295,9 @@ get_active_file(Context) ->
 get_active_class(Context) ->
     (load_state(Context))#state.active_class.
 
+get_active_real_class(Context) ->
+    (load_state(Context))#state.active_real_class.
+
 set_active_file(Context, undefined) ->
     Filename = <<"php shell code">>,
     {ok, Cwd} = file:get_cwd(),
@@ -316,6 +322,11 @@ set_active_class(Context, ClassName) ->
     #state{const = Const} = State = load_state(Context),
     save_state(State#state{active_class = ClassName}),
     ephp_const:set(Const, <<"__CLASS__">>, ClassName),
+    ok.
+
+set_active_real_class(Context, ClassName) ->
+    State = load_state(Context),
+    save_state(State#state{active_real_class = ClassName}),
     ok.
 
 get_output(Context) ->
@@ -494,7 +505,7 @@ resolve(#assign{variable = #assign{} = A, expression = Expr}, State) ->
 
 resolve(#assign{variable = #variable{type = static, idx = []} = Var,
                 expression = Expr},
-        #state{active_class = <<>>, active_fun = <<>>, ref = Ref} = State) ->
+        #state{active_real_class = <<>>, active_fun = <<>>, ref = Ref} = State) ->
     %% TODO check if with include the normal behaviour changes
     {Value, NState} = resolve(Expr, State),
     case catch get_var_path(Var, NState) of
@@ -513,7 +524,7 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
                 expression = Expr},
         #state{funcs = Funcs, ref = Ref, vars = Vars,
                active_fun = ActiveFun,
-               active_class = <<>>} = State) ->
+               active_real_class = <<>>} = State) ->
     {Value, NState} = resolve(Expr, State),
     RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, Value),
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
@@ -527,7 +538,7 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
                 expression = Expr},
         #state{class = Classes, ref = Ref, vars = Vars,
                active_fun = ActiveFun,
-               active_class = ActiveClass} = State) ->
+               active_real_class = ActiveClass} = State) ->
     {Value, NState} = resolve(Expr, State),
     RealValue = ephp_class:init_static_value(Classes, ActiveClass,
                                              ActiveFun, VarName, Value),
@@ -713,7 +724,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
               args = RawArgs, line = Line},
         #state{ref = Ref, vars = Vars, const = Const,
                active_file = File,
-               active_class = Class} = State) ->
+               active_real_class = Class} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
     {ok, NewVars} = ephp_vars:start_link(),
@@ -806,6 +817,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
             active_file = AFile,
             active_fun = Fun,
             active_class = <<>>,
+            active_real_class = <<>>,
             active_fun_args = length(Args)}),
         ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
         register_superglobals(GlobalRef, NewVars),
@@ -840,7 +852,7 @@ resolve(#call{type = class, class = <<"self">>} = Call,
 
 %% TODO error if no class scope
 resolve(#call{type = class, class = <<"parent">>} = Call,
-        #state{active_class = Name, class = Classes} = State) ->
+        #state{active_real_class = Name, class = Classes} = State) ->
     %% TODO error if no parent defined
     {ok, #class{extends = Extends}} = ephp_class:get(Classes, Name),
     %% TODO check name for class (parent or grandpa, ...)
@@ -892,14 +904,15 @@ resolve(#constant{type = class, class = <<"self">>, line = Index},
     ephp_error:error({error, enoclassscope, Index, ?E_ERROR, {<<"self">>}});
 
 resolve(#constant{type = class, class = <<"self">>, name = Name, line = Index},
-        #state{ref = Ref, const = Const, active_class = ClassName} = State) ->
+        #state{ref = Ref, const = Const,
+               active_class = ClassName} = State) ->
     {ephp_const:get(Const, ClassName, Name, Index, Ref), State};
 
 %% TODO error if there are no active class
 resolve(#constant{type = class, class = <<"parent">>, name = Name,
                   line = Index},
         #state{ref = Ref, const = Const, class = Classes,
-               active_class = ClassName} = State) ->
+               active_real_class = ClassName} = State) ->
     %% TODO: error if the parent isn't defined
     {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
     %% TODO check if there are a parent of a parent...
@@ -1203,7 +1216,8 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                 active_file = ClassFile,
                 active_fun = MethodName,
                 active_fun_args = length(Args),
-                active_class = ClassName}),
+                active_real_class = ClassName,
+                active_class = ClassMethod#class_method.class_name}),
             register_superglobals(Ref, NewVars),
             OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
             ephp_const:set_bulk(Const, [
@@ -1214,6 +1228,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
             ]),
             %% TODO: with static (late binding) this changes
             set_active_class(Ref, ClassMethod#class_method.class_name),
+            set_active_real_class(Ref, ClassName),
             Refs = lists:map(fun
                 (#variable{} = Var) ->
                     #var_ref{pid = NewVars, ref = Var};
@@ -1240,6 +1255,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                 {<<"__METHOD__">>, OldMethodName}
             ]),
             set_active_class(Ref, State#state.active_class),
+            set_active_real_class(Ref, State#state.active_real_class),
             ephp_stack:pop(Ref),
             {Value, NState};
         builtin ->

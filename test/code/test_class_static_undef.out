@@ -1,0 +1,17 @@
+A init $a = 10
+A init $b = 10
+---
+A update $a to 20
+A update $b to 20
+---
+A update $a to 30
+A update $b to 30
+===
+A update $a to 40
+A init $b = 10
+---
+A update $a to 50
+A update $b to 20
+---
+A update $a to 60
+A update $b to 30

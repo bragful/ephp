@@ -134,12 +134,19 @@ register_class(Ref, File, GlobalCtx,
         static_context = Ctx,
         parents = Parents,
         file = File,
-        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ],
+        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ] ++
+                  get_methods(Ref, PHPClass#class.extends),
         attrs = get_attrs(Ref, PHPClass)
     },
     initialize_class(ActivePHPClass),
     erlang:put(Ref, dict:store(Name, ActivePHPClass, erlang:get(Ref))),
     ok.
+
+get_methods(_Classes, undefined) ->
+    [];
+get_methods(Classes, ClassName) ->
+    {ok, #class{methods = Methods, extends = Parent}} = get(Classes, ClassName),
+    Methods ++ get_methods(Classes, Parent).
 
 get_attrs(_Classes, #class{name = Name, extends = undefined, attrs = Attrs}) ->
     attrs_set_class_name(Name, Attrs);

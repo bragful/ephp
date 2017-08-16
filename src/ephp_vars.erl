@@ -14,7 +14,7 @@
     get/2,
     get/3,
     set/4,
-    isset/2,
+    isset/3,
     ref/5,
     del/3,
     zip_args/7,
@@ -42,8 +42,8 @@ get(Vars, VarPath) ->
 get(Vars, VarPath, Context) ->
     search(VarPath, erlang:get(Vars), Context).
 
-isset(Vars, VarPath) ->
-    exists(VarPath, erlang:get(Vars)).
+isset(Vars, VarPath, Context) ->
+    exists(VarPath, erlang:get(Vars), Context).
 
 set(Vars, VarPath, Value, Context) ->
     erlang:put(Vars, change(VarPath, Value, erlang:get(Vars), Context)),
@@ -141,30 +141,59 @@ destroy_data(Context, Vars) when ?IS_ARRAY(Vars) ->
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
-exists(#variable{} = Var, MemRef) when ?IS_MEM(MemRef) ->
-    exists(Var, ephp_mem:get(MemRef));
+exists(#variable{} = Var, MemRef, Context) when ?IS_MEM(MemRef) ->
+    exists(Var, ephp_mem:get(MemRef), Context);
 
-exists(#variable{name = Root, idx=[]}, Vars) ->
+exists(#variable{type = class, class = <<"self">>} = Var, _Vars, Context) ->
+    ClassName = ephp_context:get_active_class(Context),
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get(Classes, ClassName) of
+        {ok, #class{static_context = ClassCtx}} ->
+            ephp_context:isset(ClassCtx, Var#variable{type = normal});
+        _ ->
+            false
+    end;
+
+exists(#variable{type = class, class = <<"parent">>} = Var, _Vars, Context) ->
+    ClassName = ephp_context:get_active_real_class(Context),
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get(Classes, ClassName) of
+        {ok, #class{extends = Parent}} ->
+            ephp_context:isset(Context, Var#variable{class = Parent});
+        _ ->
+            false
+    end;
+
+exists(#variable{type = class, class = ClassName} = Var, _Vars, Context) ->
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get(Classes, ClassName) of
+        {ok, #class{static_context = ClassCtx}} ->
+            ephp_context:isset(ClassCtx, Var#variable{type = normal});
+        _ ->
+            false
+    end;
+
+exists(#variable{name = Root, idx=[]}, Vars, _Context) ->
     case ephp_array:find(Root, Vars) of
         error -> false;
         {ok, undefined} -> false;
         _ -> true
     end;
 
-exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars) ->
+exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars, Context) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref=global}} ->
-            exists(#variable{name = NewRoot, idx = Idx}, Vars);
+            exists(#variable{name = NewRoot, idx = Idx}, Vars, Context);
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-            isset(RefVarsPID, NewRefVar);
+            isset(RefVarsPID, NewRefVar, Context);
         {ok, #obj_ref{pid=Objects, ref=ObjectId}} ->
             Ctx = ephp_object:get_context(Objects, ObjectId),
             {object, ObjRoot, _} = NewRoot,
             NewObjVar = #variable{name=ObjRoot, idx=Idx},
-            isset(ephp_context:get_vars(Ctx), NewObjVar);
+            isset(ephp_context:get_vars(Ctx), NewObjVar, Context);
         {ok, NewVars} ->
-            exists(#variable{name=NewRoot, idx=Idx}, NewVars);
+            exists(#variable{name=NewRoot, idx=Idx}, NewVars, Context);
         error ->
             false
     end.

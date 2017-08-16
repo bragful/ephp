@@ -178,19 +178,20 @@ st_class_content(<<V:8,A:8,R:8,SP:8,Rest/binary>>, Pos, Class) when
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     st_class_content(<<SP:8,Rest/binary>>, public_level(add_pos(Pos,3)), Class);
 st_class_content(<<"$",_/binary>> = Rest, {{Access,Type,Final},_,_}=Pos,
-                 #class{attrs=Attrs}=Class) when Access =/= unset ->
+                 #class{attrs=Attrs}=Class) when Access =/= unset orelse
+                                                 Type =:= static ->
     Attr = case ephp_parser_expr:expression(Rest, Pos, []) of
         {Rest0, Pos0, #assign{variable=#variable{name=VarName},
                               expression=Expr}} ->
             #class_attr{
-                access = Access,
+                access = access(Access),
                 name = VarName,
                 type = Type,
                 init_value = Expr,
                 final = Final};
         {Rest0, Pos0, #variable{name = VarName}} ->
             #class_attr{
-                access = Access,
+                access = access(Access),
                 name = VarName,
                 type = Type,
                 final = Final}

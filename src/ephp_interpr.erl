@@ -368,9 +368,16 @@ run_depth(Context, #try_catch{code_block = Code, catches = Catches,
 
 run_depth(Context, #variable{type = static, name = VarName} = Var,
           false, _Cover) ->
-    Funcs = ephp_context:get_funcs(Context),
     ActiveFun = ephp_context:get_active_function(Context),
-    RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, undefined),
+    RealValue = case ephp_context:get_active_real_class(Context) of
+        <<>> ->
+            Funcs = ephp_context:get_funcs(Context),
+            ephp_func:init_static_value(Funcs, ActiveFun, VarName, undefined);
+        ClassName ->
+            Classes = ephp_context:get_classes(Context),
+            ephp_class:init_static_value(Classes, ClassName, ActiveFun, VarName,
+                                         undefined)
+    end,
     ephp_context:set(Context, Var, RealValue),
     false;
 
