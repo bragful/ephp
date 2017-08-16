@@ -19,6 +19,7 @@
     get_attribute/2,
     get_clone/2,
     get_method/4,
+    get_parent/2,
 
     class_attr/1,
     class_attr/2,
@@ -494,6 +495,11 @@ get_method(Ref, #class{name = Name, methods = Methods, extends = Extends},
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
+
+get_parent(Context, Name) ->
+    Classes = ephp_context:get_classes(Context),
+    {ok, #class{extends = Extends}} = get(Classes, Name),
+    Extends.
 
 init_static_value(Ref, ClassName, MethodName, VarName, Value) ->
     {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
