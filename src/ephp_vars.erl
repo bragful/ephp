@@ -180,7 +180,8 @@ exists(#variable{name = Root, idx=[]}, Vars, _Context) ->
         _ -> true
     end;
 
-exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars, Context) ->
+exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars, Context)
+        when ?IS_ARRAY(Vars) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref=global}} ->
             exists(#variable{name = NewRoot, idx = Idx}, Vars, Context);
@@ -196,7 +197,10 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars, Context) ->
             exists(#variable{name=NewRoot, idx=Idx}, NewVars, Context);
         error ->
             false
-    end.
+    end;
+
+exists(#variable{idx = [_|_]}, Vars, _Context) when not ?IS_ARRAY(Vars) ->
+    false.
 
 search(global, Vars, _Context) ->
     Vars;
