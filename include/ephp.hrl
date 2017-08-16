@@ -318,6 +318,7 @@
     args = [] :: [variable()],
     use = [] :: [variable()],
     code :: statements(),
+    return_ref = false :: boolean(),
     line :: line()
 }).
 

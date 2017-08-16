@@ -10,7 +10,8 @@
     init_const/0,
     handle_error/3,
     get_class/3,
-    class_alias/4
+    class_alias/4,
+    class_exists/4
 ]).
 
 -include("ephp.hrl").
@@ -19,7 +20,8 @@
 
 init_func() -> [
     {get_class, [{args, {1, 1, false, [object]}}]},
-    class_alias
+    class_alias,
+    {class_exists, [{args, {1, 2, false, [string, {boolean, true}]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -129,5 +131,18 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
                 {error, eredefinedclass, Line, File, ?E_WARNING, {Alias}}),
+            false
+    end.
+
+-spec class_exists(context(), line(), Class :: var_value(),
+                   AutoLoad :: var_value()) -> boolean().
+
+class_exists(Context, _Line, {_, Class}, {_, _AutoLoad}) ->
+    %% TODO: autload
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get(Classes, Class) of
+        {ok, #class{type = Type}} ->
+            Type =/= interface;
+        {error, enoexist} ->
             false
     end.

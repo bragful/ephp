@@ -1,0 +1,3 @@
+class Iterator => bool(false)
+class NoExist => bool(false)
+class stdClass => bool(true)

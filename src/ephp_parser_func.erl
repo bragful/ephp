@@ -104,16 +104,21 @@ st_function(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_function(Rest, new_line(Pos), Parsed);
 % TODO if the following char is '(' maybe this is a anon-function
 st_function(Rest, Pos, Parsed) ->
-    {Rest0, Pos0, Name} = funct_name(Rest, Pos, []),
-    {<<"(",Rest1/binary>>, Pos1} = remove_spaces(Rest0, Pos0),
-    {Rest2, Pos2, Args} = funct_args(Rest1, Pos1, []),
-    {Rest3, Pos3, CodeBlock} = code_block(Rest2, Pos2, []),
+    ReturnRef = case remove_spaces(Rest, Pos) of
+        {<<"&",Rest0/binary>>, Pos0} -> true;
+        {Rest0, Pos0} -> false
+    end,
+    {Rest1, Pos1, Name} = funct_name(Rest0, Pos0, []),
+    {<<"(",Rest2/binary>>, Pos2} = remove_spaces(Rest1, Pos1),
+    {Rest3, Pos3, Args} = funct_args(Rest2, Pos2, []),
+    {Rest4, Pos4, CodeBlock} = code_block(Rest3, Pos3, []),
     Function = add_line(#function{
         name = Name,
         args = Args,
-        code = CodeBlock
+        code = CodeBlock,
+        return_ref = ReturnRef
     }, Pos),
-    {Rest3, copy_level(Pos, Pos3), [Function|Parsed]}.
+    {Rest4, copy_level(Pos, Pos4), [Function|Parsed]}.
 
 funct_name(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
     funct_name(Rest, add_pos(Pos,1), [<<A:8>>]);
