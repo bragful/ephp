@@ -281,7 +281,7 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Pos, Parsed) when
             ephp_parser_class:st_class(<<SP:8,Rest/binary>>, add_pos(Pos, 5),
                                        Class)
     end,
-    code(Rest0, Pos0, [Class0|Parsed]);
+    code(Rest0, copy_level(Pos, Pos0), [Class0|Parsed]);
 code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) andalso
         ?OR(E,$E,$e) andalso ?OR(R,$R,$r) andalso ?OR(F,$F,$f) andalso
@@ -290,7 +290,7 @@ code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
     Interface = add_line(#class{type = interface}, Pos),
     {Rest0, Pos0, Interface0} =
         ephp_parser_class:st_interface(<<SP:8,Rest/binary>>, add_pos(Pos, 9), Interface),
-    code(Rest0, Pos0, [Interface0|Parsed]);
+    code(Rest0, copy_level(Pos, Pos0), [Interface0|Parsed]);
 code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(E,$e,$E) andalso ?OR(C,$c,$C) andalso ?OR(H,$h,$H) andalso
         ?OR(O,$o,$O) andalso
