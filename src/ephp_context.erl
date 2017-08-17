@@ -393,9 +393,9 @@ register_class(Context, Class) ->
     ok.
 
 register_interface(Context, Interface) ->
-    #state{class = Classes, active_file = File} = load_state(Context),
+    #state{active_file = File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_class:register_interface(Classes, AbsFile, Interface),
+    ephp_class:register_interface(Context, AbsFile, Interface),
     ok.
 
 set_class_alias(Context, ClassName, ClassAlias) ->

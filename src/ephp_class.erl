@@ -125,14 +125,14 @@ register_class(Ref, File, GlobalCtx,
                       methods = ClassMethods,
                       line = Index} = PHPClass) ->
     ConstDef = lists:flatmap(fun(I) ->
-        case get(Ref, I) of
+        case get(GlobalCtx, I, true) of
             {ok, #class{type = interface} = Interface} ->
                 get_consts(Interface);
             _ ->
                 ephp_error:error({error, enointerface, Index, ?E_ERROR, {I}})
         end
     end, PHPClass#class.implements) ++
-         get_extends_consts(Ref, PHPClass) ++
+         get_extends_consts(GlobalCtx, PHPClass) ++
          ConstDef0,
     Methods = extract_methods(Ref, Index, PHPClass#class.implements),
     Parents = extract_parents(Ref, PHPClass),
@@ -159,7 +159,6 @@ register_class(Ref, File, GlobalCtx,
             ephp_error:error({error, efinalmethod, Index, ?E_ERROR,
                               {Class, Method}})
     end,
-    %% TODO: implement extends
     Consts = ephp_context:get_consts(GlobalCtx),
     ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
     %% TODO: create function to create better a context for classes/objects
@@ -301,14 +300,15 @@ check_final_methods([#class_method{name = MethodName}|Methods], ParentMethods) -
 
 register_interface(Ref, File, #class{name = Name, line = Index,
                                      constants = Constants} = PHPInterface) ->
-    #class_state{classes = Interfaces} = State = erlang:get(Ref),
+    Classes = ephp_context:get_classes(Ref),
+    #class_state{classes = Interfaces} = State = erlang:get(Classes),
     ConstDef = get_extends_consts(Ref, PHPInterface) ++ Constants,
     ActivePHPInterface = PHPInterface#class{file = File, constants = ConstDef},
     case dict:find(Name, Interfaces) of
         error ->
             NewClasses = dict:store(Name, ActivePHPInterface, Interfaces),
             NewState = State#class_state{classes = NewClasses},
-            erlang:put(Ref, NewState),
+            erlang:put(Classes, NewState),
             ok;
         {ok, _} ->
             ephp_error:error({error, eredefinedclass, Index, ?E_ERROR, {Name}})
@@ -318,7 +318,7 @@ get_extends_consts(_Ref, #class{extends = undefined}) ->
     [];
 get_extends_consts(Ref, #class{name = Name, extends = Extends,
                                type = interface, line = Index}) ->
-    case get(Ref, Extends) of
+    case get(Ref, Extends, true) of
         {ok, #class{type = interface} = Interface} ->
             get_consts(Interface) ++ get_extends_consts(Ref, Interface);
         {ok, #class{}} ->
@@ -329,7 +329,7 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
     end;
 get_extends_consts(Ref, #class{name = Name, extends = Extends,
                                line = Index}) ->
-    case get(Ref, Extends) of
+    case get(Ref, Extends, true) of
         {ok, #class{name = FName, final = true}} ->
             ephp_error:error({error, efinalclass, Index, ?E_ERROR,
                               {FName, Name}});
