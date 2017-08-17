@@ -10,7 +10,8 @@
     init_const/0,
 
     preg_match/7,
-    preg_replace/7
+    preg_replace/7,
+    preg_quote/4
 ]).
 
 -define(PREG_OFFSET_CAPTURE, 256).
@@ -28,7 +29,12 @@ init_func() -> [
                                         {integer, 0}]}}]},
     {preg_replace, [{args, {3, 5, undefined, [mixed, mixed, mixed,
                                               {integer, -1},
-                                              {integer, 0}]}}]}
+                                              {integer, 0}]}}]},
+    {preg_quote, [
+        {args, {1, 2, undefined, [
+            string, {string, <<>>}
+        ]}}
+    ]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -108,8 +114,23 @@ preg_match(Context, _Line, {_,Pattern}, {_,Subject}, {VarMatches,_},
     ephp_context:set(Context, VarMatches, ValMatches),
     ephp_array:size(ValMatches).
 
+-spec preg_quote(context(), line(), Str::var_value(), Delim::var_value()) ->
+      binary().
+
+preg_quote(_Context, _Line, {_, Str}, {_, DelimBin}) ->
+    Delims = binary_to_list(<<".\\+*?[^]$(){}=!<>|:-",DelimBin/binary>>),
+    escape(Str, <<>>, Delims).
+
 %%------------------------------------------------------------------------------
 %% Internal functions
+
+escape(<<>>, Result, _) ->
+    Result;
+escape(<<A/utf8,Str/binary>>, StrRes, Delims) ->
+    case lists:member(A, Delims) of
+        true -> escape(Str, <<StrRes/binary, "\\", A/utf8>>, Delims);
+        false -> escape(Str, <<StrRes/binary, A/utf8>>, Delims)
+    end.
 
 get_parts(<<InitDelim:8,Rest/binary>>) ->
     EndDelim = get_end_delimiter(InitDelim),
