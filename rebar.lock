@@ -1,7 +1,9 @@
+{"1.1.0",
 [{<<"ezic">>,
   {git,"https://github.com/waj/ezic.git",
        {ref,"f27b57e00a9d4aeb75ee7147390a2b2f8812697b"}},
   0},
+ {<<"recon">>,{pkg,<<"recon">>,<<"2.3.2">>},0},
  {<<"unistring">>,
   {git,"https://github.com/altenwald/unistring.git",
        {ref,"9edbf2afc049d1a7b47d2ec054de04b9bcf5d095"}},
@@ -9,4 +11,8 @@
  {<<"zucchini">>,
   {git,"https://github.com/altenwald/zucchini.git",
        {ref,"e73578f1e1a960c9af1cc3be6bb84bdf59680358"}},
-  0}].
+  0}]}.
+[
+{pkg_hash,[
+ {<<"recon">>, <<"4444C879BE323B1B133EEC5241CB84BD3821EA194C740D75617E106BE4744318">>}]}
+].
