@@ -13,6 +13,8 @@
     to_int/3,
     to_float/1,
     to_float/3,
+    to_number/1,
+    to_number/3,
     to_boolean/1,
     bin_to_number/1,
     bin_to_number/2,
@@ -112,6 +114,7 @@ to_int(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
 to_int(_Ctx, _Line, Val) ->
     to_int(Val).
 
+
 -spec to_float(mixed()) -> float().
 
 to_float(I) when is_integer(I) ->
@@ -150,6 +153,47 @@ to_float(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
 
 to_float(_Context, _Line, Value) ->
     to_float(Value).
+
+
+-spec to_number(mixed()) -> float() | integer().
+
+to_number(I) when is_integer(I) ->
+    I;
+
+to_number(T) when is_binary(T) ->
+    ephp_data:bin_to_number(T);
+
+to_number(F) when is_float(F) ->
+    F;
+
+to_number(A) when ?IS_ARRAY(A) ->
+    case ephp_array:size(A) of
+        0 -> 0;
+        _ -> 1
+    end;
+
+to_number(true) -> 1;
+
+to_number(false) -> 0;
+
+to_number(infinity) -> infinity;
+
+to_number(nan) -> nan;
+
+to_number(undefined) -> 0.
+
+-spec to_number(context(), line(), mixed()) -> float() | integer().
+
+to_number(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
+    ClassName = ephp_object:get_class_name(Objects, ObjectId),
+    File = ephp_context:get_active_file(Ctx),
+    Data = {ClassName, <<"integer">>},
+    ephp_error:handle_error(Ctx, {error, enocast, Line, File, ?E_NOTICE, Data}),
+    1;
+
+to_number(_Context, _Line, Value) ->
+    to_number(Value).
+
 
 -spec to_bin(A :: mixed()) -> binary().
 

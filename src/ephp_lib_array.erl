@@ -11,10 +11,16 @@
     in_array/5,
     count/3,
     array_merge/3,
-    list/3
+    list/3,
+    array_unique/4
 ]).
 
 -include("ephp.hrl").
+
+-define(SORT_REGULAR, 0).
+-define(SORT_NUMERIC, 1).
+-define(SORT_STRING, 2).
+-define(SORT_LOCALE_STRING, 5).
 
 -spec init_func() -> ephp_func:php_function_results().
 
@@ -23,7 +29,10 @@ init_func() -> [
     count,
     {count, [{alias, <<"sizeof">>}]},
     {array_merge, [pack_args]},
-    {list, [pack_args, {args, no_resolve}]}
+    {list, [pack_args, {args, no_resolve}]},
+    {array_unique, [
+        {args, {1, 2, undefined, [array, {integer, ?SORT_STRING}]}}
+    ]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -32,7 +41,12 @@ init_config() -> [].
 
 -spec init_const() -> ephp_func:php_const_results().
 
-init_const() -> [].
+init_const() -> [
+    {<<"SORT_REGULAR">>, ?SORT_REGULAR},
+    {<<"SORT_NUMERIC">>, ?SORT_NUMERIC},
+    {<<"SORT_STRING">>, ?SORT_STRING},
+    {<<"SORT_LOCALE_STRING">>, ?SORT_LOCALE_STRING}
+].
 
 -spec in_array(
     context(), line(),
@@ -67,9 +81,42 @@ list(Context, _Line, [{Binary, undefined}|Getters]) when is_binary(Binary) ->
                   end, Getters),
     undefined.
 
+-spec array_unique(context(), line(), Array :: var_value(),
+                   Flags :: var_value()) -> ephp_array().
+
+array_unique(_Context, _Line, {_, Array}, {_, Flags}) ->
+    %% TODO error when Flags is not a SORT_* valid value
+    ephp_array:from_list(unique(ephp_array:to_list(Array), [], Flags)).
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+unique([], Array, _Flags) ->
+    Array;
+unique([{Key,Val}|Rest], Array, ?SORT_REGULAR) ->
+    Check = fun({_, V}) ->
+        ephp_data:is_equal(V, Val)
+    end,
+    case lists:any(Check, Array) of
+        true -> unique(Rest, Array, ?SORT_REGULAR);
+        false -> unique(Rest, Array ++ [{Key, Val}], ?SORT_REGULAR)
+    end;
+unique([{Key,Val}|Rest], Array, ?SORT_NUMERIC) ->
+    NumArray = [ {K, ephp_data:to_number(V)} || {K, V} <- Array ],
+    NumVal = ephp_data:to_number(Val),
+    case lists:keyfind(NumVal, 2, NumArray) of
+        {_, NumVal} -> unique(Rest, Array, ?SORT_NUMERIC);
+        false -> unique(Rest, Array ++ [{Key, Val}], ?SORT_NUMERIC)
+    end;
+unique([{Key,Val}|Rest], Array, _Flags) ->
+    StrArray = [ {K, ephp_data:to_bin(V)} || {K, V} <- Array ],
+    StrVal = ephp_data:to_bin(Val),
+    case lists:keyfind(StrVal, 2, StrArray) of
+        {_, StrVal} -> unique(Rest, Array, ?SORT_STRING);
+        false -> unique(Rest, Array ++ [{Key, Val}], ?SORT_STRING)
+    end.
+%% TODO: SORT_LOCALE_STRING
 
 zip_list(_Context, [], _) ->
     ok;
