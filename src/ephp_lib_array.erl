@@ -12,7 +12,8 @@
     count/3,
     array_merge/3,
     list/3,
-    array_unique/4
+    array_unique/4,
+    array_change_key_case/4
 ]).
 
 -include("ephp.hrl").
@@ -21,6 +22,9 @@
 -define(SORT_NUMERIC, 1).
 -define(SORT_STRING, 2).
 -define(SORT_LOCALE_STRING, 5).
+
+-define(CASE_LOWER, 0).
+-define(CASE_UPPER, 1).
 
 -spec init_func() -> ephp_func:php_function_results().
 
@@ -32,6 +36,9 @@ init_func() -> [
     {list, [pack_args, {args, no_resolve}]},
     {array_unique, [
         {args, {1, 2, undefined, [array, {integer, ?SORT_STRING}]}}
+    ]},
+    {array_change_key_case, [
+        {args, {1, 2, undefined, [array, {integer, ?CASE_LOWER}]}}
     ]}
 ].
 
@@ -45,7 +52,9 @@ init_const() -> [
     {<<"SORT_REGULAR">>, ?SORT_REGULAR},
     {<<"SORT_NUMERIC">>, ?SORT_NUMERIC},
     {<<"SORT_STRING">>, ?SORT_STRING},
-    {<<"SORT_LOCALE_STRING">>, ?SORT_LOCALE_STRING}
+    {<<"SORT_LOCALE_STRING">>, ?SORT_LOCALE_STRING},
+    {<<"CASE_LOWER">>, ?CASE_LOWER},
+    {<<"CASE_UPPER">>, ?CASE_UPPER}
 ].
 
 -spec in_array(
@@ -87,6 +96,17 @@ list(Context, _Line, [{Binary, undefined}|Getters]) when is_binary(Binary) ->
 array_unique(_Context, _Line, {_, Array}, {_, Flags}) ->
     %% TODO error when Flags is not a SORT_* valid value
     ephp_array:from_list(unique(ephp_array:to_list(Array), [], Flags)).
+
+-spec array_change_key_case(context(), line(), Array :: var_value(),
+                            Flags :: var_value()) -> ephp_array().
+
+array_change_key_case(_Context, _Line, {_, Array}, {_, Flags}) ->
+    ephp_array:map(fun(K, V) ->
+        if
+            Flags >= 1 -> {ephp_string:to_upper(K), V};
+            true -> {ephp_string:to_lower(K), V}
+        end
+    end, Array).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
