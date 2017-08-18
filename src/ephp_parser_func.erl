@@ -60,7 +60,7 @@ call_args(Rest, Pos, Parsed) when Rest =/= <<>> ->
         {<<",",Rest0/binary>>, Pos0, Arg} ->
             call_args(Rest0, add_pos(Pos0, 1), Parsed ++ [Arg]);
         {<<";",_/binary>>, Pos0, _} ->
-            ephp_parser:throw_error(eparse, Pos0, {<<";">>});
+            ephp_parser:throw_error(eparse, Pos0, {unexpected, <<";">>});
         {Rest, Pos, _} ->
             ephp_parser:throw_error(eparse, Pos, Rest);
         {Rest0, Pos0, []} ->

@@ -307,7 +307,7 @@ get_message([Module|Modules], Type, Level, Args) ->
 get_message(eparse, _Rest) when is_binary(_Rest) ->
     "parse error";
 
-get_message(eparse, {Value}) when is_binary(Value) ->
+get_message(eparse, {unexpected, Value}) when is_binary(Value) ->
     io_lib:format("syntax error, unexpected '~s'", [Value]);
 
 get_message(eparse, {Value, Type}) when is_binary(Type) ->
