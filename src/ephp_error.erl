@@ -307,6 +307,9 @@ get_message([Module|Modules], Type, Level, Args) ->
 get_message(eparse, _Rest) when is_binary(_Rest) ->
     "parse error";
 
+get_message(eparse, {unexpected, Value}) when is_binary(Value) ->
+    io_lib:format("syntax error, unexpected '~s'", [Value]);
+
 get_message(eparse, {Value, Type}) when is_binary(Type) ->
     io_lib:format("syntax error, unexpected '~s' (~s)", [Value, Type]);
 
@@ -389,6 +392,9 @@ get_message(eargtype, {Function, ArgNum}) ->
 
 get_message(eisnot, {Function, VarName, Type}) ->
     io_lib:format("~s(): ~s is not ~s", [Function, VarName, Type]);
+
+get_message(eshouldbe, {Function, Key, Type}) ->
+    io_lib:format("~s(): ~s should be ~s", [Function, Key, Type]);
 
 get_message(eoffset, {Function}) ->
     io_lib:format("~s(): Offset not contained in string", [Function]);

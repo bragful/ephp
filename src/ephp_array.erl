@@ -9,8 +9,10 @@
     new/3,
     size/1,
     find/2,
+    find/3,
     store/3,
     erase/2,
+    map/2,
     fold/3,
     from_list/1,
     to_list/1
@@ -39,6 +41,14 @@ find(Key, #ephp_array{values=Values, trigger=undefined}) ->
 
 find(Key, #ephp_array{trigger={Module,Function,Args}}=Array) ->
     apply(Module, Function, Args ++ [Array, {retrieve, Key}]).
+
+-spec find(mixed(), ephp_array(), mixed()) -> mixed().
+
+find(Key, Array, Default) ->
+    case find(Key, Array) of
+        {ok, Value} -> Value;
+        error -> Default
+    end.
 
 -spec store(auto | mixed(), mixed(), ephp_array()) -> ephp_array().
 
@@ -83,13 +93,23 @@ erase(Key, #ephp_array{values=Values}=Array) ->
         size = length(NewValues)
     }, {remove, Key}).
 
+-spec map(function(), ephp_array()) -> ephp_array().
+
+map(Fun, #ephp_array{values = Values, trigger = undefined} = Array) ->
+    NewValues = lists:map(fun({K, V}) -> Fun(K, V) end, Values),
+    Array#ephp_array{values = NewValues};
+
+map(Fun, #ephp_array{trigger = {Module, Function, Args}} = Array) ->
+    NewFun = fun({K, V}) -> Fun(K, V) end,
+    apply(Module, Function, Args ++ [Array, {map, NewFun}]).
+
 -spec fold(function(), mixed(), ephp_array()) -> mixed().
 
-fold(Fun, Initial, #ephp_array{values=Values, trigger=undefined}) ->
-    lists:foldl(fun({K,V}, Acc) -> Fun(K, V, Acc) end, Initial, Values);
+fold(Fun, Initial, #ephp_array{values = Values, trigger = undefined}) ->
+    lists:foldl(fun({K, V}, Acc) -> Fun(K, V, Acc) end, Initial, Values);
 
-fold(Fun, Initial, #ephp_array{trigger={Module,Function,Args}}=Array) ->
-    NewFun = fun({K,V},Acc) -> Fun(K,V,Acc) end,
+fold(Fun, Initial, #ephp_array{trigger = {Module, Function, Args}} = Array) ->
+    NewFun = fun({K, V}, Acc) -> Fun(K, V, Acc) end,
     apply(Module, Function, Args ++ [Array, {fold, NewFun, Initial}]).
 
 -spec from_list([mixed()]) -> ephp_array().

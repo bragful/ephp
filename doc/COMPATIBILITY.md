@@ -72,7 +72,7 @@ Features
     - [x] define attributes
     - [x] check public, private and/or protected for attributes
     - [x] define constants
-    - [ ] inheritance
+    - [x] inheritance
     - [x] implementations (or interfaces)
     - [ ] namespaces
     - [ ] traits
@@ -107,7 +107,11 @@ Functions
    * [var_dump](http://www.php.net/var_dump)
 
  * Array related functions:
+   * [array_change_key_case](http://www.php.net/array_change_key_case)
+   * [array_chunk](http://www.php.net/array_chunk)
+   * [array_column](http://www.php.net/array_column)
    * [array_merge](http://www.php.net/array_merge)
+   * [array_unique](http://www.php.net/array_unique)
    * [count](http://www.php.net/count)
    * [in_array](http://www.php.net/in_array) (not complete)
    * [list](http://www.php.net/list)
@@ -119,9 +123,11 @@ Functions
    * [explode](http://www.php.net/explode)
    * [implode](http://www.php.net/implode)
    * [join](http://www.php.net/join)
+   * [ltrim](http://www.php.net/ltrim)
    * [ord](http://www.php.net/ord)
    * [print](http://www.php.net/print)
    * [printf](http://www.php.net/printf)
+   * [rtrim](http://www.php.net/rtrim)
    * [split](http://www.php.net/split)
    * [sprintf](http://www.php.net/sprintf)
    * [strlen](http://www.php.net/strlen)
@@ -130,6 +136,7 @@ Functions
    * [strtoupper](http://www.php.net/strtoupper)
    * [str_replace](http://www.php.net/str_replace)
    * [str_split](http://www.php.net/str_split)
+   * [trim](http://www.php.net/trim)
    * [vprintf](http://www.php.net/vprintf)
    * [vsprintf](http://www.php.net/vsprintf)
 
@@ -143,6 +150,7 @@ Functions
    * [timezone_abbreviations_list](http://www.php.net/timezone_abbreviations_list)
 
 * Functions related functions:
+   * [call_user_func](http://www.php.net/call_user_func)
    * [register_shutdown_function](http://www.php.net/register_shutdown_function)
    * [get_defined_functions](http://www.php.net/get_defined_functions)
    * [function_exists](http://www.php.net/function_exists)
@@ -169,18 +177,24 @@ Functions
 * File related functions:
    * [basename](http://www.php.net/basename)
    * [dirname](http://www.php.net/dirname)
+   * [is_dir](http://www.php.net/is_dir)
    * [file_exists](http://www.php.net/file_exists)
 
 * Class related functions:
    * [get_class](http://www.php.net/get_class)
+   * [class_exists](http://www.php.net/class_exists)
    * [class_alias](http://www.php.net/class_alias)
 
 * Info related functions:
    * [ini_get](http://www.php.net/ini_get)
    * [ini_set](http://www.php.net/ini_set)
-   * [phpinfo](http://www.php.net/phpinfo)
+   * [memory_get_usage](http://www.php.net/memory_get_usage)
+   * [memory_get_peak_usage](http://www.php.net/memory_get_peak_usage)
+   * [phpinfo](http://www.php.net/phpinfo) (not complete)
    * [phpversion](http://www.php.net/phpversion)
    * [set_include_path](http://www.php.net/set_include_path)
+   * [version_compare](http://www.php.net/version_compare)
+   * [extension_loaded](http://www.php.net/extension_loaded)
 
 * Math related functions:
    * [abs](http://www.php.net/abs)
@@ -225,3 +239,6 @@ Functions
 
  * PCRE related functions:
    * [preg_match](http://www.php.net/preg_match)
+   * [preg_quote](http://www.php.net/preg_quote)
+   * [preg_replace](http://www.php.net/preg_replace)
+

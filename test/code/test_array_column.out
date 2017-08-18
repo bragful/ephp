@@ -1,0 +1,33 @@
+Array
+(
+    [0] => Luke
+    [1] => Han
+    [2] => R2-D2
+)
+Array
+(
+    [Rogue242] => Luke
+    [Halcon321] => Han
+    [Robot2D2] => R2-D2
+)
+Array
+(
+)
+Array
+(
+    [0] => Luke
+    [1] => Han
+    [2] => R2-D2
+)
+Array
+(
+)
+
+Warning: array_column() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_column.php on line 26
+NULL
+
+Warning: array_column(): The column key should be either a string or an integer in {{CWD}}/test/code/test_array_column.php on line 27
+bool(false)
+
+Warning: array_column(): The index key should be either a string or an integer in {{CWD}}/test/code/test_array_column.php on line 28
+bool(false)

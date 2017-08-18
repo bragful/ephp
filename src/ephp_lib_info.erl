@@ -14,7 +14,9 @@
     ini_set/4,
     set_include_path/3,
     version_compare/5,
-    extension_loaded/3
+    extension_loaded/3,
+    memory_get_usage/3,
+    memory_get_peak_usage/3
 ]).
 
 -spec init_func() -> ephp_func:php_function_results().
@@ -30,6 +32,12 @@ init_func() -> [
     ]},
     {extension_loaded, [
         {args, {1, 1, undefined, [string]}}
+    ]},
+    {memory_get_usage, [
+        {args, {0, 1, undefined, [{boolean, false}]}}
+    ]},
+    {memory_get_peak_usage, [
+        {args, {0, 1, undefined, [{boolean, false}]}}
     ]}
 ].
 
@@ -152,6 +160,22 @@ extension_loaded(_Context, _Line, {_, ModuleName}) ->
         end
     end, ephp_config:get(modules)),
     lists:member(ModuleName, Modules).
+
+-spec memory_get_usage(context(), line(), RealUsage :: var_value()) ->
+      pos_integer().
+
+memory_get_usage(_Context, _Line, {_, false}) ->
+    recon_alloc:memory(used, current);
+memory_get_usage(_Context, _Line, {_, true}) ->
+    recon_alloc:memory(allocated, current).
+
+-spec memory_get_peak_usage(context(), line(), RealUsage :: var_value()) ->
+      pos_integer().
+
+memory_get_peak_usage(_Context, _Line, {_, false}) ->
+    recon_alloc:memory(used, max);
+memory_get_peak_usage(_Context, _Line, {_, true}) ->
+    recon_alloc:memory(allocated, max).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

@@ -1,0 +1,23 @@
+Array
+(
+    [FIRST] => 1
+    [SECOND] => 4
+)
+Array
+(
+    [0] => one
+    [1] => two
+)
+Array
+(
+    [first] => 10
+    [second] => 20
+)
+Array
+(
+    [FIRST] => 10
+    [SECOND] => 20
+)
+
+Warning: array_change_key_case() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_change_key_case.php on line 11
+NULL

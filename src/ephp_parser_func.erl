@@ -51,7 +51,6 @@ call_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     call_args(Rest, new_line(Pos), Parsed);
 call_args(<<")",Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos, 1), Parsed};
-%% TODO error missing closing params
 call_args(Rest, Pos, Parsed) when Rest =/= <<>> ->
     case ephp_parser_expr:expression(Rest, arg_level(Pos), []) of
         {<<")",Rest0/binary>>, Pos0, []} ->
@@ -60,7 +59,10 @@ call_args(Rest, Pos, Parsed) when Rest =/= <<>> ->
             {Rest0, add_pos(Pos0,1), Parsed ++ [Arg]};
         {<<",",Rest0/binary>>, Pos0, Arg} ->
             call_args(Rest0, add_pos(Pos0, 1), Parsed ++ [Arg]);
-        %% TODO error missing closing params
+        {<<";",_/binary>>, Pos0, _} ->
+            ephp_parser:throw_error(eparse, Pos0, {unexpected, <<";">>});
+        {Rest, Pos, _} ->
+            ephp_parser:throw_error(eparse, Pos, Rest);
         {Rest0, Pos0, []} ->
             call_args(Rest0, Pos0, Parsed);
         {Rest0, Pos0, Arg} ->

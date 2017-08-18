@@ -1,0 +1,33 @@
+Array
+(
+    [a] => green
+    [0] => red
+    [1] => blue
+)
+Array
+(
+    [0] => 4
+    [2] => 3
+)
+Array
+(
+    [0] => 4
+    [2] => 3
+    [7] => 3cm
+)
+Array
+(
+    [0] => 4
+    [2] => 3
+    [6] => 4in
+    [7] => 3cm
+)
+Array
+(
+    [0] => 4
+    [2] => 3
+    [6] => 4in
+    [7] => 3cm
+)
+
+Warning: array_unique() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_unique.php on line 18
