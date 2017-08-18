@@ -137,10 +137,8 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
 -spec class_exists(context(), line(), Class :: var_value(),
                    AutoLoad :: var_value()) -> boolean().
 
-class_exists(Context, _Line, {_, Class}, {_, _AutoLoad}) ->
-    %% TODO: autload
-    Classes = ephp_context:get_classes(Context),
-    case ephp_class:get(Classes, Class) of
+class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
+    case ephp_class:get(Context, Class, AutoLoad) of
         {ok, #class{type = Type}} ->
             Type =/= interface;
         {error, enoexist} ->
