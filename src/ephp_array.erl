@@ -9,6 +9,7 @@
     new/3,
     size/1,
     find/2,
+    find/3,
     store/3,
     erase/2,
     map/2,
@@ -40,6 +41,14 @@ find(Key, #ephp_array{values=Values, trigger=undefined}) ->
 
 find(Key, #ephp_array{trigger={Module,Function,Args}}=Array) ->
     apply(Module, Function, Args ++ [Array, {retrieve, Key}]).
+
+-spec find(mixed(), ephp_array(), mixed()) -> mixed().
+
+find(Key, Array, Default) ->
+    case find(Key, Array) of
+        {ok, Value} -> Value;
+        error -> Default
+    end.
 
 -spec store(auto | mixed(), mixed(), ephp_array()) -> ephp_array().
 

@@ -393,6 +393,9 @@ get_message(eargtype, {Function, ArgNum}) ->
 get_message(eisnot, {Function, VarName, Type}) ->
     io_lib:format("~s(): ~s is not ~s", [Function, VarName, Type]);
 
+get_message(eshouldbe, {Function, Key, Type}) ->
+    io_lib:format("~s(): ~s should be ~s", [Function, Key, Type]);
+
 get_message(eoffset, {Function}) ->
     io_lib:format("~s(): Offset not contained in string", [Function]);
 

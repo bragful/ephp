@@ -14,7 +14,8 @@
     list/3,
     array_unique/4,
     array_change_key_case/4,
-    array_chunk/5
+    array_chunk/5,
+    array_column/5
 ]).
 
 -include("ephp.hrl").
@@ -43,6 +44,9 @@ init_func() -> [
     ]},
     {array_chunk, [
         {args, {2, 3, undefined, [array, integer, {boolean, false}]}}
+    ]},
+    {array_column, [
+        {args, {2, 3, undefined, [array, mixed, {mixed, undefined}]}}
     ]}
 ].
 
@@ -123,6 +127,39 @@ array_chunk(_Context, _Line, {_, Array}, {_, Size}, {_, PreserveKeys}) ->
             ephp_array:from_list(chunk(ephp_array:to_list(Array),
                                        Size, PreserveKeys))
     end.
+
+array_column(Context, Line, _Array, {_, ColKey}, _IdxKey) when
+        not (is_binary(ColKey) orelse is_number(ColKey)) ->
+    File = ephp_context:get_active_file(Context),
+    Error = {error, eshouldbe, Line, File, ?E_WARNING,
+             {<<"array_column">>, <<"The column key">>,
+              <<"either a string or an integer">>}},
+    ephp_error:handle_error(Context, Error),
+    false;
+
+array_column(Context, Line, _Array, _ColKey, {_, IdxKey}) when
+        not (is_binary(IdxKey) orelse is_number(IdxKey) orelse
+             IdxKey =:= undefined) ->
+    File = ephp_context:get_active_file(Context),
+    Error = {error, eshouldbe, Line, File, ?E_WARNING,
+             {<<"array_column">>, <<"The index key">>,
+              <<"either a string or an integer">>}},
+    ephp_error:handle_error(Context, Error),
+    false;
+
+array_column(_Context, _Line, {_, Array}, {_, ColKey}, {_, IdxKey}) ->
+    ephp_array:fold(fun(_, V, A) ->
+        case ephp_array:find(ColKey, V) of
+            {ok, Val} ->
+                Key = case IdxKey of
+                    undefined -> auto;
+                    _ -> ephp_array:find(IdxKey, V, auto)
+                end,
+                ephp_array:store(Key, Val, A);
+            error ->
+                A
+        end
+    end, ephp_array:new(), Array).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
