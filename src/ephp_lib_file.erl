@@ -10,7 +10,8 @@
     init_const/0,
     basename/3,
     dirname/3,
-    file_exists/3
+    file_exists/3,
+    is_dir/3
 ]).
 
 -include("ephp.hrl").
@@ -20,7 +21,8 @@
 init_func() -> [
     basename,
     dirname,
-    file_exists
+    file_exists,
+    {is_dir, [{args, [mixed]}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -49,3 +51,8 @@ dirname(_Context, _Line, {_Var, PathFile}) ->
 
 file_exists(_Context, _Line, {_, Filename}) ->
     filelib:is_regular(Filename).
+
+-spec is_dir(context(), line(), var_value()) -> boolean().
+
+is_dir(_Context, _Line, {_, Dirname}) ->
+    filelib:is_dir(ephp_data:to_bin(Dirname)).
