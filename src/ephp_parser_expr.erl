@@ -722,7 +722,7 @@ gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
                             "`\"variable (T_VARIABLE)\"' or "
                             "`'{'' or `'$''">>})
     end,
-    gen_op(Rest, [A#variable{idx=[Object|Idx]}|Stack]);
+    gen_op(Rest, [A#variable{idx = Idx ++ [Object]}|Stack]);
 gen_op([{<<"++">>, {_,_}, Pos}|Rest], [V|Stack]) ->
     gen_op(Rest, [{post_incr, V, Pos}|Stack]);
 gen_op([{<<"--">>, {_,_}, Pos}|Rest], [V|Stack]) ->
