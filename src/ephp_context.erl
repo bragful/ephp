@@ -789,6 +789,10 @@ resolve(#call{name = Object} = Call, State) when ?IS_OBJECT(Object) ->
 
 resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
+    if  %% FIXME: only to avoid infinite-loop
+        Name =:= Fun -> throw({error, implementation});
+        true -> ok
+    end,
     resolve(Call#call{name = Name}, NewState);
 
 resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
