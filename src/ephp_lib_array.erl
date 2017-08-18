@@ -13,7 +13,8 @@
     array_merge/3,
     list/3,
     array_unique/4,
-    array_change_key_case/4
+    array_change_key_case/4,
+    array_chunk/5
 ]).
 
 -include("ephp.hrl").
@@ -39,6 +40,9 @@ init_func() -> [
     ]},
     {array_change_key_case, [
         {args, {1, 2, undefined, [array, {integer, ?CASE_LOWER}]}}
+    ]},
+    {array_chunk, [
+        {args, {2, 3, undefined, [array, integer, {boolean, false}]}}
     ]}
 ].
 
@@ -108,9 +112,34 @@ array_change_key_case(_Context, _Line, {_, Array}, {_, Flags}) ->
         end
     end, Array).
 
+-spec array_chunk(context(), line(), Array :: var_value(), Size :: var_value(),
+                  PreserveKeys :: var_value())  -> ephp_array().
+
+array_chunk(_Context, _Line, {_, Array}, {_, Size}, {_, PreserveKeys}) ->
+    case ephp_array:size(Array) > Size of
+        false ->
+            Array;
+        true ->
+            ephp_array:from_list(chunk(ephp_array:to_list(Array),
+                                       Size, PreserveKeys))
+    end.
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+chunk(Array, _, _) when length(Array) =:= 0 ->
+    [];
+chunk(Array, N, true) when length(Array) =< N ->
+    [ephp_array:from_list(Array)];
+chunk(Array, N, false) when length(Array) =< N ->
+    {_, NewArray} = lists:foldl(fun({_, V}, {K, Res}) ->
+        {K+1, Res ++ [{K,V}]}
+    end, {0, []}, Array),
+    [ephp_array:from_list(NewArray)];
+chunk(Array, N, PrKeys) ->
+    {A1, A2} = lists:split(N, Array),
+    chunk(A1, N, PrKeys) ++ chunk(A2, N, PrKeys).
 
 unique([], Array, _Flags) ->
     Array;

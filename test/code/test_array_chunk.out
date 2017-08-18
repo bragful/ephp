@@ -1,0 +1,93 @@
+Array
+(
+    [0] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [1] => Array
+        (
+            [0] => c
+            [1] => d
+        )
+
+    [2] => Array
+        (
+            [0] => e
+        )
+
+)
+Array
+(
+    [0] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [1] => Array
+        (
+            [2] => c
+            [3] => d
+        )
+
+    [2] => Array
+        (
+            [4] => e
+        )
+
+)
+Array
+(
+    [0] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [1] => Array
+        (
+            [0] => c
+            [1] => d
+        )
+
+)
+Array
+(
+    [0] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [1] => Array
+        (
+            [2] => c
+            [3] => d
+        )
+
+)
+Array
+(
+    [0] => a
+    [1] => b
+    [2] => c
+    [3] => d
+)
+Array
+(
+    [0] => a
+    [1] => b
+    [2] => c
+    [3] => d
+)
+Array
+(
+)
+Array
+(
+)
+
+Warning: array_chunk() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_chunk.php on line 17
+NULL
