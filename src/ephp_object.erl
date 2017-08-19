@@ -24,6 +24,7 @@
     get_class/2,
     get_context/1,
     get_context/2,
+    set/2,
     set/3,
     add/2,
     add_link/1,
@@ -102,6 +103,12 @@ get_context(#obj_ref{pid = Objects, ref = ObjectId}) ->
     get_context(Objects, ObjectId).
 
 
+-spec set(obj_ref(), ephp_object()) -> ok.
+%% @doc stores an object given the Object ID.
+set(#obj_ref{pid = Objects, ref = ObjectId}, Object) ->
+    set(Objects, ObjectId, Object).
+
+
 -spec set(ephp:objects_id(), object_id(), ephp_object()) -> ok.
 %% @doc stores an object given the Object ID.
 set(Objects, ObjectId, Object) ->
@@ -160,10 +167,10 @@ remove(Context, Objects, ObjectId) ->
         undefined ->
             ok;
         #ephp_object{links = Links} = Object ->
-            case Links of
-                1 ->
+            if
+                Links =< 1 ->
                     remove_complete(Context, Objects, ObjectId);
-                _ ->
+                true ->
                     set(Objects, ObjectId, Object#ephp_object{links = Links - 1})
             end
     end,

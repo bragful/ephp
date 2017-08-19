@@ -207,10 +207,6 @@ unset(Context, _Line, {#variable{} = Var, Value}) ->
     case Value of
         Array when ?IS_ARRAY(Array) ->
             ephp_vars:destroy_data(Context, Array);
-        ObjRef when ?IS_OBJECT(ObjRef) ->
-            ephp_vars:destroy_data(Context, ObjRef);
-        MemRef when ?IS_MEM(MemRef) ->
-            ephp_mem:remove(MemRef);
         _ ->
             ok
     end,

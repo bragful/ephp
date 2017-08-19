@@ -465,6 +465,7 @@ resolve(#assign{variable = #variable{type = normal} = Var,
             case Expr of
                 #instance{} -> ephp_object:remove(Ref, Value);
                 #clone{} -> ephp_object:remove(Ref, Value);
+                #cast{type = object} -> ephp_object:remove(Ref, Value);
                 _ -> ok
             end,
             {Value, NState};
@@ -504,6 +505,8 @@ resolve(#assign{variable = #variable{type = class,
                     Result = set(ClassCtx, VarPath, Value),
                     case Expr of
                         #instance{} -> ephp_object:remove(Ref, Value);
+                        #clone{} -> ephp_object:remove(Ref, Value);
+                        #cast{type = object} -> ephp_object:remove(Ref, Value);
                         _ -> ok
                     end,
                     Result;
@@ -531,6 +534,8 @@ resolve(#assign{variable = #variable{type = static, idx = []} = Var,
             ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
             case Expr of
                 #instance{} -> ephp_object:remove(Ref, Value);
+                #clone{} -> ephp_object:remove(Ref, Value);
+                #cast{type = object} -> ephp_object:remove(Ref, Value);
                 _ -> ok
             end,
             {Value, NState};
@@ -548,6 +553,8 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
     case Expr of
         #instance{} -> ephp_object:remove(Ref, Value);
+        #clone{} -> ephp_object:remove(Ref, Value);
+        #cast{type = object} -> ephp_object:remove(Ref, Value);
         _ -> ok
     end,
     {Value, NState};
@@ -563,6 +570,8 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
     case Expr of
         #instance{} -> ephp_object:remove(Ref, Value);
+        #clone{} -> ephp_object:remove(Ref, Value);
+        #cast{type = object} -> ephp_object:remove(Ref, Value);
         _ -> ok
     end,
     {Value, NState};
@@ -722,11 +731,28 @@ resolve(#array{elements = ArrayElements}, State) ->
     {Array,NState} = lists:foldl(fun
         (#array_element{idx = auto, element = Element}, {Dict, NS}) ->
             {Value, NewState} = resolve(Element, NS),
+            if
+                ?IS_OBJECT(Value) ->
+                    case Element of
+                        #instance{} -> ok;
+                        #clone{} -> ok;
+                        #cast{type = object} -> ok;
+                        _ -> ephp_object:add_link(Value)
+                    end;
+                ?IS_MEM(Value) -> ephp_mem:add_link(Value);
+                true -> ok
+            end,
             {ephp_array:store(auto, Value, Dict), NewState};
         (#array_element{idx = I, element = Element}, {Dict, NS}) ->
             {Value, NewState} = resolve(Element, NS),
             if
-                ?IS_OBJECT(Value) -> ephp_object:add_link(Value);
+                ?IS_OBJECT(Value) ->
+                    case Element of
+                        #instance{} -> ok;
+                        #clone{} -> ok;
+                        #cast{type = object} -> ok;
+                        _ -> ephp_object:add_link(Value)
+                    end;
                 ?IS_MEM(Value) -> ephp_mem:add_link(Value);
                 true -> ok
             end,
@@ -975,10 +1001,8 @@ resolve(undefined, State) ->
 resolve(#ref{var = #variable{} = Var}, #state{ref = Ctx, vars = Vars} = State) ->
     Ref = case ephp_vars:get(Vars, Var) of
         ObjRef when ?IS_OBJECT(ObjRef) ->
-            ephp_object:add_link(ObjRef),
             ObjRef;
         MemRef when ?IS_MEM(MemRef) ->
-            ephp_mem:add_link(MemRef),
             MemRef;
         Other ->
             MemRef = ephp_mem:add(Other),
@@ -1465,6 +1489,8 @@ resolve_var(#variable{type = class, class = ClassName, line = Index} = Var,
     end.
 
 % TODO complete list of casting and errors
+resolve_cast(State, Line, Type, MemRef) when ?IS_MEM(MemRef) ->
+    resolve_cast(State, Line, Type, ephp_mem:get(MemRef));
 resolve_cast(#state{ref=Ctx}, Line, int, Value) ->
     ephp_data:to_int(Ctx, Line, Value);
 resolve_cast(#state{ref=Ctx}, Line, float, Value) ->

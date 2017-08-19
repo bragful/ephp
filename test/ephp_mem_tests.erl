@@ -37,7 +37,6 @@ add_remove_links_test() ->
     ?assertEqual(ok, ephp_mem:add_link(MemRef)),
     ?assertEqual(ok, ephp_mem:add_link(MemRef)),
     ?assertEqual(ok, ephp_mem:remove(MemRef)),
-    ?assertEqual(ok, ephp_mem:remove(MemRef)),
     ?assertEqual(100, ephp_mem:get(MemRef)),
     ?assertEqual(ok, ephp_mem:remove(MemRef)),
     ?assertException(throw, segmentation_fault, ephp_mem:remove(MemRef)),

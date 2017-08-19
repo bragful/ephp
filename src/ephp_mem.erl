@@ -17,7 +17,7 @@
 
 -record(mem, {
     data :: mixed,
-    links = 1 :: pos_integer()
+    links = 0 :: pos_integer()
 }).
 
 -type mem() :: #mem{}.
@@ -81,7 +81,7 @@ remove(#mem_ref{mem_id = MemId}) ->
     NewMem = case array:get(MemId, Mem) of
         free ->
             throw(segmentation_fault);
-        #mem{links = Links} when Links =:= 1 ->
+        #mem{links = Links} = _MemData when Links =< 1 ->
             array:set(MemId, free, Mem);
         #mem{links = Links} = MemData ->
             array:set(MemId, MemData#mem{links = Links - 1}, Mem)

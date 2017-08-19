@@ -56,7 +56,6 @@ ref(Vars, VarPath, VarsPID, RefVarPath, Context) ->
         Value when RefVarPath =/= global ->
             MemRef = ephp_mem:add(Value),
             set(VarsPID, RefVarPath, MemRef, Context),
-            ephp_mem:add_link(MemRef),
             set(Vars, VarPath, MemRef, Context);
         _ ->
             ValueFormatted = #var_ref{pid = VarsPID, ref = global},
@@ -285,10 +284,25 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
       ephp:variables_id().
 %% @private
 %% @doc change the value of a variable. This is used only internally.
-change(#variable{name = Root, idx = []} = _Var, remove, Vars, _Context) ->
+change(#variable{name = Root, idx = []} = _Var, remove, Vars, Context) ->
+    case ephp_array:find(Root, Vars) of
+        {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
+            ephp_object:remove(Context, ObjRef);
+        {ok, MemRef} when ?IS_MEM(MemRef) ->
+            ephp_mem:remove(MemRef);
+        _ ->
+            ok
+    end,
     ephp_array:erase(Root, Vars);
 
 change(#variable{name = auto, idx = []} = _Var, Value, Vars, _Context) ->
+    if
+        ?IS_OBJECT(Value) ->
+            ephp_object:add_link(Value);
+        ?IS_MEM(Value) ->
+            ephp_mem:add_link(Value);
+        true -> ok
+    end,
     ephp_array:store(auto, Value, Vars);
 
 change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
@@ -320,23 +334,13 @@ change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
     end;
 
 %% TODO: check when auto is passed as idx to trigger an error
-change(#variable{name=Root, idx=[{object,NewRoot,_Line}]}=_Var, Value, Vars, _Ctx) ->
-    {ok, #obj_ref{ref=ObjectId, pid=Objects}} = ephp_array:find(Root, Vars),
-    #ephp_object{context = Ctx} = RI = ephp_object:get(Objects, ObjectId),
-    Class = ephp_class:add_if_no_exists_attrib(RI#ephp_object.class, NewRoot),
-    NewRI = RI#ephp_object{class=Class},
-    ephp_object:set(Objects, ObjectId, NewRI),
-    ephp_context:set(Ctx, #variable{name=NewRoot}, Value),
-    Vars;
-
 change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
-       Value, Vars, _Ctx) ->
-    {ok, #obj_ref{ref=ObjectId, pid=Objects}} = ephp_array:find(Root, Vars),
-    #ephp_object{context = Ctx} = RI = ephp_object:get(Objects, ObjectId),
-    Class = ephp_class:add_if_no_exists_attrib(RI#ephp_object.class, NewRoot),
-    NewRI = RI#ephp_object{class=Class},
-    ephp_object:set(RI#ephp_object.objects, RI#ephp_object.id, NewRI),
-    ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
+       Value, Vars, _Context) ->
+    {ok, #obj_ref{} = ObjRef} = ephp_array:find(Root, Vars),
+    #ephp_object{context = Ctx, class = Class} = RI = ephp_object:get(ObjRef),
+    NewClass = ephp_class:add_if_no_exists_attrib(Class, NewRoot),
+    ephp_object:set(ObjRef, RI#ephp_object{class = NewClass}),
+    ephp_context:set(Ctx, #variable{name = NewRoot, idx = Idx}, Value),
     Vars;
 
 change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars, Ctx) ->
