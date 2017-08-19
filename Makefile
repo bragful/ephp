@@ -27,6 +27,6 @@ ephp: compile
 	-rm -f .build_date
 
 shell:
-	./rebar3 shell
+	./rebar3 as dev shell
 
 .PHONY: doc test compile all shell
