@@ -1192,6 +1192,12 @@ check_arg(State, Line, I, {boolean,_}, A, ReturnError)
         when not is_boolean(A) andalso not is_number(A)
         andalso not is_binary(A) ->
     throw_warning(State, Line, I, <<"boolean">>, A, ReturnError);
+%% TODO: check if "a valid path" could be throw with different contents in the
+%%       string
+check_arg(State, Line, I, path, A, ReturnError) when not is_binary(A) ->
+    throw_warning(State, Line, I, <<"a valid path">>, A, ReturnError);
+check_arg(State, Line, I, {path,_}, A, ReturnError) when not is_binary(A) ->
+    throw_warning(State, Line, I, <<"a valid path">>, A, ReturnError);
 %% TODO add more checks here!
 check_arg(_State, _Line, _I, _Check, _Var, _ReturnError) ->
     ok.

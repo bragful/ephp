@@ -1,0 +1,8 @@
+test_is_readable.php: This file is readable
+/dev/file_not_found: This file is not readable
+
+Warning: is_readable() expects parameter 1 to be a valid path, array given in {{CWD}}/test/code/test_is_readable.php on line 17
+NULL
+
+Warning: is_readable() expects parameter 1 to be a valid path, object given in {{CWD}}/test/code/test_is_readable.php on line 18
+NULL

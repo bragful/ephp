@@ -11,9 +11,11 @@
     basename/3,
     dirname/3,
     file_exists/3,
-    is_dir/3
+    is_dir/3,
+    is_readable/3
 ]).
 
+-include_lib("kernel/include/file.hrl").
 -include("ephp.hrl").
 
 -spec init_func() -> ephp_func:php_function_results().
@@ -22,7 +24,8 @@ init_func() -> [
     basename,
     dirname,
     file_exists,
-    {is_dir, [{args, [mixed]}]}
+    {is_dir, [{args, [mixed]}]},
+    {is_readable, [{args, [path]}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -56,3 +59,14 @@ file_exists(_Context, _Line, {_, Filename}) ->
 
 is_dir(_Context, _Line, {_, Dirname}) ->
     filelib:is_dir(ephp_data:to_bin(Dirname)).
+
+-spec is_readable(context(), line(), var_value()) -> boolean().
+
+is_readable(_Context, _Line, {_, Filename}) ->
+    case file:read_file_info(Filename) of
+        {ok, #file_info{access = Access}} when Access =:= read
+                                          orelse Access =:= read_write ->
+            true;
+        _ ->
+            false
+    end.
