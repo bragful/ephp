@@ -21,7 +21,7 @@ test:
 		-output cobertura.xml > /dev/null
 	-rm -f .build_date request_ets cobertura_test.xml
 
-ephp: compile
+ephp:
 	./rebar3 escriptize
 	cp -f _build/default/bin/ephp .
 	-rm -f .build_date
@@ -29,4 +29,5 @@ ephp: compile
 shell:
 	./rebar3 as dev shell
 
-.PHONY: doc test compile all shell
+.PHONY: doc test compile all shell ephp
+
