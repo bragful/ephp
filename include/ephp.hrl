@@ -25,6 +25,7 @@
 -define(IS_OBJECT(O), is_record(O, obj_ref)).
 -define(IS_FUNCTION(F), is_record(F, function)).
 -define(IS_MEM(M), is_record(M, mem_ref)).
+-define(IS_CLASS(C), is_record(C, class)).
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).

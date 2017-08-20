@@ -916,13 +916,33 @@ resolve(#call{type = class, class = <<"parent">>} = Call,
     %% TODO check name for class (parent or grandpa, ...)
     resolve(Call#call{class = Extends}, State);
 
+resolve(#call{type = class, class = CurrentClassName} = Call,
+        #state{active_class = CurrentClassName,
+               vars = Vars} = State) ->
+    Object = ephp_vars:get(Vars, #variable{name = <<"this">>}),
+    run_method(Object, Call, State);
+
 resolve(#call{type = class, class = Name, line = Index} = Call,
-        #state{class = Classes} = State) ->
+        #state{class = Classes, active_class = <<>>} = State) ->
     case ephp_class:get(Classes, Name) of
         {ok, Class} ->
             run_method(Class, Call, State);
         {error, enoexist} ->
             ephp_error:error({error, eundefclass, Index, ?E_ERROR, {Name}})
+    end;
+
+resolve(#call{type = class, class = Name, line = Index} = Call,
+        #state{class = Classes, active_class = CurrentClassName,
+               ref = Ref} = State) ->
+    {ok, CurrentClass} = ephp_class:get(Classes, CurrentClassName),
+    case ephp_class:instance_of(Ref, CurrentClass, Name) of
+        true ->
+            Object = ephp_vars:get(State#state.vars,
+                                   #variable{name = <<"this">>}),
+            run_method(Object, Call, State);
+        false ->
+            ephp_error:error({error, eincompatctx, Index, ?E_ERROR,
+                              {Name, Call#call.name}})
     end;
 
 resolve({object, Idx, Line}, State) ->
@@ -1221,7 +1241,7 @@ zip_args(ValArgs, FuncArgs) ->
     end, {[], ValArgs}, FuncArgs),
     Result.
 
-run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
+run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call,
            #state{ref = Ref, const = Const, vars = Vars,
                   class = Classes} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
@@ -1233,10 +1253,25 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                                              class = C#class.name, line = Line},
                           RegInstance, Ref),
             Object = RegInstance,
-            C;
-        #class{}=C ->
+            if
+                AName =/= undefined andalso C#class.name =/= AName ->
+                    {ok, C2} = ephp_class:get(Classes, AName),
+                    C2;
+                true ->
+                    C
+            end;
+        #class{name = AN} = C when AN =:= AName orelse AName =:= undefined ->
             Object = undefined,
+            C;
+        #class{} ->
+            %% TODO maybe this should require $this???
+            Object = undefined,
+            {ok, C} = ephp_class:get(Classes, AName),
             C
+    end,
+    RealObject = case Call#call.type of
+        class -> undefined;
+        object -> Object
     end,
     #class{name = ClassName, file = ClassFile} = Class,
     #class_method{args=RawMethodArgs} = ClassMethod = case Call#call.name of
@@ -1298,7 +1333,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line} = Call,
                     VarRef
             end, MethodArgs),
             ephp_stack:push(Ref, NState#state.active_file, Call#call.line,
-                            MethodName, Refs, ClassName, Object),
+                            MethodName, Refs, ClassName, RealObject),
             Code = ClassMethod#class_method.code,
             Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
                 {return, V} -> V;

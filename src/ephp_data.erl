@@ -240,7 +240,7 @@ to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
 to_bin(Context, Line, #obj_ref{} = ObjRef) ->
     #ephp_object{class = #class{name = ClassName}} = ephp_object:get(ObjRef),
     try
-        Call = #call{name = <<"__toString">>, line = Line},
+        Call = #call{name = <<"__toString">>, line = Line, type = object},
         ephp_context:call_method(Context, ObjRef, Call)
     catch
         throw:{error, eundefmethod, _, _, {ClassName, <<"__toString">>}} ->

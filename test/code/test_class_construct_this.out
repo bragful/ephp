@@ -1,0 +1,6 @@
+from a => 100
+end
+from a => 100
+end
+
+Fatal error: Non-static method C::__construct() cannot be called statically, assuming $this from incompatible context in {{CWD}}/test/code/test_class_construct_this.php on line 31

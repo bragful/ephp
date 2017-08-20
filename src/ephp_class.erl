@@ -392,6 +392,10 @@ instance_of(Context, ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
         {error, _} ->
             false
     end;
+instance_of(_Context, #class{name = CName}, CName) ->
+    true;
+instance_of(_Context, #class{parents = Parents}, CName) ->
+    lists:member(CName, Parents);
 instance_of(_Context, _Data, _Type) ->
     false.
 

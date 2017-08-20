@@ -193,7 +193,7 @@ remove_complete(Context, Objects, ObjectId) ->
         undefined ->
             ok;
         #class_method{name = Name, line = Line} ->
-            Call = #call{name = Name, line = Line},
+            Call = #call{name = Name, line = Line, type = object},
             ephp_context:call_method(Context, ObjRef, Call),
             ok
     end,
@@ -224,7 +224,7 @@ clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->
         undefined ->
             ok;
         #class_method{name = Name, line = Line} ->
-            Call = #call{name = Name, line = Line},
+            Call = #call{name = Name, line = Line, type = object},
             ephp_context:call_method(Context, NewObjRef, Call),
             ok
     end,

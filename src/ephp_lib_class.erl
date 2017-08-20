@@ -42,6 +42,11 @@ handle_error(efinalclass, _Level, {FName, Name}) ->
     io_lib:format("Class ~s may not inherit from final class (~s)",
                   [Name, FName]);
 
+handle_error(eincompatctx, _Level, {Class, Method}) ->
+    io_lib:format("Non-static method ~s::~s() cannot be called "
+                  "statically, assuming $this from incompatible context",
+                  [Class, Method]);
+
 handle_error(eundefclass, _Level, {Class}) ->
     io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
 
