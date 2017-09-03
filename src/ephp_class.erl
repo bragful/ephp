@@ -1,3 +1,18 @@
+%% @doc This module stores the classes found in the code and other defined
+%%      classes here and defined in the `ephp_class_*` modules.
+%%
+%%      This module is responsible to handle that information as well.
+%%      Retrieves the methods, constructor, destructor, parent class,
+%%      attributes, and static data.
+%%
+%%      This module has the possibility to handle interfaces. The
+%%      interfaces are handled in ephp as special classes but
+%%      registering only methods and constants.
+%%
+%%      Finally this module has functions to create instances and
+%%      check if a data is an instance of a specific class, interface
+%%      or native data.
+%% @end
 -module(ephp_class).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
@@ -51,19 +66,30 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
+-spec start_link() -> {ok, ephp:classes_id()}.
+%% @doc starts a classes handler.
 start_link() ->
     Ref = make_ref(),
     erlang:put(Ref, #class_state{}),
     ok = register_classes(Ref),
     {ok, Ref}.
 
+
+-spec destroy(ephp:classes_id()) -> ok.
+%% @doc destroy the classes handler.
 destroy(Classes) ->
     erlang:erase(Classes),
     ok.
 
+
+-type get_return() :: {ok, class()} | {error, enoexist}.
+
+-spec get(context(), class_name(), AutoLoad::boolean()) -> get_return().
+%% @doc retrieves a class registered given the class name.
 get(Context, ClassName, false) ->
     Classes = ephp_context:get_classes(Context),
     get(Classes, ClassName);
+
 get(Context, ClassName, true) ->
     Classes = ephp_context:get_classes(Context),
     case erlang:get(Classes) of
@@ -73,8 +99,16 @@ get(Context, ClassName, true) ->
             get(Context, Classes, ClassName, Loaders)
     end.
 
+
+-type loader() :: binary().
+-type loaders() :: [loader()].
+
+-spec get(context(), ephp:classes_id(), class_name(), loaders()) ->
+      get_return().
+%% @hidden
 get(_Context, Classes, ClassName, []) ->
     get(Classes, ClassName);
+
 get(Context, Classes, ClassName, [Loader|Loaders]) ->
     case get(Classes, ClassName) of
         {ok, Class} ->
@@ -86,6 +120,9 @@ get(Context, Classes, ClassName, [Loader|Loaders]) ->
             get(Context, Classes, ClassName, Loaders)
     end.
 
+
+-spec get(ephp:classes_id(), class_name()) -> get_return().
+%% @doc retrieves a class registered given the class name.
 get(Ref, ClassName) ->
     #class_state{classes = Classes} = erlang:get(Ref),
     case dict:find(ClassName, Classes) of
@@ -97,12 +134,20 @@ get(Ref, ClassName) ->
             {error, enoexist}
     end.
 
+
+-spec set(ephp:classes_id(), class_name(), class()) -> ok.
+%% @doc adds a class using the class name inside of the handler.
 set(Ref, ClassName, Class) ->
     #class_state{classes = Classes} = State = erlang:get(Ref),
     NC = dict:store(ClassName, Class, Classes),
     erlang:put(Ref, State#class_state{classes = NC}),
     ok.
 
+
+-spec set_alias(ephp:classes_id(), Class :: class_name(),
+                Alias :: class_name()) ->
+      get_return() | {error, eredefined}.
+%% @doc set a name as alias of a class name.
 set_alias(Ref, ClassName, AliasName) ->
     case get(Ref, ClassName) of
         {ok, _Class} ->
@@ -116,10 +161,18 @@ set_alias(Ref, ClassName, AliasName) ->
             {error, enoexist}
     end.
 
+
+-spec register_loader(ephp:classes_id(), loader()) -> ok.
+%% @doc register loader for the classes handler.
 register_loader(Ref, Loader) ->
     #class_state{loaders = Loaders} = State = erlang:get(Ref),
-    erlang:put(Ref, State#class_state{loaders = [Loader|Loaders]}).
+    erlang:put(Ref, State#class_state{loaders = [Loader|Loaders]}),
+    ok.
 
+
+-spec register_class(ephp:classes_id(), File :: binary(), context(),
+                     class()) -> ok.
+%% @doc register a class inside of the classes handler.
 register_class(Ref, File, GlobalCtx,
                #class{name = Name, constants = ConstDef0,
                       methods = ClassMethods,
@@ -179,39 +232,65 @@ register_class(Ref, File, GlobalCtx,
     set(Ref, Name, ActivePHPClass),
     ok.
 
+
+-spec get_methods(ephp:classes_id(), class_name() | undefined) ->
+      [class_method()].
+%% @doc retrieve all of the methods given a class name.
 get_methods(_Classes, undefined) ->
     [];
+
 get_methods(Classes, ClassName) ->
     {ok, #class{methods = Methods, extends = Parent}} = get(Classes, ClassName),
     Methods ++ get_methods(Classes, Parent).
 
+
+-spec get_attrs(ephp:classes_id(), class()) -> [class_attr()].
+%% @doc retrieve all of the attributes from a class registered in the handler.
 get_attrs(_Classes, #class{name = Name, extends = undefined, attrs = Attrs}) ->
     attrs_set_class_name(Name, Attrs);
+
 get_attrs(Classes, #class{name = Name, extends = Extends, attrs = Attrs}) ->
     %% TODO check if the inherited class doesn't exist
     {ok, Class} = get(Classes, Extends),
     %% TODO check duplicated
     attrs_set_class_name(Name, Attrs) ++  get_attrs(Classes, Class).
 
+
+-spec attrs_set_class_name(Name :: binary(), [class_attr()]) ->
+      [class_attr()].
+%% @doc set the class name for each class attribute.
 attrs_set_class_name(Name, Attrs) ->
     [ A#class_attr{class_name = Name} || A <- Attrs ].
 
+
+-spec tr_consts([class_const()], context()) -> [class_const()].
+%% @doc solve the constants values.
 tr_consts(Consts, Context) ->
     lists:map(fun(#class_const{name = N, value = V}) ->
         Val = ephp_context:solve(Context, V),
         {N, Val}
     end, Consts).
 
+
+-spec extract_parents(ephp:classes_id(), class() | undefined) ->
+      [class()].
+%% @doc retrieve a list with all of the parent class records.
 extract_parents(_Ref, undefined) ->
     [];
+
 extract_parents(Ref, #class{extends = Extends, implements = Impl}) ->
     ParentExt = extract_parents(Ref, Extends),
     ParentImpl = lists:flatten([ extract_parents(Ref, I) || I <- Impl ]),
     ParentExt ++ ParentImpl;
+
 extract_parents(Ref, Name) when is_binary(Name) ->
     {ok, Class} = get(Ref, Name),
     [Name|extract_parents(Ref, Class)].
 
+
+-spec extract_methods(ephp:classes_id(), Index::mixed(), [class_name()]) ->
+      [class_method()].
+%% @doc extract all of the methods from interfaces.
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     AllMethodsDict = lists:foldl(fun(I, D) ->
         {ok, #class{extends = Extends,
@@ -227,6 +306,13 @@ extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     end, [], lists:reverse(Implements)),
     [ V || {_,V} <- AllMethodsDict ].
 
+
+-type methods_dict() :: [{MethodName :: binary(),
+                          {class_name(), class_method()}}].
+
+-spec extract_methods(class_name(), Index::mixed(), [class_name()],
+                      methods_dict()) -> methods_dict().
+%% @hidden
 extract_methods(_Name, _Index, [], MethodsDict) ->
     MethodsDict;
 extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
@@ -247,9 +333,15 @@ extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
             end
     end.
 
+
+-spec arg_to_text(variable() | var_ref()) -> binary().
+%% @hidden
 arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>;
 arg_to_text(#var_ref{ref = #variable{name = Name}}) -> <<"$", Name/binary>>.
 
+
+-spec check_dup([class()]) -> boolean().
+%% @hidden
 check_dup([]) -> ok;
 check_dup([_Interface]) -> ok;
 check_dup([Interface|Interfaces]) ->
@@ -258,13 +350,22 @@ check_dup([Interface|Interfaces]) ->
         false -> check_dup(Interfaces)
     end.
 
+
+-spec check_methods(class(), [class_method()]) -> [binary()].
+%% @hidden
 check_methods(Interface, ClassMethods) ->
     lists:map(fun({IntName, #class_method{name = Name}}) ->
         io_lib:format("~s::~s", [IntName, Name])
     end, check_methods(Interface, ClassMethods, [])).
 
+
+-spec check_methods([{class_name(), class_method()}], [class_method()],
+                    [{class_name(), class_method()}]) ->
+      [{class_name(), class_method()}].
+%% @hidden
 check_methods([], _ClassMethods, Error) ->
     Error;
+
 check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
     Res = lists:any(fun(#class_method{name = Name, args = Args}) ->
         (Name =:= Method#class_method.name) and
@@ -276,20 +377,31 @@ check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
     end,
     check_methods(Methods, ClassMethods, NewError).
 
+
+-spec check_final_methods(ephp:classes_id(), [class_method()]) ->
+      ok | {error, {class_name(), MethodName :: binary()}}.
+%% @doc hidden
 check_final_methods(_Ref, [], _Extends) ->
     ok;
+
 check_final_methods(_Ref, _Methods, undefined) ->
     ok;
+
 check_final_methods(Ref, Methods, ParentClass) ->
     {ok, #class{methods = ParentMethods,
                 extends = Extends}} = get(Ref, ParentClass),
     case check_final_methods(Methods, ParentMethods) of
         ok -> check_final_methods(Ref, Methods, Extends);
-        {error, MethodError} ->{error, {ParentClass, MethodError}}
+        {error, MethodError} -> {error, {ParentClass, MethodError}}
     end.
 
+
+-spec check_final_methods([class_method()], [class_method()]) ->
+      ok | {error, MethodName :: binary()}.
+%% @doc hidden
 check_final_methods([], _ParentMethods) ->
     ok;
+
 check_final_methods([#class_method{name = MethodName}|Methods], ParentMethods) ->
     case lists:keyfind(MethodName, #class_method.name, ParentMethods) of
         #class_method{name = MethodName, final = true} ->
@@ -297,6 +409,7 @@ check_final_methods([#class_method{name = MethodName}|Methods], ParentMethods) -
         _ ->
             check_final_methods(Methods, ParentMethods)
     end.
+
 
 register_interface(Ref, File, #class{name = Name, line = Index,
                                      constants = Constants} = PHPInterface) ->
