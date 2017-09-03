@@ -1,0 +1,8 @@
+BEGIN
+
+Fatal error: Uncaught exception 'LogicException' with message 'Class myclass could not be loaded' in {{CWD}}/test/code/test_class_spl_autoload_call.php:10
+Stack trace:
+#0 [internal function]: spl_autoload('myclass')
+#1 {{CWD}}/test/code/test_class_spl_autoload_call.php(10): spl_autoload_call('myclass')
+#2 {main}
+  thrown in {{CWD}}/test/code/test_class_spl_autoload_call.php on line 10

@@ -45,7 +45,8 @@
     ephp_lib_info,
     ephp_lib_class,
     ephp_lib_error,
-    ephp_lib_pcre
+    ephp_lib_pcre,
+    ephp_lib_spl
 ]).
 
 -define(E_ERROR, 1).

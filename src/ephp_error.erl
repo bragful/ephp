@@ -437,12 +437,23 @@ trace_to_str({I, Array}) ->
     {ok, Line} = ephp_array:find(<<"line">>, Array),
     {ok, File} = ephp_array:find(<<"file">>, Array),
     {ok, RawArgList} = ephp_array:find(<<"args">>, Array),
-    ArgStrList = lists:map(fun({_, #var_ref{pid = Vars, ref = Var}}) ->
-        binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var), $'))
+    ArgStrList = lists:map(fun
+        ({_, #var_ref{pid = Vars, ref = Var}}) ->
+            binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var), $'));
+        ({_, Value}) when is_binary(Value) ->
+            binary_to_list(ephp_string:escape(Value, $'));
+        ({_, Value}) when is_number(Value) ->
+            binary_to_list(ephp_data:to_bin(Value))
     end, ephp_array:to_list(RawArgList)),
     Args = string:join(ArgStrList, ","),
-    io_lib:format(
-        "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args]).
+    case File of
+        undefined ->
+            io_lib:format(
+                "#~p [internal function]: ~s(~s)~n", [I, FuncName, Args]);
+        _ ->
+            io_lib:format(
+                "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args])
+    end.
 
 -spec get_return(error_type()) -> term().
 

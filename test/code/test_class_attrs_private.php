@@ -3,7 +3,7 @@
 class A {
     private $a = 100;
     public function sum($b) {
-        return $a + $b;
+        return $this->a + $b;
     }
 }
 

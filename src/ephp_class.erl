@@ -33,6 +33,7 @@
     instance_of/3,
 
     register_class/4,
+    register_classes/2,
     register_interface/3,
     set_alias/3,
     instance/5,
@@ -54,7 +55,6 @@
 start_link() ->
     Ref = make_ref(),
     erlang:put(Ref, #class_state{}),
-    ok = register_classes(Ref),
     {ok, Ref}.
 
 destroy(Classes) ->
@@ -64,13 +64,27 @@ destroy(Classes) ->
 get(Context, ClassName, false) ->
     Classes = ephp_context:get_classes(Context),
     get(Classes, ClassName);
-get(Context, ClassName, true) ->
+get(Context, ClassName, spl) ->
     Classes = ephp_context:get_classes(Context),
     case erlang:get(Classes) of
         #class_state{loaders = []} ->
             get(Classes, ClassName);
         #class_state{loaders = Loaders} ->
             get(Context, Classes, ClassName, Loaders)
+    end;
+get(Context, ClassName, true) ->
+    Classes = ephp_context:get_classes(Context),
+    Funcs = ephp_context:get_funcs(Context),
+    case ephp_func:is_defined(Funcs, <<"__autoload">>) of
+        true ->
+            case erlang:get(Classes) of
+                #class_state{loaders = []} ->
+                    get(Context, Classes, ClassName, [<<"__autoload">>]);
+                #class_state{loaders = Loaders} ->
+                    get(Context, Classes, ClassName, [<<"__autoload">>|Loaders])
+            end;
+        false ->
+            get(Context, ClassName, spl)
     end.
 
 get(_Context, Classes, ClassName, []) ->
@@ -161,12 +175,7 @@ register_class(Ref, File, GlobalCtx,
     end,
     Consts = ephp_context:get_consts(GlobalCtx),
     ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
-    %% TODO: create function to create better a context for classes/objects
-    {ok, Ctx} = ephp_context:start_link(),
-    ephp_context:set_active_file(Ctx, ephp_context:get_active_file(GlobalCtx)),
-    ephp_context:set_errors_id(Ctx, ephp_context:get_errors_id(GlobalCtx)),
-    ephp_context:set_output_handler(Ctx, ephp_context:get_output_handler(GlobalCtx)),
-    ephp_context:set_global(Ctx, GlobalCtx),
+    {ok, Ctx} = ephp_context:generate_subcontext(GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         parents = Parents,
@@ -345,11 +354,7 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
 instance(_Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
     case get(LocalCtx, RawClassName, true) of
     {ok, #class{} = Class} ->
-        {ok, Ctx} = ephp_context:start_link(),
-        ephp_context:set_active_file(Ctx, ephp_context:get_active_file(LocalCtx)),
-        ephp_context:set_errors_id(Ctx, ephp_context:get_errors_id(LocalCtx)),
-        ephp_context:set_output_handler(Ctx, ephp_context:get_output_handler(LocalCtx)),
-        ephp_context:set_global(Ctx, GlobalCtx),
+        {ok, Ctx} = ephp_context:generate_subcontext(LocalCtx, GlobalCtx),
         RegClass = #ephp_object{class = Class, context = Ctx},
         Objects = ephp_context:get_objects(LocalCtx),
         ObjectId = ephp_object:add(Objects, RegClass),
@@ -399,12 +404,12 @@ instance_of(_Context, #class{parents = Parents}, CName) ->
 instance_of(_Context, _Data, _Type) ->
     false.
 
-initialize_class(#class{static_context=Ctx, attrs=Attrs}) ->
+initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
     lists:foreach(fun
-        (#class_attr{type=static, name=Name, init_value=RawVal}) ->
+        (#class_attr{type = static, name = Name, init_value = RawVal}) ->
             Val = ephp_context:solve(Ctx, RawVal),
-            ephp_context:set(Ctx, #variable{name=Name}, Val);
-        (#class_attr{type=normal}) ->
+            ephp_context:set(Ctx, #variable{name = Name}, Val);
+        (#class_attr{type = normal}) ->
             ignore
     end, Attrs).
 
@@ -566,7 +571,6 @@ add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
 get_stdclass() ->
     #class{
         name = <<"stdClass">>,
-        constants = dict:new(),
         attrs = []
     }.
 
@@ -591,20 +595,74 @@ class_attr(Name, Access, InitValue, Final) ->
 %% Private functions
 %% ------------------------------------------------------------------
 
-register_classes(Ref) ->
+register_classes(ClassesRef, Context) ->
     Classes = [
         get_stdclass(),
         get_traversable(),
         get_iterator(),
         get_iterator_aggregate(),
-        get_array_access(),
-        ephp_class_exception:get_class()
-    ],
-    State = erlang:get(Ref),
-    ClassesDict = lists:foldl(fun(#class{name = Name} = Class, Dict) ->
-        dict:store(Name, Class, Dict)
-    end, State#class_state.classes, Classes),
-    erlang:put(Ref, State#class_state{classes = ClassesDict}),
+        get_array_access()
+    ] ++ ephp_class_exception:get_classes(),
+    Consts = ephp_context:get_consts(Context),
+    lists:foreach(fun
+        (#class{type = normal} = Class) ->
+            register_unsafe_class(ClassesRef, Consts, Context, Class);
+        (#class{type = interface} = Class) ->
+            register_unsafe_interface(ClassesRef, Class)
+    end, Classes),
+    ok.
+
+get_unsafe_extends_consts(_Classes, #class{extends = undefined}) ->
+    [];
+get_unsafe_extends_consts(Classes, #class{extends = Extends,
+                                          type = interface}) ->
+    {ok, #class{type = interface} = Interface} = get(Classes, Extends),
+    get_consts(Interface) ++ get_unsafe_extends_consts(Classes, Interface);
+get_unsafe_extends_consts(Classes, #class{extends = Extends}) ->
+    {ok, #class{} = Class} = get(Classes, Extends),
+    get_consts(Class) ++ get_unsafe_extends_consts(Classes, Class).
+
+register_unsafe_class(Classes, Consts, GlobalCtx,
+                      #class{name = Name, constants = ConstDef0,
+                             methods = ClassMethods,
+                             line = Index} = PHPClass) ->
+    ConstDef = lists:flatmap(fun(I) ->
+        {ok, #class{type = interface} = Interface} = get(Classes, I),
+        get_consts(Interface)
+    end, PHPClass#class.implements) ++
+         get_unsafe_extends_consts(Classes, PHPClass) ++
+         ConstDef0,
+    Methods = extract_methods(Classes, Index, PHPClass#class.implements),
+    Parents = extract_parents(Classes, PHPClass),
+    ok = check_dup(PHPClass#class.implements),
+    [] = check_methods(Methods, PHPClass#class.methods),
+    ok = check_final_methods(Classes, PHPClass#class.methods,
+                             PHPClass#class.extends),
+    ephp_const:set_bulk(Consts, Name, ConstDef),
+    {ok, Ctx} = ephp_context:generate_subcontext(GlobalCtx),
+    ActivePHPClass = PHPClass#class{
+        static_context = Ctx,
+        parents = Parents,
+        file = <<"built-in">>,
+        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ] ++
+                  get_methods(Classes, PHPClass#class.extends),
+        attrs = get_attrs(Classes, PHPClass)
+    },
+    initialize_class(ActivePHPClass),
+    set(Classes, Name, ActivePHPClass),
+    ok.
+
+register_unsafe_interface(Classes,
+                          #class{name = Name,
+                                 constants = Constants} = PHPInterface) ->
+    #class_state{classes = Interfaces} = State = erlang:get(Classes),
+    ConstDef = get_unsafe_extends_consts(Classes, PHPInterface) ++ Constants,
+    ActivePHPInterface = PHPInterface#class{file = <<"built-in">>,
+                                            constants = ConstDef},
+    error = dict:find(Name, Interfaces),
+    NewClasses = dict:store(Name, ActivePHPInterface, Interfaces),
+    NewState = State#class_state{classes = NewClasses},
+    erlang:put(Classes, NewState),
     ok.
 
 get_traversable() ->

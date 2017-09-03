@@ -5,7 +5,7 @@
 -include("ephp.hrl").
 
 -export([
-    get_class/0,
+    get_classes/0,
     get_trace/1,
     get_message/1,
     exception_construct/4,
@@ -21,10 +21,11 @@
 
 -import(ephp_class, [class_attr/2, class_attr/3]).
 
-get_class() ->
+-spec get_classes() -> [class()].
+
+get_classes() -> [
     #class{
         name = <<"Exception">>,
-        constants = dict:new(),
         attrs = [
             class_attr(<<"message">>, protected, <<"Unknown exception">>),
             class_attr(<<"string">>, private, <<>>),
@@ -110,13 +111,18 @@ get_class() ->
                 builtin = {?MODULE, exception_to_string}
             }
         ]
-    }.
+    },
+    #class{
+        name = <<"LogicException">>,
+        extends = <<"Exception">>
+    }
+].
 
-get_trace(ObjRef) ->
+get_trace(ObjRef) when ?IS_OBJECT(ObjRef) ->
     ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"trace">>}).
 
-get_message(ObjRef) ->
+get_message(ObjRef) when ?IS_OBJECT(ObjRef) ->
     ClassCtx = ephp_object:get_context(ObjRef),
     ephp_context:get(ClassCtx, #variable{name = <<"message">>}).
 

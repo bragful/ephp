@@ -84,6 +84,7 @@
 
     set_global/2,
     generate_subcontext/1,
+    generate_subcontext/2,
 
     get_meta/2,
     set_meta/3,
@@ -98,18 +99,22 @@
 %% ------------------------------------------------------------------
 
 start_link() ->
+    %% TODO: remove all of the concrete parts like funcs, output, const,
+    %%       include, objects, errors, classes, shutdown... keep only vars
+    %%       because the other elements are common for the context and
+    %%       subcontexts. Finally MUST exist only one context per PID.
     Ref = make_ref(),
     {ok, Funcs} = ephp_func:start_link(),
     {ok, Output} = ephp_output:start_link(Ref),
     {ok, Const} = ephp_const:start_link(),
     {ok, Inc} = ephp_include:start_link(),
-    {ok, Class} = ephp_class:start_link(),
     {ok, Object} = ephp_object:start_link(),
-    {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, Errors} = ephp_error:start_link(),
+    {ok, Class} = ephp_class:start_link(),
+    {ok, Shutdown} = ephp_shutdown:start_link(),
     {ok, _} = ephp_stack:start_link(Ref),
     {ok, _} = ephp_mem:start_link(),
-    start_link(#state{
+    {ok, Ref} = start_link(#state{
         ref = Ref,
         output = Output,
         funcs = Funcs,
@@ -119,15 +124,17 @@ start_link() ->
         include = Inc,
         shutdown = Shutdown,
         errors = Errors
-    }).
+    }),
+    ephp_class:register_classes(Class, Ref),
+    {ok, Ref}.
 
-start_link(#state{ref=undefined}=State) ->
-    start_link(State#state{ref=make_ref()});
+start_link(#state{ref = undefined} = State) ->
+    start_link(State#state{ref = make_ref()});
 
-start_link(#state{ref=Ref, global=Ref}) when is_reference(Ref) ->
+start_link(#state{ref = Ref, global = Ref}) when is_reference(Ref) ->
     throw({error, ecyclerefs});
 
-start_link(#state{ref=Ref, global=Global}=State) when is_reference(Ref) ->
+start_link(#state{ref = Ref, global = Global} = State) when is_reference(Ref) ->
     {ok, Vars} = ephp_vars:start_link(),
     if
         Global =:= undefined ->
@@ -145,17 +152,17 @@ clone(Ref) ->
                            vars = ephp_vars:clone(State#state.vars)}),
     {ok, NewRef}.
 
-start_mirror(#state{}=State) ->
+start_mirror(#state{} = State) ->
     Ref = make_ref(),
-    save_state(State#state{ref=Ref}),
+    save_state(State#state{ref = Ref}),
     {ok, Ref}.
 
 get(Context, VarPath) ->
-    #state{vars=Vars} = load_state(Context),
+    #state{vars = Vars} = load_state(Context),
     ephp_vars:get(Vars, VarPath, Context).
 
 isset(Context, VarPath) ->
-    #state{vars=Vars} = load_state(Context),
+    #state{vars = Vars} = load_state(Context),
     ephp_vars:isset(Vars, VarPath, Context).
 
 set(Context, VarPath, Value) ->
@@ -169,16 +176,16 @@ del(Context, VarPath) ->
     ok.
 
 get_meta(Context, Key) ->
-    #state{meta=Meta} = load_state(Context),
+    #state{meta = Meta} = load_state(Context),
     case lists:keyfind(Key, 1, Meta) of
         false -> undefined;
         {Key, Value} -> Value
     end.
 
 set_meta(Context, Key, Value) ->
-    #state{meta=Meta} = State = load_state(Context),
+    #state{meta = Meta} = State = load_state(Context),
     NewMeta = lists:keystore(Key, 1, Meta, {Key, Value}),
-    save_state(State#state{meta=NewMeta}),
+    save_state(State#state{meta = NewMeta}),
     ok.
 
 solve(Context, Expression) ->
@@ -229,15 +236,9 @@ register_func(Context, PHPFunc, Module, Fun, PackArgs, VA)
     ok;
 
 register_func(Context, PHPFunc, Args, Code, PackArgs, VA) ->
-    #state{funcs=Funcs, active_file=File,
-           class = Classes} = load_state(Context),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
     ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, PackArgs, VA),
-    if  % XXX: this method is deprecated in PHP 7.2
-        PHPFunc =:= <<"__autoload">> ->
-            ephp_class:register_loader(Classes, PHPFunc);
-        true -> ok
-    end,
     ok.
 
 register_func(Context, PHPFunc, Module, Fun, VA)
@@ -248,15 +249,9 @@ register_func(Context, PHPFunc, Module, Fun, VA)
     ok;
 
 register_func(Context, PHPFunc, Args, Code, VA) ->
-    #state{funcs=Funcs, active_file=File,
-           class = Classes} = load_state(Context),
+    #state{funcs=Funcs, active_file=File} = load_state(Context),
     AbsFile = filename:absname(File),
     ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, false, VA),
-    if  % XXX: this method is deprecated in PHP 7.2
-        PHPFunc =:= <<"__autoload">> ->
-            ephp_class:register_loader(Classes, PHPFunc);
-        true -> ok
-    end,
     ok.
 
 get_functions(Context) ->
@@ -408,10 +403,11 @@ set_global(Context, GlobalContext) ->
     ok.
 
 generate_subcontext(Context) ->
-    State = load_state(Context),
-    start_link(State#state{
-        ref=undefined,
-        global=Context}).
+    generate_subcontext(Context, Context).
+
+generate_subcontext(LocalContext, GlobalContext) ->
+    State = load_state(LocalContext),
+    start_link(State#state{ref = undefined, global = GlobalContext}).
 
 register_shutdown_func(Context, FuncName) ->
     #state{shutdown=Ref} = load_state(Context),
@@ -853,11 +849,18 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
         end,
         try resolve_args(VArgs, RawArgs, FState, Index) of
             {Args, NState} ->
+                ResArgs = [ Val || {_Var, Val} <- Args ],
+                ephp_stack:push(Ref, File, Index, Fun, ResArgs,
+                                undefined, undefined),
+                ephp_stack:push(Ref, undefined, Index, Fun, ResArgs,
+                                undefined, undefined),
                 save_state(NState),
                 Value = if
                     PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
                     true -> erlang:apply(M,F,[Ref,Index|Args])
                 end,
+                ephp_stack:pop(Ref),
+                ephp_stack:pop(Ref),
                 destroy_args(NState, Args),
                 {Value, (load_state(Ref))#state{ref=Ref}}
         catch
@@ -1647,7 +1650,7 @@ resolve_txt(Texts, Line, State) ->
 
 resolve_op(#operation{
     type=Type, expression_left=Op1, expression_right=Op2}, State)
-        when Type =:= 'and'; Type =:= 'or'->
+        when Type =:= 'and' orelse Type =:= 'or'->
     {RawOpRes1, State1} = resolve(Op1, State),
     OpRes1 = ephp_data:to_bool(RawOpRes1),
     case Type of
