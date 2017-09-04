@@ -179,7 +179,7 @@ exists(#variable{name = Root, idx=[]}, Vars, _Context) ->
         _ -> true
     end;
 
-exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars, Context)
+exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
         when ?IS_ARRAY(Vars) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref=global}} ->
@@ -187,11 +187,23 @@ exists(#variable{name = Root, idx=[NewRoot|Idx]}, Vars, Context)
         {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             isset(RefVarsPID, NewRefVar, Context);
-        {ok, #obj_ref{pid=Objects, ref=ObjectId}} ->
-            Ctx = ephp_object:get_context(Objects, ObjectId),
+        {ok, #obj_ref{} = ObjRef} ->
+            Ctx = ephp_object:get_context(ObjRef),
+            ActiveClass = ephp_context:get_active_class(Context),
+            Classes = ephp_context:get_classes(Context),
+            {ok, Class} = ephp_class:get(Classes, ActiveClass),
             {object, ObjRoot, _} = NewRoot,
-            NewObjVar = #variable{name=ObjRoot, idx=Idx},
-            isset(ephp_context:get_vars(Ctx), NewObjVar, Context);
+            NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
+                #class_attr{access = private} ->
+                    NewObjRoot = {private, ObjRoot, Class#class.name},
+                    #variable{type = object, name = NewObjRoot, idx = Idx,
+                              line = Line};
+                _ ->
+                    #variable{type = object, name = ObjRoot, idx = Idx,
+                              line = Line}
+            end,
+            ObjVarsRef = ephp_context:get_vars(Ctx),
+            isset(ObjVarsRef, NewObjVar, Context);
         {ok, NewVars} ->
             exists(#variable{name=NewRoot, idx=Idx}, NewVars, Context);
         error ->
@@ -246,7 +258,7 @@ search(#variable{name = Root, idx = [], line = Line, type = Type,
     end;
 
 search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
-                 class = ClassName},
+                 class = ClassName} = _Var,
        Vars, Context) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
@@ -258,16 +270,46 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             search(#variable{name = NewRoot, idx = Idx},
                    ephp_mem:get(MemRef), Context);
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
-            Ctx = ephp_object:get_context(ObjRef),
+            Classes = ephp_context:get_classes(Context),
             {object, ObjRoot, _} = NewRoot,
-            NewObjVar = #variable{type = object, line = Line, name = ObjRoot,
-                                  idx = Idx},
+            NewObjVar = case ephp_context:get_active_class(Context) of
+                <<>> ->
+                    Class = ephp_object:get_class(ObjRef),
+                    case ephp_class:get_attribute(Class, ObjRoot) of
+                        #class_attr{access = private} ->
+                            Data = {Class#class.name, ObjRoot, <<"private">>},
+                            ephp_error:error({error, eprivateaccess, Line,
+                                              ?E_ERROR, Data});
+                        #class_attr{access = protected} ->
+                            Data = {Class#class.name, ObjRoot, <<"protected">>},
+                            ephp_error:error({error, eprivateaccess, Line,
+                                              ?E_ERROR, Data});
+                        _ ->
+                            #variable{type = object, line = Line, name = ObjRoot,
+                                      idx = Idx}
+                    end;
+                ActiveClass ->
+                    {ok, Class} = ephp_class:get(Classes, ActiveClass),
+                    case ephp_class:get_attribute(Class, ObjRoot) of
+                        #class_attr{access = private} ->
+                            NewObjRoot = {private, ObjRoot, Class#class.name},
+                            #variable{type = object, line = Line,
+                                      name = NewObjRoot, idx = Idx};
+                        _ ->
+                            #variable{type = object, line = Line, name = ObjRoot,
+                                      idx = Idx}
+                    end
+            end,
+            Ctx = ephp_object:get_context(ObjRef),
             ObjVars = erlang:get(ephp_context:get_vars(Ctx)),
             search(NewObjVar, ObjVars, Context);
         {ok, NewVars} ->
             search(#variable{name = NewRoot, idx = Idx}, NewVars, undefined);
         _ when Context =:= undefined ->
             undefined;
+        _ when Type =:= object andalso ClassName =:= undefined ->
+            Data = {ClassName, Root, <<"private">>},
+            ephp_error:error({error, eprivateaccess, Line, ?E_ERROR, Data});
         _ when Type =:= object ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
@@ -334,7 +376,32 @@ change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
     end;
 
 %% TODO: check when auto is passed as idx to trigger an error
-change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
+change(#variable{name = <<"this">>, idx = [{object, NewRoot, _Line}|Idx]} = Var,
+       Value, Vars, Context) ->
+    {ok, #obj_ref{} = ObjRef} = ephp_array:find(<<"this">>, Vars),
+    ObjCtx = ephp_object:get_context(ObjRef),
+    ActiveClass = ephp_context:get_active_class(Context),
+    Classes = ephp_context:get_classes(Context),
+    {ok, Class} = ephp_class:get(Classes, ActiveClass),
+    case NewRoot of
+        {object, ObjRoot, _} -> ok;
+        ObjRoot -> ok
+    end,
+    NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
+        #class_attr{access = private} ->
+            NewObjRoot = {private, ObjRoot, Class#class.name},
+            Var#variable{name = NewObjRoot, idx = Idx};
+        _ ->
+            ObjClass = ephp_object:get_class(ObjRef),
+            NewClass = ephp_class:add_if_no_exists_attrib(ObjClass, NewRoot),
+            ephp_object:set_class(ObjRef, NewClass),
+            Var#variable{name = ObjRoot, idx = Idx}
+    end,
+    ephp_context:set(ObjCtx, NewObjVar, Value),
+    Vars;
+
+%% TODO: check when auto is passed as idx to trigger an error
+change(#variable{name = Root, idx = [{object, NewRoot, _Line}|Idx]} = _Var,
        Value, Vars, _Context) ->
     {ok, #obj_ref{} = ObjRef} = ephp_array:find(Root, Vars),
     #ephp_object{context = Ctx, class = Class} = RI = ephp_object:get(ObjRef),
@@ -343,7 +410,7 @@ change(#variable{name=Root, idx=[{object,NewRoot,_Line}|Idx]}=_Var,
     ephp_context:set(Ctx, #variable{name = NewRoot, idx = Idx}, Value),
     Vars;
 
-change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars, Ctx) ->
+change(#variable{name = Root, idx = [NewRoot|Idx]} = Var, Value, Vars, Ctx) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
             change(#variable{name = NewRoot, idx = Idx}, Value, Vars, Ctx);
@@ -352,12 +419,23 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars, Ctx) ->
             set(RefVarsPID, NewRefVar, Value, Ctx),
             Vars;
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
-            Ctx = ephp_object:get_context(ObjRef),
-            ephp_context:set(Ctx, #variable{name=NewRoot, idx=Idx}, Value),
+            ObjCtx = ephp_object:get_context(ObjRef),
+            ActiveClass = ephp_context:get_active_class(Ctx),
+            Classes = ephp_context:get_classes(Ctx),
+            {ok, Class} = ephp_class:get(Classes, ActiveClass),
+            {object, ObjRoot, _} = NewRoot,
+            NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
+                #class_attr{access = private} ->
+                    NewObjRoot = {private, ObjRoot, Class#class.name},
+                    Var#variable{name = NewObjRoot, idx = Idx};
+                _ ->
+                    Var#variable{name = ObjRoot, idx = Idx}
+            end,
+            ephp_context:set(ObjCtx, NewObjVar, Value),
             Vars;
         {ok, NewVars} when ?IS_ARRAY(NewVars) ->
             ephp_array:store(Root,
-                             change(#variable{name=NewRoot, idx=Idx}, Value,
+                             change(#variable{name = NewRoot, idx = Idx}, Value,
                                     NewVars, Ctx),
                              Vars);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
@@ -366,7 +444,7 @@ change(#variable{name=Root, idx=[NewRoot|Idx]}=_Var, Value, Vars, Ctx) ->
             Vars;
         _ ->
             ephp_array:store(Root,
-                             change(#variable{name=NewRoot, idx=Idx}, Value,
+                             change(#variable{name = NewRoot, idx = Idx}, Value,
                                     ephp_array:new(), Ctx),
                              Vars)
     end.

@@ -1,0 +1,18 @@
+
+private example of override 'a'...
+parent a => 101
+child  a => 200
+parent a => 102
+child  a => 50
+
+public example of override 'b'...
+parent b => 201
+child  b => 201
+parent b => 51
+child  b => 51
+
+protected example of override 'c'...
+parent c => 201
+child  c => 201
+parent c => 51
+child  c => 51

@@ -1405,6 +1405,7 @@ destroy_args(State, [{_, _}|Rest] = _Ignore) ->
 resolve_var(#variable{type = normal, idx = []} = Var, State) ->
     {ephp_vars:get(State#state.vars, Var, State#state.ref), State};
 
+%% TODO check if it's not possible to run outside of a method
 resolve_var(#variable{name = <<"this">>,
                       idx = [{object, #call{} = Call, _}]} = Var,
             State) ->
@@ -1429,8 +1430,8 @@ resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
                               ?E_ERROR, Data})
     end;
 
-resolve_var(#variable{idx = [{object,#variable{} = SubVar, Line}|Idx]} = Var,
-            #state{ref = Ref, vars = Vars} = State) ->
+resolve_var(#variable{idx = [{object, #variable{} = SubVar, Line}|Idx]} = Var,
+            #state{ref = Ref, vars = Vars, active_class = RunningClass} = State) ->
     InstanceVar = Var#variable{idx = []},
     #ephp_object{class = #class{name = ClassName} = Class,
                  context = Context} =
@@ -1452,49 +1453,40 @@ resolve_var(#variable{idx = [{object,#variable{} = SubVar, Line}|Idx]} = Var,
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
                               ?E_ERROR, Data});
         #class_attr{access = private, class_name = CName}
-                when CName =/= ClassName ->
-            Data = {Class#class.name, SubVal, <<"private">>},
-            ephp_error:error({error, eprivateaccess, SubVar#variable.line,
-                              ?E_ERROR, Data});
-        #class_attr{access = protected, class_name = CName}
-                when CName =/= Class#class.extends ->
-            Data = {Class#class.name, SubVal, <<"protected">>},
-            ephp_error:error({error, eprivateaccess, SubVar#variable.line,
-                              ?E_ERROR, Data});
-        #class_attr{access = public} ->
-            {ephp_context:get(Context, NewVar#variable{class = ClassName,
+                when CName =:= RunningClass ->
+            NewName = {private, NewVar#variable.name, RunningClass},
+            {ephp_context:get(Context, NewVar#variable{class = RunningClass,
+                                                       name = NewName,
+                                                       type = object}),
+                              State3};
+        _ ->
+            {ephp_context:get(Context, NewVar#variable{class = RunningClass,
                                                        type = object}),
                               State3}
     end;
 
-resolve_var(#variable{idx = [{object, VarName, Line}|Idx]} = Var,
-            #state{ref = Ref, vars = Vars} = State) when is_binary(VarName) ->
+%% TODO implement when it's not related to "this"
+resolve_var(#variable{name = <<"this">>, idx = [{object, VarName, Line}|Idx]} = Var,
+            #state{ref = Ref, vars = Vars, active_class = RunningClass} = State)
+                when is_binary(VarName) ->
     InstanceVar = Var#variable{idx = []},
-    #ephp_object{class = Class, context = Context} =
-        ephp_object:get(ephp_vars:get(Vars, InstanceVar, Ref)),
+    ObjRef = ephp_vars:get(Vars, InstanceVar, Ref),
+    Context = ephp_object:get_context(ObjRef),
+    {ok, Class} = ephp_class:get(State#state.class, RunningClass),
     {NewVar, NewState} =
         resolve_indexes(#variable{name = VarName, idx = Idx,
                                   type = object, class = Class#class.name,
                                   line = Line}, State),
     ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
-    ViaThis = (Var#variable.name =:= <<"this">>),
     case ClassAttr of
-        #class_attr{access = protected} when not ViaThis ->
-            Data = {Class#class.name, NewVar#variable.name, <<"protected">>},
-            ephp_error:error({error, eprivateaccess, Var#variable.line,
-                              ?E_ERROR, Data});
-        #class_attr{access = private} when not ViaThis ->
-            Data = {Class#class.name, NewVar#variable.name, <<"private">>},
-            ephp_error:error({error, eprivateaccess, Var#variable.line,
-                              ?E_ERROR, Data});
-        #class_attr{class_name = ClassName,
-                    access = Access} when Access =:= public orelse
-                                          Access =:= private orelse
-                                          Access =:= protected ->
-            {ephp_context:get(Context, NewVar#variable{class = ClassName,
-                                                       type = object}), NewState};
-        undefined -> % dynamic attribute, not defined
-            {ephp_context:get(Context, NewVar#variable{class = Class#class.name,
+        #class_attr{access = private} ->
+            NewName = {private, NewVar#variable.name, RunningClass},
+            {ephp_context:get(Context, NewVar#variable{class = RunningClass,
+                                                       name = NewName,
+                                                       type = object}),
+                              NewState};
+        _Data ->
+            {ephp_context:get(Context, NewVar#variable{class = RunningClass,
                                                        type = object}), NewState}
     end;
 

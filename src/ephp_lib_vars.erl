@@ -306,8 +306,15 @@ var_dump_fmt(Context, Line, #obj_ref{} = ObjRef,
     case ephp_object:get(ObjRef) of
     #ephp_object{class = Class, context = Ctx} ->
         #class{name = ClassName} = Class,
-        lists:foldl(fun(#class_attr{name = RawName, access = Access}, Output) ->
-            Value = ephp_context:get(Ctx, #variable{name=RawName}),
+        lists:foldl(fun(#class_attr{name = RawName, access = Access} = CA, Output) ->
+            Variable = case Access of
+                private ->
+                    AttrClassName = CA#class_attr.class_name,
+                    #variable{name = {private, RawName, AttrClassName}};
+                _ ->
+                    #variable{name = RawName}
+            end,
+            Value = ephp_context:get(Ctx, Variable),
             ValDumped = var_dump_fmt(Context, Line, Value,
                                      <<Spaces/binary, ?SPACES_VD>>, RecCtl),
             Name = if

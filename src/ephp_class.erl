@@ -535,17 +535,18 @@ initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
             ignore
     end, Attrs).
 
-initialize(Ctx, ClassName, #class{attrs=Attrs}) ->
+initialize(Ctx, _ClassName, #class{attrs=Attrs}) ->
     lists:foreach(fun
-        (#class_attr{type = normal, access = private, class_name = CName})
-                when ClassName =/= CName ->
-            ignore;
+        (#class_attr{type = normal, access = private, class_name = CName,
+                     name = Name, init_value = RawVal}) ->
+            Val = ephp_context:solve(Ctx, RawVal),
+            ephp_context:set(Ctx, #variable{name = {private, Name, CName}}, Val);
         (#class_attr{type = normal, name = Name, init_value = RawVal}) ->
             Val = ephp_context:solve(Ctx, RawVal),
             ephp_context:set(Ctx, #variable{name=Name}, Val);
         (#class_attr{type = static}) ->
             ignore
-    end, Attrs).
+    end, lists:reverse(Attrs)).
 
 get_constructor(Ref, #class{name = Name, methods = Methods,
                             extends = Extends}) ->

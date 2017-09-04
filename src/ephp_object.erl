@@ -22,6 +22,7 @@
     get_class_name/2,
     get_class/1,
     get_class/2,
+    set_class/2,
     get_context/1,
     get_context/2,
     set/2,
@@ -71,6 +72,12 @@ get_class_name(Objects, ObjectId) ->
     ((array:get(ObjectId, ObjectsData))#ephp_object.class)#class.name.
 
 
+-spec get_class_name(obj_ref()) -> class_name().
+%% @equiv get_class_name/2
+get_class_name(#obj_ref{pid = Objects, ref = ObjectId}) ->
+    get_class_name(Objects, ObjectId).
+
+
 -spec get_class(obj_ref()) -> class().
 %% @doc retrieves the class record for a provided Object ID.
 get_class(#obj_ref{pid = Objects, ref = ObjectId}) ->
@@ -84,10 +91,15 @@ get_class(Objects, ObjectId) ->
     (array:get(ObjectId, ObjectsData))#ephp_object.class.
 
 
--spec get_class_name(obj_ref()) -> class_name().
-%% @equiv get_class_name/2
-get_class_name(#obj_ref{pid = Objects, ref = ObjectId}) ->
-    get_class_name(Objects, ObjectId).
+-spec set_class(ephp:objects_id(), class()) -> ok.
+%% @doc set a class for an existent object.
+set_class(#obj_ref{pid = Objects, ref = ObjectId}, Class) ->
+    ObjectsData = erlang:get(Objects),
+    Object = array:get(ObjectId, ObjectsData),
+    NewObject = Object#ephp_object{class = Class},
+    NewObjectsData = array:set(ObjectId, NewObject, ObjectsData),
+    erlang:put(Objects, NewObjectsData),
+    ok.
 
 
 -spec get_context(ephp:objects_id(), object_id()) -> context().

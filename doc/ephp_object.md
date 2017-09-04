@@ -23,7 +23,7 @@ which contains objects are pointers indeed.<a name="index"></a>
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add-2">add/2</a></td><td>stores an object searching an empty slot for it and returning the
 Object ID where it was stored.</td></tr><tr><td valign="top"><a href="#add_link-1">add_link/1</a></td><td>Equivalent to <tt>add_link / 2</tt>.</td></tr><tr><td valign="top"><a href="#add_link-2">add_link/2</a></td><td>increases the number of links for an object.</td></tr><tr><td valign="top"><a href="#clone-2">clone/2</a></td><td>clones an object generating a new one and executing its <code>__clone</code>
-function by the way.</td></tr><tr><td valign="top"><a href="#destroy-2">destroy/2</a></td><td>Destroy the Objects storage.</td></tr><tr><td valign="top"><a href="#get-1">get/1</a></td><td>retrieves an object based on the Object ID.</td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td>retrieves an object based on the Object ID.</td></tr><tr><td valign="top"><a href="#get_class-1">get_class/1</a></td><td>retrieves the class record for a provided Object ID.</td></tr><tr><td valign="top"><a href="#get_class-2">get_class/2</a></td><td>retrieves the class record for a provided Object ID.</td></tr><tr><td valign="top"><a href="#get_class_name-1">get_class_name/1</a></td><td>Equivalent to <tt>get_class_name / 2</tt>.</td></tr><tr><td valign="top"><a href="#get_class_name-2">get_class_name/2</a></td><td>retrieves the class name for a provided Object ID.</td></tr><tr><td valign="top"><a href="#get_context-1">get_context/1</a></td><td>Equivalent to <tt>get_context / 2</tt>.</td></tr><tr><td valign="top"><a href="#get_context-2">get_context/2</a></td><td>retrieves the object context for an provided Object ID.</td></tr><tr><td valign="top"><a href="#remove-2">remove/2</a></td><td>Equivalent to <tt>remove / 3</tt>.</td></tr><tr><td valign="top"><a href="#remove-3">remove/3</a></td><td>decreases the number of links for an object.</td></tr><tr><td valign="top"><a href="#remove_all-2">remove_all/2</a></td><td>removes all of the objects stored using objects_id.</td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td>stores an object given the Object ID.</td></tr><tr><td valign="top"><a href="#set-3">set/3</a></td><td>stores an object given the Object ID.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>creates a new Objects storage.</td></tr></table>
+function by the way.</td></tr><tr><td valign="top"><a href="#destroy-2">destroy/2</a></td><td>Destroy the Objects storage.</td></tr><tr><td valign="top"><a href="#get-1">get/1</a></td><td>retrieves an object based on the Object ID.</td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td>retrieves an object based on the Object ID.</td></tr><tr><td valign="top"><a href="#get_class-1">get_class/1</a></td><td>retrieves the class record for a provided Object ID.</td></tr><tr><td valign="top"><a href="#get_class-2">get_class/2</a></td><td>retrieves the class record for a provided Object ID.</td></tr><tr><td valign="top"><a href="#get_class_name-1">get_class_name/1</a></td><td>Equivalent to <tt>get_class_name / 2</tt>.</td></tr><tr><td valign="top"><a href="#get_class_name-2">get_class_name/2</a></td><td>retrieves the class name for a provided Object ID.</td></tr><tr><td valign="top"><a href="#get_context-1">get_context/1</a></td><td>Equivalent to <tt>get_context / 2</tt>.</td></tr><tr><td valign="top"><a href="#get_context-2">get_context/2</a></td><td>retrieves the object context for an provided Object ID.</td></tr><tr><td valign="top"><a href="#remove-2">remove/2</a></td><td>Equivalent to <tt>remove / 3</tt>.</td></tr><tr><td valign="top"><a href="#remove-3">remove/3</a></td><td>decreases the number of links for an object.</td></tr><tr><td valign="top"><a href="#remove_all-2">remove_all/2</a></td><td>removes all of the objects stored using objects_id.</td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td>stores an object given the Object ID.</td></tr><tr><td valign="top"><a href="#set-3">set/3</a></td><td>stores an object given the Object ID.</td></tr><tr><td valign="top"><a href="#set_class-2">set_class/2</a></td><td>set a class for an existent object.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>creates a new Objects storage.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -230,6 +230,17 @@ set(Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, ObjectId::
 <br />
 
 stores an object given the Object ID.
+
+<a name="set_class-2"></a>
+
+### set_class/2 ###
+
+<pre><code>
+set_class(Obj_ref::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, Class::<a href="#type-class">class()</a>) -&gt; ok
+</code></pre>
+<br />
+
+set a class for an existent object.
 
 <a name="start_link-0"></a>
 
