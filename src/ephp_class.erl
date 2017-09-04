@@ -159,9 +159,11 @@ set(Ref, ClassName, Class) ->
     ok.
 
 
+-type alias_return() :: {ok, class()} |
+                        {error, enoexist | eredefined}.
+
 -spec set_alias(ephp:classes_id(), Class :: class_name(),
-                Alias :: class_name()) ->
-      get_return() | {error, eredefined}.
+                Alias :: class_name()) -> alias_return().
 %% @doc set a name as alias of a class name.
 set_alias(Ref, ClassName, AliasName) ->
     case get(Ref, ClassName) of

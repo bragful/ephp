@@ -31,6 +31,16 @@ or native data.
 
 
 
+### <a name="type-alias_return">alias_return()</a> ###
+
+
+<pre><code>
+alias_return() = {ok, <a href="#type-class">class()</a>} | {error, enoexist | eredefined}
+</code></pre>
+
+
+
+
 ### <a name="type-get_return">get_return()</a> ###
 
 
@@ -231,7 +241,7 @@ register loader for the classes handler.
 ### set_alias/3 ###
 
 <pre><code>
-set_alias(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, Class::<a href="#type-class_name">class_name()</a>, Alias::<a href="#type-class_name">class_name()</a>) -&gt; <a href="#type-get_return">get_return()</a> | {error, eredefined}
+set_alias(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, Class::<a href="#type-class_name">class_name()</a>, Alias::<a href="#type-class_name">class_name()</a>) -&gt; <a href="#type-alias_return">alias_return()</a>
 </code></pre>
 <br />
 
