@@ -376,24 +376,20 @@ change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
     end;
 
 %% TODO: check when auto is passed as idx to trigger an error
-change(#variable{name = <<"this">>, idx = [{object, NewRoot, _Line}|Idx]} = Var,
+change(#variable{name = <<"this">>, idx = [{object, ObjRoot, _Line}|Idx]} = Var,
        Value, Vars, Context) ->
     {ok, #obj_ref{} = ObjRef} = ephp_array:find(<<"this">>, Vars),
     ObjCtx = ephp_object:get_context(ObjRef),
     ActiveClass = ephp_context:get_active_class(Context),
     Classes = ephp_context:get_classes(Context),
     {ok, Class} = ephp_class:get(Classes, ActiveClass),
-    case NewRoot of
-        {object, ObjRoot, _} -> ok;
-        ObjRoot -> ok
-    end,
     NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
         #class_attr{access = private} ->
             NewObjRoot = {private, ObjRoot, Class#class.name},
             Var#variable{name = NewObjRoot, idx = Idx};
         _ ->
             ObjClass = ephp_object:get_class(ObjRef),
-            NewClass = ephp_class:add_if_no_exists_attrib(ObjClass, NewRoot),
+            NewClass = ephp_class:add_if_no_exists_attrib(ObjClass, ObjRoot),
             ephp_object:set_class(ObjRef, NewClass),
             Var#variable{name = ObjRoot, idx = Idx}
     end,
