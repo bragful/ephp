@@ -34,6 +34,8 @@ spl_autoload_call(Context, Line, {_, ClassName}) ->
         {ok, _Class} ->
             undefined;
         {error, enoexist} ->
+            ephp_stack:push(Context, undefined, Line, <<"spl_autoload">>,
+                            [ClassName], undefined, undefined),
             Classes = ephp_context:get_classes(Context),
             ExceptionName = <<"LogicException">>,
             Exception = ephp_class:instance(Classes, Context, Context,

@@ -852,14 +852,11 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
                 ResArgs = [ Val || {_Var, Val} <- Args ],
                 ephp_stack:push(Ref, File, Index, Fun, ResArgs,
                                 undefined, undefined),
-                ephp_stack:push(Ref, undefined, Index, Fun, ResArgs,
-                                undefined, undefined),
                 save_state(NState),
                 Value = if
                     PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
                     true -> erlang:apply(M,F,[Ref,Index|Args])
                 end,
-                ephp_stack:pop(Ref),
                 ephp_stack:pop(Ref),
                 destroy_args(NState, Args),
                 {Value, (load_state(Ref))#state{ref=Ref}}

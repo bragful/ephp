@@ -9,6 +9,7 @@
     destroy/1,
     get/1,
     get_array/1,
+    get_array/2,
     push/7,
     pop/1
 ]).
@@ -43,7 +44,10 @@ push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
         class = Class,
         type = Type
     },
-    erlang:put(get_id(Ref), [New|Stack]),
+    case add_function(Fun) of
+        [] when File =:= undefined -> ok;
+        _ -> erlang:put(get_id(Ref), [New|Stack])
+    end,
     ok.
 
 pop(Ref) ->
@@ -59,27 +63,34 @@ get(Ref) ->
     erlang:get(get_id(Ref)).
 
 get_array(Ref) ->
-    lists:foldl(fun(Stack, Array) ->
-        #stack_trace{
-            function = Fun,
-            file = File,
-            line = Line,
-            class = Class,
-            object = Object,
-            type = Type,
-            args = Args
-        } = Stack,
-        Element = ephp_array:from_list(
-        [
-            {<<"file">>, File},
-            {<<"line">>, Line}
-        ] ++ add_function(Fun)
-          ++ add_class(Class)
-          ++ add_object(Object)
-          ++ add_type(Type)
-          ++ add_args(Fun, Args)),
-        ephp_array:store(auto, Element, Array)
-    end, ephp_array:new(), get(Ref)).
+    get_array(Ref, 0).
+
+get_array(Ref, PopElements) ->
+    {_, Stack} = lists:foldl(fun
+        (Stack, {0, Array}) ->
+            #stack_trace{
+                function = Fun,
+                file = File,
+                line = Line,
+                class = Class,
+                object = Object,
+                type = Type,
+                args = Args
+            } = Stack,
+            Element = ephp_array:from_list(
+            [
+                {<<"file">>, File},
+                {<<"line">>, Line}
+            ] ++ add_function(Fun)
+              ++ add_class(Class)
+              ++ add_object(Object)
+              ++ add_type(Type)
+              ++ add_args(Fun, Args)),
+            {0, ephp_array:store(auto, Element, Array)};
+        (_Stack, {N, Array}) ->
+            {N-1, Array}
+    end, {PopElements, ephp_array:new()}, get(Ref)),
+    Stack.
 
 add_function(Fun) ->
     Incs = [<<"include">>, <<"include_once">>,

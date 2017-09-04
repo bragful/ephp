@@ -56,7 +56,7 @@ handle_error(_Type, _Level, _Args) ->
 
 -spec include(context(), line(), InclFile :: var_value()) -> any().
 
-include(Context, Line, {Var, InclFile}) ->
+include(Context, Line, {_Var, InclFile}) ->
     File = ephp_context:get_active_file(Context),
     case ephp_context:load(Context, InclFile) of
         {error, _} ->
@@ -67,24 +67,12 @@ include(Context, Line, {Var, InclFile}) ->
                 ?E_WARNING, NoFileData}),
             undefined;
         Code ->
-            Args = case Var of
-                #variable{} ->
-                    [#var_ref{pid = ephp_context:get_vars(Context), ref = Var}];
-                #var_ref{} ->
-                    [Var];
-                _ ->
-                    [InclFile]
-            end,
-            ephp_stack:push(Context, File, Line, <<"include">>, Args,
-                            undefined, undefined),
-            Return = include_file(Context, Code, InclFile),
-            ephp_stack:pop(Context),
-            Return
+            include_file(Context, Code, InclFile)
     end.
 
 -spec include_once(context(), line(), File :: var_value()) -> any().
 
-include_once(Context, Line, {Var, InclFile}) ->
+include_once(Context, Line, {_Var, InclFile}) ->
     File = ephp_context:get_active_file(Context),
     case ephp_context:load_once(Context, InclFile) of
         {error, _} ->
@@ -97,24 +85,12 @@ include_once(Context, Line, {Var, InclFile}) ->
         {return, true} ->
             true;
         Code ->
-            Args = case Var of
-                #variable{} ->
-                    [#var_ref{pid = ephp_context:get_vars(Context), ref = Var}];
-                #var_ref{} ->
-                    [Var];
-                _ ->
-                    [InclFile]
-            end,
-            ephp_stack:push(Context, File, Line, <<"include_once">>, Args,
-                            undefined, undefined),
-            Return = include_file(Context, Code, InclFile),
-            ephp_stack:pop(Context),
-            Return
+            include_file(Context, Code, InclFile)
     end.
 
 -spec require(context(), line(), File :: var_value()) -> any().
 
-require(Context, Line, {Var, ReqFile}) ->
+require(Context, Line, {_Var, ReqFile}) ->
     File = ephp_context:get_active_file(Context),
     case ephp_context:load(Context, ReqFile) of
         {error, _} ->
@@ -123,24 +99,12 @@ require(Context, Line, {Var, ReqFile}) ->
                 ?E_WARNING, NoFileData}),
             ephp_error:error({error, erequired, Line, ?E_ERROR, NoFileData});
         Code ->
-            Args = case Var of
-                #variable{} ->
-                    [#var_ref{pid = ephp_context:get_vars(Context), ref = Var}];
-                #var_ref{} ->
-                    [Var];
-                _ ->
-                    [ReqFile]
-            end,
-            ephp_stack:push(Context, File, Line, <<"require">>, Args,
-                            undefined, undefined),
-            Return = include_file(Context, Code, ReqFile),
-            ephp_stack:pop(Context),
-            Return
+            include_file(Context, Code, ReqFile)
     end.
 
 -spec require_once(context(), line(), File :: var_value()) -> any().
 
-require_once(Context, Line, {Var, ReqFile}) ->
+require_once(Context, Line, {_Var, ReqFile}) ->
     File = ephp_context:get_active_file(Context),
     case ephp_context:load_once(Context, ReqFile) of
         {error, _} ->
@@ -151,19 +115,7 @@ require_once(Context, Line, {Var, ReqFile}) ->
         {return, true} ->
             true;
         Code ->
-            Args = case Var of
-                #variable{} ->
-                    [#var_ref{pid = ephp_context:get_vars(Context), ref = Var}];
-                #var_ref{} ->
-                    [Var];
-                _ ->
-                    [ReqFile]
-            end,
-            ephp_stack:push(Context, File, Line, <<"require_once">>, Args,
-                            undefined, undefined),
-            Return = include_file(Context, Code, ReqFile),
-            ephp_stack:pop(Context),
-            Return
+            include_file(Context, Code, ReqFile)
     end.
 
 %% ----------------------------------------------------------------------------
