@@ -240,9 +240,34 @@ register_class(Ref, File, GlobalCtx,
                   get_methods(Ref, PHPClass#class.extends),
         attrs = get_attrs(Ref, PHPClass)
     },
+    case check_access_level(ActivePHPClass#class.attrs) of
+        ok -> ok;
+        {error, {_Class, _Method, _Access, _ParentClass} = Data} ->
+            ephp_error:error({error, eaccesslevel, Index, ?E_ERROR, Data})
+    end,
     initialize_class(ActivePHPClass),
     set(Ref, Name, ActivePHPClass),
     ok.
+
+
+-spec check_access_level([class_method()]) ->
+      ok | {error, {class_name(), binary(), access_types(), class_name()}}.
+%% @doc check the access level for the overrided attributes.
+check_access_level([]) ->
+    ok;
+
+check_access_level([#class_attr{access = Access, name = Name} = CA1|Rest]) ->
+    case lists:keyfind(Name, #class_attr.name, Rest) of
+        #class_attr{access = Access} ->
+            check_access_level(Rest);
+        #class_attr{} when Access =:= public ->
+            check_access_level(Rest);
+        #class_attr{access = OtherAccess} = CA2 ->
+            {error, {CA1#class_attr.class_name, Name, OtherAccess,
+                     CA2#class_attr.class_name}};
+        false ->
+            check_access_level(Rest)
+    end.
 
 
 -spec get_methods(ephp:classes_id(), class_name() | undefined) ->

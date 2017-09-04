@@ -129,7 +129,8 @@ st_class_content(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_SPACE(SP) ->
 st_class_content(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_NEWLINE(SP) ->
     st_class_content(Rest, new_line(Pos), Class);
 st_class_content(<<"}",Rest/binary>>, Pos, Class) ->
-    {Rest, add_pos(Pos,1), Class};
+    NewPos = add_pos(Pos, 1),
+    {Rest, NewPos, ephp_parser:add_line(Class, NewPos)};
 st_class_content(<<";",Rest/binary>>, Pos, Class) ->
     st_class_content(Rest, normal_public_level(add_pos(Pos, 1)), Class);
 st_class_content(<<"//",Rest/binary>>, Pos, Parsed) ->

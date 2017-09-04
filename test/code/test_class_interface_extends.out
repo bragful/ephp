@@ -1,2 +1,2 @@
 
-Fatal error: Class C contains 1 abstract methods and must therefore be declared abstract or implement the remaining methods (A::foo) in {{CWD}}/test/code/test_class_interface_extends.php on line 14
+Fatal error: Class C contains 1 abstract method and must therefore be declared abstract or implement the remaining methods (A::foo) in {{CWD}}/test/code/test_class_interface_extends.php on line 20

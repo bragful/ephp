@@ -1,0 +1,2 @@
+
+Fatal error: Access level to B::$a must be public (as in class A) in {{CWD}}/test/code/test_class_private_redefinition_error.php on line 9

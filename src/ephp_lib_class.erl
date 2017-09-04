@@ -56,8 +56,9 @@ handle_error(eundefmethod, _Level, {Class, MethodName}) ->
 handle_error(eundefattr, _Level, {{private, Attr, _}, ClassName}) ->
     io_lib:format("Undefined property: ~s::$~s", [ClassName, Attr]);
 
-handle_error(eundefattr, _Level, {Attr, ClassName}) ->
-    io_lib:format("Undefined property: ~s::$~s", [ClassName, Attr]);
+handle_error(eaccesslevel, _Level, {Class, Name, Access, OtherClass}) ->
+    io_lib:format("Access level to ~s::$~s must be ~s (as in class ~s)",
+                  [Class, Name, Access, OtherClass]);
 
 handle_error(eprivateaccess, _Level, {Class, Element, Access}) ->
     io_lib:format(
@@ -92,6 +93,11 @@ handle_error(enoconst, _Level, {ConstName}) ->
 
 handle_error(enointerface, _Level, {InterfaceName}) ->
     io_lib:format("Interface '~s' not found", [InterfaceName]);
+
+handle_error(enomethods, _Level, {ClassName, Methods, 1}) ->
+    io_lib:format("Class ~s contains 1 abstract method and must therefore "
+                  "be declared abstract or implement the remaining methods "
+                  "(~s)", [ClassName, iolist_to_binary(Methods)]);
 
 handle_error(enomethods, _Level, {ClassName, Methods, Params}) ->
     io_lib:format("Class ~s contains ~b abstract methods and must therefore "
