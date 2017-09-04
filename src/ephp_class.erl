@@ -390,8 +390,12 @@ check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
     check_methods(Methods, ClassMethods, NewError).
 
 
+-type method_name() :: binary().
+-type check_final_methods_return() :: ok |
+                                      {error, {class_name(), method_name()}}.
+
 -spec check_final_methods(ephp:classes_id(), [class_method()], class_name()) ->
-      ok | {error, {class_name(), MethodName :: binary()}}.
+      check_final_methods_return().
 %% @doc hidden
 check_final_methods(_Ref, [], _Extends) ->
     ok;
@@ -408,8 +412,10 @@ check_final_methods(Ref, Methods, ParentClass) ->
     end.
 
 
+-type check_final_methods_simple_return() :: ok | {error, method_name()}.
+
 -spec check_final_methods([class_method()], [class_method()]) ->
-      ok | {error, MethodName :: binary()}.
+      check_final_methods_simple_return().
 %% @doc hidden
 check_final_methods([], _ParentMethods) ->
     ok;
