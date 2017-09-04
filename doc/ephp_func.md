@@ -136,7 +136,7 @@ php_function_results() = [<a href="#type-php_function_result">php_function_resul
 
 
 <pre><code>
-type_arg() = mixed | string | integer | array | object | resource | raw
+type_arg() = mixed | string | integer | array | object | resource | raw | type_ref
 </code></pre>
 
 

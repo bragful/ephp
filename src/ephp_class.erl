@@ -1,5 +1,5 @@
 %% @doc This module stores the classes found in the code and other defined
-%%      classes here and defined in the `ephp_class_*` modules.
+%%      classes here and defined in the `ephp_class_*' modules.
 %%
 %%      This module is responsible to handle that information as well.
 %%      Retrieves the methods, constructor, destructor, parent class,
@@ -388,7 +388,7 @@ check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
     check_methods(Methods, ClassMethods, NewError).
 
 
--spec check_final_methods(ephp:classes_id(), [class_method()]) ->
+-spec check_final_methods(ephp:classes_id(), [class_method()], class_name()) ->
       ok | {error, {class_name(), MethodName :: binary()}}.
 %% @doc hidden
 check_final_methods(_Ref, [], _Extends) ->

@@ -110,6 +110,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_lib_misc.md" class="module">ephp_lib_misc</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_lib_ob.md" class="module">ephp_lib_ob</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_lib_pcre.md" class="module">ephp_lib_pcre</a></td></tr>
+<tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_lib_spl.md" class="module">ephp_lib_spl</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_lib_string.md" class="module">ephp_lib_string</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_lib_vars.md" class="module">ephp_lib_vars</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_mem.md" class="module">ephp_mem</a></td></tr>

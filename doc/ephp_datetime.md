@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get_abbr_month-1">get_abbr_month/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_abbr_weekday-1">get_abbr_weekday/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_datetime-1">get_datetime/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_month-1">get_month/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_timestamp-1">get_timestamp/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_tz_time-3">get_tz_time/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_weekday-1">get_weekday/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_dst-2">is_dst/2</a></td><td></td></tr><tr><td valign="top"><a href="#posix_time-0">posix_time/0</a></td><td></td></tr><tr><td valign="top"><a href="#posix_time_ms-0">posix_time_ms/0</a></td><td></td></tr><tr><td valign="top"><a href="#timestamp-0">timestamp/0</a></td><td></td></tr><tr><td valign="top"><a href="#timestamp-0">timestamp/0</a></td><td></td></tr><tr><td valign="top"><a href="#to_bmt-1">to_bmt/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_zone-2">to_zone/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get_abbr_month-1">get_abbr_month/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_abbr_weekday-1">get_abbr_weekday/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_datetime-1">get_datetime/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_month-1">get_month/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_timestamp-1">get_timestamp/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_tz-2">get_tz/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_tz_time-3">get_tz_time/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_weekday-1">get_weekday/1</a></td><td></td></tr><tr><td valign="top"><a href="#is_dst-2">is_dst/2</a></td><td></td></tr><tr><td valign="top"><a href="#posix_time-0">posix_time/0</a></td><td></td></tr><tr><td valign="top"><a href="#posix_time_ms-0">posix_time_ms/0</a></td><td></td></tr><tr><td valign="top"><a href="#set_tz-1">set_tz/1</a></td><td></td></tr><tr><td valign="top"><a href="#timestamp-0">timestamp/0</a></td><td></td></tr><tr><td valign="top"><a href="#timestamp-0">timestamp/0</a></td><td></td></tr><tr><td valign="top"><a href="#to_bmt-1">to_bmt/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_zone-2">to_zone/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -61,6 +61,15 @@ get_timestamp(TS::integer() | float()) -&gt; <a href="timer.md#type-timestamp">t
 </code></pre>
 <br />
 
+<a name="get_tz-2"></a>
+
+### get_tz/2 ###
+
+<pre><code>
+get_tz(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+</code></pre>
+<br />
+
 <a name="get_tz_time-3"></a>
 
 ### get_tz_time/3 ###
@@ -103,6 +112,15 @@ posix_time() -&gt; integer()
 
 <pre><code>
 posix_time_ms() -&gt; integer()
+</code></pre>
+<br />
+
+<a name="set_tz-1"></a>
+
+### set_tz/1 ###
+
+<pre><code>
+set_tz(TZ::binary()) -&gt; boolean()
 </code></pre>
 <br />
 

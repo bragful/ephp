@@ -1,16 +1,16 @@
 %% @doc The ephp module is in charge to give an easy way to create the context
-%%      and other actions to be performed from the project where ephp is 
+%%      and other actions to be performed from the project where ephp is
 %%      included mainly to run the PHP code.
 %%
 %%      The easy way to use is:
 %%
-%%      ```erlang
+%%      <pre lang="erlang"><![CDATA[
 %%      {ok, Ctx} = ephp:context_new(),
 %%      PHP = "<? $a = 5 * 23; ?>Result for $a = <?=$a?>",
 %%      {ok, Text} = ephp:eval(Ctx, PHP).
-%%      ```
+%%      ]]></pre>
 %%
-%%      This module is in use for PHP script, contains the `main/1` function
+%%      This module is in use for PHP script, contains the `main/1' function
 %%      to run from console.
 %% @end
 -module(ephp).
@@ -62,12 +62,12 @@
 -include("ephp.hrl").
 
 -spec context_new() -> {ok, context()}.
-%% @doc creates a new context using `-` as script name.
+%% @doc creates a new context using `-' as script name.
 context_new() ->
     context_new(<<"-">>).
 
 -spec context_new(Filename :: binary()) -> {ok, context()}.
-%% @doc creates a new context passing `Filename` as param.
+%% @doc creates a new context passing `Filename' as param.
 context_new(Filename) ->
     Modules = application:get_env(ephp, modules, []),
     {ok, Ctx} = ephp_context:start_link(),
@@ -107,7 +107,7 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
 
 -spec register_module(context(), module()) -> ok.
 %% @doc register a module.
-%% @see ephp_func for further information about create modules.
+%% @see ephp_func
 register_module(Ctx, Module) ->
     ephp_config:module_init(Module),
     case proplists:get_value(handle_error, Module:module_info(exports)) of
@@ -128,7 +128,7 @@ register_module(Ctx, Module) ->
 -spec eval(context(), PHP :: string() | binary()) ->
     {ok, Result :: binary()} | {error, Reason :: reason()} |
     {error,{Code::binary(), Line::integer(), Col::integer()}}.
-%% @doc eval PHP code in a context passed as params. 
+%% @doc eval PHP code in a context passed as params.
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
@@ -136,7 +136,7 @@ eval(Context, PHP) ->
     {ok, Result :: binary()} | {error, reason()} |
     {error, reason(), line(), File::binary(), error_level(), Data::any()}.
 %% @equiv eval/2
-%% @doc adds the `Filename` to configure properly the `__FILE__` and `__DIR__`
+%% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
 %%      constants.
 %% @end
 eval(Filename, Context, PHP) ->

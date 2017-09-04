@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#module_init-1">module_init/1</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_local-0">start_local/0</a></td><td></td></tr><tr><td valign="top"><a href="#stop_local-0">stop_local/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_bool-1">get_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_bool-2">get_bool/2</a></td><td></td></tr><tr><td valign="top"><a href="#module_init-1">module_init/1</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_local-0">start_local/0</a></td><td></td></tr><tr><td valign="top"><a href="#stop_local-0">stop_local/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -31,6 +31,24 @@ get(Key::binary()) -&gt; <a href="#type-mixed">mixed()</a>
 
 <pre><code>
 get(Key::binary(), Default::<a href="#type-mixed">mixed()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+</code></pre>
+<br />
+
+<a name="get_bool-1"></a>
+
+### get_bool/1 ###
+
+<pre><code>
+get_bool(Key::binary()) -&gt; boolean()
+</code></pre>
+<br />
+
+<a name="get_bool-2"></a>
+
+### get_bool/2 ###
+
+<pre><code>
+get_bool(Key::binary(), Default::boolean()) -&gt; boolean()
 </code></pre>
 <br />
 

@@ -1,10 +1,19 @@
 
 
 # Module ephp_cover #
+* [Description](#description)
 * [Data Types](#types)
 * [Function Index](#index)
 * [Function Details](#functions)
 
+The cover module is in charge to store the information about the lines
+executed and the times.
+
+<a name="description"></a>
+
+## Description ##
+Finally it generates a XML file with that
+information in the coverage format. It uses the version 4.
 <a name="types"></a>
 
 ## Data Types ##
@@ -34,8 +43,8 @@ statement_type() = print | eval | assign | if_block | switch | switch_case | for
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#dump-0">dump/0</a></td><td>dump the coverage information to the output file defined by cover.output
-or cobertura.xml by default.</td></tr><tr><td valign="top"><a href="#get_config-0">get_config/0</a></td><td>get information about whether cover is enabled.</td></tr><tr><td valign="top"><a href="#init_file-3">init_file/3</a></td><td>store the lines of the file inside of the cover information.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>ensure the cover information is in the process.</td></tr><tr><td valign="top"><a href="#store-3">store/3</a></td><td>store the information about the statement passed as a param.</td></tr><tr><td valign="top"><a href="#store-4">store/4</a></td><td>store the information about the statement passed as a param.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#dump-0">dump/0</a></td><td>dump the coverage information to the output file defined by
+cover.output or cobertura.xml by default.</td></tr><tr><td valign="top"><a href="#get_config-0">get_config/0</a></td><td>get information about whether cover is enabled.</td></tr><tr><td valign="top"><a href="#init_file-3">init_file/3</a></td><td>store the lines of the file inside of the cover information.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>ensure the cover information is in the process.</td></tr><tr><td valign="top"><a href="#store-3">store/3</a></td><td>store the information about the statement passed as a param.</td></tr><tr><td valign="top"><a href="#store-4">store/4</a></td><td>store the information about the statement passed as a param.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -51,8 +60,8 @@ dump() -&gt; ok
 </code></pre>
 <br />
 
-dump the coverage information to the output file defined by cover.output
-or cobertura.xml by default.
+dump the coverage information to the output file defined by
+cover.output or cobertura.xml by default.
 
 <a name="get_config-0"></a>
 

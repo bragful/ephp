@@ -12,16 +12,6 @@
 
 
 
-### <a name="type-error_format">error_format()</a> ###
-
-
-<pre><code>
-error_format() = text | html
-</code></pre>
-
-
-
-
 ### <a name="type-error_type">error_type()</a> ###
 
 
@@ -44,7 +34,7 @@ throw_error() = atom() | {error, <a href="#type-error_type">error_type()</a>, <a
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_message_handler-2">add_message_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#clear_last-1">clear_last/1</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-2">error_reporting/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_error_handler_func-1">get_error_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_exception_handler_func-1">get_exception_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_last-1">get_last/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_level-1">get_level/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#remove_error_handler_func-1">remove_error_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#remove_exception_handler_func-1">remove_exception_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_format-2">set_error_format/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_handler_func-3">set_error_handler_func/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_exception_handler_func-2">set_exception_handler_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_message_handler-2">add_message_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#clear_last-1">clear_last/1</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#error-1">error/1</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-2">error_reporting/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_error_handler_func-1">get_error_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_exception_handler_func-1">get_exception_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_last-1">get_last/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_level-1">get_level/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_line-1">get_line/1</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-2">handle_error/2</a></td><td></td></tr><tr><td valign="top"><a href="#remove_error_handler_func-1">remove_error_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#remove_exception_handler_func-1">remove_exception_handler_func/1</a></td><td></td></tr><tr><td valign="top"><a href="#run_quiet-2">run_quiet/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_handler_func-3">set_error_handler_func/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_exception_handler_func-2">set_exception_handler_func/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output-2">set_output/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_output_handler-2">set_output_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -174,15 +164,6 @@ remove_exception_handler_func(Context::<a href="#type-context">context()</a>) -&
 
 <pre><code>
 run_quiet(Errors::<a href="ephp.md#type-errors_id">ephp:errors_id()</a>, Fun::function()) -&gt; ok
-</code></pre>
-<br />
-
-<a name="set_error_format-2"></a>
-
-### set_error_format/2 ###
-
-<pre><code>
-set_error_format(Context::<a href="#type-context">context()</a>, Format::<a href="#type-error_format">error_format()</a>) -&gt; ok
 </code></pre>
 <br />
 
