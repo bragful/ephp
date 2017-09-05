@@ -6,6 +6,7 @@
 -include("ephp.hrl").
 
 -export([
+    start_link/0,
     parse_uri/1,
     get_res_id/1,
     open/2,
@@ -27,6 +28,7 @@
 -callback read(pid(), options()) -> {ok, binary()} | eof | {error, reason()}.
 -callback write(pid(), binary(), options()) -> ok | {error, reason()}.
 
+
 -spec parse_uri(binary()) -> {stream(), uri()}.
 %% @doc parse the URI to separate in stream and the rest of the URI.
 parse_uri(URL) ->
@@ -35,6 +37,12 @@ parse_uri(URL) ->
         [Schema, URI] -> {Schema, URI}
     end.
 
+
+-spec start_link() -> ok.
+%% @doc initilize the stream subsystem.
+start_link() ->
+    erlang:put(resource_next_id, 1),
+    ok.
 
 -spec get_res_id(resource()) -> integer().
 %% @doc obtains the resource ID given a resource as param.
@@ -89,9 +97,6 @@ write(#resource{module = Module, pid = PID}, Data, Options) ->
 -spec get_last_id() -> pos_integer().
 %% @doc retrieves the last ID for consistency in the resource ID.
 get_last_id() ->
-    ID = case erlang:get(resource_next_id) of
-        undefined -> 1;
-        N -> N
-    end,
+    ID = erlang:get(resource_next_id),
     erlang:put(resource_next_id, ID + 1),
     ID.

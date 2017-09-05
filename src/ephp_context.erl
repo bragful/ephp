@@ -126,6 +126,7 @@ start_link() ->
         errors = Errors
     }),
     ephp_class:register_classes(Class, Ref),
+    ephp_stream:start_link(),
     {ok, Ref}.
 
 start_link(#state{ref = undefined} = State) ->
