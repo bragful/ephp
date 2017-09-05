@@ -16,6 +16,7 @@
     php_is_null/3,
     php_is_object/3,
     php_is_string/3,
+    php_is_resource/3,
     print_r/3,
     print_r/4,
     var_dump/3,
@@ -44,6 +45,7 @@ init_func() -> [
     {php_is_null, [{alias, <<"is_null">>}]},
     {php_is_object, [{alias, <<"is_object">>}]},
     {php_is_string, [{alias, <<"is_string">>}]},
+    {php_is_resource, [{alias, <<"is_resource">>}]},
     print_r,
     {isset, [{args, [raw]}]},
     empty,
@@ -80,10 +82,13 @@ php_is_null(_Context, _Line, {_,undefined}) -> true;
 php_is_null(_Context, _Line, _Var) -> false.
 
 -spec php_is_string(context(), line(), var_value()) -> boolean().
-php_is_string(_Context, _Line, {_,Value}) -> erlang:is_binary(Value).
+php_is_string(_Context, _Line, {_, Value}) -> erlang:is_binary(Value).
 
 -spec php_is_object(context(), line(), var_value()) -> boolean().
-php_is_object(_Context, _Line, {_,Value}) -> ?IS_OBJECT(Value).
+php_is_object(_Context, _Line, {_, Value}) -> ?IS_OBJECT(Value).
+
+-spec php_is_resource(context(), line(), var_value()) -> boolean().
+php_is_resource(_Context, _Line, {_, Value}) -> ?IS_RESOURCE(Value).
 
 -spec print_r(context(), line(), var_value()) -> true | binary().
 
