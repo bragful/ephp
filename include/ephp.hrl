@@ -380,7 +380,8 @@
 -type mem_id() :: pos_integer().
 
 -record(resource, {
-    pid :: pid(),
+    id :: pos_integer(),
+    pid :: any(),
     module :: module()
 }).
 

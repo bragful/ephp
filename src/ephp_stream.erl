@@ -38,7 +38,7 @@ parse_uri(URL) ->
 
 -spec get_res_id(resource()) -> integer().
 %% @doc obtains the resource ID given a resource as param.
-get_res_id(#resource{pid = #file_descriptor{data = {_, ID}}}) ->
+get_res_id(#resource{id = ID}) ->
     ID.
 
 
@@ -61,7 +61,8 @@ open(URL, Options) ->
     end,
     case StreamMod:open(URIorURL, Options) of
         {ok, PID} ->
-            {ok, #resource{pid = PID, module = StreamMod}};
+            ID = get_last_id(),
+            {ok, #resource{id = ID, pid = PID, module = StreamMod}};
         {error, Error} ->
             {error, Error}
     end.
@@ -83,3 +84,14 @@ read(#resource{module = Module, pid = PID}, Options) ->
 %% @doc request a write to the stream implementation.
 write(#resource{module = Module, pid = PID}, Data, Options) ->
     Module:write(PID, Data, Options).
+
+
+-spec get_last_id() -> pos_integer().
+%% @doc retrieves the last ID for consistency in the resource ID.
+get_last_id() ->
+    ID = case erlang:get(resource_next_id) of
+        undefined -> 1;
+        N -> N
+    end,
+    erlang:put(resource_next_id, ID + 1),
+    ID.

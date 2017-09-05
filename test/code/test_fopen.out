@@ -3,4 +3,4 @@
 
 Warning: fopen(noexiste): failed to open stream: No such file or directory in {{CWD}}/test/code/test_fopen.php on line 12
 
-Warning: fclose(): 26 is not a valid stream resource in {{CWD}}/test/code/test_fopen.php on line 13
+Warning: fclose(): 2 is not a valid stream resource in {{CWD}}/test/code/test_fopen.php on line 13
