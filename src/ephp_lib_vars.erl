@@ -301,6 +301,11 @@ var_dump_fmt(_Context, _Line, Value, _Spaces, _RecCtl) when is_binary(Value) ->
     Size = ephp_data:to_bin(byte_size(Value)),
     <<"string(",Size/binary,") \"",Value/binary, "\"\n">>;
 
+var_dump_fmt(_Context, _Line, Resource, _Spaces, _RecCtl)
+        when ?IS_RESOURCE(Resource) ->
+    DesNum = integer_to_binary(ephp_stream:get_res_id(Resource)),
+    <<"resource(", DesNum/binary, ") of type (stream)\n">>;
+
 var_dump_fmt(Context, Line, #obj_ref{} = ObjRef,
              Spaces, RecCtl) ->
     case ephp_object:get(ObjRef) of

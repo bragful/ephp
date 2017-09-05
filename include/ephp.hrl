@@ -26,6 +26,7 @@
 -define(IS_FUNCTION(F), is_record(F, function)).
 -define(IS_MEM(M), is_record(M, mem_ref)).
 -define(IS_CLASS(C), is_record(C, class)).
+-define(IS_RESOURCE(R), is_record(R, resource)).
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).
@@ -377,6 +378,13 @@
 -type mem_ref() :: #mem_ref{}.
 
 -type mem_id() :: pos_integer().
+
+-record(resource, {
+    pid :: pid(),
+    module :: module()
+}).
+
+-type resource() :: #resource{}.
 
 % classes
 

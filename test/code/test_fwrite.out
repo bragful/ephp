@@ -1,0 +1,5 @@
+[data to write]
+
+
+Warning: fwrite(): 26 is not a valid stream resource in {{CWD}}/test/code/test_fwrite.php on line 16
+int(0)
