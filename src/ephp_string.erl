@@ -13,7 +13,9 @@
     rtrim/2,
     ltrim/2,
     join/2,
-    vsn_cmp/2
+    vsn_cmp/2,
+    spaces/1,
+    repeat/2
 ]).
 
 -spec to_lower(binary() | undefined) -> binary() | undefined.
@@ -124,3 +126,18 @@ vsn_cmp([], [_|_]) -> -1;
 vsn_cmp([A|_], [B|_]) when A > B -> 1;
 vsn_cmp([A|_], [B|_]) when A < B -> -1;
 vsn_cmp([A|ARest], [A|BRest]) -> vsn_cmp(ARest, BRest).
+
+-spec spaces(pos_integer()) -> binary().
+
+spaces(Num) ->
+    repeat(Num, 32).
+
+-spec repeat(pos_integer(), byte()) -> binary().
+
+repeat(Num, Byte) ->
+    repeat(Num, Byte, <<>>).
+
+-spec repeat(pos_integer(), byte(), binary()) -> binary().
+
+repeat(0, _Byte, Binary) -> Binary;
+repeat(N, Byte, Binary) -> repeat(N-1, Byte, <<Binary/binary, Byte:8>>).

@@ -12,7 +12,8 @@
     defined/3,
     sleep/3,
     usleep/3,
-    exit/3
+    exit/3,
+    pack/3
 ]).
 
 -include("ephp.hrl").
@@ -25,7 +26,8 @@ init_func() -> [
     sleep,
     usleep,
     {exit, [{alias, <<"die">>}]},
-    exit
+    exit,
+    {pack, [pack_args]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -90,7 +92,67 @@ exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),
     throw(die).
 
+-spec pack(context(), line(), [var_value()]) -> binary().
+
+pack(_Context, _Line, [{_, Format}|Args]) ->
+    do_pack(ephp_data:to_bin(Format), [ A || {_, A} <- Args ], <<>>).
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+do_pack(<<>>, _, Binary) ->
+    Binary;
+
+do_pack(<<A:8,"*", Rest/binary>>, [Arg|Args], Binary) when A =:= $A orelse
+                                                           A =:= $a ->
+    String = ephp_data:to_bin(Arg),
+    do_pack(Rest, Args, <<Binary/binary, String/binary>>);
+
+do_pack(<<"a", Rest/binary>>, [Arg|Args], Binary) ->
+    {Size, Rest0} = get_numbers(Rest),
+    String = ephp_data:to_bin(Arg),
+    Size0 = Size,
+    String0 = case Size0 - byte_size(String) of
+        N when N =:= 0 ->
+            <<Binary/binary, String/binary>>;
+        N when N < 0 ->
+            <<Binary/binary, String:Size0/binary>>;
+        N when N > 0 ->
+            Nulls = ephp_string:repeat(N, 0),
+            <<Binary/binary, String/binary, Nulls/binary>>
+    end,
+    do_pack(Rest0, Args, String0);
+
+do_pack(<<"A", Rest/binary>>, [Arg|Args], Binary) ->
+    {Size, Rest0} = get_numbers(Rest),
+    String = ephp_data:to_bin(Arg),
+    Size0 = if Size =:= 0 -> 1; true -> Size end,
+    String0 = case Size0 - byte_size(String) of
+        N when N =:= 0 ->
+            <<Binary/binary, String/binary>>;
+        N when N < 0 ->
+            <<Binary/binary, String:Size0/binary>>;
+        N when N > 0 ->
+            Spaces = ephp_string:spaces(N),
+            <<Binary/binary, String/binary, Spaces/binary>>
+    end,
+    do_pack(Rest0, Args, String0).
+
+-spec get_numbers(binary()) -> {non_neg_integer(), binary()}.
+%% @doc retrieve numbers from binary while it's possible.
+get_numbers(Binary) ->
+    get_numbers(Binary, <<>>).
+
+-spec get_numbers(binary(), binary()) -> {non_neg_integer(), binary()}.
+%% @private
+get_numbers(<<>>, <<>>) ->
+    {0, <<>>};
+get_numbers(<<>>, Num) ->
+    {binary_to_integer(Num), <<>>};
+get_numbers(<<A:8,Rest/binary>>, Num) when A >= $0 andalso A =< $9 ->
+    get_numbers(Rest, <<Num/binary, A:8>>);
+get_numbers(Rest, <<>>) ->
+    {0, Rest};
+get_numbers(Rest, Num) ->
+    {binary_to_integer(Num), Rest}.
