@@ -123,6 +123,8 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp_parser_string.md" class="module">ephp_parser_string</a></td></tr>
 <tr><td><a href="ephp_shutdown.md" class="module">ephp_shutdown</a></td></tr>
 <tr><td><a href="ephp_stack.md" class="module">ephp_stack</a></td></tr>
+<tr><td><a href="ephp_stream.md" class="module">ephp_stream</a></td></tr>
+<tr><td><a href="ephp_stream_file.md" class="module">ephp_stream_file</a></td></tr>
 <tr><td><a href="ephp_string.md" class="module">ephp_string</a></td></tr>
 <tr><td><a href="ephp_timezone.md" class="module">ephp_timezone</a></td></tr>
 <tr><td><a href="ephp_vars.md" class="module">ephp_vars</a></td></tr></table>

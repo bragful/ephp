@@ -8,5 +8,5 @@
           ephp_lib_misc,ephp_lib_ob,ephp_lib_pcre,ephp_lib_spl,
           ephp_lib_string,ephp_lib_vars,ephp_mem,ephp_object,ephp_output,
           ephp_parser,ephp_parser_class,ephp_parser_expr,ephp_parser_func,
-          ephp_parser_string,ephp_shutdown,ephp_stack,ephp_string,
-          ephp_timezone,ephp_vars]}.
+          ephp_parser_string,ephp_shutdown,ephp_stack,ephp_stream,
+          ephp_stream_file,ephp_string,ephp_timezone,ephp_vars]}.
