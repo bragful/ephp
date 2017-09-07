@@ -81,16 +81,16 @@ init_func() -> [
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
-
+%% @private
 init_config() -> [].
 
 -spec init_const() -> ephp_func:php_const_results().
-
+%% @private
 init_const() -> [].
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
                    Args::term()) -> string() | ignore.
-
+%% @doc handle error messages.
 handle_error(ehexeven, _Level, {Function}) ->
     io_lib:format("~s(): Hexadecimal input string must have an even length",
                   [Function]);
@@ -100,7 +100,7 @@ handle_error(_Type, _Level, _Data) ->
 
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
-
+%% @doc retrieve the lenght of the string.
 strlen(_Context, _Line, {_,String}) when is_binary(String) ->
     byte_size(String);
 
@@ -112,7 +112,7 @@ strlen(Context, Line, {_, Var}) ->
     undefined.
 
 -spec ord(context(), line(), String :: var_value()) -> integer().
-
+%% @doc obtain the number of the character passed as a param.
 ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
     I;
 
@@ -124,7 +124,7 @@ ord(Context, Line, {_, Var}) ->
     undefined.
 
 -spec chr(context(), line(), Integer :: var_value()) -> binary().
-
+%% @doc obtain the character giving the number as a param.
 chr(_Context, _Line, {_,C}) when is_integer(C) ->
     <<C:8/integer>>;
 
@@ -133,7 +133,7 @@ chr(_Context, _Line, _Var) ->
 
 -spec implode(context(), line(),
     Glue :: var_value(), Pieces :: var_value()) -> binary().
-
+%% @doc join the array with the glue passed as a param.
 implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
     File = ephp_context:get_active_file(Context),
     Error = {error, earrayconv, Line, File, ?E_NOTICE, {<<"string">>}},
@@ -151,13 +151,13 @@ implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
     end.
 
 -spec implode(context(), line(), Pieces :: var_value()) -> binary().
-
+%% @doc join the array passed as a param.
 implode(Context, Line, Pieces) ->
     implode(Context, Line, {undefined, <<>>}, Pieces).
 
 -spec explode(context(), line(), Delimiter :: var_value(), String :: var_value())
     -> ephp_array().
-
+%% @doc split the string in pieces in an array.
 explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     Pieces = binary:split(String, Delimiter, [global]),
     lists:foldl(fun(Piece, Explode) ->
@@ -169,7 +169,7 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     Delimiter :: var_value(),
     String :: var_value(),
     Limit :: var_value()) -> ephp_array().
-
+%% @doc split the string in pieces in an array with a limit.
 explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
     File = ephp_context:get_active_file(Context),
@@ -185,7 +185,7 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
     split_limit(Delimiter, String, ephp_array:new(), Limit-1, 0).
 
 -spec printf(context(), line(), [var_value()]) -> pos_integer().
-
+%% @doc print using a format.
 printf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
     Error = {error, efewargs, Line, File, ?E_WARNING, {<<"printf">>}},
@@ -198,7 +198,7 @@ printf(Context, _Line, [{_,Format}|Values]) ->
     byte_size(Text).
 
 -spec sprintf(context(), line(), [var_value()]) -> binary().
-
+%% @doc generate a string using a format.
 sprintf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
     Error = {error, efewargs, Line, File, ?E_WARNING, {<<"sprintf">>}},
