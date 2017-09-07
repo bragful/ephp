@@ -17,3 +17,10 @@ var_dump(bin2hex(pack("h2", "2C")));
 var_dump(bin2hex(pack("h1", "A9")));
 var_dump(bin2hex(pack("h3", "A9B")));
 
+var_dump(pack("c", 33));
+var_dump(pack("c", ""));
+var_dump(pack("c*", 33, 34, 35));
+var_dump(pack("c2", 33, 34));
+var_dump(pack("c2", 33, 34, 35));
+var_dump(pack("c3", 33));
+

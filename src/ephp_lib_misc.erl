@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    handle_error/3,
     define/4,
     defined/3,
     sleep/3,
@@ -34,9 +35,24 @@ init_func() -> [
 
 init_config() -> [].
 
+
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [].
+
+
+-spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
+                   Args::term()) -> string() | ignore.
+
+handle_error(eargunused, _Level, {Function, NumArgs}) ->
+    io_lib:format("~s(): ~p arguments unused", [Function, NumArgs]);
+
+handle_error(efewargs, _Level, {Function, Arg}) ->
+    io_lib:format("~s(): Type ~s: too few arguments", [Function, Arg]);
+
+handle_error(_Type, _Level, _Data) ->
+    ignore.
+
 
 -spec define(context(), line(), Constant :: var_value(),
     Content :: var_value()) -> boolean().
@@ -50,6 +66,7 @@ define(Context, _Line, {#constant{name=Constant},_},
     ephp_context:register_const(Context, Constant, Content),
     true.
 
+
 -spec defined(context(), line(), var_value()) -> boolean().
 
 defined(Context, _Line, {_, ConstantName}) ->
@@ -57,6 +74,7 @@ defined(Context, _Line, {_, ConstantName}) ->
         false -> false;
         _ -> true
     end.
+
 
 -spec sleep(context(), line(), Seconds :: var_value()) -> false | integer().
 
@@ -70,6 +88,7 @@ sleep(Context, Line, {_, Val}) ->
     ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
         ?E_WARNING, Data}),
     false.
+
 
 -spec usleep(context(), line(), MicroSeconds :: var_value()) ->
     false | integer().
@@ -85,6 +104,7 @@ usleep(Context, Line, {_, Val}) ->
         ?E_WARNING, Data}),
     false.
 
+
 -spec exit(context(), line(), Message :: var_value()) ->
     undefined.
 
@@ -92,24 +112,33 @@ exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),
     throw(die).
 
+
 -spec pack(context(), line(), [var_value()]) -> binary().
 
-pack(_Context, _Line, [{_, Format}|Args]) ->
-    do_pack(ephp_data:to_bin(Format), [ A || {_, A} <- Args ], <<>>).
+pack(Context, Line, [{_, Format}|Args]) ->
+    do_pack(Context, Line,
+            ephp_data:to_bin(Format), [ A || {_, A} <- Args ], <<>>).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
-do_pack(<<>>, _, Binary) ->
+do_pack(_Context, _Line, <<>>, [], Binary) ->
     Binary;
 
-do_pack(<<A:8,"*", Rest/binary>>, [Arg|Args], Binary) when A =:= $A orelse
-                                                           A =:= $a ->
-    String = ephp_data:to_bin(Arg),
-    do_pack(Rest, Args, <<Binary/binary, String/binary>>);
+do_pack(Context, Line, <<>>, Args, Binary) ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"pack">>, length(Args)},
+    ephp_error:handle_error(Context, {error, eargunused, Line, File,
+                                      ?E_WARNING, Data}),
+    Binary;
 
-do_pack(<<"a", Rest/binary>>, [Arg|Args], Binary) ->
+do_pack(Context, Line, <<A:8,"*", Rest/binary>>, [Arg|Args], Binary)
+        when A =:= $A orelse A =:= $a ->
+    String = ephp_data:to_bin(Arg),
+    do_pack(Context, Line, Rest, Args, <<Binary/binary, String/binary>>);
+
+do_pack(Context, Line, <<"a", Rest/binary>>, [Arg|Args], Binary) ->
     {Size, Rest0} = get_numbers(Rest),
     String = ephp_data:to_bin(Arg),
     Size0 = Size,
@@ -122,9 +151,9 @@ do_pack(<<"a", Rest/binary>>, [Arg|Args], Binary) ->
             Nulls = ephp_string:repeat(N, 0),
             <<Binary/binary, String/binary, Nulls/binary>>
     end,
-    do_pack(Rest0, Args, String0);
+    do_pack(Context, Line, Rest0, Args, String0);
 
-do_pack(<<"A", Rest/binary>>, [Arg|Args], Binary) ->
+do_pack(Context, Line, <<"A", Rest/binary>>, [Arg|Args], Binary) ->
     {Size, Rest0} = get_numbers(Rest),
     String = ephp_data:to_bin(Arg),
     Size0 = if Size =:= 0 -> 1; true -> Size end,
@@ -137,13 +166,13 @@ do_pack(<<"A", Rest/binary>>, [Arg|Args], Binary) ->
             Spaces = ephp_string:spaces(N),
             <<Binary/binary, String/binary, Spaces/binary>>
     end,
-    do_pack(Rest0, Args, String0);
+    do_pack(Context, Line, Rest0, Args, String0);
 
-do_pack(<<"H*", Rest/binary>>, [Arg|Args], Binary) ->
+do_pack(Context, Line, <<"H*", Rest/binary>>, [Arg|Args], Binary) ->
     String = ephp_string:hex2bin(Arg),
-    do_pack(Rest, Args, <<Binary/binary, String/binary>>);
+    do_pack(Context, Line, Rest, Args, <<Binary/binary, String/binary>>);
 
-do_pack(<<"H", Rest/binary>>, [Arg|Args], Binary) ->
+do_pack(Context, Line, <<"H", Rest/binary>>, [Arg|Args], Binary) ->
     {Size, Rest0} = get_numbers(Rest),
     Size0 = if Size =:= 0 -> 1; true -> Size end,
     ArgStr = ephp_data:to_bin(Arg),
@@ -157,13 +186,13 @@ do_pack(<<"H", Rest/binary>>, [Arg|Args], Binary) ->
             %% TODO: warning
             ephp_string:hex2bin(ArgStr)
     end,
-    do_pack(Rest0, Args, <<Binary/binary, String/binary>>);
+    do_pack(Context, Line, Rest0, Args, <<Binary/binary, String/binary>>);
 
-do_pack(<<"h*", Rest/binary>>, [Arg|Args], Binary) ->
+do_pack(Context, Line, <<"h*", Rest/binary>>, [Arg|Args], Binary) ->
     String = ephp_string:ihex2bin(Arg),
-    do_pack(Rest, Args, <<Binary/binary, String/binary>>);
+    do_pack(Context, Line, Rest, Args, <<Binary/binary, String/binary>>);
 
-do_pack(<<"h", Rest/binary>>, [Arg|Args], Binary) ->
+do_pack(Context, Line, <<"h", Rest/binary>>, [Arg|Args], Binary) ->
     {Size, Rest0} = get_numbers(Rest),
     Size0 = if Size =:= 0 -> 1; true -> Size end,
     ArgStr = ephp_data:to_bin(Arg),
@@ -177,7 +206,41 @@ do_pack(<<"h", Rest/binary>>, [Arg|Args], Binary) ->
             %% TODO: warning
             ephp_string:ihex2bin(ArgStr)
     end,
-    do_pack(Rest0, Args, <<Binary/binary, String/binary>>).
+    do_pack(Context, Line, Rest0, Args, <<Binary/binary, String/binary>>);
+
+do_pack(Context, Line, <<"c*", Rest/binary>>, Args, Binary) ->
+    String = lists:foldl(fun
+        (Arg, S) when is_number(Arg) ->
+            A = ephp_data:flooring(Arg),
+            <<S/binary, A:8>>;
+        (_, S) ->
+            <<S/binary, 0:8>>
+    end, <<>>, Args),
+    do_pack(Context, Line, Rest, [], <<Binary/binary, String/binary>>);
+
+do_pack(Context, Line, <<"c", Rest/binary>>, Args, Binary) ->
+    {Size, Rest0} = get_numbers(Rest),
+    Size0 = if Size =:= 0 -> 1; true -> Size end,
+    {NSize, NArgs, String} = lists:foldl(fun
+        (Arg, {0, AA, Str}) ->
+            {0, AA ++ [Arg], Str};
+        (Arg, {Si, AA, Str}) when is_number(Arg) ->
+            A = ephp_data:flooring(Arg),
+            {Si-1, AA, <<Str/binary, A:8>>};
+        (_, {Si, AA, Str}) ->
+            {Si-1, AA, <<Str/binary, 0:8>>}
+    end, {Size0, [], <<>>}, Args),
+    case NSize of
+        0 ->
+            do_pack(Context, Line, Rest0, NArgs,
+                    <<Binary/binary, String/binary>>);
+        _ ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"pack">>, <<"c">>},
+            ephp_error:handle_error(Context, {error, efewargs, Line, File,
+                                              ?E_WARNING, Data}),
+            false
+    end.
 
 
 -spec get_numbers(binary()) -> {non_neg_integer(), binary()}.
