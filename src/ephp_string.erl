@@ -15,7 +15,9 @@
     join/2,
     vsn_cmp/2,
     spaces/1,
-    repeat/2
+    repeat/2,
+    bin2hex/1,
+    hex2bin/1
 ]).
 
 -spec to_lower(binary() | undefined) -> binary() | undefined.
@@ -128,16 +130,34 @@ vsn_cmp([A|_], [B|_]) when A < B -> -1;
 vsn_cmp([A|ARest], [A|BRest]) -> vsn_cmp(ARest, BRest).
 
 -spec spaces(pos_integer()) -> binary().
-
+%% @doc generate as many spaces as the number passed as param.
 spaces(Num) ->
     repeat(Num, 32).
 
 -spec repeat(pos_integer(), byte()) -> binary().
-
+%% @doc repeat the byte passed as param as many times as the number passed as param.
 repeat(Num, Byte) ->
     repeat(Num, Byte, <<>>).
 
 -spec repeat(pos_integer(), byte(), binary()) -> binary().
-
+%% @doc repeat internal function.
+%% @see repeat/2
+%% @private
 repeat(0, _Byte, Binary) -> Binary;
 repeat(N, Byte, Binary) -> repeat(N-1, Byte, <<Binary/binary, Byte:8>>).
+
+-spec hex2bin(binary()) -> binary().
+%% @doc transform a hexadecimal string in
+hex2bin(<<A:16, Rest/binary>>) ->
+    <<(binary_to_integer(<<A:16>>, 16)), (hex2bin(Rest))/binary>>;
+hex2bin(<<A:16>>) ->
+    <<(binary_to_integer(<<A:16>>, 16))>>;
+hex2bin(<<A:8>>) ->
+    <<(binary_to_integer(<<A:8, $0:8>>, 16))>>;
+hex2bin(<<>>) ->
+    <<>>.
+
+-spec bin2hex(binary()) -> string().
+%% @doc transform a binary string in its hexadecimal representation.
+bin2hex(Bin) when is_binary(Bin) ->
+    to_lower(iolist_to_binary([ integer_to_list(X, 16) || <<X:4/integer>> <= Bin ])).

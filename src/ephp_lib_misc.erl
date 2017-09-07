@@ -137,7 +137,28 @@ do_pack(<<"A", Rest/binary>>, [Arg|Args], Binary) ->
             Spaces = ephp_string:spaces(N),
             <<Binary/binary, String/binary, Spaces/binary>>
     end,
-    do_pack(Rest0, Args, String0).
+    do_pack(Rest0, Args, String0);
+
+do_pack(<<"H*", Rest/binary>>, [Arg|Args], Binary) ->
+    String = ephp_string:hex2bin(Arg),
+    do_pack(Rest, Args, <<Binary/binary, String/binary>>);
+
+do_pack(<<"H", Rest/binary>>, [Arg|Args], Binary) ->
+    {Size, Rest0} = get_numbers(Rest),
+    Size0 = if Size =:= 0 -> 1; true -> Size end,
+    ArgStr = ephp_data:to_bin(Arg),
+    String = case Size0 - byte_size(ArgStr) of
+        N when N =:= 0 ->
+            ephp_string:hex2bin(ArgStr);
+        N when N < 0 ->
+            <<ArgStr0:Size0/binary,_/binary>> = ArgStr,
+            ephp_string:hex2bin(ArgStr0);
+        N when N > 0 ->
+            %% TODO: warning
+            ephp_string:hex2bin(ArgStr)
+    end,
+    do_pack(Rest0, Args, <<Binary/binary, String/binary>>).
+
 
 -spec get_numbers(binary()) -> {non_neg_integer(), binary()}.
 %% @doc retrieve numbers from binary while it's possible.

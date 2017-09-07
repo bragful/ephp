@@ -8,6 +8,9 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    handle_error/3,
+    bin2hex/3,
+    hex2bin/3,
     strlen/3,
     ord/3,
     chr/3,
@@ -68,6 +71,12 @@ init_func() -> [
     ]},
     {trim, [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
+    ]},
+    {bin2hex, [
+        {args, {1, 1, undefined, [string]}}
+    ]},
+    {hex2bin, [
+        {args, {1, 1, undefined, [string]}}
     ]}
 ].
 
@@ -78,6 +87,17 @@ init_config() -> [].
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [].
+
+-spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
+                   Args::term()) -> string() | ignore.
+
+handle_error(ehexeven, _Level, {Function}) ->
+    io_lib:format("~s(): Hexadecimal input string must have an even length",
+                  [Function]);
+
+handle_error(_Type, _Level, _Data) ->
+    ignore.
+
 
 -spec strlen(context(), line(), String :: var_value()) -> integer().
 
@@ -362,6 +382,22 @@ ltrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
 trim(_Context, _Line, {_, Str}, {_, CharMask}) ->
     Chars = binary_to_list(CharMask),
     ephp_string:trim(Str, Chars).
+
+-spec bin2hex(context(), line(), var_value()) -> binary().
+
+bin2hex(_Context, _Line, {_, Binary}) ->
+    ephp_string:bin2hex(Binary).
+
+-spec hex2bin(context(), line(), var_value()) -> binary().
+
+hex2bin(Context, Line, {_, Hex}) when byte_size(Hex) rem 2 =/= 0 ->
+    File = ephp_context:get_active_file(Context),
+    Data = {<<"hex2bin">>},
+    ephp_error:handle_error(Context, {error, ehexeven, Line, File, ?E_WARNING, Data}),
+    <<>>;
+
+hex2bin(_Context, _Line, {_, Hex}) ->
+    ephp_string:hex2bin(Hex).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

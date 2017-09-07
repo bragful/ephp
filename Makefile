@@ -24,7 +24,7 @@ test:
 ephp:
 	./rebar3 escriptize
 	cp -f _build/default/bin/ephp .
-	-rm -f .build_date
+	-rm -f .build_date asc\:data
 
 shell:
 	./rebar3 as dev shell

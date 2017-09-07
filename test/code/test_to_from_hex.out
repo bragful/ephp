@@ -1,0 +1,4 @@
+
+Warning: hex2bin(): Hexadecimal input string must have an even length in {{CWD}}/test/code/test_to_from_hex.php on line 3
+string(0) ""
+string(2) "ab"
