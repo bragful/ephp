@@ -17,7 +17,8 @@
     spaces/1,
     repeat/2,
     bin2hex/1,
-    hex2bin/1
+    hex2bin/1,
+    ihex2bin/1
 ]).
 
 -spec to_lower(binary() | undefined) -> binary() | undefined.
@@ -146,8 +147,19 @@ repeat(Num, Byte) ->
 repeat(0, _Byte, Binary) -> Binary;
 repeat(N, Byte, Binary) -> repeat(N-1, Byte, <<Binary/binary, Byte:8>>).
 
+-spec ihex2bin(binary()) -> binary().
+%% @doc transform a hexadecimal string in (big-endian)
+ihex2bin(<<A:8, B:8, Rest/binary>>) ->
+    <<(binary_to_integer(<<B:8, A:8>>, 16)), (ihex2bin(Rest))/binary>>;
+ihex2bin(<<A:8, B:8>>) ->
+    <<(binary_to_integer(<<B:8, A:8>>, 16))>>;
+ihex2bin(<<A:8>>) ->
+    <<(binary_to_integer(<<$0:8, A:8>>, 16))>>;
+ihex2bin(<<>>) ->
+    <<>>.
+
 -spec hex2bin(binary()) -> binary().
-%% @doc transform a hexadecimal string in
+%% @doc transform a hexadecimal string in (little-endian)
 hex2bin(<<A:16, Rest/binary>>) ->
     <<(binary_to_integer(<<A:16>>, 16)), (hex2bin(Rest))/binary>>;
 hex2bin(<<A:16>>) ->
