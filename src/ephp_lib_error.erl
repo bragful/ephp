@@ -18,7 +18,6 @@
     restore_exception_handler/2,
     error_get_last/2,
     error_clear_last/2,
-    trigger_error/3,
     trigger_error/4
 ]).
 
@@ -194,11 +193,6 @@ error_get_last(Context, _Line) ->
 error_clear_last(Context, _Line) ->
     ephp_error:clear_last(Context),
     undefined.
-
--spec trigger_error(context(), line(), ErrStr :: var_value()) -> boolean().
-
-trigger_error(Context, Line, ErrStr) ->
-    trigger_error(Context, Line, ErrStr, {undefined, ?E_USER_NOTICE}).
 
 -spec trigger_error(context(), line(), ErrStr :: var_value(),
                     ErrLevel :: var_value()) -> boolean().
