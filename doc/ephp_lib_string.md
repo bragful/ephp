@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin2hex-3">bin2hex/3</a></td><td></td></tr><tr><td valign="top"><a href="#chr-3">chr/3</a></td><td></td></tr><tr><td valign="top"><a href="#explode-4">explode/4</a></td><td></td></tr><tr><td valign="top"><a href="#explode-5">explode/5</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#hex2bin-3">hex2bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#implode-3">implode/3</a></td><td></td></tr><tr><td valign="top"><a href="#implode-4">implode/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#ltrim-4">ltrim/4</a></td><td></td></tr><tr><td valign="top"><a href="#ord-3">ord/3</a></td><td></td></tr><tr><td valign="top"><a href="#print-3">print/3</a></td><td></td></tr><tr><td valign="top"><a href="#printf-3">printf/3</a></td><td></td></tr><tr><td valign="top"><a href="#rtrim-4">rtrim/4</a></td><td></td></tr><tr><td valign="top"><a href="#sprintf-3">sprintf/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-5">str_replace/5</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-6">str_replace/6</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-3">str_split/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-4">str_split/4</a></td><td></td></tr><tr><td valign="top"><a href="#strlen-3">strlen/3</a></td><td></td></tr><tr><td valign="top"><a href="#strpos-4">strpos/4</a></td><td></td></tr><tr><td valign="top"><a href="#strpos-5">strpos/5</a></td><td></td></tr><tr><td valign="top"><a href="#strtolower-3">strtolower/3</a></td><td></td></tr><tr><td valign="top"><a href="#strtoupper-3">strtoupper/3</a></td><td></td></tr><tr><td valign="top"><a href="#trim-4">trim/4</a></td><td></td></tr><tr><td valign="top"><a href="#vprintf-4">vprintf/4</a></td><td></td></tr><tr><td valign="top"><a href="#vsprintf-4">vsprintf/4</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin2hex-3">bin2hex/3</a></td><td></td></tr><tr><td valign="top"><a href="#chr-3">chr/3</a></td><td>obtain the character giving the number as a param.</td></tr><tr><td valign="top"><a href="#explode-4">explode/4</a></td><td>split the string in pieces in an array.</td></tr><tr><td valign="top"><a href="#explode-5">explode/5</a></td><td>split the string in pieces in an array with a limit.</td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td>handle error messages.</td></tr><tr><td valign="top"><a href="#hex2bin-3">hex2bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#implode-3">implode/3</a></td><td>join the array passed as a param.</td></tr><tr><td valign="top"><a href="#implode-4">implode/4</a></td><td>join the array with the glue passed as a param.</td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#ltrim-4">ltrim/4</a></td><td></td></tr><tr><td valign="top"><a href="#ord-3">ord/3</a></td><td>obtain the number of the character passed as a param.</td></tr><tr><td valign="top"><a href="#print-3">print/3</a></td><td></td></tr><tr><td valign="top"><a href="#printf-3">printf/3</a></td><td>print using a format.</td></tr><tr><td valign="top"><a href="#rtrim-4">rtrim/4</a></td><td></td></tr><tr><td valign="top"><a href="#sprintf-3">sprintf/3</a></td><td>generate a string using a format.</td></tr><tr><td valign="top"><a href="#str_replace-5">str_replace/5</a></td><td></td></tr><tr><td valign="top"><a href="#str_replace-6">str_replace/6</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-3">str_split/3</a></td><td></td></tr><tr><td valign="top"><a href="#str_split-4">str_split/4</a></td><td></td></tr><tr><td valign="top"><a href="#strlen-3">strlen/3</a></td><td>retrieve the lenght of the string.</td></tr><tr><td valign="top"><a href="#strpos-4">strpos/4</a></td><td></td></tr><tr><td valign="top"><a href="#strpos-5">strpos/5</a></td><td></td></tr><tr><td valign="top"><a href="#strtolower-3">strtolower/3</a></td><td></td></tr><tr><td valign="top"><a href="#strtoupper-3">strtoupper/3</a></td><td></td></tr><tr><td valign="top"><a href="#trim-4">trim/4</a></td><td></td></tr><tr><td valign="top"><a href="#vprintf-4">vprintf/4</a></td><td></td></tr><tr><td valign="top"><a href="#vsprintf-4">vsprintf/4</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -36,6 +36,8 @@ chr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">l
 </code></pre>
 <br />
 
+obtain the character giving the number as a param.
+
 <a name="explode-4"></a>
 
 ### explode/4 ###
@@ -44,6 +46,8 @@ chr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">l
 explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 <br />
+
+split the string in pieces in an array.
 
 <a name="explode-5"></a>
 
@@ -54,6 +58,8 @@ explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 </code></pre>
 <br />
 
+split the string in pieces in an array with a limit.
+
 <a name="handle_error-3"></a>
 
 ### handle_error/3 ###
@@ -62,6 +68,8 @@ explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
 </code></pre>
 <br />
+
+handle error messages.
 
 <a name="hex2bin-3"></a>
 
@@ -81,6 +89,8 @@ implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 </code></pre>
 <br />
 
+join the array passed as a param.
+
 <a name="implode-4"></a>
 
 ### implode/4 ###
@@ -90,23 +100,7 @@ implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 </code></pre>
 <br />
 
-<a name="init_config-0"></a>
-
-### init_config/0 ###
-
-<pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
-</code></pre>
-<br />
-
-<a name="init_const-0"></a>
-
-### init_const/0 ###
-
-<pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
-</code></pre>
-<br />
+join the array with the glue passed as a param.
 
 <a name="init_func-0"></a>
 
@@ -135,6 +129,8 @@ ord(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">l
 </code></pre>
 <br />
 
+obtain the number of the character passed as a param.
+
 <a name="print-3"></a>
 
 ### print/3 ###
@@ -153,6 +149,8 @@ printf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 </code></pre>
 <br />
 
+print using a format.
+
 <a name="rtrim-4"></a>
 
 ### rtrim/4 ###
@@ -170,6 +168,8 @@ rtrim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 sprintf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; binary()
 </code></pre>
 <br />
+
+generate a string using a format.
 
 <a name="str_replace-5"></a>
 
@@ -215,6 +215,8 @@ str_split(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 strlen(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
+
+retrieve the lenght of the string.
 
 <a name="strpos-4"></a>
 

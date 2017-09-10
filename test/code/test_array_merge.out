@@ -14,8 +14,32 @@ Array
     [1] => bar
 )
 
-Warning: array_merge(): Argument #1 is not an array in {{CWD}}/test/code/test_array_merge.php on line 12
+Warning: array_merge(): Argument #1 is not an array in {{CWD}}/test/code/test_array_merge.php on line 13
 NULL
 
-Warning: array_merge(): Argument #3 is not an array in {{CWD}}/test/code/test_array_merge.php on line 13
+Warning: array_merge(): Argument #3 is not an array in {{CWD}}/test/code/test_array_merge.php on line 14
 NULL
+array(11) {
+  ["color"]=>
+  string(5) "green"
+  [0]=>
+  int(2)
+  [1]=>
+  int(4)
+  [2]=>
+  string(1) "a"
+  [3]=>
+  string(1) "b"
+  ["shape"]=>
+  string(9) "trapezoid"
+  [4]=>
+  int(4)
+  [5]=>
+  int(1)
+  [6]=>
+  int(2)
+  [7]=>
+  int(3)
+  [8]=>
+  int(4)
+}

@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#define-4">define/4</a></td><td></td></tr><tr><td valign="top"><a href="#defined-3">defined/3</a></td><td></td></tr><tr><td valign="top"><a href="#exit-3">exit/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#pack-3">pack/3</a></td><td></td></tr><tr><td valign="top"><a href="#sleep-3">sleep/3</a></td><td></td></tr><tr><td valign="top"><a href="#usleep-3">usleep/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#define-4">define/4</a></td><td></td></tr><tr><td valign="top"><a href="#defined-3">defined/3</a></td><td></td></tr><tr><td valign="top"><a href="#exit-3">exit/3</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#pack-3">pack/3</a></td><td></td></tr><tr><td valign="top"><a href="#sleep-3">sleep/3</a></td><td></td></tr><tr><td valign="top"><a href="#unpack-4">unpack/4</a></td><td></td></tr><tr><td valign="top"><a href="#usleep-3">usleep/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -42,6 +42,15 @@ defined(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 
 <pre><code>
 exit(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Message::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+</code></pre>
+<br />
+
+<a name="handle_error-3"></a>
+
+### handle_error/3 ###
+
+<pre><code>
+handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
 </code></pre>
 <br />
 
@@ -87,6 +96,15 @@ pack(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 
 <pre><code>
 sleep(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Seconds::<a href="#type-var_value">var_value()</a>) -&gt; false | integer()
+</code></pre>
+<br />
+
+<a name="unpack-4"></a>
+
+### unpack/4 ###
+
+<pre><code>
+unpack(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 <br />
 

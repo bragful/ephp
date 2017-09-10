@@ -163,6 +163,11 @@ array_chunk(_Context, _Line, {_, Array}, {_, Size}, {_, PreserveKeys}) ->
                                        Size, PreserveKeys))
     end.
 
+-spec array_column(context(), line(), var_value(), var_value(), var_value()) ->
+      false | ephp_array().
+%% @doc in an array of arrays it retries the subelements with the key passed
+%%      as a param. It let you to change the new key to retrieve the elements.
+%% @end
 array_column(Context, Line, _Array, {_, ColKey}, _IdxKey) when
         not (is_binary(ColKey) orelse is_number(ColKey)) ->
     File = ephp_context:get_active_file(Context),
@@ -269,8 +274,6 @@ next(Context, _Line, {Var, Array}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
-chunk(Array, _, _) when length(Array) =:= 0 ->
-    [];
 chunk(Array, N, true) when length(Array) =< N ->
     [ephp_array:from_list(Array)];
 chunk(Array, N, false) when length(Array) =< N ->
@@ -341,8 +344,5 @@ array_merge(Context, Line, N, [{V1,A1},{_,A2}|Rest]) when ?IS_ARRAY(A2) ->
             ephp_array:store(auto, V, A);
         ({K,V}, A) ->
             ephp_array:store(K, V, A)
-    end, A1, array_to_list(A2)),
+    end, A1, ephp_array:to_list(A2)),
     array_merge(Context, Line, N+1, [{V1,Array}|Rest]).
-
-array_to_list(A) when ?IS_ARRAY(A) -> ephp_array:to_list(A);
-array_to_list(A) when is_list(A) -> A.

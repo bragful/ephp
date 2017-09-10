@@ -11,7 +11,11 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#array_change_key_case-4">array_change_key_case/4</a></td><td></td></tr><tr><td valign="top"><a href="#array_chunk-5">array_chunk/5</a></td><td></td></tr><tr><td valign="top"><a href="#array_column-5">array_column/5</a></td><td></td></tr><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#array_unique-4">array_unique/4</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#list-3">list/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#array_change_key_case-4">array_change_key_case/4</a></td><td></td></tr><tr><td valign="top"><a href="#array_chunk-5">array_chunk/5</a></td><td></td></tr><tr><td valign="top"><a href="#array_column-5">array_column/5</a></td><td>in an array of arrays it retries the subelements with the key passed
+as a param.</td></tr><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#array_unique-4">array_unique/4</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#current-3">current/3</a></td><td>retrieve the current element under the cursor for an array.</td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#list-3">list/3</a></td><td></td></tr><tr><td valign="top"><a href="#next-3">next/3</a></td><td>moves the cursor to the next element and retrieves it if it's possible,
+false otherwise.</td></tr><tr><td valign="top"><a href="#php_end-3">php_end/3</a></td><td>moves the array cursor to the last element and retrieves it.</td></tr><tr><td valign="top"><a href="#prev-3">prev/3</a></td><td>moves the cursor to the previous element and retrieves it if it's
+possible, false otherwise.</td></tr><tr><td valign="top"><a href="#reset-3">reset/3</a></td><td>resets the cursor for an array moving it to the first element and
+retrieving that element if it's exists, false otherwise.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -40,7 +44,13 @@ array_chunk(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 
 ### array_column/5 ###
 
-`array_column(Context, Line, Array, ColKey, IdxKey) -> any()`
+<pre><code>
+array_column(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, ColKey::<a href="#type-var_value">var_value()</a>, IdxKey::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+in an array of arrays it retries the subelements with the key passed
+as a param. It let you to change the new key to retrieve the elements.
 
 <a name="array_merge-3"></a>
 
@@ -66,6 +76,26 @@ array_unique(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 
 <pre><code>
 count(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+</code></pre>
+<br />
+
+<a name="current-3"></a>
+
+### current/3 ###
+
+<pre><code>
+current(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+retrieve the current element under the cursor for an array.
+
+<a name="handle_error-3"></a>
+
+### handle_error/3 ###
+
+<pre><code>
+handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
 </code></pre>
 <br />
 
@@ -113,4 +143,51 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Vars::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a> | undefined
 </code></pre>
 <br />
+
+<a name="next-3"></a>
+
+### next/3 ###
+
+<pre><code>
+next(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+moves the cursor to the next element and retrieves it if it's possible,
+false otherwise.
+
+<a name="php_end-3"></a>
+
+### php_end/3 ###
+
+<pre><code>
+php_end(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+moves the array cursor to the last element and retrieves it.
+
+<a name="prev-3"></a>
+
+### prev/3 ###
+
+<pre><code>
+prev(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+moves the cursor to the previous element and retrieves it if it's
+possible, false otherwise.
+
+<a name="reset-3"></a>
+
+### reset/3 ###
+
+<pre><code>
+reset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+resets the cursor for an array moving it to the first element and
+retrieving that element if it's exists, false otherwise.
 

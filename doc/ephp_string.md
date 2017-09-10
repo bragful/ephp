@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin2hex-1">bin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#escape-2">escape/2</a></td><td></td></tr><tr><td valign="top"><a href="#hex2bin-1">hex2bin/1</a></td><td>transform a hexadecimal string in.</td></tr><tr><td valign="top"><a href="#join-2">join/2</a></td><td></td></tr><tr><td valign="top"><a href="#ltrim-2">ltrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#repeat-2">repeat/2</a></td><td>repeat the byte passed as param as many times as the number passed as param.</td></tr><tr><td valign="top"><a href="#rtrim-2">rtrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#spaces-1">spaces/1</a></td><td>generate as many spaces as the number passed as param.</td></tr><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_upper-1">to_upper/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-1">trim/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-2">trim/2</a></td><td></td></tr><tr><td valign="top"><a href="#vsn_cmp-2">vsn_cmp/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin2hex-1">bin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#escape-2">escape/2</a></td><td></td></tr><tr><td valign="top"><a href="#hex2bin-1">hex2bin/1</a></td><td>transform a hexadecimal string in (little-endian).</td></tr><tr><td valign="top"><a href="#ibin2hex-1">ibin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#ihex2bin-1">ihex2bin/1</a></td><td>transform a hexadecimal string in (big-endian).</td></tr><tr><td valign="top"><a href="#join-2">join/2</a></td><td></td></tr><tr><td valign="top"><a href="#ltrim-2">ltrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#repeat-2">repeat/2</a></td><td>repeat the byte passed as param as many times as the number passed as param.</td></tr><tr><td valign="top"><a href="#rtrim-2">rtrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#spaces-1">spaces/1</a></td><td>generate as many spaces as the number passed as param.</td></tr><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_upper-1">to_upper/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-1">trim/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-2">trim/2</a></td><td></td></tr><tr><td valign="top"><a href="#vsn_cmp-2">vsn_cmp/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -21,7 +21,7 @@
 ### bin2hex/1 ###
 
 <pre><code>
-bin2hex(Bin::binary()) -&gt; string()
+bin2hex(Bin::binary()) -&gt; binary()
 </code></pre>
 <br />
 
@@ -45,7 +45,29 @@ hex2bin(X1::binary()) -&gt; binary()
 </code></pre>
 <br />
 
-transform a hexadecimal string in
+transform a hexadecimal string in (little-endian)
+
+<a name="ibin2hex-1"></a>
+
+### ibin2hex/1 ###
+
+<pre><code>
+ibin2hex(Bin::binary()) -&gt; binary()
+</code></pre>
+<br />
+
+transform a binary string in its hexadecimal representation.
+
+<a name="ihex2bin-1"></a>
+
+### ihex2bin/1 ###
+
+<pre><code>
+ihex2bin(X1::binary()) -&gt; binary()
+</code></pre>
+<br />
+
+transform a hexadecimal string in (big-endian)
 
 <a name="join-2"></a>
 
