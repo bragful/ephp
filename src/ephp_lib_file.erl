@@ -18,7 +18,8 @@
     fclose/3,
     fread/4,
     fwrite/5,
-    fseek/5
+    fseek/5,
+    feof/3
 ]).
 
 -include_lib("kernel/include/file.hrl").
@@ -49,7 +50,8 @@ init_func() -> [
     ]},
     {fseek, [
         {args, {2, 3, -1, [resource, integer, {integer, ?SEEK_SET}]}}
-    ]}
+    ]},
+    {feof, [{args, {1, 1, false, [resource]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -201,6 +203,7 @@ fwrite(Context, Line, {_, Resource}, {_, Data}, {_, Length}) ->
             false
     end.
 
+
 -spec fseek(context(), line(), Handle::var_value(), Offset::var_value(),
             Whence::var_value()) -> 0 | -1.
 %% @doc moves the file cursor to the specified offset.
@@ -215,3 +218,9 @@ fseek(_Context, _Line, {_, Resource}, {_, Offset}, {_, Whence}) ->
         ok -> 0;
         {error, _} -> -1
     end.
+
+
+-spec feof(context(), line(), Resource::var_value()) -> boolean().
+%% @doc returns true or false depending if EOF is achieved or not.
+feof(_Context, _Line, {_, Resource}) ->
+    ephp_stream:is_eof(Resource).

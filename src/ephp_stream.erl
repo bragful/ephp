@@ -13,7 +13,8 @@
     close/1,
     read/2,
     write/3,
-    position/2
+    position/2,
+    is_eof/1
 ]).
 
 -type uri() :: binary().
@@ -29,6 +30,7 @@
 -callback read(pid(), options()) -> {ok, binary()} | eof | {error, reason()}.
 -callback write(pid(), binary(), options()) -> ok | {error, reason()}.
 -callback position(pid(), file:location()) -> ok | {error, reason()}.
+-callback is_eof(pid()) -> boolean() | {error, reason()}.
 
 
 -spec parse_uri(binary()) -> {stream(), uri()}.
@@ -108,3 +110,9 @@ get_last_id() ->
 %% @doc moves the cursor for the stream to the specified location.
 position(#resource{module = Module, pid = PID}, Location) ->
     Module:position(PID, Location).
+
+
+-spec is_eof(resource()) -> boolean() | {error, reason()}.
+%% @doc returns true if EOF is achieved by the file cursor or false otherwise.
+is_eof(#resource{module = Module, pid = PID}) ->
+    Module:is_eof(PID).
