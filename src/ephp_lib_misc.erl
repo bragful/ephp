@@ -347,6 +347,11 @@ do_unpack(Context, Line, [<<"c*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, <<>>, Prev) ->
             {Array0, Prev};
+        (P, I, Array0, <<Char:8/integer-signed, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-signed>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Char:8/integer-signed, String/binary>>, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Char, Array0),
@@ -375,6 +380,11 @@ do_unpack(Context, Line, [<<"c", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, String, Array1, PrevStr);
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Char:8/integer-signed, String/binary>>, N, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-signed>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
         (P, I, Array0, <<Char:8/integer-signed, String/binary>>, N, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Char, Array0),
@@ -389,6 +399,11 @@ do_unpack(Context, Line, [<<"C*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, <<>>, Prev) ->
             do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (P, I, Array0, <<Char:8/integer-unsigned, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-unsigned>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Char:8/integer-unsigned, String/binary>>, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Char, Array0),
@@ -405,7 +420,7 @@ do_unpack(Context, Line, [<<"C", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, <<>>, Array0, Prev);
         (_P, _I, _Array0, <<>>, _N, _Prev) ->
             File = ephp_context:get_active_file(Context),
-            Data = {<<"unpack">>, <<"c">>, 1, 0},
+            Data = {<<"unpack">>, <<"C">>, 1, 0},
             ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
                                               ?E_WARNING, Data}),
             false;
@@ -416,6 +431,11 @@ do_unpack(Context, Line, [<<"C", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, String, Array1, PrevStr);
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Char:8/integer-unsigned, String/binary>>, N, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-unsigned>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
         (P, I, Array0, <<Char:8/integer-unsigned, String/binary>>, N, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Char, Array0),
@@ -430,6 +450,11 @@ do_unpack(Context, Line, [<<"s*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 16 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:16/integer-signed-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-signed-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:16/integer-signed-little, String/binary>>, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -458,6 +483,11 @@ do_unpack(Context, Line, [<<"s", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, String, Array1, PrevStr);
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:16/integer-signed-little, String/binary>>, N, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-signed-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
         (P, I, Array0, <<Bin:16/integer-signed-little, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -473,6 +503,11 @@ do_unpack(Context, Line, [<<"n*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 16 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -501,6 +536,11 @@ do_unpack(Context, Line, [<<"n", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, String, Array1, PrevStr);
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, N, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
         (P, I, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -516,6 +556,11 @@ do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 16 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:16/integer-unsigned-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:16/integer-unsigned-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -546,6 +591,11 @@ do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:16/integer-unsigned-little, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:16/integer-unsigned-little, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -560,6 +610,11 @@ do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:32/integer-unsigned-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:32/integer-unsigned-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -590,6 +645,11 @@ do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:32/integer-unsigned-little, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:32/integer-unsigned-little, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -604,6 +664,11 @@ do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:32/integer-signed-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-signed-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:32/integer-signed-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -634,6 +699,11 @@ do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:32/integer-signed-little, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-signed-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:32/integer-signed-little, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -648,6 +718,11 @@ do_unpack(Context, Line, [<<"N*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:32/integer-unsigned-big, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:32/integer-unsigned-big, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -678,6 +753,11 @@ do_unpack(Context, Line, [<<"N", Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:32/integer-unsigned-big, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:32/integer-unsigned-big, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -692,6 +772,11 @@ do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 64 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:64/integer-unsigned-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:64/integer-unsigned-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -722,6 +807,11 @@ do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:64/integer-unsigned-little, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:64/integer-unsigned-little, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -736,6 +826,11 @@ do_unpack(Context, Line, [<<"q*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 64 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:64/integer-signed-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-signed-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:64/integer-signed-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -766,6 +861,11 @@ do_unpack(Context, Line, [<<"q", Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:64/integer-signed-little, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-signed-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:64/integer-signed-little, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -780,6 +880,11 @@ do_unpack(Context, Line, [<<"J*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:64/integer-unsigned-big, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:64/integer-unsigned-big, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -810,6 +915,11 @@ do_unpack(Context, Line, [<<"J", Rest/binary>>|Format], Binary, Array,
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
         (P, I, Array0, <<Bin:64/integer-unsigned-big, String/binary>>, N,
+         Prev) when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
+        (P, I, Array0, <<Bin:64/integer-unsigned-big, String/binary>>, N,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -824,6 +934,11 @@ do_unpack(Context, Line, [<<"f*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:32/float-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/float-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:32/float-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -853,6 +968,11 @@ do_unpack(Context, Line, [<<"f", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, String, Array1, PrevStr);
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:32/float-little, String/binary>>, N, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/float-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
         (P, I, Array0, <<Bin:32/float-little, String/binary>>, N, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
@@ -867,6 +987,11 @@ do_unpack(Context, Line, [<<"d*", Idx/binary>>|Format], Binary, Array,
     Process = fun
         (_P, _I, Array0, String, Prev) when bit_size(String) < 64 ->
             {Array0, Prev};
+        (P, I, Array0, <<Bin:64/float-little, String/binary>>, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/float-little>>,
+            P(P, I+1, Array1, String, PrevStr);
         (P, I, Array0, <<Bin:64/float-little, String/binary>>,
          Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
@@ -896,6 +1021,11 @@ do_unpack(Context, Line, [<<"d", Rest/binary>>|Format], Binary, Array,
             do_unpack(Context, Line, Format, String, Array1, PrevStr);
         (_P, _I, Array0, String, 0, Prev) ->
             do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:64/float-little, String/binary>>, N, Prev)
+                when Idx =:= <<>> ->
+            Array1 = ephp_array:store(I, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/float-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr);
         (P, I, Array0, <<Bin:64/float-little, String/binary>>, N, Prev) ->
             Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
             Array1 = ephp_array:store(Index, Bin, Array0),
