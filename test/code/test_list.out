@@ -2,3 +2,13 @@ The coffee is brown and the caffeine makes it special.
 The coffee has caffeine.
 I need caffeine!
 NULL
+
+Notice: Undefined offset: 2 in {{CWD}}/test/code/test_list.php on line 17
+array(3) {
+  [0]=>
+  int(1)
+  [1]=>
+  int(2)
+  [2]=>
+  NULL
+}

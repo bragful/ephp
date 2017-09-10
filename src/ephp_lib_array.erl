@@ -109,8 +109,22 @@ array_merge(Context, Line, Args) ->
 
 -spec list(context(), line(), Vars :: [var_value()]) -> ephp_array() | undefined.
 
-list(Context, _Line, [{#ephp_array{}=Array, undefined}|Getters]) ->
-    zip_list(Context, ephp_array:to_list(Array), Getters),
+list(Context, Line, [{#ephp_array{}=Array, undefined}|Getters]) ->
+    lists:foldl(fun
+        ({[], _}, I) ->
+            I + 1;
+        ({Getter, _}, I) ->
+            case ephp_array:find(I, Array) of
+                {ok, Value} ->
+                    ephp_context:set(Context, Getter, Value);
+                error ->
+                    File = ephp_context:get_active_file(Context),
+                    Error = {error, enooffset, Line, File, ?E_NOTICE, {I}},
+                    ephp_error:handle_error(Context, Error),
+                    ephp_context:set(Context, Getter, undefined)
+            end,
+            I + 1
+    end, 0, Getters),
     Array;
 
 list(Context, _Line, [{Binary, undefined}|Getters]) when is_binary(Binary) ->
@@ -293,16 +307,6 @@ unique([{Key,Val}|Rest], Array, _Flags) ->
         false -> unique(Rest, Array ++ [{Key, Val}], ?SORT_STRING)
     end.
 %% TODO: SORT_LOCALE_STRING
-
-zip_list(_Context, [], _) ->
-    ok;
-zip_list(_Context, _, []) ->
-    ok;
-zip_list(Context, [_|Array], [{[], _}|Getters]) ->
-    zip_list(Context, Array, Getters);
-zip_list(Context, [{_,Value}|Array], [{Getter,_}|Getters]) ->
-    ephp_context:set(Context, Getter, Value),
-    zip_list(Context, Array, Getters).
 
 member(Value, Dict, true) ->
     List = ephp_array:to_list(Dict),

@@ -13,3 +13,7 @@ echo "I need $energy!\n";
 
 list($bar) = "abcde";
 var_dump($bar); // NULL
+
+list($a, $b, $c) = [1, 2];
+var_dump([$a, $b, $c]);
+
