@@ -183,5 +183,11 @@ ibin2hex(Bin) when is_binary(Bin) ->
     ToInt = fun(X, Y) ->
         [ integer_to_list(Y, 16), integer_to_list(X, 16) ]
     end,
-    Binaries = [ ToInt(X, Y) || <<X:4/integer, Y:4/integer>> <= Bin ],
+    Process = fun
+        (_, <<X:4/integer, Y:4/integer>>) ->
+            [ToInt(X, Y)];
+        (P, <<X:4/integer, Y:4/integer, Rest/binary>>) ->
+            [ToInt(X, Y)|P(P, Rest)]
+    end,
+    Binaries = Process(Process, Bin),
     to_lower(iolist_to_binary(Binaries)).
