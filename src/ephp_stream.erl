@@ -12,7 +12,8 @@
     open/2,
     close/1,
     read/2,
-    write/3
+    write/3,
+    position/2
 ]).
 
 -type uri() :: binary().
@@ -27,6 +28,7 @@
 -callback close(pid()) -> ok | {error, reason()}.
 -callback read(pid(), options()) -> {ok, binary()} | eof | {error, reason()}.
 -callback write(pid(), binary(), options()) -> ok | {error, reason()}.
+-callback position(pid(), file:location()) -> ok | {error, reason()}.
 
 
 -spec parse_uri(binary()) -> {stream(), uri()}.
@@ -100,3 +102,9 @@ get_last_id() ->
     ID = erlang:get(resource_next_id),
     erlang:put(resource_next_id, ID + 1),
     ID.
+
+
+-spec position(resource(), file:location()) -> ok | {error, reason()}.
+%% @doc moves the cursor for the stream to the specified location.
+position(#resource{module = Module, pid = PID}, Location) ->
+    Module:position(PID, Location).

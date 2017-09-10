@@ -11,7 +11,8 @@
     open/2,
     close/1,
     read/2,
-    write/3
+    write/3,
+    position/2
 ]).
 
 -spec open(ephp_stream:uri(), ephp_stream:options()) ->
@@ -47,3 +48,12 @@ read(PID, Options) ->
 %% @doc writes data to a file.
 write(PID, Data, _Options) ->
     file:write(PID, Data).
+
+
+-spec position(#file_descriptor{}, file:location()) -> ok | {error, reason()}.
+%% @doc moves the cursor to the specified position inside of the file.
+position(PID, Location) ->
+    case file:position(PID, Location) of
+        {ok, _} -> ok;
+        {error, Reason} -> {error, Reason}
+    end.

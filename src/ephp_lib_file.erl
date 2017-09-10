@@ -17,11 +17,16 @@
     fopen/4,
     fclose/3,
     fread/4,
-    fwrite/5
+    fwrite/5,
+    fseek/5
 ]).
 
 -include_lib("kernel/include/file.hrl").
 -include("ephp.hrl").
+
+-define(SEEK_SET, 0).
+-define(SEEK_CUR, 1).
+-define(SEEK_END, 2).
 
 -spec init_func() -> ephp_func:php_function_results().
 
@@ -41,6 +46,9 @@ init_func() -> [
     ]},
     {fwrite, [
         {args, {2, 3, false, [resource, string, {integer, 0}]}}
+    ]},
+    {fseek, [
+        {args, {2, 3, -1, [resource, integer, {integer, ?SEEK_SET}]}}
     ]}
 ].
 
@@ -50,7 +58,11 @@ init_config() -> [].
 
 -spec init_const() -> ephp_func:php_const_results().
 
-init_const() -> [].
+init_const() -> [
+    {<<"SEEK_SET">>, ?SEEK_SET},
+    {<<"SEEK_CUR">>, ?SEEK_CUR},
+    {<<"SEEK_END">>, ?SEEK_END}
+].
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
                    Args::term()) -> string() | ignore.
@@ -187,4 +199,19 @@ fwrite(Context, Line, {_, Resource}, {_, Data}, {_, Length}) ->
             ephp_error:handle_error(Context, {error, einval, Line, File,
                                               ?E_WARNING, ErrData}),
             false
+    end.
+
+-spec fseek(context(), line(), Handle::var_value(), Offset::var_value(),
+            Whence::var_value()) -> 0 | -1.
+%% @doc moves the file cursor to the specified offset.
+fseek(_Context, _Line, {_, Resource}, {_, Offset}, {_, Whence}) ->
+    Location = case Whence of
+        ?SEEK_SET -> {bof, Offset};
+        ?SEEK_CUR -> {cur, Offset};
+        ?SEEK_END -> {eof, Offset};
+        _ -> Offset
+    end,
+    case ephp_stream:position(Resource, Location) of
+        ok -> 0;
+        {error, _} -> -1
     end.
