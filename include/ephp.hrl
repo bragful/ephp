@@ -84,7 +84,8 @@
     size = 0 :: pos_integer(),
     values = [] :: [any()],
     last_num_index = 0 :: pos_integer(),
-    trigger = undefined :: undefined | {Module :: atom(), Function:: atom()}
+    trigger = undefined :: undefined | {Module :: atom(), Function:: atom()},
+    cursor = 1 :: pos_integer()
 }).
 
 -type ephp_array() :: #ephp_array{}.

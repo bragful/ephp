@@ -51,7 +51,13 @@
     map/2,
     fold/3,
     from_list/1,
-    to_list/1
+    to_list/1,
+    first/1,
+    last/1,
+    next/1,
+    prev/1,
+    current/1,
+    cursor/2
 ]).
 
 
@@ -188,6 +194,74 @@ to_list(#ephp_array{values = Values, trigger = undefined}) ->
 
 to_list(#ephp_array{trigger = {Module, Function, Args}} = Array) ->
     apply(Module, Function, Args ++ [Array, to_list]).
+
+
+-spec first(ephp_array()) -> {ok, mixed(), ephp_array()} | {error, empty}.
+%% @doc moves the cursor to the begin of the array and retrieves that element.
+first(#ephp_array{size = 0}) ->
+    {error, empty};
+
+first(#ephp_array{values = Values} = Array) ->
+    {ok, lists:nth(1, Values), Array#ephp_array{cursor = 1}}.
+
+
+-spec last(ephp_array()) -> {ok, mixed(), ephp_array()} | {error, empty}.
+%% @doc moves the cursor to the end of the array and retrieves that element.
+last(#ephp_array{size = 0}) ->
+    {error, empty};
+
+last(#ephp_array{size = Size, values = Values} = Array) ->
+    {ok, lists:last(Values), Array#ephp_array{cursor = Size}}.
+
+
+-spec next(ephp_array()) -> {ok, mixed(), ephp_array()} |
+                            {error, eof | empty | enocursor}.
+%% @doc moves the cursor the to next element and retrieves that element.
+next(#ephp_array{size = 0}) ->
+    {error, empty};
+
+next(#ephp_array{cursor = false}) ->
+    {error, enocursor};
+
+next(#ephp_array{cursor = Cursor, size = Size}) when Size =:= Cursor ->
+    {error, eof};
+
+next(#ephp_array{cursor = Cursor, values = Values} = Array) ->
+    {ok, lists:nth(Cursor + 1, Values), Array#ephp_array{cursor = Cursor + 1}}.
+
+
+-spec prev(ephp_array()) -> {ok, mixed(), ephp_array()} |
+                            {error, bof | empty | enocursor}.
+%% @doc moves the cursor to the previous element and retrieves that element.
+prev(#ephp_array{size = 0}) ->
+    {error, empty};
+
+prev(#ephp_array{cursor = 1}) ->
+    {error, bof};
+
+prev(#ephp_array{cursor = false}) ->
+    {error, enocursor};
+
+prev(#ephp_array{cursor = Cursor, values = Values} = Array) ->
+    {ok, lists:nth(Cursor - 1, Values), Array#ephp_array{cursor = Cursor - 1}}.
+
+
+-spec current(ephp_array()) -> {ok, mixed()} | {error, empty | enocursor}.
+%% @doc retrieves the element under the cursor.
+current(#ephp_array{size = 0}) ->
+    {error, empty};
+
+current(#ephp_array{cursor = false}) ->
+    {error, enocursor};
+
+current(#ephp_array{cursor = Cursor, values = Values}) ->
+    {ok, lists:nth(Cursor, Values)}.
+
+
+-spec cursor(ephp_array(), pos_integer() | false) -> ephp_array().
+%% @doc set the cursor for an array.
+cursor(#ephp_array{} = Array, Cursor) ->
+    Array#ephp_array{cursor = Cursor}.
 
 %% -----------------------------------------------------------------------------
 %% Internal functions

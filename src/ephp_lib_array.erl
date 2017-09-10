@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    handle_error/3,
     in_array/5,
     count/3,
     array_merge/3,
@@ -15,7 +16,12 @@
     array_unique/4,
     array_change_key_case/4,
     array_chunk/5,
-    array_column/5
+    array_column/5,
+    reset/3,
+    current/3,
+    php_end/3,
+    prev/3,
+    next/3
 ]).
 
 -include("ephp.hrl").
@@ -47,7 +53,13 @@ init_func() -> [
     ]},
     {array_column, [
         {args, {2, 3, undefined, [array, mixed, {mixed, undefined}]}}
-    ]}
+    ]},
+    {reset, [{args, {1, 1, undefined, [array]}}]},
+    {current, [{args, {1, 1, false, [array]}}]},
+    {php_end, [{args, {1, 1, false, [array]}}, {alias, <<"end">>}]},
+    {prev, [{args, {1, 1, false, [array]}}]},
+    {next, [{args, {1, 1, false, [array]}}]},
+    {next, [{args, {1, 1, false, [array]}}, {alias, <<"each">>}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -64,6 +76,15 @@ init_const() -> [
     {<<"CASE_LOWER">>, ?CASE_LOWER},
     {<<"CASE_UPPER">>, ?CASE_UPPER}
 ].
+
+-spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
+                   Args::term()) -> string() | ignore.
+
+handle_error(enooffset, _Level, {Offset}) ->
+    io_lib:format("Undefined offset: ~p", [Offset]);
+
+handle_error(_Type, _Level, _Data) ->
+    ignore.
 
 -spec in_array(
     context(), line(),
@@ -160,6 +181,75 @@ array_column(_Context, _Line, {_, Array}, {_, ColKey}, {_, IdxKey}) ->
                 A
         end
     end, ephp_array:new(), Array).
+
+
+-spec reset(context(), line(), Array::var_value()) -> false | ephp_array().
+%% @doc resets the cursor for an array moving it to the first element and
+%%      retrieving that element if it's exists, false otherwise.
+%% @end
+reset(Context, _Line, {Var, Array}) ->
+    case ephp_array:first(Array) of
+        {error, _} ->
+            false;
+        {ok, {_Key, Value}, NewArray} ->
+            ephp_context:set(Context, Var, NewArray),
+            Value
+    end.
+
+
+-spec current(context(), line(), Array::var_value()) -> false | ephp_array().
+%% @doc retrieve the current element under the cursor for an array.
+current(_Context, _Line, {_, Array}) ->
+    case ephp_array:current(Array) of
+        {error, _} -> false;
+        {ok, {_Key, Value}} -> Value
+    end.
+
+
+-spec php_end(context(), line(), Array::var_value()) -> false | ephp_array().
+%% @doc moves the array cursor to the last element and retrieves it.
+php_end(Context, _Line, {Var, Array}) ->
+    case ephp_array:last(Array) of
+        {error, _} ->
+            false;
+        {ok, {_Key, Value}, NewArray} ->
+            ephp_context:set(Context, Var, NewArray),
+            Value
+    end.
+
+
+-spec prev(context(), line(), Array::var_value()) -> false | ephp_array().
+%% @doc moves the cursor to the previous element and retrieves it if it's
+%%      possible, false otherwise.
+%% @end
+prev(Context, _Line, {Var, Array}) ->
+    case ephp_array:prev(Array) of
+        {error, bof} ->
+            ephp_context:set(Context, Var, ephp_array:cursor(Array, false)),
+            false;
+        {error, _} ->
+            false;
+        {ok, {_Key, Value}, NewArray} ->
+            ephp_context:set(Context, Var, NewArray),
+            Value
+    end.
+
+
+-spec next(context(), line(), Array::var_value()) -> false | ephp_array().
+%% @doc moves the cursor to the next element and retrieves it if it's possible,
+%%      false otherwise.
+%% @end
+next(Context, _Line, {Var, Array}) ->
+    case ephp_array:next(Array) of
+        {error, eof} ->
+            ephp_context:set(Context, Var, ephp_array:cursor(Array, false)),
+            false;
+        {error, _} ->
+            false;
+        {ok, {_Key, Value}, NewArray} ->
+            ephp_context:set(Context, Var, NewArray),
+            Value
+    end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

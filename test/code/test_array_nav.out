@@ -1,0 +1,26 @@
+[apple]
+apple, orange, grape, peach, bool(false)
+
+ []
+[peach]
+peach, grape, orange, apple, bool(false)
+
+ []
+array(4) {
+  [0]=>
+  string(5) "apple"
+  [1]=>
+  string(6) "orange"
+  [2]=>
+  string(5) "grape"
+  [3]=>
+  string(5) "peach"
+}
+bool(false)
+bool(false)
+bool(false)
+bool(false)
+bool(false)
+
+Warning: reset() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_nav.php on line 35
+NULL
