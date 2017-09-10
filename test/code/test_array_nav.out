@@ -1,11 +1,11 @@
-[apple]
+[0 => apple]
 apple, orange, grape, peach, bool(false)
 
- []
-[peach]
+ [ => ]
+[3 => peach]
 peach, grape, orange, apple, bool(false)
 
- []
+ [ => ]
 array(4) {
   [0]=>
   string(5) "apple"
@@ -21,6 +21,13 @@ bool(false)
 bool(false)
 bool(false)
 bool(false)
+NULL
 
-Warning: reset() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_nav.php on line 35
+Warning: reset() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_nav.php on line 36
+NULL
+
+Warning: current() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_nav.php on line 37
+NULL
+
+Warning: key() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_nav.php on line 38
 NULL

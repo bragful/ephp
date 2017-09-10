@@ -4,23 +4,23 @@ $a = [ "apple", "orange", "grape", "peach" ];
 
 $i = reset($a);
 $current = current($a);
-print "[$current]\n";
+print "[" . key($a) . " => $current]\n";
 do {
     print "$i, ";
 } while ($i = next($a));
 var_dump(next($a));
-$current = current($a);
-print "\n [$current]\n";
+$current = pos($a);
+print "\n [" . key($a) . " => $current]\n";
 
 $i = end($a);
 $current = current($a);
-print "[$current]\n";
+print "[" . key($a) . " => $current]\n";
 do {
     print "$i, ";
 } while ($i = prev($a));
 var_dump(prev($a));
-$current = current($a);
-print "\n [$current]\n";
+$current = pos($a);
+print "\n [" . key($a) . " => $current]\n";
 
 var_dump($a);
 
@@ -30,6 +30,10 @@ var_dump(current($a));
 var_dump(next($a));
 var_dump(prev($a));
 var_dump(end($a));
+var_dump(key($a));
 
 $a = "hey!";
 var_dump(reset($a));
+var_dump(current($a));
+var_dump(key($a));
+

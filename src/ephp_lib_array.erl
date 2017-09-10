@@ -21,7 +21,8 @@
     current/3,
     php_end/3,
     prev/3,
-    next/3
+    next/3,
+    key/3
 ]).
 
 -include("ephp.hrl").
@@ -55,11 +56,13 @@ init_func() -> [
         {args, {2, 3, undefined, [array, mixed, {mixed, undefined}]}}
     ]},
     {reset, [{args, {1, 1, undefined, [array]}}]},
-    {current, [{args, {1, 1, false, [array]}}]},
-    {php_end, [{args, {1, 1, false, [array]}}, {alias, <<"end">>}]},
-    {prev, [{args, {1, 1, false, [array]}}]},
-    {next, [{args, {1, 1, false, [array]}}]},
-    {next, [{args, {1, 1, false, [array]}}, {alias, <<"each">>}]}
+    {current, [{args, {1, 1, undefined, [array]}}]},
+    {current, [{args, {1, 1, undefined, [array]}}, {alias, <<"pos">>}]},
+    {php_end, [{args, {1, 1, undefined, [array]}}, {alias, <<"end">>}]},
+    {prev, [{args, {1, 1, undefined, [array]}}]},
+    {next, [{args, {1, 1, undefined, [array]}}]},
+    {next, [{args, {1, 1, undefined, [array]}}, {alias, <<"each">>}]},
+    {key, [{args, {1, 1, undefined, [array]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -269,6 +272,16 @@ next(Context, _Line, {Var, Array}) ->
             ephp_context:set(Context, Var, NewArray),
             Value
     end.
+
+
+-spec key(context(), line(), Array::var_value()) -> false | ephp_array().
+%% @doc returns the key under the cursor or undefined if an error happens.
+key(_Context, _Line, {_, Array}) ->
+    case ephp_array:current(Array) of
+        {error, _} -> undefined;
+        {ok, {Key, _Value}} -> Key
+    end.
+
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
