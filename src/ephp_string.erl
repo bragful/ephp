@@ -16,9 +16,10 @@
     vsn_cmp/2,
     spaces/1,
     repeat/2,
-    bin2hex/1,
     hex2bin/1,
-    ihex2bin/1
+    ihex2bin/1,
+    bin2hex/1,
+    ibin2hex/1
 ]).
 
 -spec to_lower(binary() | undefined) -> binary() | undefined.
@@ -169,7 +170,18 @@ hex2bin(<<A:8>>) ->
 hex2bin(<<>>) ->
     <<>>.
 
--spec bin2hex(binary()) -> string().
+-spec bin2hex(binary()) -> binary().
 %% @doc transform a binary string in its hexadecimal representation.
 bin2hex(Bin) when is_binary(Bin) ->
-    to_lower(iolist_to_binary([ integer_to_list(X, 16) || <<X:4/integer>> <= Bin ])).
+    Binaries = [ integer_to_list(X, 16) || <<X:4/integer>> <= Bin ],
+    to_lower(iolist_to_binary(Binaries)).
+
+
+-spec ibin2hex(binary()) -> binary().
+%% @doc transform a binary string in its hexadecimal representation.
+ibin2hex(Bin) when is_binary(Bin) ->
+    ToInt = fun(X, Y) ->
+        [ integer_to_list(Y, 16), integer_to_list(X, 16) ]
+    end,
+    Binaries = [ ToInt(X, Y) || <<X:4/integer, Y:4/integer>> <= Bin ],
+    to_lower(iolist_to_binary(Binaries)).

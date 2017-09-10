@@ -63,6 +63,10 @@ handle_error(eunknownfmt, _Level, {Function, Cmd}) ->
 handle_error(ecmdignored, _Level, {Function, Cmd, Op}) ->
     io_lib:format("~s(): Type ~s: '~s' ignored", [Function, Cmd, Op]);
 
+handle_error(enoenoughin, _Level, {Function, Cmd, Size1, Size2}) ->
+    io_lib:format("~s(): Type ~s: not enough input, need ~p, have ~p",
+                  [Function, Cmd, Size1, Size2]);
+
 handle_error(_Type, _Level, _Data) ->
     ignore.
 
@@ -136,16 +140,814 @@ pack(Context, Line, [{_, Format}|Args]) ->
 -spec unpack(context(), line(), var_value(), var_value()) -> ephp_array().
 
 unpack(Context, Line, {_, Format}, {_, Binary}) ->
-    do_unpack(Context, Line, ephp_data:to_bin(Format), Binary,
-              ephp_array:new()).
+    do_unpack(Context, Line,
+              binary:split(ephp_data:to_bin(Format), <<"/">>, [global]),
+              Binary, ephp_array:new(), <<>>).
 
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
-do_unpack(_Context, _Line, <<>>, <<>>, Array) ->
-    Array.
+do_unpack(_Context, _Line, [], _Binary, Array, _PrevBin) ->
+    Array;
+
+do_unpack(Context, Line, [<<"a*", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    String = ephp_data:to_bin(Binary),
+    NewArray = case Rest of
+        <<>> -> ephp_array:store(1, String, Array);
+        _ -> ephp_array:store(Rest, String, Array)
+    end,
+    do_unpack(Context, Line, Format, <<>>, NewArray, PrevBin);
+
+do_unpack(Context, Line, [<<"a", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Rest0} = get_numbers(Rest, 1),
+    String = ephp_data:to_bin(Binary),
+    Index = case Rest0 of
+        <<>> -> 1;
+        _ -> Rest0
+    end,
+    case Size - byte_size(String) of
+        N when N > 0 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"a">>, Size, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        N when N =:= 0 ->
+            Array0 = ephp_array:store(Index, String, Array),
+            PrevStr = <<PrevBin/binary, String/binary>>,
+            do_unpack(Context, Line, Format, <<>>, Array0, PrevStr);
+        N when N < 0 ->
+            <<String1:Size/binary, RestStr/binary>> = String,
+            Array0 = ephp_array:store(Index, String1, Array),
+            PreStr = <<PrevBin/binary, String1/binary>>,
+            do_unpack(Context, Line, Format, RestStr, Array0, PreStr)
+    end;
+
+do_unpack(Context, Line, [<<"A*", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    String = ephp_string:rtrim(ephp_data:to_bin(Binary), [32]),
+    NewArray = case Rest of
+        <<>> -> ephp_array:store(1, String, Array);
+        _ -> ephp_array:store(Rest, String, Array)
+    end,
+    do_unpack(Context, Line, Format, <<>>, NewArray, PrevBin);
+
+do_unpack(Context, Line, [<<"A", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Rest0} = get_numbers(Rest, 1),
+    String = ephp_data:to_bin(Binary),
+    Index = case Rest0 of
+        <<>> -> 1;
+        _ -> Rest0
+    end,
+    case Size - byte_size(String) of
+        N when N > 0 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"A">>, Size, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        N when N =:= 0 ->
+            SStr = ephp_string:rtrim(String, [32]),
+            Array0 = ephp_array:store(Index, SStr, Array),
+            PrevStr = <<PrevBin/binary, String/binary>>,
+            do_unpack(Context, Line, Format, <<>>, Array0, PrevStr);
+        N when N < 0 ->
+            <<String1:Size/binary, RestStr/binary>> = String,
+            SStr = ephp_string:rtrim(String1, [32]),
+            Array0 = ephp_array:store(Index, SStr, Array),
+            PreStr = <<PrevBin/binary, String1/binary>>,
+            do_unpack(Context, Line, Format, RestStr, Array0, PreStr)
+    end;
+
+do_unpack(Context, Line, [<<"Z*", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    String = ephp_string:rtrim(ephp_data:to_bin(Binary), [0]),
+    NewArray = case Rest of
+        <<>> -> ephp_array:store(1, String, Array);
+        _ -> ephp_array:store(Rest, String, Array)
+    end,
+    do_unpack(Context, Line, Format, <<>>, NewArray, PrevBin);
+
+do_unpack(Context, Line, [<<"Z", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Rest0} = get_numbers(Rest, 1),
+    String = ephp_data:to_bin(Binary),
+    Index = case Rest0 of
+        <<>> -> 1;
+        _ -> Rest0
+    end,
+    case Size - byte_size(String) of
+        N when N > 0 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"Z">>, Size, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        N when N =:= 0 ->
+            ZStr = ephp_string:rtrim(String, [0]),
+            Array0 = ephp_array:store(Index, ZStr, Array),
+            PrevStr = <<PrevBin/binary, String/binary>>,
+            do_unpack(Context, Line, Format, <<>>, Array0, PrevStr);
+        N when N < 0 ->
+            <<String1:Size/binary, RestStr/binary>> = String,
+            ZStr = ephp_string:rtrim(String1, [0]),
+            Array0 = ephp_array:store(Index, ZStr, Array),
+            PreStr = <<PrevBin/binary, String1/binary>>,
+            do_unpack(Context, Line, Format, RestStr, Array0, PreStr)
+    end;
+
+do_unpack(Context, Line, [<<"h*", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    String = ephp_string:ibin2hex(ephp_data:to_bin(Binary)),
+    NewArray = case Rest of
+        <<>> -> ephp_array:store(1, String, Array);
+        _ -> ephp_array:store(Rest, String, Array)
+    end,
+    PreStr = <<PrevBin/binary, Binary/binary>>,
+    do_unpack(Context, Line, Format, <<>>, NewArray, PreStr);
+
+do_unpack(Context, Line, [<<"h", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Rest0} = get_numbers(Rest, 1),
+    Str = ephp_data:to_bin(Binary),
+    String = ephp_string:ibin2hex(Str),
+    Index = case Rest0 of
+        <<>> -> 1;
+        _ -> Rest0
+    end,
+    case Size - byte_size(String) of
+        N when N > 0 ->
+            File = ephp_context:get_active_file(Context),
+            TotalSize = ephp_data:ceiling(Size / 2),
+            Data = {<<"unpack">>, <<"h">>, TotalSize, byte_size(Str)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        N when N =:= 0 ->
+            Array0 = ephp_array:store(Index, String, Array),
+            PrevStr = <<PrevBin/binary, Binary/binary>>,
+            do_unpack(Context, Line, Format, <<>>, Array0, PrevStr);
+        N when N < 0 ->
+            TotalSize = ephp_data:ceiling(Size / 2),
+            <<String1:Size/binary, _/binary>> = String,
+            <<PrevStr:TotalSize/binary, RestStr/binary>> = Str,
+            Array0 = ephp_array:store(Index, String1, Array),
+            PStr = <<PrevBin/binary, PrevStr/binary>>,
+            do_unpack(Context, Line, Format, RestStr, Array0, PStr)
+    end;
+
+do_unpack(Context, Line, [<<"H*", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    String = ephp_string:bin2hex(ephp_data:to_bin(Binary)),
+    NewArray = case Rest of
+        <<>> -> ephp_array:store(1, String, Array);
+        _ -> ephp_array:store(Rest, String, Array)
+    end,
+    PrevStr = <<PrevBin/binary, Binary/binary>>,
+    do_unpack(Context, Line, Format, <<>>, NewArray, PrevStr);
+
+do_unpack(Context, Line, [<<"H", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Rest0} = get_numbers(Rest, 1),
+    Str = ephp_data:to_bin(Binary),
+    String = ephp_string:bin2hex(Str),
+    Index = case Rest0 of
+        <<>> -> 1;
+        _ -> Rest0
+    end,
+    case Size - byte_size(String) of
+        N when N > 0 ->
+            File = ephp_context:get_active_file(Context),
+            TotalSize = ephp_data:ceiling(Size / 2),
+            Data = {<<"unpack">>, <<"H">>, TotalSize, byte_size(Str)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        N when N =:= 0 ->
+            Array0 = ephp_array:store(Index, String, Array),
+            PrevStr = <<PrevBin/binary, Binary/binary>>,
+            do_unpack(Context, Line, Format, <<>>, Array0, PrevStr);
+        N when N < 0 ->
+            TotalSize = ephp_data:ceiling(Size / 2),
+            <<String1:Size/binary, _/binary>> = String,
+            <<PrevStr:TotalSize/binary, RestStr/binary>> = Str,
+            Array0 = ephp_array:store(Index, String1, Array),
+            PStr = <<PrevBin/binary, PrevStr/binary>>,
+            do_unpack(Context, Line, Format, RestStr, Array0, PStr)
+    end;
+
+do_unpack(Context, Line, [<<"c*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, <<>>, Prev) ->
+            {Array0, Prev};
+        (P, I, Array0, <<Char:8/integer-signed, String/binary>>, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-signed>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"c", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, <<>>, 0, Prev) ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, <<>>, _N, _Prev) ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"c">>, 1, 0},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Char:8/integer-signed, String/binary>>, 1, Prev)
+                when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-signed>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Char:8/integer-signed, String/binary>>, N, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-signed>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"C*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, <<>>, Prev) ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (P, I, Array0, <<Char:8/integer-unsigned, String/binary>>, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-unsigned>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, PrevBin);
+
+do_unpack(Context, Line, [<<"C", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, <<>>, 0, Prev) ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, <<>>, _N, _Prev) ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"c">>, 1, 0},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Char:8/integer-unsigned, String/binary>>, 1, Prev)
+                when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-unsigned>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Char:8/integer-unsigned, String/binary>>, N, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Char, Array0),
+            PrevStr = <<Prev/binary, Char:8/integer-unsigned>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"s*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 16 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:16/integer-signed-little, String/binary>>, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-signed-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"s", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 16 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 16 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"s">>, 2, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:16/integer-signed-little, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-signed-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:16/integer-signed-little, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-signed-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"n*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 16 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"n", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 16 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 16 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"n">>, 2, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-big>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:16/integer-unsigned-big, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $v orelse A =:= $S ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 16 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:16/integer-unsigned-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $v orelse A =:= $S ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 16 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 16 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<A:8>>, 2, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:16/integer-unsigned-little, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:16/integer-unsigned-little, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:16/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $I orelse A =:= $L orelse A =:= $V ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:32/integer-unsigned-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $I orelse A =:= $L orelse A =:= $V ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 32 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 32 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<A:8>>, 4, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:32/integer-unsigned-little, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:32/integer-unsigned-little, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $i orelse A =:= $l ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:32/integer-signed-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-signed-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $i orelse A =:= $l ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 32 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 32 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<A:8>>, 4, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:32/integer-signed-little, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-signed-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:32/integer-signed-little, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-signed-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"N*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:32/integer-unsigned-big, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"N", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 32 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 32 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"N">>, 4, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:32/integer-unsigned-big, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-big>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:32/integer-unsigned-big, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<A:8, "*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $Q orelse A =:= $P ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 64 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:64/integer-unsigned-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $Q orelse A =:= $P ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 64 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 64 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<A:8>>, 8, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:64/integer-unsigned-little, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:64/integer-unsigned-little, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"q*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 64 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:64/integer-signed-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-signed-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"q", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 64 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 64 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"q">>, 8, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:64/integer-signed-little, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-signed-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:64/integer-signed-little, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-signed-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"J*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:64/integer-unsigned-big, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"J", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 64 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 64 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"J">>, 8, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:64/integer-unsigned-big, String/binary>>, 1,
+         Prev) when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-big>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:64/integer-unsigned-big, String/binary>>, N,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/integer-unsigned-big>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"f*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrot, PrevBine:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 32 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:32/float-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/float-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"f", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 32 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 32 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"f">>, 4, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:32/float-little, String/binary>>, 1, Prev)
+                when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/float-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:32/float-little, String/binary>>, N, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:32/float-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<"d*", Idx/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    %% FIXME when R16 is not supported anymore it could be rewrote:
+    Process = fun
+        (_P, _I, Array0, String, Prev) when bit_size(String) < 64 ->
+            {Array0, Prev};
+        (P, I, Array0, <<Bin:64/float-little, String/binary>>,
+         Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/float-little>>,
+            P(P, I+1, Array1, String, PrevStr)
+    end,
+    {Array0, PrevBin0} = Process(Process, 1, Array, Binary, PrevBin),
+    do_unpack(Context, Line, Format, <<>>, Array0, PrevBin0);
+
+do_unpack(Context, Line, [<<"d", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, Idx} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, _I, Array0, String, 0, Prev) when bit_size(String) < 64 ->
+            do_unpack(Context, Line, Format, <<>>, Array0, Prev);
+        (_P, _I, _Array0, String, _N, _Prev) when bit_size(String) < 64 ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"d">>, 8, byte_size(String)},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        (_P, 1, Array0, <<Bin:64/float-little, String/binary>>, 1, Prev)
+                when Idx =/= <<>> ->
+            Array1 = ephp_array:store(Idx, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/float-little>>,
+            do_unpack(Context, Line, Format, String, Array1, PrevStr);
+        (_P, _I, Array0, String, 0, Prev) ->
+            do_unpack(Context, Line, Format, String, Array0, Prev);
+        (P, I, Array0, <<Bin:64/float-little, String/binary>>, N, Prev) ->
+            Index = <<Idx/binary, (integer_to_binary(I))/binary>>,
+            Array1 = ephp_array:store(Index, Bin, Array0),
+            PrevStr = <<Prev/binary, Bin:64/float-little>>,
+            P(P, I+1, Array1, String, N-1, PrevStr)
+    end,
+    Process(Process, 1, Array, Binary, Size, PrevBin);
+
+do_unpack(Context, Line, [<<A:8, "*", _/binary>>|Format], _Binary, Array,
+          PrevBin) when A =:= $x orelse A =:= $@ ->
+    do_unpack(Context, Line, Format, <<>>, Array, PrevBin);
+
+do_unpack(Context, Line, [<<A:8, Rest/binary>>|Format], Binary, Array,
+          PrevBin) when A =:= $x orelse A =:= $@ ->
+    {Size, _} = get_numbers(Rest, 1),
+    case byte_size(Binary) of
+        N when N =:= Size ->
+            do_unpack(Context, Line, Format, <<>>, Array, Binary);
+        N when N < Size andalso A =:= $x ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"x">>, 1, 0},
+            ephp_error:handle_error(Context, {error, enoenoughin, Line, File,
+                                              ?E_WARNING, Data}),
+            false;
+        N when N < Size andalso A =:= $@ ->
+            File = ephp_context:get_active_file(Context),
+            Data = {<<"unpack">>, <<"@">>},
+            ephp_error:handle_error(Context, {error, eoutstr, Line, File,
+                                              ?E_WARNING, Data}),
+            do_unpack(Context, Line, Format, Binary, Array, PrevBin);
+        N when N > Size ->
+            <<PreStr:Size/binary, RestBin/binary>> = Binary,
+            do_unpack(Context, Line, Format, RestBin, Array, PreStr)
+    end;
+
+do_unpack(Context, Line, [<<"X", Rest/binary>>|Format], Binary, Array,
+          PrevBin) ->
+    {Size, _} = get_numbers(Rest, 1),
+    Process = fun
+        (_P, 0, Bin, Prev) ->
+            {Bin, Prev};
+        (_P, _I, Bin, <<>>) ->
+            {Bin, <<>>};
+        (_P, _I, Bin, <<A:1/binary>>) ->
+            {<<A/binary, Bin/binary>>, <<>>};
+        (P, I, Bin, Prev) ->
+            PSize = byte_size(Prev) - 1,
+            <<PBin:PSize/binary, X:1/binary>> = Prev,
+            P(P, I-1, <<X/binary, Bin/binary>>, PBin)
+    end,
+    {Binary0, PrevBin0} = Process(Process, Size, Binary, PrevBin),
+    do_unpack(Context, Line, Format, Binary0, Array, PrevBin0).
 
 
 do_pack(_Context, _Line, <<>>, [], Binary) ->
@@ -158,7 +960,7 @@ do_pack(Context, Line, <<>>, Args, Binary) ->
                                       ?E_WARNING, Data}),
     Binary;
 
-do_pack(Context, Line, <<A:8,"*", Rest/binary>>, [Arg|Args], Binary)
+do_pack(Context, Line, <<A:8, "*", Rest/binary>>, [Arg|Args], Binary)
         when A =:= $A orelse A =:= $a ->
     String = ephp_data:to_bin(Arg),
     do_pack(Context, Line, Rest, Args, <<Binary/binary, String/binary>>);
