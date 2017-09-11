@@ -1,6 +1,6 @@
 substr([], 0);
 
-Warning: substr() expects parameter 1 to be string, array given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_substr.php on line 4
+Warning: substr() expects parameter 1 to be string, array given in {{CWD}}/test/code/test_substr.php on line 4
 NULL
 substr("abcdef", 0, 0);
 string(0) ""
