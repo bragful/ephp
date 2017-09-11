@@ -40,7 +40,7 @@ get(Vars, VarPath) ->
     get(Vars, VarPath, undefined).
 
 get(Vars, VarPath, Context) ->
-    search(VarPath, erlang:get(Vars), Context).
+    search(VarPath, erlang:get(Vars), Context, true).
 
 isset(Vars, VarPath, Context) ->
     exists(VarPath, erlang:get(Vars), Context).
@@ -213,31 +213,92 @@ exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
 exists(#variable{idx = [_|_]}, Vars, _Context) when not ?IS_ARRAY(Vars) ->
     false.
 
-search(global, Vars, _Context) ->
+search(global, Vars, _Context, _Base) ->
     Vars;
 
-search(#variable{idx = []}, undefined, undefined) ->
+search(#variable{idx = []}, undefined, undefined, _Base) ->
     undefined;
 
 search(#variable{name = Root, idx = [], line = Line, type = object,
                  class = ClassName},
-       undefined, Context) ->
+       undefined, Context, _Base) ->
     File = ephp_context:get_active_file(Context),
     ephp_error:handle_error(Context,
         {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
     undefined;
 
-search(#variable{name = Root, idx = [], line = Line}, undefined, Context) ->
+search(#variable{name = Root, idx = [], line = Line}, undefined, Context,
+       true) ->
     File = ephp_context:get_active_file(Context),
     ephp_error:handle_error(Context,
         {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
     undefined;
 
+search(#variable{idx = []}, undefined, _Context, false) ->
+    undefined;
+
+search(#variable{name = Root, line = Line} = Var, Vars, Context, Base)
+        when is_binary(Vars) andalso not is_number(Root) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context, {error, eillegalstr, Line, File,
+                                      ?E_WARNING, {Root}}),
+    case Var#variable.idx of
+        [] ->
+            <<>>;
+        [NewRoot|NewIdx] ->
+            search(Var#variable{name = NewRoot, idx = NewIdx}, Vars,
+                   Context, Base)
+    end;
+
+search(#variable{name = Root, line = Line} = Var, Vars, Context, Base)
+        when is_binary(Vars) andalso is_float(Root) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context, {error, estrcast, Line, File,
+                                      ?E_NOTICE, {}}),
+    search(Var#variable{name = ephp_data:to_int(Root)}, Vars, Context, Base);
+
+search(#variable{name = Root, idx = Idx, line = Line} = Var, Vars, Context, Base)
+        when is_binary(Vars) andalso (not is_integer(Root) orelse Root < 0) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context, {error, enoinitidx, Line, File, ?E_NOTICE,
+                                      {Root}}),
+    case Idx of
+        [] ->
+            <<>>;
+        [NewRoot|NewIdx] ->
+            search(Var#variable{name = NewRoot, idx = NewIdx}, Vars, Context, Base)
+    end;
+
+search(#variable{name = Root, idx = Idx, line = Line} = Var, Vars, Context, Base)
+        when is_binary(Vars) andalso is_integer(Root) andalso Root >= 0 ->
+    case byte_size(Vars) =< Root of
+        true ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefidx, Line, File, ?E_NOTICE, {Root}}),
+            case Idx of
+                [] ->
+                    <<>>;
+                [NewRoot|NewIdx] ->
+                    search(Var#variable{name = NewRoot, idx = NewIdx},
+                           Vars, Context, Base)
+            end;
+        false ->
+            NewVars = binary_part(Vars, {Root, 1}),
+            case Idx of
+                [] ->
+                    NewVars;
+                [NewRoot|NewIdx] ->
+                    search(Var#variable{name = NewRoot, idx = NewIdx},
+                           NewVars, Context, Base)
+            end
+    end;
+
 search(#variable{name = Root, idx = [], line = Line, type = Type,
                  class = ClassName},
-       Vars, Context) ->
+       Vars, Context, Base) when ?IS_ARRAY(Vars) ->
     case ephp_array:find(Root, Vars) of
-        error when Context =:= undefined ->
+        error when Context =:= undefined orelse not Base ->
             undefined;
         error when Type =:= object ->
             File = ephp_context:get_active_file(Context),
@@ -249,26 +310,26 @@ search(#variable{name = Root, idx = [], line = Line, type = Type,
             ephp_error:handle_error(Context,
                 {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
             undefined;
-        {ok, #var_ref{ref=global}} ->
+        {ok, #var_ref{ref = global}} ->
             Vars;
-        {ok, #var_ref{pid=RefVarsPID, ref=RefVar}} ->
+        {ok, #var_ref{pid = RefVarsPID, ref = RefVar}} ->
             get(RefVarsPID, RefVar);
         {ok, Value} ->
             Value
     end;
 
 search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
-                 class = ClassName} = _Var,
-       Vars, Context) ->
+                 class = ClassName} = Var,
+       Vars, Context, Base) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
-            search(#variable{name = NewRoot, idx = Idx}, Vars, undefined);
+            search(Var#variable{name = NewRoot, idx = Idx}, Vars, Context, false);
         {ok, #var_ref{pid = RefVarsPID, ref = #variable{idx = NewIdx} = RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             get(RefVarsPID, NewRefVar);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
-            search(#variable{name = NewRoot, idx = Idx},
-                   ephp_mem:get(MemRef), Context);
+            search(Var#variable{name = NewRoot, idx = Idx},
+                   ephp_mem:get(MemRef), Context, Base);
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             Classes = ephp_context:get_classes(Context),
             {object, ObjRoot, _} = NewRoot,
@@ -302,9 +363,13 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             end,
             Ctx = ephp_object:get_context(ObjRef),
             ObjVars = erlang:get(ephp_context:get_vars(Ctx)),
-            search(NewObjVar, ObjVars, Context);
+            search(NewObjVar, ObjVars, Context, Base);
+        {ok, NewVars} when ?IS_ARRAY(NewVars) ->
+            search(Var#variable{name = NewRoot, idx = Idx}, NewVars,
+                   Context, false);
         {ok, NewVars} ->
-            search(#variable{name = NewRoot, idx = Idx}, NewVars, undefined);
+            search(Var#variable{name = NewRoot, idx = Idx}, NewVars,
+                   Context, Base);
         _ when Context =:= undefined ->
             undefined;
         _ when Type =:= object andalso ClassName =:= undefined ->

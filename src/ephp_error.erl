@@ -427,6 +427,15 @@ get_message(einvalidcallback, {Func, Arg}) ->
     io_lib:format("~s() expects the argument (~s) to be a valid callback",
                   [Func, Arg]);
 
+get_message(eillegalstr, {Str}) ->
+    io_lib:format("Illegal string offset '~s'", [Str]);
+
+get_message(estrcast, {}) ->
+    "String offset cast occurred";
+
+get_message(eundefidx, {Idx}) ->
+    io_lib:format("Uninitialized string offset: ~p", [Idx]);
+
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
 

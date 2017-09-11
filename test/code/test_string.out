@@ -1,0 +1,15 @@
+index 1 from 'data' => [a]
+
+Warning: Illegal string offset 'a' in {{CWD}}/test/code/test_string.php on line 6
+
+Notice: String offset cast occurred in {{CWD}}/test/code/test_string.php on line 6
+
+Notice: Uninitialized string offset: 10 in {{CWD}}/test/code/test_string.php on line 6
+string(0) ""
+
+Warning: Illegal string offset 'a' in {{CWD}}/test/code/test_string.php on line 10
+
+Notice: String offset cast occurred in {{CWD}}/test/code/test_string.php on line 10
+
+Notice: Uninitialized string offset: 10 in {{CWD}}/test/code/test_string.php on line 10
+string(0) ""
