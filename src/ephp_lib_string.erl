@@ -106,26 +106,12 @@ handle_error(_Type, _Level, _Data) ->
 -spec strlen(context(), line(), String :: var_value()) -> integer().
 %% @doc retrieve the lenght of the string.
 strlen(_Context, _Line, {_,String}) when is_binary(String) ->
-    byte_size(String);
-
-strlen(Context, Line, {_, Var}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"strlen">>, 1, <<"string">>, ephp_data:gettype(Var)},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
-        ?E_WARNING, Data}),
-    undefined.
+    byte_size(String).
 
 -spec ord(context(), line(), String :: var_value()) -> integer().
 %% @doc obtain the number of the character passed as a param.
 ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
-    I;
-
-ord(Context, Line, {_, Var}) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"ord">>, 1, <<"string">>, ephp_data:gettype(Var)},
-    ephp_error:handle_error(Context, {error, ewrongarg, Line, File,
-        ?E_WARNING, Data}),
-    undefined.
+    I.
 
 -spec chr(context(), line(), Integer :: var_value()) -> binary().
 %% @doc obtain the character giving the number as a param.
