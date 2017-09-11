@@ -34,7 +34,8 @@
     rtrim/4,
     ltrim/4,
     trim/4,
-    substr/5
+    substr/5,
+    str_repeat/4
 ]).
 
 -include("ephp.hrl").
@@ -44,7 +45,7 @@
 init_func() -> [
     {strlen, [{args, [string]}]},
     {ord, [{args, [string]}]},
-    {chr, [{args, [integer]}]},
+    {chr, [{args, [str_or_int]}]},
     %% TODO: automatic validation for implode is not possible because it has
     %%       an overloading not supported by default by PHP
     implode,
@@ -81,6 +82,9 @@ init_func() -> [
     ]},
     {substr, [
         {args, {2, 3, undefined, [string, integer, {integer, eol}]}}
+    ]},
+    {str_repeat, [
+        {args, [string, integer]}
     ]}
 ].
 
@@ -97,6 +101,10 @@ init_const() -> [].
 %% @doc handle error messages.
 handle_error(ehexeven, _Level, {Function}) ->
     io_lib:format("~s(): Hexadecimal input string must have an even length",
+                  [Function]);
+
+handle_error(e2posint, _Level, {Function}) ->
+    io_lib:format("~s(): Second argument has to be greater than or equal to 0",
                   [Function]);
 
 handle_error(_Type, _Level, _Data) ->
@@ -395,9 +403,28 @@ hex2bin(_Context, _Line, {_, Hex}) ->
 substr(_Context, _Line, {_, String}, {_, Start}, {_, Len}) ->
     limit(offset(String, Start), Len).
 
+-spec str_repeat(context(), line(), var_value(), var_value()) ->
+      binary() | undefined.
+
+str_repeat(Context, Line, {_, _String}, {_, Multiplier}) when Multiplier < 0 ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context, {error, e2posint, Line, File, ?E_WARNING,
+                                      {<<"str_repeat">>}}),
+    undefined;
+
+str_repeat(_Context, _Line, {_, String}, {_, Multiplier}) ->
+    str_repeat(String, Multiplier, <<>>).
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+str_repeat(_String, 0, _) ->
+    <<>>;
+str_repeat(String, 1, Result) ->
+    <<String/binary, Result/binary>>;
+str_repeat(String, N, Result) ->
+    str_repeat(String, N-1, <<String/binary, Result/binary>>).
 
 offset(String, Start) when Start =:= 0 ->
     String;

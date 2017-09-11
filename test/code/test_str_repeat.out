@@ -1,0 +1,12 @@
+
+Warning: str_repeat() expects parameter 1 to be string, array given in {{CWD}}/test/code/test_str_repeat.php on line 3
+NULL
+
+Warning: str_repeat() expects parameter 2 to be long, string given in {{CWD}}/test/code/test_str_repeat.php on line 4
+NULL
+string(10) "/base/base"
+string(0) ""
+string(50) "/base/base/base/base/base/base/base/base/base/base"
+
+Warning: str_repeat(): Second argument has to be greater than or equal to 0 in {{CWD}}/test/code/test_str_repeat.php on line 8
+NULL

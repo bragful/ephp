@@ -27,10 +27,10 @@
 
 init_func() -> [
     {debug_backtrace, [
-        {args, {0, 2, undefined, [{integer, 1}, {integer, 0}]}}
+        {args, {0, 2, undefined, [{str_or_int, 1}, {str_or_int, 0}]}}
     ]},
     {debug_print_backtrace, [
-        {args, {0, 2, undefined, [{integer, 0}, {integer, 0}]}}
+        {args, {0, 2, undefined, [{str_or_int, 0}, {str_or_int, 0}]}}
     ]},
     {set_error_handler, [
         {args, {1, 2, undefined, [mixed, {integer, ?E_ALL bor ?E_STRICT}]}}

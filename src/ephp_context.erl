@@ -1188,9 +1188,15 @@ check_arg(State, Line, I, {string,_}, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) ->
     throw_warning(State, Line, I, <<"string">>, A, ReturnError);
 check_arg(State, Line, I, integer, A, ReturnError)
-        when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
+        when not is_number(A) ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, {integer,_}, A, ReturnError)
+        when not is_number(A) ->
+    throw_warning(State, Line, I, <<"long">>, A, ReturnError);
+check_arg(State, Line, I, str_or_int, A, ReturnError)
+        when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
+    throw_warning(State, Line, I, <<"long">>, A, ReturnError);
+check_arg(State, Line, I, {str_or_int,_}, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, double, A, ReturnError) when not is_number(A) ->
@@ -1213,6 +1219,11 @@ check_arg(State, Line, I, {boolean,_}, A, ReturnError)
         when not is_boolean(A) andalso not is_number(A)
         andalso not is_binary(A) ->
     throw_warning(State, Line, I, <<"boolean">>, A, ReturnError);
+check_arg(State, Line, I, resource, A, ReturnError) when not ?IS_RESOURCE(A) ->
+    throw_warning(State, Line, I, <<"resource">>, A, ReturnError);
+check_arg(State, Line, I, {resource, _}, A, ReturnError)
+        when not ?IS_RESOURCE(A) ->
+    throw_warning(State, Line, I, <<"resource">>, A, ReturnError);
 %% TODO: check if "a valid path" could be throw with different contents in the
 %%       string
 check_arg(State, Line, I, path, A, ReturnError) when not is_binary(A) ->
