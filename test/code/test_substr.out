@@ -1,0 +1,42 @@
+substr([], 0);
+
+Warning: substr() expects parameter 1 to be string, array given in /Users/bombadil/Projects/BosqueViejo/ephp/test/code/test_substr.php on line 4
+NULL
+substr("abcdef", 0, 0);
+string(0) ""
+substr("abcdef", -1);
+string(1) "f"
+substr("abcdef", -2);
+string(2) "ef"
+substr("abcdef", -7);
+string(6) "abcdef"
+substr("abcdef", -3, 1);
+string(1) "d"
+substr("abcdef", -3, 3);
+string(3) "def"
+substr("abcdef", -3, 4);
+string(3) "def"
+substr("abcdef", -3, -1);
+string(2) "de"
+substr("abcdef", -3, -3);
+string(0) ""
+substr("abcdef", -3, -4);
+string(0) ""
+substr("abcdef", 0);
+string(6) "abcdef"
+substr("abcdef", 1);
+string(5) "bcdef"
+substr("abcdef", 6);
+string(6) "abcdef"
+substr("abcdef", 3, 1);
+string(1) "d"
+substr("abcdef", 3, 3);
+string(3) "def"
+substr("abcdef", 3, 4);
+string(3) "def"
+substr("abcdef", 3, -1);
+string(2) "de"
+substr("abcdef", 3, -3);
+string(0) ""
+substr("abcdef", 3, -4);
+string(0) ""

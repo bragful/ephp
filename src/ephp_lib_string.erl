@@ -33,7 +33,8 @@
     strpos/5,
     rtrim/4,
     ltrim/4,
-    trim/4
+    trim/4,
+    substr/5
 ]).
 
 -include("ephp.hrl").
@@ -77,6 +78,9 @@ init_func() -> [
     ]},
     {hex2bin, [
         {args, {1, 1, undefined, [string]}}
+    ]},
+    {substr, [
+        {args, {2, 3, undefined, [string, integer, {integer, eol}]}}
     ]}
 ].
 
@@ -399,9 +403,36 @@ hex2bin(Context, Line, {_, Hex}) when byte_size(Hex) rem 2 =/= 0 ->
 hex2bin(_Context, _Line, {_, Hex}) ->
     ephp_string:hex2bin(Hex).
 
+-spec substr(context(), line(), var_value(), var_value(), var_value()) ->
+      binary().
+
+substr(_Context, _Line, {_, String}, {_, Start}, {_, Len}) ->
+    limit(offset(String, Start), Len).
+
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
+
+offset(String, Start) when Start =:= 0 ->
+    String;
+offset(String, Start) when byte_size(String) =< abs(Start) ->
+    String;
+offset(String, Start) when Start > 0 ->
+    binary_part(String, {Start, byte_size(String) - Start});
+offset(String, Start) when Start < 0 ->
+    binary_part(String, {byte_size(String) - abs(Start), abs(Start)}).
+
+limit(String, eol) ->
+    limit(String, byte_size(String));
+limit(_String, Len) when Len =:= 0 ->
+    <<>>;
+limit(String, Len) when Len < 0 ->
+    Size = min(byte_size(String), abs(Len)),
+    binary_part(String, {0, byte_size(String) - Size});
+limit(String, Len) when Len > 0 ->
+    Size = min(byte_size(String), Len),
+    binary_part(String, {0, Size}).
+
 
 split_chars(<<>>, Parts, _I, _Size) ->
     Parts;
