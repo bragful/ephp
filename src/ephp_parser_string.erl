@@ -158,9 +158,10 @@ string_parsed(<<"{$",Rest/binary>>, {Level,Row,Col},
     {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {enclosed,Row,Col+2}, []),
     NewText = S#text_to_process{text=[Var|C]},
     string_parsed(Rest0, {Level,Row0,Col0}, NewText);
-string_parsed(<<"$",Rest/binary>>, {Level,Row,Col},
-              #text_to_process{text=C}=S) ->
-    {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {unclosed,Row,Col+1}, []),
+string_parsed(<<"$",A:8,Rest/binary>>, {Level,Row,Col},
+              #text_to_process{text=C}=S) when ?IS_ALPHA(A) orelse A =:= $_ ->
+    {Rest0, {_,Row0,Col0}, [Var]} =
+        variable(<<A:8,Rest/binary>>, {unclosed,Row,Col+1}, []),
     NewText = S#text_to_process{text=[Var|C]},
     string_parsed(Rest0, {Level,Row0,Col0}, NewText);
 string_parsed(<<A/utf8,Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
