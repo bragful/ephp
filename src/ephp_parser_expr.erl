@@ -252,8 +252,12 @@ expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
 expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(N,$N,$n) andalso ?OR(E,$E,$e) andalso ?OR(W,$W,$w) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
-    {Rest1, Pos1, ObjName} = funct_name(Rest0, Pos0, []),
+    {Rest1, Pos1, ObjName} = case remove_spaces(<<SP:8,Rest/binary>>, Pos) of
+        {<<"$", _/binary>> = Rest0, Pos0} ->
+            expression(Rest0, Pos0, []);
+        {<<A:8, _/binary>> = Rest0, Pos0} when ?IS_ALPHA(A) orelse A =:= $_ ->
+            funct_name(Rest0, Pos0, [])
+    end,
     Instance = case remove_spaces(Rest1, Pos1) of
         {<<"(",Rest2/binary>>, Pos2} ->
             {Rest3, Pos3, Args} = ephp_parser_func:call_args(Rest2, Pos2, []),

@@ -949,6 +949,10 @@ resolve(#call{type = class, class = Name, line = Index} = Call,
 resolve({object, Idx, Line}, State) ->
     {{object, Idx, Line}, State};
 
+resolve(#instance{name = ClassName} = I, State) when not is_binary(ClassName) ->
+    {RClassName, NState} = resolve(ClassName, State),
+    resolve(I#instance{name = RClassName}, NState);
+
 resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
         #state{ref = LocalCtx, class = Classes, global = GlobalCtx} = State) ->
     Object = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
