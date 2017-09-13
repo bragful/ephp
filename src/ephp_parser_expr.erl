@@ -67,6 +67,8 @@ add_op('end', [{op, [#constant{name = Name, line = Pos} = Constant]}]) ->
     solve([Op]);
 add_op('end', [{op,Content}]) ->
     solve(process_incr_decr(Content));
+add_op(Add, [{op,Content}|Parsed]) when is_list(Add) ->
+    [{op, Content ++ Add}|Parsed];
 add_op(Add, [{op,Content}|Parsed]) ->
     [{op, Content ++ [Add]}|Parsed];
 add_op(Add, Parsed) ->
@@ -534,12 +536,29 @@ expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
 expression(<<":",_/binary>> = Rest, {switch_label,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};
 % TERNARY OPERATOR
-expression(<<"?",Rest/binary>>, Pos, Parsed) ->
+expression(<<"?", Rest/binary>>, Pos, Parsed) ->
     Op = <<"?">>,
-    expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
+    NewPos = add_pos(Pos, 1),
+    QParsed = add_op({Op, precedence(Op), Pos}, Parsed),
+    case expression(Rest, NewPos, []) of
+        {<<":", Rest0/binary>>, Pos0, Parsed0} ->
+            Op0 = <<":">>,
+            {Rest1, Pos1, Parsed1} = expression(Rest0, add_pos(Pos0, 1), []),
+            ToAdd = [Parsed0, [{Op0, precedence(Op0), Pos0}], Parsed1],
+            XParsed = lists:foldl(fun add_op/2, QParsed, ToAdd),
+            {Rest1, Pos1, add_op('end', XParsed)};
+        {Rest0, _Pos0, _Parsed0} ->
+            throw_error(eparse, Pos, Rest0)
+    end;
 expression(<<":",Rest/binary>>, Pos, Parsed) ->
-    Op = <<":">>,
-    expression(Rest, add_pos(Pos,1), add_op({Op,precedence(Op),Pos}, Parsed));
+    case lists:keyfind(<<"?">>, 1, Parsed) of
+        {<<"?">>, _, _} ->
+            Op = <<":">>,
+            expression(Rest, add_pos(Pos, 1),
+                       add_op({Op, precedence(Op), Pos}, Parsed));
+        false ->
+            {<<":", Rest/binary>>, Pos, add_op('end', Parsed)}
+    end;
 % FINAL -unclosed-
 expression(Rest, {unclosed,_,_}=Pos, [Exp]) ->
     {Rest, Pos, add_op('end', [Exp])};
@@ -798,7 +817,7 @@ gen_op([{<<"?">>,{_,_},Pos}|Rest],
         line = Pos
     },
     gen_op(Rest, [IfBlock|Stack]);
-gen_op([{<<"?">>,{_,_},Pos}|_], _Stack) ->
+gen_op([{<<"?">>,{_,_},Pos}|_Rest], _Stack) ->
     throw_error(eparse, Pos, <<>>);
 gen_op([{Op,{_,_},Pos}|Rest], [B,A|Stack]) ->
     gen_op(Rest, [add_line(operator(Op,A,B),Pos)|Stack]);
