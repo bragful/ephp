@@ -135,12 +135,16 @@ array_def(Rest, Pos, Args) when Rest =/= <<>> ->
         {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx=Idx, element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
+        {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, undefined} ->
+            {Rest0, add_pos(Pos0,1), Args};
         {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, Arg} ->
             NewArg = add_line(#array_element{element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
         {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx=Idx, element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
+        {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, undefined} ->
+            {Rest0, add_pos(Pos0,1), Args};
         {<<"]",Rest0/binary>>, {{array_def,54},_,_}=Pos0, Arg} ->
             NewArg = add_line(#array_element{element=Arg}, Pos),
             {Rest0, add_pos(Pos0,1), Args ++ [NewArg]};
@@ -326,8 +330,10 @@ expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, [Parsed])
     {Rest, Pos, add_op('end', [Parsed])};
 expression(<<A:8,_/binary>> = Rest, {{array_def,0},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $) ->
-    [Arg,Idx] = Parsed,
-    {Rest, Pos, [Idx,add_op('end', [Arg])]};
+    case Parsed of
+        [Arg, Idx] -> {Rest, Pos, [Idx, add_op('end', [Arg])]};
+        [] -> {Rest, Pos, undefined}
+    end;
 % FINAL -array definition [...]-
 expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos,
            [{op,_},#if_block{}|_])
@@ -338,8 +344,10 @@ expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, [Parsed])
     {Rest, Pos, add_op('end', [Parsed])};
 expression(<<A:8,_/binary>> = Rest, {{array_def,54},_,_}=Pos, Parsed)
         when A =:= $, orelse A =:= $] ->
-    [Arg,Idx] = Parsed,
-    {Rest, Pos, [Idx,add_op('end', [Arg])]};
+    case Parsed of
+        [Arg,Idx] -> {Rest, Pos, [Idx,add_op('end', [Arg])]};
+        [] -> {Rest, Pos, undefined}
+    end;
 % KEY & VALUE -array_def old and new-
 expression(<<"=>",Rest/binary>>, {{array_def,_},_,_}=Pos, [{op,_}=Op|Parser]) ->
     expression(Rest, add_pos(Pos,2), [{op,[]},add_op('end', [Op])|Parser]);
