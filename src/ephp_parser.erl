@@ -724,6 +724,8 @@ st_foreach(<<"(",Rest/binary>>, Pos, Parsed) ->
         loop_block=CodeBlock
     }, Pos),
     For = case ExpIter of
+        #ref{} ->
+            RawFor;
         #variable{} ->
             RawFor;
         [KIter,Iter] ->

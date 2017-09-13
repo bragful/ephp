@@ -391,6 +391,14 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                     <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
                       Spaces/binary, V/binary>>
                 ];
+            V when is_list(V) andalso ?IS_MEM(Val) ->
+                {#ephp_array{} = Data, 1} = ephp_mem:get_with_links(Val),
+                Size = ephp_array:size(Data),
+                Elements = ephp_data:to_bin(Context, Line, Size),
+                [<<Spaces/binary, "[", KeyBin/binary, "]=>\n",
+                   Spaces/binary,"array(", Elements/binary, ") {\n",
+                   (iolist_to_binary(V))/binary, Spaces/binary,
+                   "}\n">>];
             V when is_list(V) andalso ?IS_ARRAY(Val) ->
                 Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Val)),
                 [

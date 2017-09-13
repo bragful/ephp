@@ -320,7 +320,7 @@ search(#variable{name = Root, idx = [], line = Line, type = Type,
 
 search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                  class = ClassName} = Var,
-       Vars, Context, Base) ->
+       Vars, Context, Base) when ?IS_ARRAY(Vars) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
             search(Var#variable{name = NewRoot, idx = Idx}, Vars, Context, false);
@@ -329,7 +329,7 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             get(RefVarsPID, NewRefVar);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
             search(Var#variable{name = NewRoot, idx = Idx},
-                   ephp_mem:get(MemRef), Context, Base);
+                   ephp_mem:get(MemRef), Context, false);
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             Classes = ephp_context:get_classes(Context),
             {object, ObjRoot, _} = NewRoot,
@@ -380,7 +380,7 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             ephp_error:handle_error(Context,
                 {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
             undefined;
-        _ ->
+        _Error ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
                 {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),

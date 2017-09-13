@@ -171,7 +171,7 @@ run_depth(Context, #foreach{kiter = Key,
     case ephp_context:solve(Context, RawElements) of
         ProcElements when ?IS_ARRAY(ProcElements) ->
             Elements = ephp_array:to_list(ProcElements),
-            run_foreach(Context, Key, Var, Elements, LoopBlock, Cover);
+            run_foreach(Context, Key, Var, {RawElements, Elements}, LoopBlock, Cover);
         Object when ?IS_OBJECT(Object) ->
             case ephp_class:instance_of(Context, Object, <<"Iterator">>) of
                 true ->
@@ -469,6 +469,9 @@ run_loop(post, Context, Cond, Statements, Cover) ->
 run_foreach(_Context, _Key, _Var, [], _Statements, _Cover) ->
     false;
 
+run_foreach(_Context, _Key, _Var, {_SupVar, []}, _Statements, _Cover) ->
+    false;
+
 run_foreach(Context, Key, Var, Object, Statements, Cover) when ?IS_OBJECT(Object) ->
     ClassName = ephp_object:get_class_name(Object),
     CallGen = #call{type = object, class = ClassName},
@@ -477,6 +480,7 @@ run_foreach(Context, Key, Var, Object, Statements, Cover) when ?IS_OBJECT(Object
     CallKey = CallGen#call{name = <<"key">>},
     CallCurrent = CallGen#call{name = <<"current">>},
     VarVal = ephp_context:call_method(Context, Object, CallCurrent),
+    %% TODO: error in case #ref{} instead of #variable{} for Var???
     ephp_context:set(Context, Var, VarVal),
     case Key of
         undefined -> ok;
@@ -503,16 +507,25 @@ run_foreach(Context, Key, Var, Object, Statements, Cover) when ?IS_OBJECT(Object
             end
     end;
 
-run_foreach(Context, Key, Var, [{KeyVal,VarVal}|Elements], Statements, Cover) ->
+run_foreach(Context, Key, Var, {SupVar, [{KeyVal, VarVal}|Elements]},
+            Statements, Cover) ->
     case Key of
         undefined -> ok;
         _ -> ephp_context:set(Context, Key, KeyVal)
     end,
-    ephp_context:set(Context, Var, VarVal),
+    case Var of
+        #ref{var = #variable{} = SubVar} ->
+            Vars = ephp_context:get_vars(Context),
+            Idx = SupVar#variable.idx ++ [KeyVal],
+            NewSupVar = SupVar#variable{idx = Idx},
+            ephp_vars:ref(Vars, SubVar, Vars, NewSupVar, Context);
+        #variable{} ->
+            ephp_context:set(Context, Var, VarVal)
+    end,
     Break = run(Context, #eval{statements=Statements}, Cover),
     if
         Break =/= break andalso not is_tuple(Break) ->
-            run_foreach(Context, Key, Var, Elements, Statements, Cover);
+            run_foreach(Context, Key, Var, {SupVar, Elements}, Statements, Cover);
         true ->
             case Break of
                 {return,Ret} -> {return,Ret};
