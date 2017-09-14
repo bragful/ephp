@@ -316,6 +316,8 @@ expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
     {Rest0, Pos0, Op} = expression(Rest, {L+1,R,C+1}, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
 % FINAL -arg-
+expression(<<",", _/binary>> = Rest, {array, _, _} = Pos, Parsed) ->
+    {Rest, Pos, add_op('end', Parsed)};
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, [{op,_},#if_block{}|_])
         when A =:= $, orelse A =:= $) ->
     throw_error(eparse, Pos, Rest);

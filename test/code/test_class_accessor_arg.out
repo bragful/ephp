@@ -1,0 +1,2 @@
+
+Fatal error: Using $this when not in object context in {{CWD}}/test/code/test_class_accessor_arg.php on line 4

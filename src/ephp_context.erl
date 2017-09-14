@@ -1482,6 +1482,9 @@ resolve_var(#variable{idx = [{object, #variable{} = SubVar, Line}|Idx]} = Var,
     end;
 
 %% TODO implement when it's not related to "this"
+resolve_var(#variable{name = <<"this">>, idx = [{object, VarName, Line}|_]},
+            #state{active_class = <<>>}) when is_binary(VarName) ->
+    ephp_error:error({error, enoobjthis, Line, ?E_ERROR, {}});
 resolve_var(#variable{name = <<"this">>, idx = [{object, VarName, Line}|Idx]} = Var,
             #state{ref = Ref, vars = Vars, active_class = RunningClass} = State)
                 when is_binary(VarName) ->

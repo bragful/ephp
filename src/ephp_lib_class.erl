@@ -123,6 +123,9 @@ handle_error(edupinterface, _Level, {Class, Interface}) ->
     io_lib:format("Class ~s cannot implement previously implemented interface ~s",
                   [Class, Interface]);
 
+handle_error(enoobjthis, _Level, {}) ->
+    "Using $this when not in object context";
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
