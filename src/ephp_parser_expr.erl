@@ -159,11 +159,11 @@ array_def(Rest, Pos, Args) when Rest =/= <<>> ->
     end.
 
 % CONSTANT / FUNCTION when -> is used
-expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos,
+expression(<<A:8,_/binary>> = Rest, Pos,
            [{op,[_,{<<"->">>,_,_}]}|_]=Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
-    {Rest0, {_,R,C}, [Constant]} = constant(Rest, Pos, []),
-    expression(Rest0, {L,R,C}, add_op(Constant, Parsed));
+    {Rest0, Pos0, [Constant]} = constant(Rest, Pos, []),
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Constant, Parsed));
 % ARRAY(...) -old-
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
@@ -379,12 +379,12 @@ expression(<<")",_/binary>> = Rest, {L,_Row,_Col}=Pos, [{op,_},#if_block{}|_])
 expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 % FINAL -array-
-expression(<<"]",_/binary>> = Rest, {array,_,_}=Pos, [{op,_},#if_block{}|_]) ->
+expression(<<"]",_/binary>> = Rest, {array,_,_} = Pos, [{op,_},#if_block{}|_]) ->
     throw_error(eparse, Pos, Rest);
-expression(<<"]",Rest/binary>>, {array,_,_}=Pos, Parsed) ->
+expression(<<"]", Rest/binary>>, {array,_,_} = Pos, Parsed) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 % FINAL -all but parens-
-expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, [{op,_},#if_block{}|_])
+expression(<<"?>\n",_/binary>> = Rest, {L,_,_} = Pos, [{op,_},#if_block{}|_])
         when not is_number(L) ->
     throw_error(eparse, Pos, Rest);
 expression(<<"?>\n",_/binary>> = Rest, {L,_,_}=Pos, Parsed)

@@ -495,6 +495,8 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
         {ok, #class{} = Class} ->
             get_consts(Class) ++ get_extends_consts(Ref, Class);
         _ ->
+            %% TODO this error should appears in the same line as extends,
+            %%      Index is not valid because is pointing to the end
             ephp_error:error({error, enoclass, Index, ?E_ERROR, {Extends}})
     end.
 

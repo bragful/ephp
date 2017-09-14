@@ -94,6 +94,9 @@ handle_error(enoconst, _Level, {ConstName}) ->
 handle_error(enointerface, _Level, {InterfaceName}) ->
     io_lib:format("Interface '~s' not found", [InterfaceName]);
 
+handle_error(enoclass, _Level, {ClassName}) ->
+    io_lib:format("Class '~s' not found", [ClassName]);
+
 handle_error(enomethods, _Level, {ClassName, Methods, 1}) ->
     io_lib:format("Class ~s contains 1 abstract method and must therefore "
                   "be declared abstract or implement the remaining methods "

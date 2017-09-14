@@ -498,11 +498,11 @@ variable(<<"$",Rest/binary>>, Pos, []) ->
 variable(<<A:8,Rest/binary>>, Pos, [])
         when ?IS_ALPHA(A) orelse A =:= $_ orelse A >= 16#7f ->
     Var = add_line(#variable{name = <<A:8>>}, Pos),
-    variable(Rest, add_pos(Pos,1), [Var]);
+    variable(Rest, add_pos(Pos, 1), [Var]);
 variable(<<A:8,Rest/binary>>, {_,_,_}=Pos, [#variable{name=N}=V])
         when ?IS_NUMBER(A) orelse ?IS_ALPHA(A) orelse A =:= $_
         orelse A >= 16#7f ->
-    variable(Rest, add_pos(Pos,1), [V#variable{name = <<N/binary,A:8>>}]);
+    variable(Rest, add_pos(Pos,1), [V#variable{name = <<N/binary, A:8>>}]);
 variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_SPACE(SP) ->
     variable(Rest, add_pos(Pos,1), Var);
 variable(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, Var)
