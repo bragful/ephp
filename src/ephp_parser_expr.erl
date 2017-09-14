@@ -300,21 +300,30 @@ expression(<<"/*",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
     expression(Rest0, Pos0, Parsed);
 % FUNCTION CALL
-expression(<<"(",Rest/binary>>, Pos, [{op,[#variable{}=V]}|Parsed]) ->
-    Call = #call{name = V, line = V#variable.line},
-    {Rest0, Pos0, [Function]} =
-        ephp_parser_func:function(Rest, add_pos(Pos,1), [Call|Parsed]),
-    expression(Rest0, copy_level(Pos, Pos0), add_op(Function, Parsed));
-% PARENS -first time-
-expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) when not is_number(L) ->
+expression(<<"(",Rest/binary>>, Pos, [{op, Op}|Parsed]) ->
+    {Op1, Op2} = case length(Op) of
+        Size when Size >= 2 ->
+            lists:split(Size - 1, Op);
+        1 ->
+            {[], Op};
+        0 ->
+            {[], []}
+    end,
+    case Op2 of
+        [#variable{} = V] ->
+            Call = #call{name = V, line = V#variable.line},
+            {Rest0, Pos0, [Function]} =
+                ephp_parser_func:function(Rest, add_pos(Pos,1), [Call|Parsed]),
+            NewOp = {op, Op1 ++ [Function]},
+            expression(Rest0, copy_level(Pos, Pos0), [NewOp|Parsed]);
+        _ ->
+            exp_parens(Rest, add_pos(Pos, 1), [{op, Op}|Parsed])
+    end;
+% PARENS
+expression(<<"(", Rest/binary>>, Pos, Parsed) ->
     % FIXME: this is inconsistent, sometimes is expecting to remove ")"
     %        and sometimes is not.
-    {Rest0, Pos0, Op} = expression(Rest, {1,R,C+1}, []),
-    expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
-% PARENS -more than one-
-expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
-    {Rest0, Pos0, Op} = expression(Rest, {L+1,R,C+1}, []),
-    expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
+    exp_parens(Rest, Pos, Parsed);
 % FINAL -arg-
 expression(<<",", _/binary>> = Rest, {array, _, _} = Pos, Parsed) ->
     {Rest, Pos, add_op('end', Parsed)};
@@ -579,6 +588,13 @@ expression(Rest, {unclosed,_,_}=Pos, [Exp]) ->
 % PARSE ERROR
 expression(<<>>, Pos, _Parsed) ->
     throw_error(eparse, Pos, <<>>).
+
+exp_parens(Rest, {L, R, C} = Pos, Parsed) when not is_number(L) ->
+    {Rest0, Pos0, Op} = expression(Rest, {1, R, C + 1}, []),
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed));
+exp_parens(Rest, {L, R, C} = Pos, Parsed) ->
+    {Rest0, Pos0, Op} = expression(Rest, {L + 1, R, C + 1}, []),
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Op, Parsed)).
 
 -type associativity() :: no_assoc | left | right.
 -spec precedence(binary()) -> {associativity(), pos_integer()} | false.
