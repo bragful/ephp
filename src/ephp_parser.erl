@@ -9,7 +9,7 @@
     throw_error/3, code_block/3, code/3,
 
     array_def_level/1, code_statement_level/1, arg_level/1,
-    code_block_level/1,
+    code_block_level/1, enclosed_level/1, unclosed_level/1,
 
     variable/3, comment_line/3, comment_block/3, constant/3
 ]).
@@ -823,6 +823,9 @@ arg_level({_,Row,Col}) -> {arg,Row,Col}.
 array_level({_,Row,Col}) -> {array,Row,Col}.
 array_def_level({_,Row,Col}) -> {{array_def,0},Row,Col}.
 literal_level({_,Row,Col}) -> {literal,Row,Col}.
+
+enclosed_level({_, Row, Col}) -> {enclosed, Row, Col}.
+unclosed_level({_, Row, Col}) -> {unclosed, Row, Col}.
 
 add_line(true, _) -> true;
 add_line(false, _) -> false;

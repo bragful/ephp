@@ -12,6 +12,7 @@
     throw_error/3,
 
     array_def_level/1, code_statement_level/1, arg_level/1,
+    enclosed_level/1,
 
     variable/3, comment_line/3, comment_block/3, constant/3
 ]).
