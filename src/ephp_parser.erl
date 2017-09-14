@@ -102,6 +102,7 @@ code(<<T:8,R:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {Rest0, Pos0, Code} = code_block(<<SP:8, Rest/binary>>, add_pos(Pos, 3), []),
     code(Rest0, copy_level(Pos, Pos0),
          [add_line(#try_catch{code_block = Code}, Pos)|Parsed]);
+%% TODO catch should be part of try, couldn't be separate!
 code(<<C:8,A:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Pos, [#try_catch{} = Try|Parsed])
         when ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(T,$T,$t)
         andalso ?OR(H,$H,$h) andalso
@@ -289,7 +290,8 @@ code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     Interface = add_line(#class{type = interface}, Pos),
     {Rest0, Pos0, Interface0} =
-        ephp_parser_class:st_interface(<<SP:8,Rest/binary>>, add_pos(Pos, 9), Interface),
+        ephp_parser_class:st_interface(<<SP:8,Rest/binary>>, add_pos(Pos, 9),
+                                       Interface),
     code(Rest0, copy_level(Pos, Pos0), [Interface0|Parsed]);
 code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(E,$e,$E) andalso ?OR(C,$c,$C) andalso ?OR(H,$h,$H) andalso
@@ -447,6 +449,9 @@ code(Text, Pos, _Parsed) ->
 
 code_block(<<";",Rest/binary>>, {{_,abstract},_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), Parsed};
+%% TODO change this to use always 'code/3' as one statement and block calls
+%%      several times until '}' is received. Same for old block but given known
+%%      constants instead.
 code_block(<<"{",Rest/binary>>, Pos, Parsed) ->
     code(Rest, code_block_level(add_pos(Pos,1)), Parsed);
 code_block(<<":",Rest/binary>>, {if_block,_,_}=Pos, Parsed) ->
@@ -515,13 +520,23 @@ variable(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, Var)
     {Rest, new_line(Pos), Var};
 variable(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, Var) ->
     {Rest, add_pos(Pos,1), Var};
-variable(<<"[",Rest/binary>>, Pos, [#variable{idx=Indexes}=Var]) ->
-    {Rest1, Pos1, RawIdx} = expression(Rest, array_level(add_pos(Pos,1)), []),
+variable(<<"[", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
+    {Rest1, Pos1, RawIdx} = expression(Rest, array_level(add_pos(Pos, 1)), []),
     Idx = case RawIdx of
         [] -> auto;
         _ -> RawIdx
     end,
-    variable(Rest1, copy_level(Pos, Pos1), [Var#variable{idx=Indexes ++ [Idx]}]);
+    NewVar = Var#variable{idx = Indexes ++ [Idx]},
+    variable(Rest1, copy_level(Pos, Pos1), [NewVar]);
+variable(<<"{", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
+    NewPos = array_curly_level(add_pos(Pos, 1)),
+    {Rest1, Pos1, RawIdx} = expression(Rest, NewPos, []),
+    Idx = case RawIdx of
+        [] -> auto;
+        _ -> RawIdx
+    end,
+    NewVar = Var#variable{idx = Indexes ++ [Idx]},
+    variable(Rest1, copy_level(Pos, Pos1), [NewVar]);
 variable(<<"->",Rest/binary>>, {L,_,_}=Pos, [#variable{}=Var])
         when is_number(L) ->
     % TODO move this code to ephp_parser_expr
@@ -821,6 +836,7 @@ code_value_level({_,Row,Col}) -> {code_value,Row,Col}.
 code_statement_level({_,Row,Col}) -> {code_statement,Row,Col}.
 arg_level({_,Row,Col}) -> {arg,Row,Col}.
 array_level({_,Row,Col}) -> {array,Row,Col}.
+array_curly_level({_,Row,Col}) -> {array_curly,Row,Col}.
 array_def_level({_,Row,Col}) -> {{array_def,0},Row,Col}.
 literal_level({_,Row,Col}) -> {literal,Row,Col}.
 

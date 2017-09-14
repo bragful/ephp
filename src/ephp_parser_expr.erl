@@ -318,6 +318,8 @@ expression(<<"(",Rest/binary>>, {L,R,C}=Pos, Parsed) ->
 % FINAL -arg-
 expression(<<",", _/binary>> = Rest, {array, _, _} = Pos, Parsed) ->
     {Rest, Pos, add_op('end', Parsed)};
+expression(<<",", _/binary>> = Rest, {array_curly, _, _} = Pos, Parsed) ->
+    {Rest, Pos, add_op('end', Parsed)};
 expression(<<A:8,_/binary>> = Rest, {arg,_,_}=Pos, [{op,_},#if_block{}|_])
         when A =:= $, orelse A =:= $) ->
     throw_error(eparse, Pos, Rest);
@@ -385,6 +387,11 @@ expression(<<")",Rest/binary>>, {L,_Row,_Col}=Pos, Parsed) when is_number(L) ->
 expression(<<"]",_/binary>> = Rest, {array,_,_} = Pos, [{op,_},#if_block{}|_]) ->
     throw_error(eparse, Pos, Rest);
 expression(<<"]", Rest/binary>>, {array,_,_} = Pos, Parsed) ->
+    {Rest, add_pos(Pos,1), add_op('end', Parsed)};
+expression(<<"}",_/binary>> = Rest, {array_curly,_,_} = Pos,
+           [{op, _}, #if_block{}|_]) ->
+    throw_error(eparse, Pos, Rest);
+expression(<<"}", Rest/binary>>, {array_curly,_,_} = Pos, Parsed) ->
     {Rest, add_pos(Pos,1), add_op('end', Parsed)};
 % FINAL -all but parens-
 expression(<<"?>\n",_/binary>> = Rest, {L,_,_} = Pos, [{op,_},#if_block{}|_])
