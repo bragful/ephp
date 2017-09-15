@@ -605,7 +605,7 @@ precedence(<<"(array)">>) -> {right, 4};
 precedence(<<"(object)">>) -> {right, 4};
 precedence(<<"(bool)">>) -> {right, 4};
 precedence(<<"(unset)">>) -> {right, 4};
-precedence(<<"@">>) -> {right, 4};
+precedence(<<"@">>) -> {right, 1};
 precedence(<<"instanceof">>) -> {no_assoc, 5};
 precedence(<<"!">>) -> {right, 6}; %% logic
 precedence(<<"*">>) -> {left, 7};
