@@ -519,18 +519,6 @@ expression(<<O:8,R:8,SP:8,Rest/binary>>, Pos, Parsed)
         andalso (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     OpL = <<"or">>,
     expression(Rest, add_pos(Pos,2), add_op({OpL,precedence(OpL),Pos}, Parsed));
-% ENCLOSED OBJECT ACCESSOR
-expression(<<"{",Rest/binary>>, Pos,
-           [{op, [_, {<<"->">>, {_,_}, _}]}|_] = Parsed) ->
-    case binary:split(Rest, <<"}">>) of
-        [Name,RealRest] ->
-            Constant = add_line(#constant{name = Name}, Pos),
-            NewParsed = add_op(Constant, Parsed),
-            NewPos = add_pos(Pos, byte_size(Name) + 2),
-            expression(RealRest, NewPos, NewParsed);
-        _ ->
-            throw_error(eparse, Pos, Rest)
-    end;
 % OPERATORS 2 LETTERS
 expression(<<Op:2/binary,Rest/binary>>, Pos, Parsed) when ?IS_OP2(Op) ->
     expression(Rest, add_pos(Pos,2), add_op({Op,precedence(Op),Pos}, Parsed));

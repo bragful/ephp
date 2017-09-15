@@ -1,0 +1,13 @@
+int(3)
+int(3)
+array(3) {
+  [0]=>
+  int(1)
+  [1]=>
+  int(2)
+  [2]=>
+  int(3)
+}
+
+Notice: Undefined property: stdClass::$101 in {{CWD}}/test/code/test_class_accessor.php on line 14
+NULL

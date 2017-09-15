@@ -5,7 +5,7 @@ Array
     [2] => 3
 )
 
-Notice: Use of undefined constant PCLZIP_CB_PRE_ADD - assumed 'PCLZIP_CB_PRE_ADD' in {{CWD}}/test/code/test_callable.php on line 13
+Notice: Use of undefined constant PCLZIP_CB_PRE_ADD - assumed 'PCLZIP_CB_PRE_ADD' in {{CWD}}/test/code/test_callable2.php on line 13
 string(17) "PCLZIP_CB_PRE_ADD"
 array(3) {
   [0]=>

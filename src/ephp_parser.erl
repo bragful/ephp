@@ -496,39 +496,44 @@ static(Rest, Pos, Parsed) ->
 
 variable(<<SP:8,Rest/binary>>, Pos, []) when ?IS_SPACE(SP) ->
     variable(Rest, add_pos(Pos,1), []);
+variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_SPACE(SP) ->
+    variable(Rest, add_pos(Pos,1), Var);
 variable(<<SP:8,Rest/binary>>, Pos, []) when ?IS_NEWLINE(SP) ->
     variable(Rest, new_line(Pos), []);
+variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_NEWLINE(SP) ->
+    variable(Rest, new_line(Pos), Var);
 variable(<<"$",Rest/binary>>, Pos, []) ->
     variable(Rest, add_pos(Pos,1), []);
 variable(<<A:8,Rest/binary>>, Pos, [])
         when ?IS_ALPHA(A) orelse A =:= $_ orelse A >= 16#7f ->
     Var = add_line(#variable{name = <<A:8>>}, Pos),
     variable(Rest, add_pos(Pos, 1), [Var]);
-variable(<<A:8,Rest/binary>>, {_,_,_}=Pos, [#variable{name=N}=V])
+variable(<<A:8, Rest/binary>>, {_,_,_} = Pos, [#variable{name = N} = V])
         when ?IS_NUMBER(A) orelse ?IS_ALPHA(A) orelse A =:= $_
         orelse A >= 16#7f ->
     variable(Rest, add_pos(Pos,1), [V#variable{name = <<N/binary, A:8>>}]);
-variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_SPACE(SP) ->
-    variable(Rest, add_pos(Pos,1), Var);
-variable(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, Var)
+variable(<<SP:8, _/binary>> = Rest, {unclosed, _, _} = Pos, Var)
         when ?IS_SPACE(SP) ->
     {Rest, add_pos(Pos,1), Var};
-variable(<<SP:8,Rest/binary>>, {enclosed,_,_}=Pos, Var) when ?IS_NEWLINE(SP) ->
-    variable(Rest, new_line(Pos), Var);
-variable(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, Var)
+variable(<<SP:8, _/binary>> = Rest, {unclosed, _, _} = Pos, Var)
         when ?IS_NEWLINE(SP) ->
     {Rest, new_line(Pos), Var};
-variable(<<"}",Rest/binary>>, {enclosed,_,_}=Pos, Var) ->
-    {Rest, add_pos(Pos,1), Var};
-variable(<<"[", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
+variable(Rest, Pos, []) ->
+    throw_error(eparse, Pos, Rest);
+variable(Rest, Pos, Var) ->
+    var_access(Rest, Pos, Var).
+
+var_access(<<"}", _/binary>> = Rest, {enclosed, _, _} = Pos, Var) ->
+    {Rest, Pos, Var};
+var_access(<<"[", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
     {Rest1, Pos1, RawIdx} = expression(Rest, array_level(add_pos(Pos, 1)), []),
     Idx = case RawIdx of
         [] -> auto;
         _ -> RawIdx
     end,
     NewVar = Var#variable{idx = Indexes ++ [Idx]},
-    variable(Rest1, copy_level(Pos, Pos1), [NewVar]);
-variable(<<"{", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
+    var_access(Rest1, copy_level(Pos, Pos1), [NewVar]);
+var_access(<<"{", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
     NewPos = array_curly_level(add_pos(Pos, 1)),
     {Rest1, Pos1, RawIdx} = expression(Rest, NewPos, []),
     Idx = case RawIdx of
@@ -536,26 +541,50 @@ variable(<<"{", Rest/binary>>, Pos, [#variable{idx = Indexes} = Var]) ->
         _ -> RawIdx
     end,
     NewVar = Var#variable{idx = Indexes ++ [Idx]},
-    variable(Rest1, copy_level(Pos, Pos1), [NewVar]);
-variable(<<"->",Rest/binary>>, {L,_,_}=Pos, [#variable{}=Var])
+    var_access(Rest1, copy_level(Pos, Pos1), [NewVar]);
+var_access(<<"->",Rest/binary>>, {L,_,_}=Pos, [#variable{}=Var])
         when is_number(L) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
-    {Rest0, Pos0, Exp} = expression(Rest, arg_level(add_pos(Pos,2)), Op),
-    {Rest0, copy_level(Pos, Pos0), [Exp]};
-variable(<<"->",Rest/binary>>, Pos, [#variable{}=Var]) ->
+    {Rest0, Pos0, [Exp]} = accessor(Rest, arg_level(add_pos(Pos,2)), []),
+    var_access(Rest0, copy_level(Pos, Pos0), [add_op('end', add_op(Exp, Op))]);
+var_access(<<"->",Rest/binary>>, Pos, [#variable{}=Var]) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Pos}, add_op(Var, [])),
-    {Rest0, Pos0, Exp} = expression(Rest, add_pos(Pos,2), Op),
-    {Rest0, copy_level(Pos, Pos0), [Exp]};
-variable(Rest, Pos, Parsed) ->
+    {Rest0, Pos0, [Exp]} = accessor(Rest, add_pos(Pos,2), []),
+    var_access(Rest0, copy_level(Pos, Pos0), [add_op('end', add_op(Exp, Op))]);
+var_access(Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed}.
+
+accessor(<<A:8, Rest/binary>>, Pos, Parsed) when ?IS_SPACE(A) ->
+    accessor(Rest, add_pos(Pos, 1), Parsed);
+accessor(<<A:8, Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(A) ->
+    accessor(Rest, new_line(Pos), Parsed);
+accessor(<<A:8, _/binary>> = Rest, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
+    constant(Rest, Pos, []);
+accessor(<<A:8, _/binary>> = Rest, {enclosed,_,_} = Pos, []) when ?IS_NUMBER(A) ->
+    constant(Rest, Pos, [#constant{name = <<>>}]);
+accessor(<<"$", Rest/binary>>, Pos, []) ->
+    variable(Rest, Pos, []);
+accessor(<<"{", Rest/binary>>, Pos, []) ->
+    [Accessor, Rest0] = binary:split(Rest, <<"}">>),
+    {_, _, Acc} = accessor(Accessor, enclosed_level(Pos), []),
+    Pos0 = lists:foldl(fun(A, P) when ?IS_NEWLINE(A) -> new_line(P);
+                          (_, P) -> add_pos(P, 1)
+                       end, add_pos(Pos, 2), binary_to_list(Accessor)),
+    {Rest0, copy_level(Pos, Pos0), [Acc]};
+accessor(<<>>, Pos, Parsed) ->
+    {<<>>, Pos, Parsed};
+accessor(_Rest, Pos, []) ->
+    throw_error(eparse, Pos, {<<"`\"identifier (T_STRING)\"' or "
+                                "`\"variable (T_VARIABLE)\"' or "
+                                "`'{'' or `'$''">>}).
 
 constant(<<A:8,Rest/binary>>, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
     constant(Rest, add_pos(Pos,1), [add_line(#constant{name = <<A:8>>},Pos)]);
-constant(<<A:8,Rest/binary>>, Pos, [#constant{name=N}=C])
+constant(<<A:8,Rest/binary>>, Pos, [#constant{name = N} = C])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
     constant(Rest, add_pos(Pos,1), [C#constant{name = <<N/binary, A:8>>}]);
 constant(<<SP:8,_/binary>> = Rest, {unclosed,_,_}=Pos, [#constant{}]=Parsed)

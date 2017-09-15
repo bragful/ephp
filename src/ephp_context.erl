@@ -1453,7 +1453,7 @@ resolve_var(#variable{idx = [{object, #variable{} = SubVar, Line}|Idx]} = Var,
                  context = Context} =
         ephp_object:get(ephp_vars:get(Vars, InstanceVar, Ref)),
     {SubVal, State2} = resolve(SubVar, State),
-    {NewVar, State3} = resolve_indexes(#variable{name = SubVal,
+    {NewVar, State3} = resolve_indexes(#variable{name = ephp_data:to_bin(SubVal),
                                                  type = object,
                                                  class = ClassName,
                                                  line = Line,
@@ -1471,12 +1471,12 @@ resolve_var(#variable{idx = [{object, #variable{} = SubVar, Line}|Idx]} = Var,
         #class_attr{access = private, class_name = CName}
                 when CName =:= RunningClass ->
             NewName = {private, NewVar#variable.name, RunningClass},
-            {ephp_context:get(Context, NewVar#variable{class = RunningClass,
+            {ephp_context:get(Context, NewVar#variable{class = Class#class.name,
                                                        name = NewName,
                                                        type = object}),
                               State3};
         _ ->
-            {ephp_context:get(Context, NewVar#variable{class = RunningClass,
+            {ephp_context:get(Context, NewVar#variable{class = Class#class.name,
                                                        type = object}),
                               State3}
     end;

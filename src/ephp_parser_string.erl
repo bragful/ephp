@@ -34,12 +34,14 @@ string(<<"<<<",Rest/binary>>, Pos, []) ->
 
 heredoc(<<>>, Pos, C) ->
     {Pos, lists:reverse(C)};
-heredoc(<<"${",Rest/binary>>, {Level,Row,Col}, C) ->
-    {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {enclosed,Row,Col+2}, []),
-    heredoc(Rest0, {Level,Row0,Col0}, [Var|C]);
-heredoc(<<"{$",Rest/binary>>, {Level,Row,Col}, C) ->
-    {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {enclosed,Row,Col+2}, []),
-    heredoc(Rest0, {Level,Row0,Col0}, [Var|C]);
+heredoc(<<"${",Rest/binary>>, Pos, C) ->
+    NewPos = ephp_parser:enclosed_level(add_pos(Pos, 2)),
+    {<<"}", Rest0/binary>>, Pos0, [Var]} = variable(Rest, NewPos, []),
+    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0), [Var|C]);
+heredoc(<<"{$",Rest/binary>>, Pos, C) ->
+    NewPos = ephp_parser:enclosed_level(add_pos(Pos, 2)),
+    {<<"}", Rest0/binary>>, Pos0, [Var]} = variable(Rest, NewPos, []),
+    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0), [Var|C]);
 heredoc(<<"$",Rest/binary>>, {Level,Row,Col}, C) ->
     {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {Level,Row,Col+1}, []),
     heredoc(Rest0, {Level,Row0,Col0}, [Var|C]);
@@ -150,16 +152,16 @@ string_parsed(<<"\n",Rest/binary>>, Pos, #text_to_process{text=[C|R]}=S)
     string_parsed(Rest, new_line(Pos), NewText);
 string_parsed(<<"${", Rest/binary>>, {Level, Row, Col},
               #text_to_process{text = C} = S) ->
-    {Rest0, {_, Row0, Col0}, [Var]} =
+    {<<"}", Rest0/binary>>, {_, Row0, Col0}, [Var]} =
         variable(Rest, {enclosed, Row, Col + 2}, []),
     NewText = S#text_to_process{text = [Var|C]},
-    string_parsed(Rest0, {Level, Row0, Col0}, NewText);
+    string_parsed(Rest0, {Level, Row0, Col0 + 1}, NewText);
 string_parsed(<<"{$",Rest/binary>>, {Level, Row, Col},
               #text_to_process{text = C} = S) ->
-    {Rest0, {_, Row0, Col0}, [Var]} =
+    {<<"}", Rest0/binary>>, {_, Row0, Col0}, [Var]} =
         variable(Rest, {enclosed, Row, Col + 2}, []),
     NewText = S#text_to_process{text = [Var|C]},
-    string_parsed(Rest0, {Level, Row0, Col0}, NewText);
+    string_parsed(Rest0, {Level, Row0, Col0 + 1}, NewText);
 string_parsed(<<"$",A:8,Rest/binary>>, {Level,Row,Col},
               #text_to_process{text=C}=S) when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, {_,Row0,Col0}, [Var]} =
