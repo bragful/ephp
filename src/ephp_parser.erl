@@ -174,13 +174,13 @@ code(<<A:8,_/binary>> = Rest, {code_statement,_,_}=Pos, Parsed)
 code(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(T,$t,$T) andalso ?OR(R,$r,$R) andalso ?OR(U,$u,$U)
         andalso ?OR(E,$e,$E) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    {Rest0, Pos0, Exp} = expression(Rest, Pos, [{op,[true]}]),
+    {Rest0, Pos0, Exp} = expression(Rest, Pos, add_op(true, [])),
     code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<F:8,A:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(A,$a,$A) andalso ?OR(L,$l,$L)
         andalso ?OR(S,$s,$S) andalso ?OR(E,$e,$E)
         andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    {Rest0, Pos0, Exp} = expression(Rest, Pos, [{op,[false]}]),
+    {Rest0, Pos0, Exp} = expression(Rest, Pos, add_op(false, [])),
     code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<I:8,F:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(I,$i,$I) andalso ?OR(F,$f,$F)
@@ -353,26 +353,28 @@ code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ephp_parser_func:st_function(Rest, NewPos, []),
     code(Rest0, copy_level(Pos, Pos0), Parsed ++ [Function]);
 code(<<"?>\n",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
-    {Rest, new_line(add_pos(Pos,2)), Parsed};
+    {Rest, new_line(Pos), Parsed};
 code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
     {Rest, add_pos(Pos,2), Parsed};
 code(<<"?>\n",Rest/binary>>, {L,_,_}=Pos, Parsed) when
         L =:= code_block orelse L =:= if_old_block orelse
         L =:= while_old_block orelse L =:= for_old_block orelse
         L =:= foreach_old_block orelse L =:= switch_block ->
-    NewPos = new_line(literal_level(add_pos(Pos,2))),
+    NewPos = new_line(literal_level(Pos)),
     {Rest0, Pos0, Text} = document(Rest, NewPos, []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>",Rest/binary>>, {L,_,_}=Pos, Parsed) when
         L =:= code_block orelse L =:= if_old_block orelse
         L =:= while_old_block orelse L =:= for_old_block orelse
         L =:= foreach_old_block orelse L =:= switch_block ->
-    {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
+    {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos, 2)), []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
+code(<<"?>", _/binary>> = Rest, {code_statement,_,_} = Pos, Parsed) ->
+    {Rest, Pos, Parsed};
 code(<<"?>\n", Rest/binary>>, Pos, Parsed) ->
-    {Rest, new_line(add_pos(Pos,2)), Parsed};
+    {Rest, new_line(Pos), Parsed};
 code(<<"?>", Rest/binary>>, Pos, Parsed) ->
-    {Rest, add_pos(Pos,2), Parsed};
+    {Rest, add_pos(Pos, 2), Parsed};
 code(<<"//", Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = comment_line(Rest, add_pos(Pos, 2), Parsed),
     code(Rest0, Pos0, Parsed);
