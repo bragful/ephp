@@ -68,6 +68,9 @@ document(<<L:1/binary,Rest/binary>>, Pos, Parsed) ->
 
 copy_level({Level,_,_}, {_,Row,Col}) -> {Level,Row,Col}.
 
+code(<<"{", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, Parsed0} = code(Rest, code_block_level(add_pos(Pos, 2)), []),
+    code(Rest0, Pos0, Parsed0 ++ Parsed);
 code(<<B:8,R:8,E:8,A:8,K:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(B,$B,$b) andalso ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso
         ?OR(A,$A,$a) andalso ?OR(K,$K,$k) andalso
