@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('UTC');
+
 abstract class Abstracta {
     abstract public function get_time();
     abstract public function get_date();
