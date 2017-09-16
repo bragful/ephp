@@ -67,8 +67,9 @@ check_exception(Context, Exception) ->
     ephp_error:handle_error(Context, Error).
 
 -type break() :: break | {break, pos_integer()}.
+-type continue() :: continue | {continue, pos_integer()}.
 
--type flow_status() :: break() | continue | return() | false.
+-type flow_status() :: break() | continue() | return() | false.
 
 -spec run(context(), main_statement()) -> flow_status().
 
@@ -293,6 +294,9 @@ run_depth(_Context, {return, Value}, false, _Cover) ->
 run_depth(_Context, {break, N}, false, _Cover) ->
     {break, N-1};
 
+run_depth(_Context, {continue, N}, false, _Cover) ->
+    {continue, N-1};
+
 run_depth(_Context, Boolean, false, _Cover) when is_boolean(Boolean) ->
     false;
 
@@ -430,7 +434,7 @@ run_catch(Context,
     Cond :: condition(),
     Statements :: [statement()],
     Cover :: boolean()) ->
-        break() | continue | return() | false.
+        break() | continue() | return() | false.
 
 run_loop(pre, Context, Cond, Statements, Cover) ->
     case ephp_data:to_bool(ephp_context:solve(Context, Cond)) of

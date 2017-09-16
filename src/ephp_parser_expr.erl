@@ -57,6 +57,14 @@ add_op('end', [{op, [#constant{name = Name, line = Pos} = Constant]}]) ->
                                  ?OR(L,$L,$l) ->
             OpL = <<"(bool)">>,
             {OpL, precedence(OpL), Pos};
+        <<B:8,O:8,O:8,L:8,E:8,A:8,N:8>> when ?OR(B,$B,$b) andalso
+                                             ?OR(O,$O,$o) andalso
+                                             ?OR(L,$L,$l) andalso
+                                             ?OR(E,$E,$e) andalso
+                                             ?OR(A,$A,$a) andalso
+                                             ?OR(N,$N,$n) ->
+            OpL = <<"(bool)">>,
+            {OpL, precedence(OpL), Pos};
         <<U:8,N:8,S:8,E:8,T:8>> when ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
                                      ?OR(S,$S,$s) andalso ?OR(E,$E,$e) andalso
                                      ?OR(T,$T,$t) ->
@@ -757,6 +765,8 @@ gen_op([{<<"!">>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{operation_not, A, {{line,R},{column,C}}}|Stack]);
 gen_op([#constant{name = <<"break">>}, #int{int=I}], []) ->
     [{break, I}];
+gen_op([#constant{name = <<"continue">>}, #int{int=I}], []) ->
+    [{continue, I}];
 gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
     Object = case B of
         #constant{name=Name} -> add_line({object, Name}, Pos);
