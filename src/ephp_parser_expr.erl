@@ -754,9 +754,9 @@ gen_op([{<<O:1/binary,"=">>,{_,_},Pos}|Rest], [B,A|Stack])
     Op = add_line(operator(O, A, B), Pos),
     Assign = add_line(#assign{variable=A, expression=Op}, Pos),
     gen_op(Rest, [Assign|Stack]);
-gen_op([#variable{}=V,{<<"&">>,{left,_},Pos}|Rest], []) ->
-    gen_op(Rest, [add_line(#ref{var=V}, Pos)]);
-gen_op([#variable{}=V,{<<"&">>,{left,_},Pos},{_,{_,_},_}=A|Rest], Stack) ->
+gen_op([#variable{} = V, {<<"&">>, _, Pos}|Rest], []) ->
+    gen_op(Rest, [add_line(#ref{var = V}, Pos)]);
+gen_op([#variable{} = V, {<<"&">>, _, Pos}, {<<"=">>, _, _} = A|Rest], Stack) ->
     gen_op([A|Rest], [add_line(#ref{var=V}, Pos)|Stack]);
 gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{silent, A}|Stack]);
