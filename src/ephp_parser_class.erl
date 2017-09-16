@@ -16,7 +16,7 @@ st_interface(<<SP:8,Rest/binary>>, Pos, Interface) when ?IS_SPACE(SP) ->
 st_interface(<<SP:8,Rest/binary>>, Pos, Interface) when ?IS_NEWLINE(SP) ->
     st_interface(Rest, new_line(Pos), Interface);
 st_interface(<<A:8, Rest/binary>>, Pos, #class{name=undefined}=I)
-        when ?IS_ALPHA(A) ->
+        when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, Name} =
         ephp_parser_func:funct_name(<<A:8, Rest/binary>>, Pos, []),
     st_interface(Rest0, Pos0, I#class{name=Name});
@@ -35,7 +35,7 @@ st_class(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_SPACE(SP) ->
 st_class(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_NEWLINE(SP) ->
     st_class(Rest, new_line(Pos), Class);
 st_class(<<A:8,Rest/binary>>, Pos, #class{name=undefined}=C)
-        when ?IS_ALPHA(A) ->
+        when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, Name} =
         ephp_parser_func:funct_name(<<A:8,Rest/binary>>, Pos, []),
     st_class(Rest0, Pos0, C#class{name=Name});
