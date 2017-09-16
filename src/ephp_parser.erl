@@ -264,8 +264,9 @@ code(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(A,$A,$a) andalso ?OR(B,$B,$b) andalso ?OR(S,$S,$s) andalso
         ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso ?OR(C,$C,$c) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    {Rest0, Pos0, [#class{}=C|Parsed0]} = code(Rest, add_pos(Pos,9), []),
-    {Rest0, Pos0, [C#class{type=abstract}|Parsed0] ++ Parsed};
+    {Rest0, Pos0, Parsed0} = code(Rest, add_pos(Pos,9), []),
+    Class = lists:last(Parsed0),
+    {Rest0, Pos0, Parsed0 ++ [Class#class{type = abstract}] ++ Parsed};
 code(<<F:8,I:8,N:8,A:8,L:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso
         ?OR(A,$A,$a) andalso ?OR(L,$L,$l) andalso
