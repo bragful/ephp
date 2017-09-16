@@ -183,13 +183,15 @@ code(<<F:8,A:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
     {Rest0, Pos0, Exp} = expression(Rest, Pos, [{op,[false]}]),
     code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<I:8,F:8,SP:8,Rest/binary>>, Pos, Parsed)
-        when ?OR(I,$i,$I) andalso ?OR(F,$f,$F) andalso ?OR(SP,32,$() ->
+        when ?OR(I,$i,$I) andalso ?OR(F,$f,$F)
+        andalso (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, [If]} = st_if(Rest0, Pos0, []),
     code(Rest1, copy_level(Pos,Pos1), [If|Parsed]);
 code(<<W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(W,$w,$W) andalso ?OR(H,$h,$H) andalso ?OR(I,$i,$I)
-        andalso ?OR(L,$l,$L) andalso ?OR(E,$e,$E) andalso ?OR(SP,32,$() ->
+        andalso ?OR(L,$l,$L) andalso ?OR(E,$e,$E)
+        andalso (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)),
     {Rest1, Pos1, NewParsed} = st_while(Rest0, Pos0, Parsed),
     code(Rest1, copy_level(Pos,Pos1), NewParsed);
@@ -312,7 +314,8 @@ code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Pos, Parsed) when
     end;
 code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(P,$p,$P) andalso ?OR(R,$r,$R) andalso ?OR(I,$i,$I)
-        andalso ?OR(N,$n,$N) andalso ?OR(T,$t,$T) andalso ?OR(SP,32,$() ->
+        andalso ?OR(N,$n,$N) andalso ?OR(T,$t,$T)
+        andalso (?IS_SPACE(SP) orelse SP =:= $() ->
     Call = add_line(#call{name = <<"print">>}, Pos),
     {Rest0, Pos0, [Call0]} =
         ephp_parser_func:echo(<<SP:8,Rest/binary>>, add_pos(Pos, 5), [Call]),
@@ -365,26 +368,26 @@ code(<<"?>",Rest/binary>>, {L,_,_}=Pos, Parsed) when
         L =:= foreach_old_block orelse L =:= switch_block ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos,2)), []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
-code(<<"?>\n",Rest/binary>>, Pos, Parsed) ->
+code(<<"?>\n", Rest/binary>>, Pos, Parsed) ->
     {Rest, new_line(add_pos(Pos,2)), Parsed};
-code(<<"?>",Rest/binary>>, Pos, Parsed) ->
+code(<<"?>", Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,2), Parsed};
-code(<<"//",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+code(<<"//", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, add_pos(Pos, 2), Parsed),
     code(Rest0, Pos0, Parsed);
-code(<<"#",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+code(<<"#", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, add_pos(Pos, 1), Parsed),
     code(Rest0, Pos0, Parsed);
-code(<<"/*",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
+code(<<"/*", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_block(Rest, add_pos(Pos, 2), Parsed),
     code(Rest0, Pos0, Parsed);
-code(<<"<<<",_/binary>> = Rest, Pos, Parsed) ->
+code(<<"<<<", _/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, S} = ephp_parser_string:string(Rest,Pos,[]),
     code(Rest0, copy_level(Pos, Pos0), [S|Parsed]);
 code(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
-        ?OR(E,$E,$e) andalso ?OR(SP,$(,32) ->
+        ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"include">>, args=[Exp]}, Pos),
@@ -393,14 +396,16 @@ code(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
      Pos, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
-        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso ?OR(SP,$(,32) ->
+        ?OR(E,$E,$e) andalso ?OR(O,$O,$o) andalso
+        (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"include_once">>, args=[Exp]}, Pos),
     code(Rest1, Pos1, [Include|Parsed]);
 code(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
-        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(SP,$(,32) ->
+        ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso
+        (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require">>, args=[Exp]}, Pos),
@@ -409,7 +414,8 @@ code(<<R:8,E:8,Q:8,U:8,I:8,R:8,E:8,$_,O:8,N:8,C:8,E:8,SP:8,Rest/binary>>,
      Pos, Parsed) when
         ?OR(R,$R,$r) andalso ?OR(E,$E,$e) andalso ?OR(Q,$Q,$q) andalso
         ?OR(U,$U,$u) andalso ?OR(I,$I,$i) andalso ?OR(O,$O,$o) andalso
-        ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso ?OR(SP,$(,32) ->
+        ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 7)),
     {Rest1, Pos1, Exp} = expression(Rest0, Pos0, []),
     Include = add_line(#call{name = <<"require_once">>, args=[Exp]}, Pos),
@@ -452,19 +458,19 @@ code_block(<<";",Rest/binary>>, {{_,abstract},_,_}=Pos, Parsed) ->
 %% TODO change this to use always 'code/3' as one statement and block calls
 %%      several times until '}' is received. Same for old block but given known
 %%      constants instead.
-code_block(<<"{",Rest/binary>>, Pos, Parsed) ->
-    code(Rest, code_block_level(add_pos(Pos,1)), Parsed);
-code_block(<<":",Rest/binary>>, {if_block,_,_}=Pos, Parsed) ->
-    code(Rest, if_old_block_level(add_pos(Pos,1)), Parsed);
-code_block(<<":",Rest/binary>>, {foreach_block,_,_}=Pos, Parsed) ->
+code_block(<<"{", Rest/binary>>, Pos, Parsed) ->
+    code(Rest, code_block_level(add_pos(Pos, 1)), Parsed);
+code_block(<<":", Rest/binary>>, {if_block,_,_}=Pos, Parsed) ->
+    code(Rest, if_old_block_level(add_pos(Pos, 1)), Parsed);
+code_block(<<":", Rest/binary>>, {foreach_block,_,_}=Pos, Parsed) ->
     code(Rest, foreach_old_block_level(add_pos(Pos,1)), Parsed);
-code_block(<<":",Rest/binary>>, {for_block,_,_}=Pos, Parsed) ->
+code_block(<<":", Rest/binary>>, {for_block,_,_}=Pos, Parsed) ->
     code(Rest, for_old_block_level(add_pos(Pos,1)), Parsed);
-code_block(<<":",Rest/binary>>, {while_block,_,_}=Pos, Parsed) ->
+code_block(<<":", Rest/binary>>, {while_block,_,_}=Pos, Parsed) ->
     code(Rest, while_old_block_level(add_pos(Pos,1)), Parsed);
-code_block(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
+code_block(<<SP:8, Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     code_block(Rest, add_pos(Pos,1), Parsed);
-code_block(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
+code_block(<<SP:8, Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     code_block(Rest, new_line(Pos), Parsed);
 code_block(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
@@ -814,22 +820,22 @@ st_for(<<"(",Rest/binary>>, Pos, Parsed) ->
 
 comment_line(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
-comment_line(<<"?>",_/binary>> = Rest, Pos, Parsed) ->
+comment_line(<<"?>", _/binary>> = Rest, Pos, Parsed) ->
     {Rest, Pos, Parsed};
-comment_line(<<"\n",Rest/binary>>, Pos, Parsed) ->
+comment_line(<<A:8, Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(A) ->
     {Rest, new_line(Pos), Parsed};
-comment_line(<<_/utf8,Rest/binary>>, Pos, Parsed) ->
-    comment_line(Rest, add_pos(Pos,1), Parsed).
+comment_line(<<_/utf8, Rest/binary>>, Pos, Parsed) ->
+    comment_line(Rest, add_pos(Pos, 1), Parsed).
 
 comment_block(<<>>, Pos, _Parsed) ->
     %% TODO: throw parse error
     throw_error(eparse, Pos, missing_comment_end);
-comment_block(<<"*/",Rest/binary>>, Pos, Parsed) ->
+comment_block(<<"*/", Rest/binary>>, Pos, Parsed) ->
     {Rest, add_pos(Pos,2), Parsed};
-comment_block(<<"\n",Rest/binary>>, Pos, Parsed) ->
+comment_block(<<A:8, Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(A) ->
     comment_block(Rest, new_line(Pos), Parsed);
-comment_block(<<_/utf8,Rest/binary>>, Pos, Parsed) ->
-    comment_block(Rest, add_pos(Pos,1), Parsed).
+comment_block(<<_/utf8, Rest/binary>>, Pos, Parsed) ->
+    comment_block(Rest, add_pos(Pos, 1), Parsed).
 
 %%------------------------------------------------------------------------------
 %% helper functions
@@ -919,9 +925,9 @@ add_line(#try_catch{}=T, {_,R,C}) -> T#try_catch{line={{line,R},{column,C}}};
 add_line(#catch_block{}=B, {_,R,C}) -> B#catch_block{line={{line,R},{column,C}}};
 add_line(#clone{}=L, {_,R,C}) -> L#clone{line={{line,R},{column,C}}}.
 
-remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
-    remove_spaces(Rest, add_pos(Pos,1));
-remove_spaces(<<SP:8,Rest/binary>>, Pos) when ?IS_NEWLINE(SP) ->
+remove_spaces(<<SP:8, Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
+    remove_spaces(Rest, add_pos(Pos, 1));
+remove_spaces(<<SP:8, Rest/binary>>, Pos) when ?IS_NEWLINE(SP) ->
     remove_spaces(Rest, new_line(Pos));
 remove_spaces(<<>>, Pos) -> {<<>>, Pos};
 remove_spaces(Rest, Pos) -> {Rest, Pos}.
