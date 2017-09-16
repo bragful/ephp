@@ -184,6 +184,37 @@ start() ->
 %% @doc called from script passing the name of the filename to be run or
 %%      nothing to show the help message.
 %% @end
+main(["-d", Dir]) ->
+    start(),
+    {Funcs, TotalOk, Total} = parse_subdirs(Dir),
+    {ok, Context} = context_new(),
+    FTotal = length(Funcs),
+    FTotalOk = lists:foldl(fun(Func, FuncOK) ->
+        case ephp_context:is_defined_function(Context, Func) of
+            true ->
+                io:format("~s: OK~n", [Func]),
+                FuncOK + 1;
+            false ->
+                io:format("~s: NOT FOUND~n", [Func]),
+                FuncOK
+        end
+    end, 0, Funcs),
+    io:format("~nFunctions FOUND=~p Total=~p (~p%) / Code OK=~p Total=~p (~p%)~n",
+              [FTotalOk, FTotal, ephp_data:ceiling(FTotalOk * 100 / FTotal),
+               TotalOk, Total, ephp_data:ceiling(TotalOk * 100 / Total)]),
+    quit(0);
+
+main(["-l", File]) ->
+    try
+        ephp_parser:file(File),
+        io:format("No syntax errors detected in: ~s~n", [File]),
+        quit(0)
+    catch
+        error:{badmatch, {error, enoent}} ->
+            io:format("Could not open input file: ~s~n", [File]),
+            quit(1)
+    end;
+
 main([Filename|_] = RawArgs) ->
     start(),
     case file:read_file(Filename) of
@@ -306,3 +337,63 @@ register_superglobals(Ctx, [Filename|_] = RawArgs) ->
         ephp_context:set(Ctx, #variable{name = Global}, ephp_array:new())
     end, SuperGlobals),
     ok.
+
+-spec get_use_funcs([tuple()], [binary()]) -> [binary()].
+%% @doc get the name of the functions used in the code (no methods).
+get_use_funcs([#call{type = normal, name = Name} = Tuple|Tuples], R)
+        when is_binary(Name) ->
+    get_use_funcs(erlang:tuple_to_list(Tuple), []) ++
+    get_use_funcs(Tuples, [ephp_string:to_lower(Name)|R]);
+get_use_funcs([{object,_,_}|Tuples], R) ->
+    get_use_funcs(Tuples, R);
+get_use_funcs([Tuple|Tuples], R) when is_tuple(Tuple) ->
+    get_use_funcs(erlang:tuple_to_list(Tuple), []) ++
+    get_use_funcs(Tuples, R);
+get_use_funcs([List|Rest], R) when is_list(List) ->
+    get_use_funcs(List, []) ++ get_use_funcs(Rest, R);
+get_use_funcs([_Other|Rest], R) ->
+    get_use_funcs(Rest, R);
+get_use_funcs([], R) ->
+    ordsets:from_list(R).
+
+
+-spec get_defined_funcs([tuple()], [binary()]) -> [binary()].
+%% @doc get the name of the functions used in the code (no methods).
+get_defined_funcs([#function{name = Name} = Tuple|Tuples], R) ->
+    get_defined_funcs(erlang:tuple_to_list(Tuple), []) ++
+    get_defined_funcs(Tuples, [ephp_string:to_lower(Name)|R]);
+get_defined_funcs([Tuple|Tuples], R) when is_tuple(Tuple) ->
+    get_defined_funcs(erlang:tuple_to_list(Tuple), []) ++
+    get_defined_funcs(Tuples, R);
+get_defined_funcs([List|Rest], R) when is_list(List) ->
+    get_defined_funcs(List, []) ++ get_defined_funcs(Rest, R);
+get_defined_funcs([_Other|Rest], R) ->
+    get_defined_funcs(Rest, R);
+get_defined_funcs([], R) ->
+    ordsets:from_list(R).
+
+
+-spec parse_subdirs(string()) -> {[binary()], pos_integer(), pos_integer()}.
+%% @doc given a directory it retrieves the functions in use for all of the
+%%      files of that directory, the number of files ok (parsing correctly)
+%%      and the number of files in the directory (with the php extension).
+%% @end
+parse_subdirs(Dir) ->
+    Files = filelib:wildcard(Dir ++ "/**/*.php"),
+    Total = length(Files),
+    {Funcs, DefFuncs, TotalOk, _} =
+    lists:foldl(fun(File, {Funcs, DefFuncs, I, J}) ->
+        Porc = ephp_data:ceiling(I * 100 / Total),
+        io:format("(~3..0b/~b) ~2..0b% file => ~s", [I, Total, Porc, File]),
+        try
+            P = ephp_parser:file(File),
+            io:format(": OK~n", []),
+            {ordsets:from_list(get_use_funcs(P, Funcs)),
+             ordsets:from_list(get_defined_funcs(P, DefFuncs)),
+             I+1, J+1}
+        catch _:_ ->
+            io:format(": FAIL~n", []),
+            {Funcs, DefFuncs, I, J+1}
+        end
+    end, {[], [], 1, 1}, Files),
+    {Funcs -- DefFuncs, TotalOk, Total}.

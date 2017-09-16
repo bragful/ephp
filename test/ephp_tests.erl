@@ -1,8 +1,9 @@
--module(ephp_test).
+-module(ephp_tests).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
 -include_lib("eunit/include/eunit.hrl").
+-include("ephp.hrl").
 
 main_test() ->
     ?assertEqual(0, ephp:main(["test/code/test_empty.php"])).
@@ -18,6 +19,16 @@ main_other_error_test() ->
 
 main_empty_test() ->
     ?assertEqual(1, ephp:main([])).
+
+main_lint_test() ->
+    ?assertEqual(0, ephp:main(["-l", "test/code/test_empty.php"])),
+    ?assertEqual(1, ephp:main(["-l", "test/code/file_not_found"])),
+    ?assertException(throw, {error, eparse, _Index, ?E_PARSE, _Data},
+                     ephp:main(["-l", "test/code/error.php"])),
+    ok.
+
+main_dir_test() ->
+    ?assertEqual(0, ephp:main(["-d", "test/code"])).
 
 register_var_test() ->
     {ok, Ctx} = ephp:context_new(),
