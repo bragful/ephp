@@ -134,6 +134,15 @@ funct_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
     funct_args(Rest, add_pos(Pos,1), Parsed);
 funct_args(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     funct_args(Rest, new_line(Pos), Parsed);
+funct_args(<<"//", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_line(Rest, Pos, Parsed),
+    funct_args(Rest0, Pos0, Parsed);
+funct_args(<<"#", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_line(Rest, Pos, Parsed),
+    funct_args(Rest0, Pos0, Parsed);
+funct_args(<<"/*", Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = ephp_parser:comment_block(Rest, Pos, Parsed),
+    funct_args(Rest0, Pos0, Parsed);
 funct_args(<<"&",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var|Parsed0]} = funct_args(Rest, Pos, Parsed),
     {Rest0, Pos0, [add_line(#ref{var=Var}, Pos)|Parsed0]};
