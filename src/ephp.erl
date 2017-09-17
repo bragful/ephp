@@ -384,16 +384,16 @@ parse_subdirs(Dir) ->
     {Funcs, DefFuncs, TotalOk, _} =
     lists:foldl(fun(File, {Funcs, DefFuncs, I, J}) ->
         Porc = ephp_data:ceiling(I * 100 / Total),
-        io:format("(~3..0b/~b) ~2..0b% file => ~s", [I, Total, Porc, File]),
+        io:format("(~3..0b/~b) ~2..0b% file => ~s", [I + 1, Total, Porc, File]),
         try
             P = ephp_parser:file(File),
             io:format(": OK~n", []),
             {ordsets:from_list(get_use_funcs(P, Funcs)),
              ordsets:from_list(get_defined_funcs(P, DefFuncs)),
-             I+1, J+1}
+             I + 1, J + 1}
         catch _:_ ->
             io:format(": FAIL~n", []),
-            {Funcs, DefFuncs, I, J+1}
+            {Funcs, DefFuncs, I, J + 1}
         end
-    end, {[], [], 1, 1}, Files),
+    end, {[], [], 0, 0}, Files),
     {Funcs -- DefFuncs, TotalOk, Total}.
