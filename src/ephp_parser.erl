@@ -659,9 +659,9 @@ st_global(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(SP) ->
     st_global(Rest, new_line(Pos), Parsed);
 st_global(<<",",Rest/binary>>, Pos, Parsed) ->
     st_global(Rest, add_pos(Pos,1), Parsed);
-st_global(<<";",Rest/binary>>, Pos, Parsed) ->
+st_global(<<";", _/binary>> = Rest, Pos, Parsed) ->
     Global = add_line(#global{vars = Parsed}, Pos),
-    {Rest, add_pos(Pos,1), [Global]};
+    {Rest, Pos, [Global]};
 st_global(<<"$",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
     st_global(Rest0, Pos0, [Var|Parsed]).
