@@ -53,16 +53,16 @@ add_op('end', [{op, [#constant{name = Name, line = Pos} = Constant]}]) ->
                                          ?OR(T,$T,$t) ->
             OpL = <<"(object)">>,
             {OpL, precedence(OpL), Pos};
-        <<B:8,O:8,O:8,L:8>> when ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso
-                                 ?OR(L,$L,$l) ->
-            OpL = <<"(bool)">>,
-            {OpL, precedence(OpL), Pos};
         <<B:8,O:8,O:8,L:8,E:8,A:8,N:8>> when ?OR(B,$B,$b) andalso
                                              ?OR(O,$O,$o) andalso
                                              ?OR(L,$L,$l) andalso
                                              ?OR(E,$E,$e) andalso
                                              ?OR(A,$A,$a) andalso
                                              ?OR(N,$N,$n) ->
+            OpL = <<"(bool)">>,
+            {OpL, precedence(OpL), Pos};
+        <<B:8,O:8,O:8,L:8>> when ?OR(B,$B,$b) andalso ?OR(O,$O,$o) andalso
+                                 ?OR(L,$L,$l) ->
             OpL = <<"(bool)">>,
             {OpL, precedence(OpL), Pos};
         <<U:8,N:8,S:8,E:8,T:8>> when ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
@@ -139,8 +139,6 @@ array_def(<<")",Rest/binary>>, {{array_def,0},_,_}=Pos, Args) ->
 array_def(<<"]",Rest/binary>>, {{array_def,54},_,_}=Pos, Args) ->
     {Rest,add_pos(Pos,1),Args};
 %% TODO add error missing closing params
-array_def(<<"(",Rest/binary>>, {{array_def,0},_,_}=Pos, []) ->
-    array_def(Rest, add_pos(Pos,1), []);
 array_def(Rest, Pos, Args) when Rest =/= <<>> ->
     case expression(Rest, Pos, []) of
         {<<")",Rest0/binary>>, {{array_def,0},_,_}=Pos0, [Idx,Arg]} ->
@@ -177,14 +175,14 @@ expression(<<A:8,_/binary>> = Rest, Pos,
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
         andalso not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_) ->
-    case remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)) of
-        {<<")",_/binary>> = Rest0, Pos0} ->
+    case remove_spaces(<<SP:8, Rest/binary>>, add_pos(Pos, 5)) of
+        {<<")", _/binary>> = Rest0, Pos0} ->
             %% (array) cast
             OpL = <<"(array)">>,
             NewParsed = add_op({OpL, precedence(OpL), Pos}, Parsed),
             expression(Rest0, Pos0, NewParsed);
-        {Rest0, Pos0} ->
-            NewPos = array_def_level(Pos0),
+        {<<"(", Rest0/binary>>, Pos0} ->
+            NewPos = array_def_level(add_pos(Pos0, 1)),
             {Rest1, Pos1, Content} = array_def(Rest0, NewPos, []),
             NewParsed = add_op(add_line(#array{elements=Content}, Pos), Parsed),
             expression(Rest1, copy_level(Pos, Pos1), NewParsed)
