@@ -6,7 +6,7 @@
 
 -export([
     add_pos/2, new_line/1, copy_level/2, add_line/2, remove_spaces/2,
-    throw_error/3, code_block/3, code/3,
+    throw_error/3, code_block/3, code/3, new_line/2,
 
     array_def_level/1, code_statement_level/1, arg_level/1,
     code_block_level/1, enclosed_level/1, unclosed_level/1,
@@ -856,8 +856,11 @@ add_to_text(L, Pos, Parsed) ->
 add_pos({Level,Row,Col}, Offset) ->
     {Level,Row,Col+Offset}.
 
-new_line({Level,Row,_Col}) ->
-    {Level,Row+1,1}.
+new_line({Level, Row, _Col}, N) ->
+    {Level, Row + N, 1}.
+
+new_line(Pos) ->
+    new_line(Pos, 1).
 
 if_old_block_level({_,Row,Col}) -> {if_old_block,Row,Col}.
 for_old_block_level({_,Row,Col}) -> {for_old_block,Row,Col}.

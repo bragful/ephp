@@ -593,13 +593,13 @@ resolve(S, State) when is_binary(S) ->
 resolve(A, State) when ?IS_ARRAY(A) ->
     {A, State};
 
-resolve(#float{float=Float}, State) ->
+resolve(#float{float = Float}, State) ->
     {Float, State};
 
-resolve(#text{text=Text}, State) ->
+resolve(#text{text = Text}, State) ->
     {Text, State};
 
-resolve(#text_to_process{text=Texts, line=Line}, State) ->
+resolve(#text_to_process{text = Texts, line = Line}, State) ->
     resolve_txt(Texts, Line, State);
 
 resolve(Object, State) when ?IS_OBJECT(Object) ->
@@ -1639,21 +1639,22 @@ get_var_path_data(Vars, Entry, Ref) ->
             Other
     end.
 
+
 resolve_txt(Texts, Line, State) ->
     lists:foldr(fun
-        (true, {ResultTxt,NS}) ->
-            {<<"1",ResultTxt/binary>>,NS};
-        (Data, {ResultTxt,NS}) when
+        (true, {ResultTxt, NS}) ->
+            {<<"1", ResultTxt/binary>>, NS};
+        (Data, {ResultTxt, NS}) when
                 Data =:= undefined orelse
                 Data =:= false ->
-            {<<ResultTxt/binary>>,NS};
-        (Data, {ResultTxt,NS}) when is_binary(Data) ->
-            {<<Data/binary,ResultTxt/binary>>,NS};
-        (Data, {ResultTxt,NS}) when is_tuple(Data) ->
-            {TextRaw,NewState} = resolve(Data, NS),
+            {<<ResultTxt/binary>>, NS};
+        (Data, {ResultTxt, NS}) when is_binary(Data) ->
+            {<<Data/binary, ResultTxt/binary>>, NS};
+        (Data, {ResultTxt, NS}) when is_tuple(Data) ->
+            {TextRaw, NewState} = resolve(Data, NS),
             Text = ephp_data:to_bin(NS#state.ref, Line, TextRaw),
-            {<<Text/binary,ResultTxt/binary>>,NewState}
-    end, {<<>>,State}, Texts).
+            {<<Text/binary, ResultTxt/binary>>, NewState}
+    end, {<<>>, State}, Texts).
 
 
 resolve_op(#operation{

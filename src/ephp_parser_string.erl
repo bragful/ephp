@@ -8,51 +8,74 @@
 -export([string/3]).
 
 -import(ephp_parser, [
-    add_pos/2, new_line/1, add_line/2, variable/3, throw_error/3
+    add_pos/2, new_line/1, add_line/2, variable/3, throw_error/3, new_line/2
 ]).
 
 string(<<"\"",Rest/binary>>, Pos, []) ->
     string_parsed(Rest, Pos, add_line(#text_to_process{text=[]}, Pos));
 string(<<"'",Rest/binary>>, Pos, []) ->
     string_fixed(Rest, Pos, add_line(#text{text = <<>>}, Pos));
-string(<<"<<<'",Rest/binary>>, {Level,Row,_}=Pos, []) ->
-    [W,Rest0] = binary:split(Rest, <<"'\n">>),
-    [Text,Rest1] = binary:split(Rest0, <<"\n", W/binary, ";">>),
-    NPos = {Level,Row+length(binary:matches(Text,<<"\n">>))+1,1},
-    {<<";",Rest1/binary>>, add_pos(NPos,byte_size(W)), add_line(#text{text=Text}, Pos)};
+string(<<"<<<'",Rest/binary>>, Pos, []) ->
+    [W, Rest0] = binary:split(Rest, <<"'\n">>),
+    [Text, Rest1] = binary:split(Rest0, <<"\n", W/binary, ";">>),
+    NPos = new_line(Pos, length(binary:matches(Text, <<"\n">>)) + 1),
+    {<<";", Rest1/binary>>, add_pos(NPos, byte_size(W)),
+     add_line(#text{text = Text}, Pos)};
 string(<<"<<<",Rest/binary>>, Pos, []) ->
-    [W,Rest0] = binary:split(Rest, <<"\n">>),
+    [W, Rest0] = binary:split(Rest, <<"\n">>),
     Wsize = byte_size(W),
-    [RawText,Rest1] = binary:split(Rest0, <<"\n", W/binary, ";">>),
-    case heredoc(RawText, add_pos(Pos,Wsize+4), []) of
-        {Pos2, [Text]} when is_binary(Text) ->
-            {<<";",Rest1/binary>>, Pos2, add_line(#text{text=Text}, Pos)};
-        {Pos2, Text} ->
-            {<<";",Rest1/binary>>, Pos2,
-             add_line(#text_to_process{text=Text}, Pos)}
-    end.
+    [RawText, Rest1] = binary:split(Rest0, <<"\n", W/binary, ";">>),
+    {Pos2, Text} = heredoc(RawText, new_line(Pos), []),
+    {<<";", Rest1/binary>>, add_pos(new_line(Pos2), Wsize), Text}.
 
-heredoc(<<>>, Pos, C) ->
-    {Pos, lists:reverse(C)};
-heredoc(<<"${",Rest/binary>>, Pos, C) ->
+add_text(C, Pos, []) ->
+    [add_line(#text_to_process{text = [C]}, Pos)];
+add_text(C, _Pos, [#text_to_process{text = [T|TN]} = T2P]) when is_binary(C)
+                                                        andalso is_binary(T) ->
+    [T2P#text_to_process{text = [<<T/binary, C/binary>>|TN]}];
+add_text(C, _Pos, [#text_to_process{text = TN} = T2P]) ->
+    [T2P#text_to_process{text = [C|TN]}].
+
+heredoc(<<>>, Pos, [#text_to_process{text = Text} = T2P]) ->
+    {Pos, [T2P#text_to_process{text = lists:reverse(Text)}]};
+heredoc(<<"\\x", HexBin1:8, HexBin2:8, Rest/binary>>, Pos, Text)
+        when ?IS_HEX(HexBin1) andalso ?IS_HEX(HexBin2) ->
+    Data = binary_to_integer(<<HexBin1:8, HexBin2:8>>, 16),
+    heredoc(Rest, add_pos(Pos, 4), add_text(<<Data:8>>, Pos, Text));
+heredoc(<<"\\x", HexBin1:8, Rest/binary>>, Pos, Text) when ?IS_HEX(HexBin1) ->
+    Data = binary_to_integer(<<HexBin1:8>>, 16),
+    heredoc(Rest, add_pos(Pos, 4), add_text(<<Data:8>>, Pos, Text));
+heredoc(<<"\\", OctBin1:8, OctBin2:8, OctBin3:8, Rest/binary>>, Pos, Text)
+        when ?IS_OCT(OctBin1) andalso ?IS_OCT(OctBin2)
+        andalso ?IS_OCT(OctBin3) ->
+    Data = binary_to_integer(<<OctBin1:8, OctBin2:8, OctBin3:8>>, 8),
+    heredoc(Rest, add_pos(Pos, 4), add_text(<<Data:8>>, Pos, Text));
+heredoc(<<"\\", OctBin1:8, OctBin2:8, Rest/binary>>, Pos, Text)
+        when ?IS_OCT(OctBin1) andalso ?IS_OCT(OctBin2) ->
+    Data = binary_to_integer(<<OctBin1:8, OctBin2:8>>, 8),
+    heredoc(Rest, add_pos(Pos, 4), add_text(<<Data:8>>, Pos, Text));
+heredoc(<<"\\", OctBin:8, Rest/binary>>, Pos, Text) when ?IS_OCT(OctBin) ->
+    Data = binary_to_integer(<<OctBin:8>>, 8),
+    heredoc(Rest, add_pos(Pos, 4), add_text(<<Data:8>>, Pos, Text));
+heredoc(<<"${",Rest/binary>>, Pos, Text) ->
     NewPos = ephp_parser:enclosed_level(add_pos(Pos, 2)),
     {<<"}", Rest0/binary>>, Pos0, [Var]} = variable(Rest, NewPos, []),
-    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0), [Var|C]);
-heredoc(<<"{$",Rest/binary>>, Pos, C) ->
+    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0),
+            add_text(Var, Pos, Text));
+heredoc(<<"{$",Rest/binary>>, Pos, Text) ->
     NewPos = ephp_parser:enclosed_level(add_pos(Pos, 2)),
     {<<"}", Rest0/binary>>, Pos0, [Var]} = variable(Rest, NewPos, []),
-    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0), [Var|C]);
-heredoc(<<"$",Rest/binary>>, {Level,Row,Col}, C) ->
-    {Rest0, {_,Row0,Col0}, [Var]} = variable(Rest, {Level,Row,Col+1}, []),
-    heredoc(Rest0, {Level,Row0,Col0}, [Var|C]);
-heredoc(<<"\n",Rest/binary>>, Pos, [C|R]) when is_binary(C) ->
-    heredoc(Rest, new_line(Pos), [<<C/binary, "\n">>|R]);
-heredoc(<<A/utf8,Rest/binary>>, Pos, [C|R]) when is_binary(C) ->
-    heredoc(Rest, add_pos(Pos,1), [<<C/binary, A/utf8>>|R]);
-heredoc(Rest, Pos, []) ->
-    heredoc(Rest, Pos, [<<>>]);
-heredoc(Rest, Pos, [C|_]=S) when not is_binary(C) ->
-    heredoc(Rest, Pos, [<<>>|S]).
+    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0),
+            add_text(Var, Pos, Text));
+heredoc(<<"$", A:8, B/binary>>, Pos, Text) when ?IS_ALPHA(A) orelse A =:= $_ ->
+    Rest = <<A:8, B/binary>>,
+    {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos, 1), []),
+    heredoc(Rest0, ephp_parser:copy_level(Pos, Pos0),
+            add_text(Var, Pos, Text));
+heredoc(<<"\n",Rest/binary>>, Pos, Text) ->
+    heredoc(Rest, new_line(Pos), add_text(<<"\n">>, Pos, Text));
+heredoc(<<A/utf8,Rest/binary>>, Pos, Text) ->
+    heredoc(Rest, add_pos(Pos, 1), add_text(<<A/utf8>>, Pos, Text)).
 
 string_fixed(<<>>, {L,_,_}, #text{line={{line,R},{column,C}}}) ->
     throw_error(eparse, {L,R,C}, <<>>);
