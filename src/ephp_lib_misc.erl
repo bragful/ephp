@@ -27,8 +27,11 @@ init_func() -> [
     defined,
     sleep,
     usleep,
-    {exit, [{alias, <<"die">>}]},
-    exit,
+    {exit, [
+        {args, {0, 1, undefined, [{mixed, undefined}]}},
+        {alias, <<"die">>}
+    ]},
+    {exit, [{args, {0, 1, undefined, [{mixed, undefined}]}}]},
     {pack, [pack_args]},
     {unpack, [
         {args, {2, 2, undefined, [string, string]}}
@@ -124,6 +127,9 @@ usleep(Context, Line, {_, Val}) ->
 
 -spec exit(context(), line(), Message :: var_value()) ->
     undefined.
+
+exit(_Context, _Line, {_, Value}) when is_integer(Value) ->
+    throw(die);
 
 exit(Context, _Line, {_, Value}) ->
     ephp_context:set_output(Context, Value),

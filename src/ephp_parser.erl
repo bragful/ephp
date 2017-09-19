@@ -661,7 +661,9 @@ constant_wait(Rest, Pos, Parsed) ->
     {Rest, Pos, constant_known(Parsed, Pos)}.
 
 constant_known([#constant{name = <<"__LINE__">>}|Parsed], {_,R,_}=Pos) ->
-    [add_line(#int{int=R}, Pos)|Parsed];
+    [add_line(#int{int = R}, Pos)|Parsed];
+constant_known([#constant{name = <<"exit">>}|Parsed], Pos) ->
+    [add_line(#call{name = <<"exit">>}, Pos)|Parsed];
 constant_known(C, _Pos) ->
     C.
 
