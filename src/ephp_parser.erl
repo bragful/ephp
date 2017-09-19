@@ -125,11 +125,9 @@ code(<<F:8,I:8,N:8,A:8,L:8,L:8,Y:8,SP:8,Rest/binary>>, Pos,
         (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     {Rest0, Pos0, Code} = code_block(<<SP:8, Rest/binary>>, add_pos(Pos, 7), []),
     code(Rest0, copy_level(Pos, Pos0), [Try#try_catch{finally = Code}|Parsed]);
-code(<<"@",Rest/binary>>, Pos, Parsed) ->
-    {Rest0, Pos0, RParsed0} = code(Rest, add_pos(Pos,1), []),
-    [ToSilent|Parsed0] = lists:reverse(RParsed0),
-    Silent = {silent, ToSilent},
-    {Rest0, Pos0, lists:reverse([Silent|Parsed0]) ++ Parsed};
+code(<<"@", _/binary>> = Rest, Pos, Parsed) ->
+    {Rest0, Pos0, Exp} = expression(Rest, code_statement_level(Pos), []),
+    code(Rest0, copy_level(Pos, Pos0), [Exp|Parsed]);
 code(<<G:8,L:8,O:8,B:8,A:8,L:8,SP:8,Rest/binary>>, Pos, Parsed) when
         ?OR(G,$G,$g) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
         ?OR(B,$B,$b) andalso ?OR(A,$A,$a) andalso
