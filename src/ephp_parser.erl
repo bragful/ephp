@@ -644,15 +644,15 @@ constant(Rest, Pos, Parsed) ->
 
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
-constant_wait(<<"(",Rest/binary>>, Pos, [#constant{}=C]) ->
+constant_wait(<<"(", Rest/binary>>, Pos, [#constant{} = C]) ->
     Call = #call{name = C#constant.name, line = C#constant.line},
-    ephp_parser_func:function(Rest, add_pos(Pos,1), [Call]);
-constant_wait(<<"::$",Rest/binary>>, Pos, [#constant{}=C]) ->
-    {Rest1, Pos1, [Var]} = variable(<<"$",Rest/binary>>, add_pos(Pos,2), []),
-    NewVar = Var#variable{type=class, class=C#constant.name},
-    {Rest2, Pos2, Exp} =
-        expression(Rest1, copy_level(Pos, Pos1), add_op(NewVar, [])),
-    {Rest2, Pos2, [Exp]};
+    ephp_parser_func:function(Rest, add_pos(Pos, 1), [Call]);
+constant_wait(<<"::$", Rest/binary>>, Pos, [#constant{} = C]) ->
+    NewPos = arg_level(add_pos(Pos, 2)),
+    {Rest1, Pos1, [Var]} = variable(<<"$", Rest/binary>>, NewPos, []),
+    NewVar = Var#variable{type = class, class = C#constant.name},
+    {Rest2, Pos2, Exp} = expression(Rest1, Pos1, add_op(NewVar, [])),
+    {Rest2, copy_level(Pos, Pos2), [Exp]};
 constant_wait(<<"::",Rest/binary>>, Pos, [#constant{}=Cons]) ->
     case constant(Rest, add_pos(Pos,2), []) of
         {Rest1, Pos1, [#constant{name = <<"class">>}]} ->
