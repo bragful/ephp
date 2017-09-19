@@ -31,6 +31,11 @@ add_op('end', [{op, [#constant{name = Name, line = Pos} = Constant]}]) ->
                              ?OR(T,$t,$T) ->
             OpL = <<"(int)">>,
             {OpL, precedence(OpL), Pos};
+        <<I:8,N:8,T:8,E:8,G:8,E:8,R:8>> when ?OR(I,$i,$I) andalso ?OR(N,$n,$N)
+                                     andalso ?OR(T,$t,$T) andalso ?OR(E,$e,$E)
+                                     andalso ?OR(G,$g,$G) andalso ?OR(R,$r,$R) ->
+            OpL = <<"(int)">>,
+            {OpL, precedence(OpL), Pos};
         <<F:8,L:8,O:8,A:8,T:8>> when ?OR(F,$F,$f) andalso ?OR(L,$L,$l) andalso
                                      ?OR(O,$O,$o) andalso ?OR(A,$A,$a) andalso
                                      ?OR(T,$T,$t) ->
