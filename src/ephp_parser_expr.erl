@@ -99,22 +99,24 @@ process_incr_decr([#variable{}=V,{<<"--">>,_,Pos}|Rest], Processed) ->
 process_incr_decr([A|Rest], Processed) ->
     process_incr_decr(Rest, Processed ++ [A]).
 
-number(<<"0",X:8,Rest/binary>>, Pos, []) when ?OR(X,$X,$x) ->
-    hexa(Rest, add_pos(Pos,2), []);
-number(<<"0",N:8,Rest/binary>>, Pos, []) when ?IS_OCT(N) ->
-    octa(<<N:8,Rest/binary>>, add_pos(Pos,2), []);
-number(<<A:8,Rest/binary>>, Pos, []) when ?IS_NUMBER(A) orelse A =:= $- ->
-    number(Rest, add_pos(Pos,1), [add_line(#int{int = <<A:8>>}, Pos)]);
-number(<<A:8,Rest/binary>>, Pos, [#int{int=N}=I]) when ?IS_NUMBER(A) ->
-    number(Rest, add_pos(Pos,1), [I#int{int = <<N/binary,A:8>>}]);
-number(<<".",Rest/binary>>, Pos, [#int{int=N,line=Line}]) ->
-    number(Rest, add_pos(Pos,1), [#float{float = <<N/binary,".">>,line=Line}]);
-number(<<A:8,Rest/binary>>, Pos, [#float{float=N}=F]) when ?IS_NUMBER(A) ->
-    number(Rest, add_pos(Pos,1), [F#float{float = <<N/binary,A:8>>}]);
-number(Rest, Pos, [#int{int=N}=I]) ->
-    {Rest, Pos, [I#int{int=binary_to_integer(N)}]};
-number(Rest, Pos, [#float{float=N}=F]) ->
-    {Rest, Pos, [F#float{float=binary_to_float(N)}]}.
+number(<<"0", X:8, Rest/binary>>, Pos, []) when ?OR(X, $X, $x) ->
+    hexa(Rest, add_pos(Pos, 2), []);
+number(<<"0", N:8, Rest/binary>>, Pos, []) when ?IS_OCT(N) ->
+    octa(<<N:8, Rest/binary>>, add_pos(Pos, 2), []);
+number(<<A:8, Rest/binary>>, Pos, []) when ?IS_NUMBER(A) orelse A =:= $- ->
+    number(Rest, add_pos(Pos, 1), [add_line(#int{int = <<A:8>>}, Pos)]);
+number(<<A:8, Rest/binary>>, Pos, [#int{int = N} = I]) when ?IS_NUMBER(A) ->
+    number(Rest, add_pos(Pos, 1), [I#int{int = <<N/binary,A:8>>}]);
+number(<<".", Rest/binary>>, Pos, []) ->
+    number(Rest, add_pos(Pos, 1), [add_line(#float{float = <<"0.">>}, Pos)]);
+number(<<".", Rest/binary>>, Pos, [#int{int = N, line = Line}]) ->
+    number(Rest, add_pos(Pos, 1), [#float{float = <<N/binary,".">>, line = Line}]);
+number(<<A:8, Rest/binary>>, Pos, [#float{float = N} = F]) when ?IS_NUMBER(A) ->
+    number(Rest, add_pos(Pos, 1), [F#float{float = <<N/binary, A:8>>}]);
+number(Rest, Pos, [#int{int = N} = I]) ->
+    {Rest, Pos, [I#int{int = binary_to_integer(N)}]};
+number(Rest, Pos, [#float{float = N} = F]) ->
+    {Rest, Pos, [F#float{float = binary_to_float(N)}]}.
 
 hexa(<<A:8,Rest/binary>>, Pos, []) when ?IS_HEX(A) ->
     hexa(Rest, add_pos(Pos, 1), [add_line(#int{int = <<A:8>>}, Pos)]);
@@ -431,7 +433,10 @@ expression(<<"$",Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, add_pos(Pos,1), []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Var, Parsed));
 % NUMBER
-expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
+expression(<<A:8, _/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
+    {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
+    expression(Rest0, copy_level(Pos, Pos0), add_op(Number, Parsed));
+expression(<<".", A:8, _/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
     {Rest0, Pos0, [Number]} = number(Rest, Pos, []),
     expression(Rest0, copy_level(Pos, Pos0), add_op(Number, Parsed));
 % STRING
