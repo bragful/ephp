@@ -25,3 +25,9 @@ while ($i>=0):
 endwhile;
 print "while -> OK\n";
 
+switch (abs($i)):
+    case 0: print "NO!\n"; break;
+    case 1: print "switch -> OK\n"; break;
+    default: print "NO $i\n"; break;
+endswitch;
+

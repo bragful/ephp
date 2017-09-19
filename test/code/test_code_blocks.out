@@ -9,3 +9,4 @@ foreach -> OK
 while loop 0
 while loop -1
 while -> OK
+switch -> OK

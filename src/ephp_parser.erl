@@ -146,6 +146,14 @@ code(<<E:8,N:8,D:8,I:8,F:8,SP:8,Rest/binary>>, {if_old_block,_,_}=Pos, Parsed)
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,5)),
     {Rest0, Pos0, lists:reverse(Parsed)};
+code(<<E:8,N:8,D:8,S:8,W:8,I:8,T:8,C:8,H:8,SP:8,Rest/binary>>,
+     {switch_old_block,_,_} = Pos, Parsed) when
+        ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
+        ?OR(S,$S,$s) andalso ?OR(W,$W,$w) andalso ?OR(I,$I,$i) andalso
+        ?OR(T,$T,$t) andalso ?OR(C,$C,$c) andalso ?OR(H,$H,$h) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $;) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8, Rest/binary>>, add_pos(Pos, 9)),
+    {Rest0, Pos0, lists:reverse(switch_case_block(Parsed))};
 code(<<E:8,N:8,D:8,F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>,
      {foreach_old_block,_,_}=Pos, Parsed) when
         ?OR(E,$E,$e) andalso ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso
@@ -226,7 +234,8 @@ code(<<S:8,W:8,I:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Pos, Parsed) when
     {<<"(",_/binary>> = Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, Pos),
     {Rest1, Pos1, NewParsed} = st_switch(Rest0, add_pos(Pos0,6), Parsed),
     code(Rest1, copy_level(Pos, Pos1), NewParsed);
-code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {switch_block,_,_}=Pos, Parsed) when
+code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {Level,_,_}=Pos, Parsed) when
+        (Level =:= switch_block orelse Level =:= switch_old_block) andalso
         ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(S,$S,$s) andalso
         ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,4)),
@@ -245,18 +254,20 @@ code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {code_statement,_,_}=Pos, Parsed) whe
         ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {<<"case",SP:8,Rest/binary>>, Pos, Parsed};
 code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
-     {switch_block,_,_}=Pos, Parsed) when
+     {Level,_,_}=Pos, Parsed) when
+        (Level =:= switch_block orelse Level =:= switch_old_block) andalso
         ?OR(D,$D,$d) andalso ?OR(E,$E,$e) andalso ?OR(F,$F,$f) andalso
         ?OR(A,$A,$a) andalso ?OR(U,$U,$u) andalso ?OR(L,$L,$l) andalso
         ?OR(T,$T,$t) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $:) ->
-    {<<":",Rest0/binary>>, Pos0} = remove_spaces(<<SP:8,Rest/binary>>,
-                                                 add_pos(Pos,4)),
-    NewParsed = [add_line(#switch_case{
-        label=default,
-        code_block=[]
-    }, Pos)|switch_case_block(Parsed)],
-    code(Rest0, copy_level(Pos, add_pos(Pos0,1)), NewParsed);
+    case remove_spaces(<<SP:8, Rest/binary>>, add_pos(Pos, 4)) of
+        {<<":", Rest0/binary>>, Pos0} -> ok;
+        {<<";", Rest0/binary>>, Pos0} -> ok
+    end,
+    NewParsed = [add_line(#switch_case{label = default,
+                                       code_block = []},
+                          Pos)|switch_case_block(Parsed)],
+    code(Rest0, copy_level(Pos, add_pos(Pos0, 1)), NewParsed);
 code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
      {code_statement,_,_}=Pos, Parsed) when
         ?OR(D,$D,$d) andalso ?OR(E,$E,$e) andalso ?OR(F,$F,$f) andalso
@@ -363,14 +374,16 @@ code(<<"?>",Rest/binary>>, {code_value,_,_}=Pos, [Parsed]) ->
 code(<<"?>\n",Rest/binary>>, {L,_,_}=Pos, Parsed) when
         L =:= code_block orelse L =:= if_old_block orelse
         L =:= while_old_block orelse L =:= for_old_block orelse
-        L =:= foreach_old_block orelse L =:= switch_block ->
+        L =:= foreach_old_block orelse L =:= switch_block orelse
+        L =:= switch_old_block ->
     NewPos = new_line(literal_level(Pos)),
     {Rest0, Pos0, Text} = document(Rest, NewPos, []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>",Rest/binary>>, {L,_,_}=Pos, Parsed) when
         L =:= code_block orelse L =:= if_old_block orelse
         L =:= while_old_block orelse L =:= for_old_block orelse
-        L =:= foreach_old_block orelse L =:= switch_block ->
+        L =:= foreach_old_block orelse L =:= switch_block orelse
+        L =:= switch_old_block ->
     {Rest0, Pos0, Text} = document(Rest, literal_level(add_pos(Pos, 2)), []),
     code(Rest0, copy_level(Pos,Pos0), Text ++ Parsed);
 code(<<"?>", _/binary>> = Rest, {code_statement,_,_} = Pos, Parsed) ->
@@ -808,17 +821,18 @@ switch_case_block(Blocks) ->
         (#switch_case{}) -> false;
         (_) -> true
     end, Blocks),
-    [Switch#switch_case{code_block=lists:reverse(Block)}|Rest].
+    [Switch#switch_case{code_block = lists:reverse(Block)}|Rest].
 
 st_switch(<<"(",Rest/binary>>, Pos, Parsed) ->
     {<<")", Rest0/binary>>, Pos0, Cond} = expression(Rest, add_pos(Pos,1), []),
-    {<<"{", Rest1/binary>>, Pos1} = remove_spaces(Rest0, add_pos(Pos0, 1)),
-    NewPos = switch_block_level(add_pos(Pos1, 1)),
+    NewPos = case remove_spaces(Rest0, add_pos(Pos0, 1)) of
+        {<<"{", Rest1/binary>>, Pos1} ->
+            switch_block_level(add_pos(Pos1, 1));
+        {<<":", Rest1/binary>>, Pos1} ->
+            switch_old_block_level(add_pos(Pos1, 1))
+    end,
     {Rest2, Pos2, CodeBlock} = code(Rest1, NewPos, []),
-    Switch = add_line(#switch{
-        condition=Cond,
-        cases=CodeBlock
-    }, Pos),
+    Switch = add_line(#switch{condition = Cond, cases = CodeBlock}, Pos),
     {Rest2, copy_level(Pos, Pos2), [Switch|Parsed]}.
 
 st_for(<<SP:8,Rest/binary>>, Pos, Parsed) when ?IS_SPACE(SP) ->
@@ -878,6 +892,7 @@ if_old_block_level({_,Row,Col}) -> {if_old_block,Row,Col}.
 for_old_block_level({_,Row,Col}) -> {for_old_block,Row,Col}.
 foreach_old_block_level({_,Row,Col}) -> {foreach_old_block,Row,Col}.
 while_old_block_level({_,Row,Col}) -> {while_old_block,Row,Col}.
+switch_old_block_level({_,Row,Col}) -> {switch_old_block,Row,Col}.
 
 if_block_level({_,Row,Col}) -> {if_block,Row,Col}.
 for_block_level({_,Row,Col}) -> {for_block,Row,Col}.
