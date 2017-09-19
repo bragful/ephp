@@ -233,7 +233,10 @@ code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, {switch_block,_,_}=Pos, Parsed) when
         ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos,4)),
     NewPos = switch_label_level(Pos0),
-    {<<":",Rest1/binary>>, Pos1, Exp} = expression(Rest0, NewPos, []),
+    case expression(Rest0, NewPos, []) of
+        {<<":", Rest1/binary>>, Pos1, Exp} -> ok;
+        {<<";", Rest1/binary>>, Pos1, Exp} -> ok
+    end,
     NewParsed = [add_line(#switch_case{
         label=Exp,
         code_block=[]
@@ -459,6 +462,15 @@ code(<<>>, Pos, Parsed) ->
 code(Text, Pos, _Parsed) ->
     throw_error(eparse, Pos, Text).
 
+code_block(<<"//",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    code_block(Rest0, Pos0, Parsed);
+code_block(<<"#",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_line(Rest, Pos, Parsed),
+    code_block(Rest0, Pos0, Parsed);
+code_block(<<"/*",Rest/binary>>, Pos, Parsed) ->
+    {Rest0, Pos0, _} = comment_block(Rest, Pos, Parsed),
+    code_block(Rest0, Pos0, Parsed);
 code_block(<<";",Rest/binary>>, {{_,abstract},_,_}=Pos, Parsed) ->
     {Rest, add_pos(Pos,1), Parsed};
 %% TODO change this to use always 'code/3' as one statement and block calls
