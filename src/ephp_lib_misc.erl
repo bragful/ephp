@@ -128,7 +128,8 @@ usleep(Context, Line, {_, Val}) ->
 -spec exit(context(), line(), Message :: var_value()) ->
     undefined.
 
-exit(_Context, _Line, {_, Value}) when is_integer(Value) ->
+exit(_Context, _Line, {_, Value}) when is_integer(Value)
+                                orelse Value =:= undefined ->
     throw(die);
 
 exit(Context, _Line, {_, Value}) ->
