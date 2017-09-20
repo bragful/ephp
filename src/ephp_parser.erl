@@ -599,17 +599,20 @@ accessor(<<A:8, Rest/binary>>, Pos, Parsed) when ?IS_NEWLINE(A) ->
     accessor(Rest, new_line(Pos), Parsed);
 accessor(<<A:8, _/binary>> = Rest, Pos, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
     constant(Rest, Pos, []);
-accessor(<<A:8, _/binary>> = Rest, {enclosed,_,_} = Pos, []) when ?IS_NUMBER(A) ->
-    constant(Rest, Pos, [#constant{name = <<>>}]);
 accessor(<<"$", Rest/binary>>, Pos, []) ->
     variable(Rest, Pos, []);
 accessor(<<"{", Rest/binary>>, Pos, []) ->
-    [Accessor, Rest0] = binary:split(Rest, <<"}">>),
-    {_, _, Acc} = accessor(Accessor, enclosed_level(Pos), []),
-    Pos0 = lists:foldl(fun(A, P) when ?IS_NEWLINE(A) -> new_line(P);
-                          (_, P) -> add_pos(P, 1)
-                       end, add_pos(Pos, 2), binary_to_list(Accessor)),
-    {Rest0, copy_level(Pos, Pos0), [Acc]};
+    NewPos = add_pos(enclosed_level(Pos), 1),
+    {Rest0, Pos0, Acc} = expression(Rest, NewPos, []),
+    case remove_spaces(Rest0, Pos0) of
+        {<<"(", Rest1/binary>>, Pos1} ->
+            NPos1 = add_pos(Pos1, 1),
+            {Rest2, Pos2, Args} = ephp_parser_func:call_args(Rest1, NPos1, []),
+            {Rest2, copy_level(Pos, Pos2),
+             [add_line(#call{name = Acc, args = Args}, Pos1)]};
+        {Rest1, Pos1} ->
+            {Rest1, copy_level(Pos, Pos1), [Acc]}
+    end;
 accessor(<<>>, Pos, Parsed) ->
     {<<>>, Pos, Parsed};
 accessor(_Rest, Pos, []) ->

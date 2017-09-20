@@ -946,8 +946,12 @@ resolve(#call{type = class, class = Name, line = Index} = Call,
                               {Name, Call#call.name}})
     end;
 
-resolve({object, Idx, Line}, State) ->
+resolve({object, Idx, Line}, State) when is_binary(Idx) ->
     {{object, Idx, Line}, State};
+
+resolve({object, IdxToProcess, Line}, State) ->
+    {Idx, NState} = resolve(IdxToProcess, State),
+    {{object, Idx, Line}, NState};
 
 resolve(#instance{name = ClassName} = I, State) when not is_binary(ClassName) ->
     {RClassName, NState} = resolve(ClassName, State),
@@ -1256,6 +1260,11 @@ zip_args(ValArgs, FuncArgs) ->
             {Res, []}
     end, {[], ValArgs}, FuncArgs),
     Result.
+
+run_method(RegInstance, #call{name = Name} = Call, State)
+        when not is_binary(Name) ->
+    {<<RealName/binary>>, NewState} = resolve(Name, State),
+    run_method(RegInstance, Call#call{name = RealName}, NewState);
 
 run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call,
            #state{ref = Ref, const = Const, vars = Vars,

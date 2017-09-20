@@ -778,9 +778,12 @@ gen_op([#constant{name = <<"continue">>}, #int{int=I}], []) ->
     [{continue, I}];
 gen_op([{<<"->">>,{_,_},Pos}|Rest], [B,#variable{idx=Idx}=A|Stack]) ->
     Object = case B of
-        #constant{name=Name} -> add_line({object, Name}, Pos);
+        #int{int = I} -> add_line({object, ephp_data:to_bin(I)}, Pos);
+        #float{float = F} -> add_line({object, ephp_data:to_bin(F)}, Pos);
+        #constant{name = Name} -> add_line({object, Name}, Pos);
         #variable{} -> add_line({object, B}, Pos);
         #call{} -> add_line({object, B}, Pos);
+        #text_to_process{} -> add_line({object, B}, Pos);
         _ -> throw_error(eparse, Pos,
                          {<<"`\"identifier (T_STRING)\"' or "
                             "`\"variable (T_VARIABLE)\"' or "
