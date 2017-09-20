@@ -206,7 +206,7 @@ code(<<W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>, Pos, Parsed)
     code(Rest1, copy_level(Pos,Pos1), NewParsed);
 code(<<D:8,O:8,SP:8,Rest/binary>>, Pos, Parsed)
         when ?OR(D,$d,$D) andalso ?OR(O,$o,$O) andalso
-        (?IS_SPACE(SP) orelse ?OR(SP,${,$:)) ->
+        (?IS_SPACE(SP) orelse ?OR(SP,${,$:) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Pos0, [DoWhile]} = st_do_while(Rest, add_pos(Pos,3), []),
     code(Rest0, copy_level(Pos,Pos0), [DoWhile|Parsed]);
 code(<<F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>, Pos, Parsed)

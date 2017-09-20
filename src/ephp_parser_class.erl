@@ -11,23 +11,24 @@
     add_pos/2, new_line/1, remove_spaces/2
 ]).
 
-st_interface(<<SP:8,Rest/binary>>, Pos, Interface) when ?IS_SPACE(SP) ->
+st_interface(<<SP:8, Rest/binary>>, Pos, Interface) when ?IS_SPACE(SP) ->
     st_interface(Rest, add_pos(Pos, 1), Interface);
-st_interface(<<SP:8,Rest/binary>>, Pos, Interface) when ?IS_NEWLINE(SP) ->
+st_interface(<<SP:8, Rest/binary>>, Pos, Interface) when ?IS_NEWLINE(SP) ->
     st_interface(Rest, new_line(Pos), Interface);
 st_interface(<<A:8, Rest/binary>>, Pos, #class{name=undefined}=I)
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, Name} =
         ephp_parser_func:funct_name(<<A:8, Rest/binary>>, Pos, []),
-    st_interface(Rest0, Pos0, I#class{name=Name});
-st_interface(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Pos, Interface) when
-        ?OR(E,$E,$e) andalso ?OR(X,$X,$x) andalso ?OR(T,$T,$t) andalso
-        ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso ?OR(S,$S,$s) andalso
-        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    {Rest0, Pos0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Pos, 5)),
+    st_interface(Rest0, Pos0, I#class{name = Name});
+st_interface(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Pos,
+             Interface) when ?OR(E,$E,$e) andalso ?OR(X,$X,$x) andalso
+                             ?OR(T,$T,$t) andalso ?OR(N,$N,$n) andalso
+                             ?OR(D,$D,$d) andalso ?OR(S,$S,$s) andalso
+                             (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Pos0} = remove_spaces(<<SP:8, Rest/binary>>, add_pos(Pos, 5)),
     {Rest1, Pos1, Extends} = ephp_parser_func:funct_name(Rest0, Pos0, []),
     st_interface(Rest1, Pos1, Interface#class{extends = Extends});
-st_interface(<<"{",Rest/binary>>, Pos, Interface) ->
+st_interface(<<"{", Rest/binary>>, Pos, Interface) ->
     st_interface_content(Rest, normal_public_level(add_pos(Pos, 1)), Interface).
 
 st_class(<<SP:8,Rest/binary>>, Pos, Class) when ?IS_SPACE(SP) ->
@@ -94,6 +95,13 @@ st_interface_content(<<P:8,R:8,O:8,T:8,E:8,C:8,T:8,E:8,D:8,SP:8,Rest/binary>>,
         ?OR(D,$D,$d) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     st_interface_content(<<SP:8, Rest/binary>>, protected_level(add_pos(Pos, 9)),
                          Interface);
+st_interface_content(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>,
+                     Pos, Class) when
+        ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso ?OR(A,$A,$a) andalso
+        ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    st_interface_content(<<SP:8,Rest/binary>>, static_level(add_pos(Pos,6)),
+                         Class);
 st_interface_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
                      {{RawAccess, Type, Final}, _, _} = Pos,
                      #class{methods = Methods} = Interface) when
