@@ -961,7 +961,8 @@ add_line(#cast{}=Cs, {_,R,C}) -> Cs#cast{line={{line,R},{column,C}}};
 add_line(#throw{}=T, {_,R,C}) -> T#throw{line={{line,R},{column,C}}};
 add_line(#try_catch{}=T, {_,R,C}) -> T#try_catch{line={{line,R},{column,C}}};
 add_line(#catch_block{}=B, {_,R,C}) -> B#catch_block{line={{line,R},{column,C}}};
-add_line(#clone{}=L, {_,R,C}) -> L#clone{line={{line,R},{column,C}}}.
+add_line(#clone{}=L, {_,R,C}) -> L#clone{line={{line,R},{column,C}}};
+add_line(#command{}=Co, {_,R,C}) -> Co#command{line={{line,R},{column,C}}}.
 
 remove_spaces(<<SP:8, Rest/binary>>, Pos) when ?IS_SPACE(SP) ->
     remove_spaces(Rest, add_pos(Pos, 1));

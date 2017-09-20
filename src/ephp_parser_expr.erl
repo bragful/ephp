@@ -448,7 +448,7 @@ expression(<<".", A:8, _/binary>> = Rest, Pos, Parsed) when ?IS_NUMBER(A) ->
     expression(Rest0, copy_level(Pos, Pos0), add_op(Number, Parsed));
 % STRING
 expression(<<A:8,_/binary>> = Rest, Pos, Parsed) when
-        A =:= $" orelse A =:= $' ->
+        A =:= $" orelse A =:= $' orelse A =:= $` ->
     {Rest0, Pos0, String} = ephp_parser_string:string(Rest, Pos, []),
     expression(Rest0, Pos0, add_op(String, Parsed));
 % HEREDOC & NOWDOC

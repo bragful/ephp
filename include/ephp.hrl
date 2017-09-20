@@ -47,7 +47,8 @@
     ephp_lib_class,
     ephp_lib_error,
     ephp_lib_pcre,
-    ephp_lib_spl
+    ephp_lib_spl,
+    ephp_lib_exec
 ]).
 
 -define(E_ERROR, 1).
@@ -247,6 +248,11 @@
 }).
 
 -record(text_to_process, {
+    text :: [expression() | variable() | binary()],
+    line :: line()
+}).
+
+-record(command, {
     text :: [expression() | variable() | binary()],
     line :: line()
 }).
