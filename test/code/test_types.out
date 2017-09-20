@@ -4,6 +4,10 @@ NULL
  => is NULL
 int(10)
  => is integer
+int(10)
+ => is integer
+float(5.5)
+ => is double
 float(5.5)
  => is double
 string(5) "hello"
@@ -19,11 +23,11 @@ float(NAN)
 float(INF)
  => is double
 
-Notice: Use of undefined constant nan - assumed 'nan' in {{CWD}}/test/code/test_types.php on line 21
+Notice: Use of undefined constant nan - assumed 'nan' in {{CWD}}/test/code/test_types.php on line 23
 string(3) "nan"
  => is string
 
-Notice: Use of undefined constant inf - assumed 'inf' in {{CWD}}/test/code/test_types.php on line 22
+Notice: Use of undefined constant inf - assumed 'inf' in {{CWD}}/test/code/test_types.php on line 24
 string(3) "inf"
  => is string
 '10' == 10 (OK)
