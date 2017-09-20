@@ -654,8 +654,7 @@ constant_wait(<<"::$", Rest/binary>>, Pos, [#constant{} = C]) ->
     NewPos = arg_level(add_pos(Pos, 2)),
     {Rest1, Pos1, [Var]} = variable(<<"$", Rest/binary>>, NewPos, []),
     NewVar = Var#variable{type = class, class = C#constant.name},
-    {Rest2, Pos2, Exp} = expression(Rest1, Pos1, add_op(NewVar, [])),
-    {Rest2, copy_level(Pos, Pos2), [Exp]};
+    {Rest1, copy_level(Pos, Pos1), [NewVar]};
 constant_wait(<<"::",Rest/binary>>, Pos, [#constant{}=Cons]) ->
     case constant(Rest, add_pos(Pos,2), []) of
         {Rest1, Pos1, [#constant{name = <<"class">>}]} ->

@@ -392,12 +392,14 @@ expression(<<A:8,_/binary>> = Rest, {L,_,_}=Pos, Parsed)
         when not is_number(L) andalso (A =:= $) orelse A =:= $;) ->
     {Rest, Pos, add_op('end', Parsed)};
 % FOREACH DATA
-expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos,
+expression(<<A:8,S:8,SP:8,_/binary>> = Rest, {foreach_block,_,_} = Pos,
            [{op,_},#if_block{}|_])
-        when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
+        when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) andalso
+        not (?IS_ALPHANUM(SP) orelse SP =:= $_ orelse SP =:= $() ->
     throw_error(eparse, Pos, Rest);
-expression(<<A:8,S:8,_/binary>> = Rest, {foreach_block,_,_}=Pos, Parsed)
-        when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) ->
+expression(<<A:8,S:8,SP:8,_/binary>> = Rest, {foreach_block,_,_} = Pos, Parsed)
+        when ?OR(A,$a,$A) andalso ?OR(S,$s,$S) andalso
+        not (?IS_ALPHANUM(SP) orelse SP =:= $_ orelse SP =:= $() ->
     {Rest, Pos, add_op('end', Parsed)};
 % FINAL -parens-
 expression(<<")",_/binary>> = Rest, {L,_Row,_Col}=Pos, [{op,_},#if_block{}|_])
