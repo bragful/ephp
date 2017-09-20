@@ -143,7 +143,7 @@ funct_args(<<"#", Rest/binary>>, Pos, Parsed) ->
 funct_args(<<"/*", Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, _} = ephp_parser:comment_block(Rest, Pos, Parsed),
     funct_args(Rest0, Pos0, Parsed);
-funct_args(<<"&",Rest/binary>>, Pos, Parsed) ->
+funct_args(<<"&", Rest/binary>>, Pos, Parsed) ->
     {Rest0, Pos0, [Var|Parsed0]} = funct_args(Rest, Pos, Parsed),
     {Rest0, Pos0, [add_line(#ref{var=Var}, Pos)|Parsed0]};
 funct_args(<<",",Rest/binary>>, Pos, Parsed) ->
@@ -154,18 +154,14 @@ funct_args(<<A:8,_/binary>> = Rest, Pos, Parsed)
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Pos0, [#constant{name = Constant}]} =
         ephp_parser:constant(Rest, Pos, []),
-    {Rest1, Pos1, [Var]} = variable(Rest0, Pos0, []),
-    case remove_spaces(Rest1, Pos1) of
-        {<<"=",Rest2/binary>>, Pos2} ->
-            NewPos = arg_level(add_pos(Pos2, 1)),
-            {Rest3, Pos3, Default} =
-                ephp_parser_expr:expression(Rest2, NewPos, []),
-            NewVar = Var#variable{default_value = Default,
-                                  data_type = Constant},
-            funct_args(Rest3, copy_level(Pos, Pos3), [NewVar|Parsed]);
-        {Rest2, Pos2} ->
+    {Rest1, Pos1, Vars} = funct_args(Rest0, Pos0, []),
+    case Vars of
+        [#ref{var = Var} = Ref|RestVars] ->
+            NewRef = Ref#ref{var = Var#variable{data_type = Constant}},
+            {Rest1, Pos1, Parsed ++ [NewRef] ++ RestVars};
+        [#variable{} = Var|RestVars] ->
             NewVar = Var#variable{data_type = Constant},
-            funct_args(Rest2, add_pos(Pos2, 1), [NewVar|Parsed])
+            {Rest1, Pos1, Parsed ++ [NewVar] ++ RestVars}
     end;
 funct_args(<<"$",_/binary>> = Rest, Pos, Parsed) ->
     {Rest0, Pos0, [Var]} = variable(Rest, Pos, []),
