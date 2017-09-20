@@ -6,3 +6,4 @@ cobertura.xml
 _build/
 request_ets
 .build_date
+tmp
