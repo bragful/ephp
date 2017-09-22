@@ -34,7 +34,7 @@ gettype(Value) when is_float(Value) -> <<"float">>;
 gettype(Value) when is_binary(Value) -> <<"string">>;
 gettype(Value) when ?IS_ARRAY(Value) -> <<"array">>;
 gettype(Value) when ?IS_OBJECT(Value) -> <<"object">>;
-gettype(Value) when is_pid(Value) -> <<"resource">>;
+gettype(Value) when ?IS_RESOURCE(Value) -> <<"resource">>;
 gettype(Value) when ?IS_FUNCTION(Value) -> <<"object">>;
 gettype(undefined) -> <<"NULL">>;
 gettype(infinity) -> <<"float">>;
