@@ -10,29 +10,6 @@
 %%      Array2 = ephp_array:store(auto, <<"bye!">>).
 %%      ArrayN = ephp_array:from_list([1, 2, 3, 4, 5]).
 %%      ]]></pre>
-%%
-%%      It's possible to link the actions on the array to a specific module
-%%      and function. This is useful to get the updates for an array in
-%%      real-time.
-%%
-%%      The message received are the followings:
-%%
-%%      <ul>
-%%      <li>`[Array, {retrieve, Key}]' get the information from
-%%          the backend.</li>
-%%      <li>`[Array, {add, Key, Value}]' add the key with the value for the
-%%          array in the backend.</li>
-%%      <li>`[Array, {update, Key, Value}]' change the value for the key in
-%%          the array in the backend.</li>
-%%      <li>`[Array, {remove, Key}]' removes the value for the key from the
-%%          array in the backend.</li>
-%%      <li>`[Array, {map, Fun}]' run the map function for the array in the
-%%          backend.</li>
-%%      <li>`[Array, {fold, Fun, Initial}]' run the fold function for the
-%%          array in the backend.</li>
-%%      <li>`[Array, to_list]' transfor the array in a property list from
-%%          the array.</li>
-%%      </ul>
 %% @end
 -module(ephp_array).
 -author('manuel@altenwald.com').
@@ -42,7 +19,6 @@
 
 -export([
     new/0,
-    new/3,
     size/1,
     find/2,
     find/3,
@@ -66,14 +42,6 @@
 new() -> #ephp_array{}.
 
 
--spec new(module(), function(), [any()]) -> ephp_array().
-%% @doc creates an empty PHP Array structure linked to a module and
-%%      function. To handle the internal information.
-%% @end
-new(Module, Function, Args) ->
-    #ephp_array{trigger = {Module, Function, Args}}.
-
-
 -spec size(ephp_array()) -> non_neg_integer().
 %% @doc retrieve the size of the array.
 size(#ephp_array{size=Size}) -> Size.
@@ -81,14 +49,11 @@ size(#ephp_array{size=Size}) -> Size.
 
 -spec find(mixed(), ephp_array()) -> {ok, mixed()} | error.
 %% @doc finds an element by the key passed as a param.
-find(Key, #ephp_array{values=Values, trigger=undefined}) ->
+find(Key, #ephp_array{values=Values}) ->
     case lists:keyfind(Key, 1, Values) of
         {Key, Value} -> {ok, Value};
         false -> error
-    end;
-
-find(Key, #ephp_array{trigger={Module,Function,Args}}=Array) ->
-    apply(Module, Function, Args ++ [Array, {retrieve, Key}]).
+    end.
 
 
 -spec find(mixed(), ephp_array(), mixed()) -> mixed().
@@ -109,69 +74,56 @@ find(Key, Array, Default) ->
 %% @end
 store(auto, Value,
       #ephp_array{last_num_index = Key, values = Values} = Array) ->
-    report(Array#ephp_array{
+    Array#ephp_array{
         last_num_index = Key + 1,
         values = Values ++ [{Key, Value}],
         size = Array#ephp_array.size + 1
-    }, {add, Key, Value});
+    };
 
 store(Key, Value, #ephp_array{last_num_index = Last, values = Values} = Array)
         when is_integer(Key) andalso Key >= 0
         andalso Last =< Key ->
-    report(Array#ephp_array{
+    Array#ephp_array{
         last_num_index = Key + 1,
         values = Values ++ [{Key, Value}],
         size = Array#ephp_array.size + 1
-    }, {add, Key, Value});
+    };
 
 store(Key, Value, #ephp_array{values = Values} = Array) ->
     case lists:keyfind(Key, 1, Values) =/= false of
         true ->
             NewValues = lists:keyreplace(Key, 1, Values, {Key, Value}),
-            Action = update,
             Size = Array#ephp_array.size;
         false ->
             NewValues = Values ++ [{Key, Value}],
-            Action = add,
             Size = Array#ephp_array.size + 1
     end,
-    report(Array#ephp_array{
-        values = NewValues,
-        size = Size
-    }, {Action, Key, Value}).
+    Array#ephp_array{values = NewValues, size = Size}.
 
 
 -spec erase(mixed(), ephp_array()) -> ephp_array().
 %% @doc removes an element from the array given the index.
 erase(Key, #ephp_array{values=Values}=Array) ->
     NewValues = lists:keydelete(Key, 1, Values),
-    report(Array#ephp_array{
+    Array#ephp_array{
         values = NewValues,
         size = length(NewValues)
-    }, {remove, Key}).
+    }.
 
 
 -spec map(function(), ephp_array()) -> ephp_array().
 %% @doc performs a map action on all of the elemnts in the array.
-map(Fun, #ephp_array{values = Values, trigger = undefined} = Array) ->
+map(Fun, #ephp_array{values = Values} = Array) ->
     NewValues = lists:map(fun({K, V}) -> Fun(K, V) end, Values),
-    Array#ephp_array{values = NewValues};
-
-map(Fun, #ephp_array{trigger = {Module, Function, Args}} = Array) ->
-    NewFun = fun({K, V}) -> Fun(K, V) end,
-    apply(Module, Function, Args ++ [Array, {map, NewFun}]).
+    Array#ephp_array{values = NewValues}.
 
 
 -spec fold(function(), mixed(), ephp_array()) -> mixed().
 %% @doc performs a fold on all of the elements in the array given an initial
 %%      value and changing that value in each element.
 %% @end
-fold(Fun, Initial, #ephp_array{values = Values, trigger = undefined}) ->
-    lists:foldl(fun({K, V}, Acc) -> Fun(K, V, Acc) end, Initial, Values);
-
-fold(Fun, Initial, #ephp_array{trigger = {Module, Function, Args}} = Array) ->
-    NewFun = fun({K, V}, Acc) -> Fun(K, V, Acc) end,
-    apply(Module, Function, Args ++ [Array, {fold, NewFun, Initial}]).
+fold(Fun, Initial, #ephp_array{values = Values}) ->
+    lists:foldl(fun({K, V}, Acc) -> Fun(K, V, Acc) end, Initial, Values).
 
 
 -spec from_list([mixed()]) -> ephp_array().
@@ -189,11 +141,8 @@ from_list(List) when is_list(List) ->
 
 -spec to_list(ephp_array()) -> [mixed()].
 %% @doc transform a PHP Array to a property list.
-to_list(#ephp_array{values = Values, trigger = undefined}) ->
-    Values;
-
-to_list(#ephp_array{trigger = {Module, Function, Args}} = Array) ->
-    apply(Module, Function, Args ++ [Array, to_list]).
+to_list(#ephp_array{values = Values}) ->
+    Values.
 
 
 -spec first(ephp_array()) -> {ok, mixed(), ephp_array()} | {error, empty}.
@@ -262,18 +211,3 @@ current(#ephp_array{cursor = Cursor, values = Values}) ->
 %% @doc set the cursor for an array.
 cursor(#ephp_array{} = Array, Cursor) ->
     Array#ephp_array{cursor = Cursor}.
-
-%% -----------------------------------------------------------------------------
-%% Internal functions
-%% -----------------------------------------------------------------------------
-
--type action() :: {add | update, Key :: mixed(), Value :: mixed()} |
-                  {remote, Key :: mixed()}.
-
--spec report(ephp_array(), action()) -> ephp_array().
-%% @hidden
-report(#ephp_array{trigger = undefined} = Array, _) ->
-    Array;
-
-report(#ephp_array{trigger = {Module, Function, Args}} = Array, Action) ->
-    apply(Module, Function, Args ++ [Array, Action]).

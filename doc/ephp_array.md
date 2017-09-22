@@ -24,42 +24,13 @@ An example for the use of this module:
        Array2 = ephp_array:store(auto, <<"bye!">>).
        ArrayN = ephp_array:from_list([1, 2, 3, 4, 5]).
 ```
-
-It's possible to link the actions on the array to a specific module
-and function. This is useful to get the updates for an array in
-real-time.
-
-The message received are the followings:
-
-* `[Array, {retrieve, Key}]` get the information from
-the backend.
-
-* `[Array, {add, Key, Value}]` add the key with the value for the
-array in the backend.
-
-* `[Array, {update, Key, Value}]` change the value for the key in
-the array in the backend.
-
-* `[Array, {remove, Key}]` removes the value for the key from the
-array in the backend.
-
-* `[Array, {map, Fun}]` run the map function for the array in the
-backend.
-
-* `[Array, {fold, Fun, Initial}]` run the fold function for the
-array in the backend.
-
-* `[Array, to_list]` transfor the array in a property list from
-the array.
-
 <a name="index"></a>
 
 ## Function Index ##
 
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#current-1">current/1</a></td><td>retrieves the element under the cursor.</td></tr><tr><td valign="top"><a href="#cursor-2">cursor/2</a></td><td>set the cursor for an array.</td></tr><tr><td valign="top"><a href="#erase-2">erase/2</a></td><td>removes an element from the array given the index.</td></tr><tr><td valign="top"><a href="#find-2">find/2</a></td><td>finds an element by the key passed as a param.</td></tr><tr><td valign="top"><a href="#find-3">find/3</a></td><td>finds an element by the passed as a param.</td></tr><tr><td valign="top"><a href="#first-1">first/1</a></td><td>moves the cursor to the begin of the array and retrieves that element.</td></tr><tr><td valign="top"><a href="#fold-3">fold/3</a></td><td>performs a fold on all of the elements in the array given an initial
-value and changing that value in each element.</td></tr><tr><td valign="top"><a href="#from_list-1">from_list/1</a></td><td>transform the list passed as param in a PHP Array.</td></tr><tr><td valign="top"><a href="#last-1">last/1</a></td><td>moves the cursor to the end of the array and retrieves that element.</td></tr><tr><td valign="top"><a href="#map-2">map/2</a></td><td>performs a map action on all of the elemnts in the array.</td></tr><tr><td valign="top"><a href="#new-0">new/0</a></td><td>creates an empty PHP Array structure.</td></tr><tr><td valign="top"><a href="#new-3">new/3</a></td><td>creates an empty PHP Array structure linked to a module and
-function.</td></tr><tr><td valign="top"><a href="#next-1">next/1</a></td><td>moves the cursor the to next element and retrieves that element.</td></tr><tr><td valign="top"><a href="#prev-1">prev/1</a></td><td>moves the cursor to the previous element and retrieves that element.</td></tr><tr><td valign="top"><a href="#size-1">size/1</a></td><td>retrieve the size of the array.</td></tr><tr><td valign="top"><a href="#store-3">store/3</a></td><td>stores a new element given a key and a value.</td></tr><tr><td valign="top"><a href="#to_list-1">to_list/1</a></td><td>transform a PHP Array to a property list.</td></tr></table>
+value and changing that value in each element.</td></tr><tr><td valign="top"><a href="#from_list-1">from_list/1</a></td><td>transform the list passed as param in a PHP Array.</td></tr><tr><td valign="top"><a href="#last-1">last/1</a></td><td>moves the cursor to the end of the array and retrieves that element.</td></tr><tr><td valign="top"><a href="#map-2">map/2</a></td><td>performs a map action on all of the elemnts in the array.</td></tr><tr><td valign="top"><a href="#new-0">new/0</a></td><td>creates an empty PHP Array structure.</td></tr><tr><td valign="top"><a href="#next-1">next/1</a></td><td>moves the cursor the to next element and retrieves that element.</td></tr><tr><td valign="top"><a href="#prev-1">prev/1</a></td><td>moves the cursor to the previous element and retrieves that element.</td></tr><tr><td valign="top"><a href="#size-1">size/1</a></td><td>retrieve the size of the array.</td></tr><tr><td valign="top"><a href="#store-3">store/3</a></td><td>stores a new element given a key and a value.</td></tr><tr><td valign="top"><a href="#to_list-1">to_list/1</a></td><td>transform a PHP Array to a property list.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -188,18 +159,6 @@ new() -&gt; <a href="#type-ephp_array">ephp_array()</a>
 <br />
 
 creates an empty PHP Array structure.
-
-<a name="new-3"></a>
-
-### new/3 ###
-
-<pre><code>
-new(Module::module(), Function::function(), Args::[any()]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
-</code></pre>
-<br />
-
-creates an empty PHP Array structure linked to a module and
-function. To handle the internal information.
 
 <a name="next-1"></a>
 

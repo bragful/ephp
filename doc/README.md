@@ -103,6 +103,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp_lib_control.md" class="module">ephp_lib_control</a></td></tr>
 <tr><td><a href="ephp_lib_date.md" class="module">ephp_lib_date</a></td></tr>
 <tr><td><a href="ephp_lib_error.md" class="module">ephp_lib_error</a></td></tr>
+<tr><td><a href="ephp_lib_exec.md" class="module">ephp_lib_exec</a></td></tr>
 <tr><td><a href="ephp_lib_file.md" class="module">ephp_lib_file</a></td></tr>
 <tr><td><a href="ephp_lib_func.md" class="module">ephp_lib_func</a></td></tr>
 <tr><td><a href="ephp_lib_info.md" class="module">ephp_lib_info</a></td></tr>
