@@ -48,6 +48,7 @@ start_link() ->
     erlang:put(resource_next_id, 1),
     ok.
 
+
 -spec get_res_id(resource()) -> integer().
 %% @doc obtains the resource ID given a resource as param.
 get_res_id(#resource{id = ID}) ->

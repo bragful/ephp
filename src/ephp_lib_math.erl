@@ -33,10 +33,29 @@
     pi/2,
     php_max/4,
     php_min/4,
-    php_exp/3
+    php_exp/3,
+    php_log/4
 ]).
 
 -include("ephp.hrl").
+
+-define(M_PI, 3.14159265358979323846).
+-define(M_E, 2.7182818284590452354).
+-define(M_LOG2E, 1.4426950408889634074).
+-define(M_LOG10E, 0.43429448190325182765).
+-define(M_LN2, 0.69314718055994530942).
+-define(M_LN10, 2.30258509299404568402).
+-define(M_PI_2, 1.57079632679489661923).
+-define(M_PI_4, 0.78539816339744830962).
+-define(M_1_PI, 0.31830988618379067154).
+-define(M_2_PI, 0.63661977236758134308).
+-define(M_QSRTPI, 1.77245385090551602729).
+-define(M_2_SQRTPI, 1.12837916709551257390).
+-define(M_SQRT2, 1.41421356237309504880).
+-define(M_SQRT3, 1.73205080756887729352).
+-define(M_SQRT1_2, 0.70710678118654752440).
+-define(M_LNPI, 1.14472988584940017414).
+-define(M_EULER, 0.57721566490153286061).
 
 -spec init_func() -> ephp_func:php_function_results().
 
@@ -64,6 +83,7 @@ init_func() -> [
     {php_tan, [{args, [double]}, {alias, <<"tan">>}]},
     {php_tanh, [{args, [double]}, {alias, <<"tanh">>}]},
     {php_pow, [{alias, <<"pow">>}]},
+    {php_log, [{args, [double, {double, ?M_E}]}, {alias, <<"log">>}]},
     base_convert,
     pi
 ].
@@ -77,23 +97,23 @@ init_config() -> [
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [
-    {<<"M_PI">>, 3.14159265358979323846},
-    {<<"M_E">>, 2.7182818284590452354},
-    {<<"M_LOG2E">>, 1.4426950408889634074},
-    {<<"M_LOG10E">>, 0.43429448190325182765},
-    {<<"M_LN2">>, 0.69314718055994530942},
-    {<<"M_LN10">>, 2.30258509299404568402},
-    {<<"M_PI_2">>, 1.57079632679489661923},
-    {<<"M_PI_4">>, 0.78539816339744830962},
-    {<<"M_1_PI">>, 0.31830988618379067154},
-    {<<"M_2_PI">>, 0.63661977236758134308},
-    {<<"M_QSRTPI">>, 1.77245385090551602729},
-    {<<"M_2_SQRTPI">>, 1.12837916709551257390},
-    {<<"M_SQRT2">>, 1.41421356237309504880},
-    {<<"M_SQRT3">>, 1.73205080756887729352},
-    {<<"M_SQRT1_2">>, 0.70710678118654752440},
-    {<<"M_LNPI">>, 1.14472988584940017414},
-    {<<"M_EULER">>, 0.57721566490153286061},
+    {<<"M_PI">>, ?M_PI},
+    {<<"M_E">>, ?M_E},
+    {<<"M_LOG2E">>, ?M_LOG2E},
+    {<<"M_LOG10E">>, ?M_LOG10E},
+    {<<"M_LN2">>, ?M_LN2},
+    {<<"M_LN10">>, ?M_LN10},
+    {<<"M_PI_2">>, ?M_PI_2},
+    {<<"M_PI_4">>, ?M_PI_4},
+    {<<"M_1_PI">>, ?M_1_PI},
+    {<<"M_2_PI">>, ?M_2_PI},
+    {<<"M_QSRTPI">>, ?M_QSRTPI},
+    {<<"M_2_SQRTPI">>, ?M_2_SQRTPI},
+    {<<"M_SQRT2">>, ?M_SQRT2},
+    {<<"M_SQRT3">>, ?M_SQRT3},
+    {<<"M_SQRT1_2">>, ?M_SQRT1_2},
+    {<<"M_LNPI">>, ?M_LNPI},
+    {<<"M_EULER">>, ?M_EULER},
     {<<"PHP_ROUND_HALF_UP">>, 1},
     {<<"PHP_ROUND_HALF_DOWN">>, 2},
     {<<"PHP_ROUND_HALF_EVEN">>, 3},
@@ -260,6 +280,14 @@ php_pow(Context, Line, {_, Base}, {_, Power}) ->
     B = get_pow_value(Context, Line, Base),
     P = get_pow_value(Context, Line, Power),
     math:pow(B, P).
+
+-spec php_log(context(), line(), var_value(), var_value()) -> float().
+
+php_log(_Context, _Line, {_, X}, {_, X}) ->
+    1.0;
+php_log(_Context, _Line, {_, X}, {_, B}) when B > 0 ->
+    math:log(X) / math:log(B).
+
 
 base_convert_error(Context, Line, ArgNum, ArgData) ->
     Level = ?E_WARNING,

@@ -232,6 +232,9 @@ to_bin(infinity) -> <<"INF">>;
 
 to_bin(undefined) -> <<>>;
 
+%% FIXME looks like the closures are numbered and __toString gives:
+to_bin(#function{}) -> <<"lambda_1">>;
+
 to_bin(MemRef) when ?IS_MEM(MemRef) -> to_bin(ephp_mem:get(MemRef)).
 
 -spec to_bin(context(), line(), mixed()) -> binary().

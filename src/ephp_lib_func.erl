@@ -12,7 +12,8 @@
     get_defined_functions/2,
     function_exists/3,
     func_num_args/2,
-    call_user_func/3
+    call_user_func/3,
+    create_function/4
 ]).
 
 -include("ephp.hrl").
@@ -24,7 +25,8 @@ init_func() -> [
     get_defined_functions,
     function_exists,
     func_num_args,
-    {call_user_func, [pack_args]}
+    {call_user_func, [pack_args]},
+    {create_function, [{args, [string, string]}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -106,3 +108,11 @@ call_user_func(Context, _Line, [{_, Object}|Args]) when ?IS_OBJECT(Object) ->
     Call = #call{name = <<"__invoke">>, type = object, args = ArgVals},
     ephp_context:call_method(Context, Object, Call).
 
+-spec create_function(context(), line(), Args :: var_value(),
+                      Code :: var_value()) -> #function{}.
+
+create_function(_Context, {{line, Line}, _}, {_, Args}, {_, Code}) ->
+    Pos = {code, Line, 1},
+    {_, _, A} = ephp_parser_func:funct_args(<<Args/binary, ")">>, Pos, []),
+    {_, _, C} = ephp_parser:code(Code, Pos, []),
+    ephp_parser:add_line(#function{args = A, code = C}, Pos).
