@@ -300,7 +300,7 @@ chunk(Array, N, PrKeys) ->
 
 unique([], Array, _Flags) ->
     Array;
-unique([{Key,Val}|Rest], Array, ?SORT_REGULAR) ->
+unique([{Key, Val}|Rest], Array, ?SORT_REGULAR) ->
     Check = fun({_, V}) ->
         ephp_data:is_equal(V, Val)
     end,
@@ -308,14 +308,17 @@ unique([{Key,Val}|Rest], Array, ?SORT_REGULAR) ->
         true -> unique(Rest, Array, ?SORT_REGULAR);
         false -> unique(Rest, Array ++ [{Key, Val}], ?SORT_REGULAR)
     end;
-unique([{Key,Val}|Rest], Array, ?SORT_NUMERIC) ->
+unique([{Key, Val}|Rest], Array, ?SORT_NUMERIC) ->
     NumArray = [ {K, ephp_data:to_number(V)} || {K, V} <- Array ],
     NumVal = ephp_data:to_number(Val),
-    case lists:keyfind(NumVal, 2, NumArray) of
-        {_, NumVal} -> unique(Rest, Array, ?SORT_NUMERIC);
+    Check = fun({_, V}) ->
+        V == NumVal
+    end,
+    case lists:any(Check, NumArray) of
+        true -> unique(Rest, Array, ?SORT_NUMERIC);
         false -> unique(Rest, Array ++ [{Key, Val}], ?SORT_NUMERIC)
     end;
-unique([{Key,Val}|Rest], Array, _Flags) ->
+unique([{Key, Val}|Rest], Array, _Flags) ->
     StrArray = [ {K, ephp_data:to_bin(V)} || {K, V} <- Array ],
     StrVal = ephp_data:to_bin(Val),
     case lists:keyfind(StrVal, 2, StrArray) of

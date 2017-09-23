@@ -64,14 +64,20 @@ is_equal(A, B) ->
                    (binary(), Force :: false) -> integer() | float() | undefined.
 
 bin_to_number(Bin, Force) ->
-    {ok, R} = re:compile("^[+-]?[0-9]*(\\.[0-9]+(e[+-]?[1-9][0-9]*)?)?"),
+    RE = "^([+-])?((\\.)[0-9]+|[0-9]+(\\.)[0-9]+|[0-9]+)(e[+-]?[1-9][0-9]*)?",
+    {ok, R} = re:compile(RE),
     case re:run(Bin, R, [{capture, all, binary}]) of
-        {match, [<<>>]} when Force -> 0;
-        {match, [<<>>]} -> undefined;
-        {match, [<<A:8>>]} when Force andalso (A =:= $+ orelse A =:= $-) -> 0;
-        {match, [<<A:8>>]} when A =:= $+ orelse A =:= $- -> undefined;
-        {match, [Num]} -> binary_to_integer(Num);
-        {match, [Num|_]} -> binary_to_float(Num)
+        nomatch when Force -> 0;
+        nomatch -> undefined;
+        {match, [_, Sign, Num]} ->
+            binary_to_integer(<<Sign/binary, Num/binary>>);
+        {match, [_, Sign, Num, P1, P2]} when P1 =:= <<".">>
+                                      orelse P2 =:= <<".">> ->
+            binary_to_float(<<Sign/binary, "0", Num/binary>>);
+        {match, [_, Sign, Num, <<>>, <<>>, Exp]} ->
+            binary_to_float(<<Sign/binary, Num/binary, ".0", Exp/binary>>);
+        {match, [_, Sign, Num, _P1, _P2, Exp]} ->
+            binary_to_float(<<Sign/binary, "0", Num/binary, Exp/binary>>)
     end.
 
 -spec bin_to_number(binary()) -> integer() | float().
