@@ -133,7 +133,7 @@ eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
 -spec eval(Filename :: binary(), context(), PHP :: string() | binary()) ->
-    {ok, Result :: binary()} | {error, reason()} |
+    {ok, Result :: binary()} |
     {error, reason(), line(), File::binary(), error_level(), Data::any()}.
 %% @equiv eval/2
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
@@ -144,7 +144,7 @@ eval(Filename, Context, PHP) ->
         {error, eparse, Line, _ErrorLevel, Data} ->
             ephp_error:handle_error(Context, {error, eparse, Line,
                 Filename, ?E_PARSE, Data}),
-            {error, eparse};
+            {error, eparse, Line, Filename, ?E_PARSE, Data};
         Compiled ->
             Cover = ephp_cover:get_config(),
             ok = ephp_cover:init_file(Cover, Filename, Compiled),
@@ -233,9 +233,6 @@ main([Filename|_] = RawArgs) ->
                 stop_profiling(),
                 stop_cover(),
                 quit(0);
-            {error, _Reason} ->
-                stop_profiling(),
-                quit(1);
             {error, _Reason, _Index, _File, _Level, _Data} ->
                 stop_profiling(),
                 quit(1)

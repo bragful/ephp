@@ -55,7 +55,7 @@ uri() = binary()
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>close a stream given the schema and the resource previously opened.</td></tr><tr><td valign="top"><a href="#get_res_id-1">get_res_id/1</a></td><td>obtains the resource ID given a resource as param.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>open a stream given the schema, URI and options.</td></tr><tr><td valign="top"><a href="#parse_uri-1">parse_uri/1</a></td><td>parse the URI to separate in stream and the rest of the URI.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>request a read to the stream implementation.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>initilize the stream subsystem.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>request a write to the stream implementation.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>close a stream given the schema and the resource previously opened.</td></tr><tr><td valign="top"><a href="#get_res_id-1">get_res_id/1</a></td><td>obtains the resource ID given a resource as param.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>open a stream given the schema, URI and options.</td></tr><tr><td valign="top"><a href="#parse_uri-1">parse_uri/1</a></td><td>parse the URI to separate in stream and the rest of the URI.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor for the stream to the specified location.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>request a read to the stream implementation.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>initilize the stream subsystem.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>request a write to the stream implementation.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -84,6 +84,17 @@ get_res_id(Resource::<a href="#type-resource">resource()</a>) -&gt; integer()
 
 obtains the resource ID given a resource as param.
 
+<a name="is_eof-1"></a>
+
+### is_eof/1 ###
+
+<pre><code>
+is_eof(Resource::<a href="#type-resource">resource()</a>) -&gt; boolean() | {error, <a href="#type-reason">reason()</a>}
+</code></pre>
+<br />
+
+returns true if EOF is achieved by the file cursor or false otherwise.
+
 <a name="open-2"></a>
 
 ### open/2 ###
@@ -105,6 +116,17 @@ parse_uri(URL::binary()) -&gt; {<a href="#type-stream">stream()</a>, <a href="#t
 <br />
 
 parse the URI to separate in stream and the rest of the URI.
+
+<a name="position-2"></a>
+
+### position/2 ###
+
+<pre><code>
+position(Resource::<a href="#type-resource">resource()</a>, Location::<a href="file.md#type-location">file:location()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+</code></pre>
+<br />
+
+moves the cursor for the stream to the specified location.
 
 <a name="read-2"></a>
 

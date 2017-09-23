@@ -19,7 +19,7 @@ test:
 		-cover _build/test/cover/eunit.coverdata \
 		-appname ephp \
 		-output cobertura.xml > /dev/null
-	-rm -f .build_date request_ets cobertura_test.xml asc\:data
+	-rm -f .build_date cobertura_test.xml asc\:data
 
 ephp:
 	./rebar3 escriptize
