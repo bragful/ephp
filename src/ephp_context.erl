@@ -946,8 +946,9 @@ resolve(#call{type = class, class = Name, line = Index} = Call,
                               {Name, Call#call.name}})
     end;
 
-resolve({object, Idx, Line}, State) when is_binary(Idx) ->
-    {{object, Idx, Line}, State};
+resolve({object, Idx, _Line} = Object, State) when is_binary(Idx)
+                                            orelse is_record(Idx, call) ->
+    {Object, State};
 
 resolve({object, IdxToProcess, Line}, State) ->
     {Idx, NState} = resolve(IdxToProcess, State),
