@@ -25,7 +25,7 @@ init_func() -> [
     {preg_match, [{args, {2, 5, false, [string,
                                         string,
                                         {raw, ephp_array:new()},
-                                        {integer, ?PREG_OFFSET_CAPTURE},
+                                        {integer, 0},
                                         {integer, 0}]}}]},
     {preg_replace, [{args, {3, 5, undefined, [mixed, mixed, mixed,
                                               {integer, -1},
@@ -98,15 +98,19 @@ preg_match(_Context, _Line, {_,Pattern}, {_,Subject}, {undefined, _},
 preg_match(Context, _Line, {_,Pattern}, {_,Subject}, {VarMatches,_},
            {_, Flag}, {_, Offset}) ->
     {RegExp, Flags} = get_parts(Pattern),
-    PMFlags = [{capture, first, index}, {offset, Offset}],
+    PMFlags = [{capture, all, binary}, {offset, Offset}],
     ValMatches = case re:run(Subject, RegExp, Flags ++ PMFlags) of
-        {match, [{I,S}]} ->
-            <<_:I/binary,R:S/binary,_/binary>> = Subject,
+        {match, Matches} ->
             if
                 Flag =:= ?PREG_OFFSET_CAPTURE ->
-                    ephp_array:from_list([ephp_array:from_list([R, I])]);
+                    PMFlags2 = [{capture, all, index}, {offset, Offset}],
+                    {match, Idx} = re:run(Subject, RegExp, Flags ++ PMFlags2),
+                    Elements = lists:zipwith(fun({I,_}, Chunk) ->
+                        ephp_array:from_list([Chunk, I])
+                    end, Idx, Matches),
+                    ephp_array:from_list(Elements);
                 true ->
-                    ephp_array:from_list([R])
+                    ephp_array:from_list(Matches)
             end;
         nomatch ->
             ephp_array:new()
