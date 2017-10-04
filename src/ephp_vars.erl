@@ -11,7 +11,6 @@
 -export([
     start_link/0,
     clone/1,
-    get/2,
     get/3,
     set/4,
     isset/3,
@@ -36,9 +35,6 @@ clone(Vars) ->
     erlang:put(NewVars, erlang:get(Vars)),
     NewVars.
 
-get(Vars, VarPath) ->
-    get(Vars, VarPath, undefined).
-
 get(Vars, VarPath, Context) ->
     search(VarPath, erlang:get(Vars), Context, true).
 
@@ -50,7 +46,7 @@ set(Vars, VarPath, Value, Context) ->
     ok.
 
 ref(Vars, VarPath, VarsPID, RefVarPath, Context) ->
-    case get(VarsPID, RefVarPath) of
+    case search(RefVarPath, erlang:get(VarsPID), Context, false) of
         Value when ?IS_OBJECT(Value) orelse ?IS_MEM(Value) ->
             set(Vars, VarPath, Value, Context);
         Value when RefVarPath =/= global ->
@@ -313,7 +309,7 @@ search(#variable{name = Root, idx = [], line = Line, type = Type,
         {ok, #var_ref{ref = global}} ->
             Vars;
         {ok, #var_ref{pid = RefVarsPID, ref = RefVar}} ->
-            get(RefVarsPID, RefVar);
+            search(RefVar, erlang:get(RefVarsPID), Context, false);
         {ok, Value} ->
             Value
     end;
@@ -326,12 +322,11 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             search(Var#variable{name = NewRoot, idx = Idx}, Vars, Context, false);
         {ok, #var_ref{pid = RefVarsPID, ref = #variable{idx = NewIdx} = RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
-            get(RefVarsPID, NewRefVar);
+            search(NewRefVar, erlang:get(RefVarsPID), Context, false);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
             search(Var#variable{name = NewRoot, idx = Idx},
                    ephp_mem:get(MemRef), Context, false);
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
-            Classes = ephp_context:get_classes(Context),
             {object, ObjRoot, _} = NewRoot,
             NewObjVar = case ephp_context:get_active_class(Context) of
                 <<>> ->
@@ -350,6 +345,7 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                                       idx = Idx}
                     end;
                 ActiveClass ->
+                    Classes = ephp_context:get_classes(Context),
                     {ok, Class} = ephp_class:get(Classes, ActiveClass),
                     case ephp_class:get_attribute(Class, ObjRoot) of
                         #class_attr{access = private} ->

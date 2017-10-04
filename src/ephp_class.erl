@@ -43,7 +43,7 @@
     class_attr/4,
 
     init_static_value/5,
-    set_static/4,
+    set_static/5,
 
     instance_of/3,
 
@@ -684,13 +684,13 @@ init_static_value(Ref, ClassName, MethodName, VarName, Value) ->
             throw({error, enofunc})
     end.
 
-set_static(Ref, ClassName, MethodName, Vars) ->
+set_static(Ref, ClassName, MethodName, Vars, Context) ->
     {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
         #class_method{static = Static} = Method ->
             NewStatic = lists:map(fun({Key, _}) ->
                 %% TODO check behaviour when use unset
-                NewValue = ephp_vars:get(Vars, #variable{name = Key}),
+                NewValue = ephp_vars:get(Vars, #variable{name = Key}, Context),
                 {Key, NewValue}
             end, Static),
             NewMethod = Method#class_method{static = NewStatic},
@@ -701,7 +701,7 @@ set_static(Ref, ClassName, MethodName, Vars) ->
             NewClass = Class#class{methods = NewMethods},
             set(Ref, ClassName, NewClass);
         false when Class#class.extends =/= undefined ->
-            set_static(Ref, Class#class.extends, MethodName, Vars)
+            set_static(Ref, Class#class.extends, MethodName, Vars, Context)
     end,
     ok.
 

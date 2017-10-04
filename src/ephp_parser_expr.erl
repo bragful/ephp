@@ -773,6 +773,10 @@ gen_op([#variable{} = V, {<<"&">>, _, Pos}|Rest], []) ->
     gen_op(Rest, [add_line(#ref{var = V}, Pos)]);
 gen_op([#variable{} = V, {<<"&">>, _, Pos}, {<<"=">>, _, _} = A|Rest], Stack) ->
     gen_op([A|Rest], [add_line(#ref{var=V}, Pos)|Stack]);
+gen_op([#call{} = C, {<<"&">>, _, _Pos}|Rest], []) ->
+    gen_op(Rest, [C]);
+gen_op([#call{} = C, {<<"&">>, _, _Pos}, {<<"=">>, _, _} = A|Rest], Stack) ->
+    gen_op([A|Rest], [C|Stack]);
 gen_op([{<<"@">>,{right,_},{_,_,_}}|Rest], [A|Stack]) ->
     gen_op(Rest, [{silent, A}|Stack]);
 gen_op([{<<126>>,{_,_},{_,R,C}}|Rest], [A|Stack]) ->

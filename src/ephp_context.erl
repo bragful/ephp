@@ -441,6 +441,7 @@ resolve(#assign{variable = #variable{type = normal} = Var,
         #state{ref = Ref, vars = Vars} = State) ->
     case catch get_var_path(Var, State) of
         #variable{} = VarPath ->
+            %% TODO: review indexes like: $a = &$b->f(); or: $a = &$b[$c];
             ephp_vars:ref(Vars, VarPath, Vars, RefVar, Ref),
             resolve(RefVar, State);
         {error, _Reason} ->
@@ -894,7 +895,7 @@ resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
             {return, V} -> V;
             _ -> undefined
         end,
-        ephp_func:set_static(Funcs, Fun, NewVars),
+        ephp_func:set_static(Funcs, Fun, NewVars, Ref),
         destroy(SubContext),
         ephp_vars:destroy(Ref, NewVars),
         ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
@@ -919,8 +920,8 @@ resolve(#call{type = class, class = <<"parent">>} = Call,
 
 resolve(#call{type = class, class = CurrentClassName} = Call,
         #state{active_class = CurrentClassName,
-               vars = Vars} = State) ->
-    Object = ephp_vars:get(Vars, #variable{name = <<"this">>}),
+               ref = Ref, vars = Vars} = State) ->
+    Object = ephp_vars:get(Vars, #variable{name = <<"this">>}, Ref),
     run_method(Object, Call, State);
 
 resolve(#call{type = class, class = Name, line = Index} = Call,
@@ -939,7 +940,7 @@ resolve(#call{type = class, class = Name, line = Index} = Call,
     case ephp_class:instance_of(Ref, CurrentClass, Name) of
         true ->
             Object = ephp_vars:get(State#state.vars,
-                                   #variable{name = <<"this">>}),
+                                   #variable{name = <<"this">>}, Ref),
             run_method(Object, Call, State);
         false ->
             ephp_error:error({error, eincompatctx, Index, ?E_ERROR,
@@ -1029,7 +1030,7 @@ resolve(undefined, State) ->
     {undefined, State};
 
 resolve(#ref{var = #variable{} = Var}, #state{ref = Ctx, vars = Vars} = State) ->
-    Ref = case ephp_vars:get(Vars, Var) of
+    Ref = case ephp_vars:get(Vars, Var, Ctx) of
         ObjRef when ?IS_OBJECT(ObjRef) ->
             ObjRef;
         MemRef when ?IS_MEM(MemRef) ->
@@ -1365,7 +1366,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
                 {return, V} -> V;
                 _ -> undefined
             end,
-            ephp_class:set_static(Classes, ClassName, MethodName, NewVars),
+            ephp_class:set_static(Classes, ClassName, MethodName, NewVars, Ref),
             destroy(SubContext),
             if
                 MethodName =/= <<"__destruct">> ->
@@ -1439,9 +1440,10 @@ resolve_var(#variable{name = <<"this">>,
     Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
     run_method(Instance, Call#call{type = object}, State);
 
-resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var, State) ->
+resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var,
+            #state{ref = Ref, vars = Vars} = State) ->
     InstanceVar = Var#variable{idx = []},
-    Instance = ephp_vars:get(State#state.vars, InstanceVar, State#state.ref),
+    Instance = ephp_vars:get(Vars, InstanceVar, Ref),
     #ephp_object{class = Class} = ephp_object:get(Instance),
     case ephp_class:get_method(Class, Call#call.line, Call#call.name) of
         #class_method{access = public} ->

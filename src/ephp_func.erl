@@ -72,7 +72,7 @@
 
     get_static_value/3,
     set_static_value/4,
-    set_static/3,
+    set_static/4,
     init_static_value/4,
 
     run/2,
@@ -111,13 +111,13 @@ get_static_value(Ref, FuncName, VarName) ->
             throw({error, enofunc})
     end.
 
-set_static(Ref, FuncName, Vars) ->
+set_static(Ref, FuncName, Vars, Context) ->
     Funcs = erlang:get(Ref),
     IFuncName = ephp_string:to_lower(FuncName),
     {ok, #reg_func{static = Static} = RegFunc} = dict:find(IFuncName, Funcs),
     NewStatic = lists:map(fun({Key, _}) ->
         %% TODO check behaviour when use unset
-        NewValue = ephp_vars:get(Vars, #variable{name = Key}),
+        NewValue = ephp_vars:get(Vars, #variable{name = Key}, Context),
         {Key, NewValue}
     end, Static),
     NewRegFunc = RegFunc#reg_func{static = NewStatic},

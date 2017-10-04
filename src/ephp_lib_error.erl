@@ -90,16 +90,17 @@ debug_print_backtrace(Context, _Line, {_, IncludeArgs}, {_, Limit}) ->
     Backtrace = ephp_stack:get_array(Context, 1),
     ephp_array:fold(fun
         (I, Data, _) when Limit =:= 0 orelse I < Limit ->
-            Str = iolist_to_binary(trace_to_str({I, Data}, IncludeArgs)),
+            Str = iolist_to_binary(trace_to_str(I, Data, Context, IncludeArgs)),
             ephp_context:set_output(Context, Str);
         (_, _, _) ->
             ok
     end, [], Backtrace),
     undefined.
 
--spec trace_to_str({pos_integer(), ephp_array()}, pos_integer()) -> iolist().
+-spec trace_to_str(pos_integer(), ephp_array(), context(), pos_integer()) ->
+      iolist().
 
-trace_to_str({I, Array}, IncludeArgs) ->
+trace_to_str(I, Array, Ctx, IncludeArgs) ->
     {ok, FuncName} = ephp_array:find(<<"function">>, Array),
     {ok, Line} = ephp_array:find(<<"line">>, Array),
     {ok, File} = ephp_array:find(<<"file">>, Array),
@@ -108,7 +109,8 @@ trace_to_str({I, Array}, IncludeArgs) ->
     Args = if
         (IncArgs band ?DEBUG_BACKTRACE_IGNORE_ARGS) =:= 0 ->
             ArgStrList = lists:map(fun({_, #var_ref{pid = Vars, ref = Var}}) ->
-                binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var), $'))
+                Value = ephp_vars:get(Vars, Var, Ctx),
+                binary_to_list(ephp_string:escape(Value, $'))
             end, ephp_array:to_list(RawArgList)),
             string:join(ArgStrList, ",");
         true ->

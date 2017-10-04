@@ -167,7 +167,7 @@ handle_error(Context, {error, euncaught, Index, File, Level,
                output_handler = OutputHandler} ->
             Format = get_format(),
             {_, ErrorText} = get_message(Modules, Format, euncaught, Line, File,
-                                         Level, {File, Line, Exception}),
+                                         Level, {File, Line, Exception, Context}),
             OutputHandler:set_output(Context, iolist_to_binary(ErrorText));
         #state{exception_handler = ExceptionHandler} ->
             Call = #call{name = ExceptionHandler,
@@ -402,9 +402,11 @@ get_message(eoffset, {Function}) ->
 get_message(enorefvar, {}) ->
     io_lib:format("Only variables can be passed by reference", []);
 
-get_message(euncaught, {File, Line, Exception}) ->
+get_message(euncaught, {File, Line, Exception, Ctx}) ->
     StackTrace = ephp_class_exception:get_trace(Exception),
-    Traces = lists:map(fun trace_to_str/1, ephp_array:to_list(StackTrace)),
+    Traces = lists:map(fun({K, V}) ->
+        trace_to_str(Ctx, K, V)
+    end, ephp_array:to_list(StackTrace)),
     Message = ephp_class_exception:get_message(Exception),
     MessageFmt = case Message of
         <<>> -> "~s";
@@ -439,16 +441,16 @@ get_message(eundefidx, {Idx}) ->
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
 
--spec trace_to_str({pos_integer(), ephp_array()}) -> iolist().
+-spec trace_to_str(context(), pos_integer(), ephp_array()) -> iolist().
 
-trace_to_str({I, Array}) ->
+trace_to_str(Ctx, I, Array) ->
     {ok, FuncName} = ephp_array:find(<<"function">>, Array),
     {ok, Line} = ephp_array:find(<<"line">>, Array),
     {ok, File} = ephp_array:find(<<"file">>, Array),
     {ok, RawArgList} = ephp_array:find(<<"args">>, Array),
     ArgStrList = lists:map(fun
         ({_, #var_ref{pid = Vars, ref = Var}}) ->
-            binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var), $'));
+            binary_to_list(ephp_string:escape(ephp_vars:get(Vars, Var, Ctx), $'));
         ({_, Value}) when is_binary(Value) ->
             binary_to_list(ephp_string:escape(Value, $'));
         ({_, Value}) when is_number(Value) ->
