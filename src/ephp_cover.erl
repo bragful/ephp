@@ -152,6 +152,15 @@ store(_Type, File, {{line,Line},_}) when is_binary(File) ->
     NewFiles = orddict:update(File, fun(Dict) ->
         orddict:update_counter(Line, 1, Dict)
     end, Files),
+    case ephp_config:get_bool(<<"cover.realtime">>, false) of
+        true ->
+            case whereis(ephp_config:get(<<"cover.process">>)) of
+                PID when is_pid(PID) -> PID ! {run, File, Line};
+                _ -> io:format("=> ~s ~b~n", [File, Line])
+            end;
+        false ->
+            ok
+    end,
     erlang:put(cover, NewFiles),
     ok;
 
