@@ -164,7 +164,7 @@ validation_args() = {<a href="#type-min_args">min_args()</a>, <a href="#type-max
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_functions-1">get_functions/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_static_value-3">get_static_value/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_static_value-4">init_static_value/4</a></td><td></td></tr><tr><td valign="top"><a href="#is_defined-2">is_defined/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_static-3">set_static/3</a></td><td></td></tr><tr><td valign="top"><a href="#set_static_value-4">set_static_value/4</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_functions-1">get_functions/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_static_value-3">get_static_value/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_static_value-4">init_static_value/4</a></td><td></td></tr><tr><td valign="top"><a href="#is_defined-2">is_defined/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-5">register_func/5</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td></td></tr><tr><td valign="top"><a href="#run-2">run/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_static-4">set_static/4</a></td><td></td></tr><tr><td valign="top"><a href="#set_static_value-4">set_static_value/4</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -231,11 +231,11 @@ validation_args() = {<a href="#type-min_args">min_args()</a>, <a href="#type-max
 
 `run(Context, Call) -> any()`
 
-<a name="set_static-3"></a>
+<a name="set_static-4"></a>
 
-### set_static/3 ###
+### set_static/4 ###
 
-`set_static(Ref, FuncName, Vars) -> any()`
+`set_static(Ref, FuncName, Vars, Context) -> any()`
 
 <a name="set_static_value-4"></a>
 

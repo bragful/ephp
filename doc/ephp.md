@@ -172,7 +172,7 @@ eval PHP code in a context passed as params.
 ### eval/3 ###
 
 <pre><code>
-eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, <a href="#type-reason">reason()</a>} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
+eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
 </code></pre>
 <br />
 

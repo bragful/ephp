@@ -32,7 +32,6 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 | 17.5 | :heavy_check_mark: | Recommended if you use OTP 17 |
 | 17.4 | :heavy_check_mark: | |
 | 17.3 | :x: | fail in SSL |
-| 17.2 | :x: | no tests available in Travis-CI |
 | 17.1 | :heavy_check_mark: | |
 | 17.0 | :heavy_check_mark: | |
 | R16B03-1 | :heavy_check_mark: | Recommended if you use OTP R16 |
