@@ -9,6 +9,8 @@
     init_config/0,
     init_const/0,
 
+    get_classes/0,
+
     debug_backtrace/4,
     debug_print_backtrace/4,
     error_reporting/3,
@@ -76,6 +78,11 @@ init_const() -> [
     {<<"DEBUG_BACKTRACE_PROVIDE_OBJECT">>, ?DEBUG_BACKTRACE_PROVIDE_OBJECT},
     {<<"DEBUG_BACKTRACE_IGNORE_ARGS">>, ?DEBUG_BACKTRACE_IGNORE_ARGS}
 ].
+
+-spec get_classes() -> [class()].
+
+get_classes() ->
+    ephp_class_exception:get_classes().
 
 -spec debug_backtrace(context(), line(), var_value(), var_value()) ->
       ephp_array().

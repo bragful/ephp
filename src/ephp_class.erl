@@ -49,6 +49,7 @@
 
     register_class/4,
     register_classes/2,
+    register_classes/3,
     register_interface/3,
     set_alias/3,
     instance/5,
@@ -745,14 +746,7 @@ class_attr(Name, Access, InitValue, Final) ->
 %% Private functions
 %% ------------------------------------------------------------------
 
-register_classes(ClassesRef, Context) ->
-    Classes = [
-        get_stdclass(),
-        get_traversable(),
-        get_iterator(),
-        get_iterator_aggregate(),
-        get_array_access()
-    ] ++ ephp_class_exception:get_classes(),
+register_classes(ClassesRef, Context, Classes) ->
     Consts = ephp_context:get_consts(Context),
     lists:foreach(fun
         (#class{type = normal} = Class) ->
@@ -761,6 +755,16 @@ register_classes(ClassesRef, Context) ->
             register_unsafe_interface(ClassesRef, Class)
     end, Classes),
     ok.
+
+register_classes(ClassesRef, Context) ->
+    Classes = [
+        get_stdclass(),
+        get_traversable(),
+        get_iterator(),
+        get_iterator_aggregate(),
+        get_array_access()
+    ],
+    register_classes(ClassesRef, Context, Classes).
 
 get_unsafe_extends_consts(_Classes, #class{extends = undefined}) ->
     [];
