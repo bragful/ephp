@@ -215,6 +215,16 @@ search(global, Vars, _Context, _Base) ->
 search(#variable{idx = []}, undefined, undefined, _Base) ->
     undefined;
 
+search(#variable{name = Name, idx = [NewName|Idx]} = Var, _Vars, Context, Base)
+        when not (is_binary(Name) orelse is_number(Name) orelse
+                  element(1, Name) =:= private) ->
+    case ephp_context:solve(Context, Name) of
+        Name ->
+            throw({error, {eloop, Name}});
+        Vars ->
+            search(Var#variable{name = NewName, idx = Idx}, Vars, Context, Base)
+    end;
+
 search(#variable{name = Root, idx = [], line = Line, type = object,
                  class = ClassName},
        undefined, Context, _Base) ->

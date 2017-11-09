@@ -222,10 +222,10 @@ expression(<<"[",Rest/binary>>, Pos, [{op,Op}|_]=Parsed) ->
             expression(Rest1, copy_level(Pos, Pos1), NewParsed);
         _ ->
             % ARRAY INDEX
-            NewParsed = [add_op('end', Parsed)],
+            NewParsed = [#variable{name = add_op('end', Parsed)}],
             {Rest0, Pos0, [Parsed0]} =
                 variable(<<"[",Rest/binary>>, Pos, NewParsed),
-            {Rest0, Pos0, Parsed0}
+            expression(Rest0, Pos0, add_op(Parsed0, []))
     end;
 % NULL
 expression(<<N:8,U:8,L:8,L:8,SP:8,Rest/binary>>, Pos, Parsed)
