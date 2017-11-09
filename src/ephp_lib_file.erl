@@ -16,6 +16,7 @@
     is_readable/3,
     fopen/4,
     fclose/3,
+    file_get_contents/3,
     fread/4,
     fwrite/5,
     fseek/5,
@@ -28,6 +29,8 @@
 -define(SEEK_SET, 0).
 -define(SEEK_CUR, 1).
 -define(SEEK_END, 2).
+
+-define(READ_LENGTH, 1024).
 
 -spec init_func() -> ephp_func:php_function_results().
 
@@ -42,6 +45,14 @@ init_func() -> [
         {args, {2, 2, false, [string, string]}}
     ]},
     {fclose, [{args, [resource]}]},
+    {file_get_contents, [
+        {args, {1, 5, false, [string,
+                              {boolean, false},
+                              {resource, undefined},
+                              {integer, 0},
+                              {integer, undefined}]}},
+        {pack_args, true}
+    ]},
     {fread, [
         {args, {2, 2, false, [resource, integer]}}
     ]},
@@ -165,6 +176,22 @@ fclose(Context, Line, {_, Resource}) ->
     end.
 
 
+-spec file_get_contents(context(), line(), [var_value()]) ->
+      false | binary().
+
+file_get_contents(_Context, _Line, [{_, File}, {_, false}, {_, undefined},
+                                    {_, 0}, {_, undefined}]) ->
+    case ephp_stream:open(File, [read]) of
+        {ok, Resource} ->
+            Data = read_all(Resource, <<>>),
+            ok = ephp_stream:close(Resource),
+            Data;
+        {error, enoent} ->
+            %% TODO error message???
+            false
+    end.
+
+
 -spec fread(context(), line(), var_value(), var_value()) -> binary().
 
 fread(_Context, _Line, {_, Resource}, {_, Length}) ->
@@ -224,3 +251,15 @@ fseek(_Context, _Line, {_, Resource}, {_, Offset}, {_, Whence}) ->
 %% @doc returns true or false depending if EOF is achieved or not.
 feof(_Context, _Line, {_, Resource}) ->
     ephp_stream:is_eof(Resource).
+
+
+read_all(Resource, Data) ->
+    case ephp_stream:read(Resource, [{size, ?READ_LENGTH}]) of
+        {error, _} ->
+            %% TODO: maybe it requires to trigger an error
+            Data;
+        eof ->
+            Data;
+        {ok, NewData} ->
+            read_all(Resource, <<Data/binary, NewData/binary>>)
+    end.

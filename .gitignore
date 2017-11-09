@@ -7,3 +7,4 @@ _build/
 request_ets
 .build_date
 tmp
+php.ini
