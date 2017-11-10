@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#basename-3">basename/3</a></td><td></td></tr><tr><td valign="top"><a href="#dirname-3">dirname/3</a></td><td></td></tr><tr><td valign="top"><a href="#fclose-3">fclose/3</a></td><td></td></tr><tr><td valign="top"><a href="#feof-3">feof/3</a></td><td>returns true or false depending if EOF is achieved or not.</td></tr><tr><td valign="top"><a href="#file_exists-3">file_exists/3</a></td><td></td></tr><tr><td valign="top"><a href="#fopen-4">fopen/4</a></td><td></td></tr><tr><td valign="top"><a href="#fread-4">fread/4</a></td><td></td></tr><tr><td valign="top"><a href="#fseek-5">fseek/5</a></td><td>moves the file cursor to the specified offset.</td></tr><tr><td valign="top"><a href="#fwrite-5">fwrite/5</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#is_dir-3">is_dir/3</a></td><td></td></tr><tr><td valign="top"><a href="#is_readable-3">is_readable/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#basename-3">basename/3</a></td><td></td></tr><tr><td valign="top"><a href="#dirname-3">dirname/3</a></td><td></td></tr><tr><td valign="top"><a href="#fclose-3">fclose/3</a></td><td></td></tr><tr><td valign="top"><a href="#feof-3">feof/3</a></td><td>returns true or false depending if EOF is achieved or not.</td></tr><tr><td valign="top"><a href="#file_exists-3">file_exists/3</a></td><td></td></tr><tr><td valign="top"><a href="#file_get_contents-3">file_get_contents/3</a></td><td></td></tr><tr><td valign="top"><a href="#fopen-4">fopen/4</a></td><td></td></tr><tr><td valign="top"><a href="#fread-4">fread/4</a></td><td></td></tr><tr><td valign="top"><a href="#fseek-5">fseek/5</a></td><td>moves the file cursor to the specified offset.</td></tr><tr><td valign="top"><a href="#fwrite-5">fwrite/5</a></td><td></td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#is_dir-3">is_dir/3</a></td><td></td></tr><tr><td valign="top"><a href="#is_readable-3">is_readable/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -62,6 +62,15 @@ returns true or false depending if EOF is achieved or not.
 
 <pre><code>
 file_exists(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+</code></pre>
+<br />
+
+<a name="file_get_contents-3"></a>
+
+### file_get_contents/3 ###
+
+<pre><code>
+file_get_contents(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::[<a href="#type-var_value">var_value()</a>]) -&gt; false | binary()
 </code></pre>
 <br />
 

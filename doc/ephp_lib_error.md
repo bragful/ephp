@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#debug_backtrace-4">debug_backtrace/4</a></td><td></td></tr><tr><td valign="top"><a href="#debug_print_backtrace-4">debug_print_backtrace/4</a></td><td></td></tr><tr><td valign="top"><a href="#error_clear_last-2">error_clear_last/2</a></td><td></td></tr><tr><td valign="top"><a href="#error_get_last-2">error_get_last/2</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-3">error_reporting/3</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#restore_error_handler-2">restore_error_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#restore_exception_handler-2">restore_exception_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_handler-4">set_error_handler/4</a></td><td></td></tr><tr><td valign="top"><a href="#set_exception_handler-3">set_exception_handler/3</a></td><td></td></tr><tr><td valign="top"><a href="#trigger_error-4">trigger_error/4</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#debug_backtrace-4">debug_backtrace/4</a></td><td></td></tr><tr><td valign="top"><a href="#debug_print_backtrace-4">debug_print_backtrace/4</a></td><td></td></tr><tr><td valign="top"><a href="#error_clear_last-2">error_clear_last/2</a></td><td></td></tr><tr><td valign="top"><a href="#error_get_last-2">error_get_last/2</a></td><td></td></tr><tr><td valign="top"><a href="#error_reporting-3">error_reporting/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_classes-0">get_classes/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#restore_error_handler-2">restore_error_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#restore_exception_handler-2">restore_exception_handler/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_error_handler-4">set_error_handler/4</a></td><td></td></tr><tr><td valign="top"><a href="#set_exception_handler-3">set_exception_handler/3</a></td><td></td></tr><tr><td valign="top"><a href="#trigger_error-4">trigger_error/4</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -60,6 +60,15 @@ error_get_last(Context::<a href="#type-context">context()</a>, Line::<a href="#t
 
 <pre><code>
 error_reporting(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+</code></pre>
+<br />
+
+<a name="get_classes-0"></a>
+
+### get_classes/0 ###
+
+<pre><code>
+get_classes() -&gt; [<a href="#type-class">class()</a>]
 </code></pre>
 <br />
 
