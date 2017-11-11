@@ -59,6 +59,10 @@ handle_error(eundefattr, _Level, {{private, Attr, _}, ClassName}) ->
 handle_error(eundefattr, _Level, {Attr, ClassName}) when is_binary(Attr) ->
     io_lib:format("Undefined property: ~s::$~s", [ClassName, Attr]);
 
+handle_error(eindirectmod, _Level, {Attr, ClassName}) when is_binary(Attr) ->
+    io_lib:format("Indirect modification of overloaded property ~s::$~s "
+                  "has no effect", [ClassName, Attr]);
+
 handle_error(eaccesslevel, _Level, {Class, Name, Access, OtherClass}) ->
     io_lib:format("Access level to ~s::$~s must be ~s (as in class ~s)",
                   [Class, Name, Access, OtherClass]);

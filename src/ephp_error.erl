@@ -435,8 +435,11 @@ get_message(eillegalstr, {Str}) ->
 get_message(estrcast, {}) ->
     "String offset cast occurred";
 
-get_message(eundefidx, {Idx}) ->
+get_message(eundefidxstr, {Idx}) ->
     io_lib:format("Uninitialized string offset: ~p", [Idx]);
+
+get_message(eundefidx, {Idx}) ->
+    io_lib:format("Undefined index: ~s", [Idx]);
 
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
