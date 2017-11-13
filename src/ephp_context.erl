@@ -1150,12 +1150,6 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
         (raw, {[RArg|RArgs], I, Args, S}) ->
             {RRArg, NewState} = resolve_indexes(RArg, S),
             {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
-        ({type_ref, _Default}, {[RArg|RArgs], I, Args, S}) ->
-            {A,NewState} = resolve(RArg, S),
-            {RArgs, I+1, Args ++ [{RArg,A}], NewState};
-        (type_ref, {[RArg|RArgs], I, Args, S}) ->
-            {A,NewState} = resolve(RArg, S),
-            {RArgs, I+1, Args ++ [{RArg,A}], NewState};
         ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
             {A, NewState} = case resolve(RArg,S) of
                 {MemRef, NS} when ?IS_MEM(MemRef) ->

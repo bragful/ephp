@@ -454,6 +454,8 @@ change(#variable{name = Root, idx = []} = _Var, remove, Vars, Context) ->
             ephp_object:remove(Context, ObjRef);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
             ephp_mem:remove(MemRef);
+        {ok, Array} when ?IS_ARRAY(Array) ->
+            destroy_data(Context, Array);
         _ ->
             ok
     end,

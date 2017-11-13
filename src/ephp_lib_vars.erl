@@ -50,7 +50,7 @@ init_func() -> [
     {isset, [{args, [raw]}]},
     empty,
     gettype,
-    {unset, [{args, [type_ref]}]},
+    {unset, [{args, [raw]}]},
     {var_dump, [pack_args]}
 ].
 
@@ -204,17 +204,7 @@ gettype(_Context, _Line, {_,Value}) ->
 
 -spec unset(context(), line(), var_value()) -> undefined.
 
-unset(Context, _Line, {Var, #var_ref{}}) ->
-    ephp_context:del(Context, Var),
-    undefined;
-
-unset(Context, _Line, {#variable{} = Var, Value}) ->
-    case Value of
-        Array when ?IS_ARRAY(Array) ->
-            ephp_vars:destroy_data(Context, Array);
-        _ ->
-            ok
-    end,
+unset(Context, _Line, {#variable{}, #variable{} = Var}) ->
     ephp_context:del(Context, Var),
     undefined.
 
