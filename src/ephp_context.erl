@@ -464,6 +464,8 @@ resolve(#assign{variable = #variable{type = normal} = Var,
                 #instance{} -> ephp_object:remove(Ref, Value);
                 #clone{} -> ephp_object:remove(Ref, Value);
                 #cast{type = object} -> ephp_object:remove(Ref, Value);
+                #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
+                #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
                 _ -> ok
             end,
             {Value, NState};
@@ -505,6 +507,10 @@ resolve(#assign{variable = #variable{type = class,
                         #instance{} -> ephp_object:remove(Ref, Value);
                         #clone{} -> ephp_object:remove(Ref, Value);
                         #cast{type = object} -> ephp_object:remove(Ref, Value);
+                        #call{} when ?IS_OBJECT(Value) ->
+                            ephp_object:remove(Ref, Value);
+                        #call{} when ?IS_MEM(Value) ->
+                            ephp_mem:remove(Value);
                         _ -> ok
                     end,
                     Result;
@@ -534,6 +540,8 @@ resolve(#assign{variable = #variable{type = static, idx = []} = Var,
                 #instance{} -> ephp_object:remove(Ref, Value);
                 #clone{} -> ephp_object:remove(Ref, Value);
                 #cast{type = object} -> ephp_object:remove(Ref, Value);
+                #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
+                #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
                 _ -> ok
             end,
             {Value, NState};
@@ -553,6 +561,8 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
         #instance{} -> ephp_object:remove(Ref, Value);
         #clone{} -> ephp_object:remove(Ref, Value);
         #cast{type = object} -> ephp_object:remove(Ref, Value);
+        #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
+        #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
         _ -> ok
     end,
     {Value, NState};
@@ -570,6 +580,8 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
         #instance{} -> ephp_object:remove(Ref, Value);
         #clone{} -> ephp_object:remove(Ref, Value);
         #cast{type = object} -> ephp_object:remove(Ref, Value);
+        #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
+        #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
         _ -> ok
     end,
     {Value, NState};
