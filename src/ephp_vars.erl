@@ -139,6 +139,9 @@ destroy_data(Context, Vars) when ?IS_ARRAY(Vars) ->
 exists(#variable{} = Var, MemRef, Context) when ?IS_MEM(MemRef) ->
     exists(Var, ephp_mem:get(MemRef), Context);
 
+exists(#variable{}, undefined, _Context) ->
+    false;
+
 exists(#variable{type = class, class = <<"self">>} = Var, _Vars, Context) ->
     ClassName = ephp_context:get_active_class(Context),
     Classes = ephp_context:get_classes(Context),
@@ -208,6 +211,7 @@ exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
 
 exists(#variable{idx = [_|_]}, Vars, _Context) when not ?IS_ARRAY(Vars) ->
     false.
+
 
 search(global, Vars, _Context, _Base) ->
     Vars;
@@ -386,6 +390,18 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                                                           name = ObjRoot, idx = Idx},
                                     search(NewObjVar, ObjVars, Context, Base)
                             end
+                    end;
+                ActiveClass when is_record(ObjRoot, call) ->
+                    Call = ObjRoot#call{class = ActiveClass, type = object},
+                    Value = ephp_context:call_method(Context, ObjRef, Call),
+                    case Idx of
+                        [H|T] ->
+                            NewObjVar = #variable{type = object, line = Line,
+                                                  name = H, idx = T},
+                            %% FIXME: maybe Context and Base should be different?
+                            search(NewObjVar, Value, Context, Base);
+                        [] ->
+                            Value
                     end;
                 ActiveClass ->
                     Classes = ephp_context:get_classes(Context),
@@ -576,8 +592,18 @@ change(#variable{name = Root, idx = [NewRoot|Idx]} = Var, Value, Vars, Ctx) ->
                                     NewVars, Ctx),
                              Vars);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
-            ephp_mem:set(MemRef, change(#variable{name=NewRoot, idx=Idx}, Value,
-                                        ephp_mem:get(MemRef), Ctx)),
+            case ephp_mem:get(MemRef) of
+                NewVars when ?IS_ARRAY(NewVars) ->
+                    ephp_mem:set(MemRef,
+                                 change(#variable{name = NewRoot, idx = Idx},
+                                        Value, NewVars, Ctx));
+                undefined when Value =:= remove ->
+                    ok;
+                undefined ->
+                    ephp_mem:set(MemRef,
+                                 change(#variable{name = NewRoot, idx = Idx},
+                                        Value, ephp_array:new(), Ctx))
+            end,
             Vars;
         _ ->
             ephp_array:store(Root,

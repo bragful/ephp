@@ -1363,6 +1363,8 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
                 (#variable{} = Var) ->
                     #var_ref{pid = NewVars, ref = Var};
                 (#var_ref{} = VarRef) ->
+                    VarRef;
+                (#ref{} = VarRef) ->
                     VarRef
             end, MethodArgs),
             ephp_stack:push(Ref, NState#state.active_file, Call#call.line,
