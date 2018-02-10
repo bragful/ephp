@@ -16,6 +16,7 @@
     vsn_cmp/2,
     spaces/1,
     repeat/2,
+    reverse/1,
     hex2bin/1,
     ihex2bin/1,
     bin2hex/1,
@@ -147,6 +148,14 @@ repeat(Num, Byte) ->
 %% @private
 repeat(0, _Byte, Binary) -> Binary;
 repeat(N, Byte, Binary) -> repeat(N-1, Byte, <<Binary/binary, Byte:8>>).
+
+-spec reverse(binary()) -> binary().
+%% @doc get the reverse of a string passed as param.
+%% @see https://stackoverflow.com/a/43310493
+reverse(Str) ->
+    Size = erlang:bit_size(Str),
+    <<StrInt:Size/integer-little>> = Str,
+    <<StrInt:Size/integer-big>>.
 
 -spec ihex2bin(binary()) -> binary().
 %% @doc transform a hexadecimal string in (big-endian)

@@ -31,6 +31,7 @@
     str_split/4,
     strpos/4,
     strpos/5,
+    strrev/3,
     rtrim/4,
     ltrim/4,
     trim/4,
@@ -65,6 +66,9 @@ init_func() -> [
     strtoupper,
     str_split,
     strpos,
+    {strrev, [
+        {args, {1, 1, undefined, [string]}}
+    ]},
     {ltrim, [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
     ]},
@@ -359,6 +363,11 @@ strpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
                 {Pos,_Len} -> Pos
             end
     end.
+
+-spec strrev(context(), line(), Str::var_value()) -> binary().
+
+strrev(_Context, _Line, {_, Str}) ->
+    ephp_string:reverse(Str).
 
 -spec rtrim(context(), line(), Str::var_value(), CharMask::var_value()) ->
       binary() | undefined.
