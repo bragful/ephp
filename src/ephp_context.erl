@@ -441,9 +441,12 @@ resolve(#assign{variable = #variable{type = normal} = Var,
         #state{ref = Ref, vars = Vars} = State) ->
     case catch get_var_path(Var, State) of
         #variable{} = VarPath ->
-            %% TODO: review indexes like: $a = &$b->f(); or: $a = &$b[$c];
-            ephp_vars:ref(Vars, VarPath, Vars, RefVar, Ref),
-            resolve(RefVar, State);
+            %% TODO: review indexes like: $a = &$b->f();
+            {NewIdx, NState} = resolve_idx(RefVar#variable.idx, State),
+            ephp_vars:ref(Vars, VarPath,
+                          Vars, RefVar#variable{idx = NewIdx},
+                          Ref),
+            resolve(RefVar, NState);
         {error, _Reason} ->
             {undefined, State}
     end;
@@ -1116,6 +1119,17 @@ resolve_func_args(RawFuncArgs, State) ->
         (Var, {Vars, NewState}) ->
             {Vars ++ [Var], NewState}
     end, {[], State}, RawFuncArgs).
+
+resolve_idx(undefined, State) ->
+    {[], State};
+resolve_idx(RawIdx, State) ->
+    lists:foldl(fun(I, {Indexes, S}) ->
+        case resolve(I, S) of
+            {M, NewState} when ?IS_MEM(M) -> A = ephp_mem:get(M);
+            {A, NewState} -> ok
+        end,
+        {Indexes ++ [A], NewState}
+    end, {[], State}, RawIdx).
 
 resolve_args(undefined, State) ->
     {[], State};
