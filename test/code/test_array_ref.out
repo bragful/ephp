@@ -1,0 +1,20 @@
+array(3) {
+  ["name"]=>
+  string(2) "iq"
+  ["attrs"]=>
+  &array(2) {
+    ["id"]=>
+    int(1)
+    ["type"]=>
+    string(6) "result"
+  }
+  ["children"]=>
+  array(0) {
+  }
+}
+array(2) {
+  ["id"]=>
+  int(1)
+  ["type"]=>
+  string(6) "result"
+}
