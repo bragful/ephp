@@ -18,6 +18,13 @@ In the same way, you can use for server PHP pages in an easy way.
 The port is not 100% complete, please refer to [compatibility table](doc/COMPATIBILITY.md).
 
 
+### <a name="Donation">Donation</a> ###
+
+If you want to support the project to advance faster with the development you can make a donation. Thanks!
+
+[![paypal](https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBYJ5V2ZWWZ8G)
+
+
 ### <a name="Requirements">Requirements</a> ###
 
 ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:

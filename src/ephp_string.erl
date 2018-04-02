@@ -151,7 +151,8 @@ repeat(N, Byte, Binary) -> repeat(N-1, Byte, <<Binary/binary, Byte:8>>).
 
 -spec reverse(binary()) -> binary().
 %% @doc get the reverse of a string passed as param.
-%% @see https://stackoverflow.com/a/43310493
+%%      Reference: [https://stackoverflow.com/a/43310493]
+%% @end
 reverse(Str) ->
     Size = erlang:bit_size(Str),
     <<StrInt:Size/integer-little>> = Str,
