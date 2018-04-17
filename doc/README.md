@@ -31,7 +31,9 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 20.1 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 20.3 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 20.2 | :heavy_check_mark: | |
+| 20.1 | :heavy_check_mark: | |
 | 20.0 | :heavy_check_mark: | |
 | 19.3 | :heavy_check_mark: | Recommended if you use OTP 19 |
 | 19.2 | :heavy_check_mark: | |

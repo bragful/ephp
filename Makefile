@@ -14,11 +14,8 @@ compile:
 	./rebar3 compile
 
 test:
-	./rebar3 do xref, eunit, cover
-	./covertool \
-		-cover _build/test/cover/eunit.coverdata \
-		-appname ephp \
-		-output cobertura.xml > /dev/null
+	./rebar3 do xref, eunit, cover, covertool generate
+	mv _build/test/covertool/ephp.covertool.xml cobertura.xml
 	-rm -f .build_date cobertura_test.xml asc\:data
 
 ephp:
@@ -30,4 +27,3 @@ shell:
 	./rebar3 as dev shell
 
 .PHONY: doc test compile all shell ephp
-
