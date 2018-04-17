@@ -62,7 +62,7 @@ open(URL, Options) ->
     Prefix = ephp_config:get(<<"context.prefix_module">>, <<"ephp_stream_">>),
     {StreamMod, URIorURL} = try
         Module = binary_to_existing_atom(<<Prefix/binary, Schema/binary>>, utf8),
-        case lists:member({open, 2}, Module:module_info(exports)) of
+        case erlang:function_exported(Module, open, 2) of
             true ->
                 {Module, URI};
             false ->

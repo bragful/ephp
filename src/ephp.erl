@@ -110,12 +110,12 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
 %% @see ephp_func
 register_module(Ctx, Module) ->
     ephp_config:module_init(Module),
-    case lists:member({handle_error, 3}, Module:module_info(exports)) of
+    case erlang:function_exported(Module, handle_error, 3) of
         true -> ephp_error:add_message_handler(Ctx, Module);
         false -> ok
     end,
     ClassRef = ephp_context:get_classes(Ctx),
-    case lists:member({get_classes, 0}, Module:module_info(exports)) of
+    case erlang:function_exported(Module, get_classes, 0) of
         true ->
             Classes = Module:get_classes(),
             ephp_class:register_classes(ClassRef, Ctx, Classes);
