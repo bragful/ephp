@@ -213,8 +213,6 @@ run(Context, #call{line=Line}=Call) ->
         ephp_context:solve(Context, Call),
         false
     catch
-        throw:die ->
-            {return, undefined};
         throw:{error, erequired, _, ReqFile} ->
             File = ephp_context:get_active_file(Context),
             Data = {ReqFile},

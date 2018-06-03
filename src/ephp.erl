@@ -164,6 +164,13 @@ eval(Filename, Context, PHP) ->
                         throw:{ok, die} -> ok
                     end,
                     {ok, Return};
+                die ->
+                    try
+                        ephp_shutdown:shutdown(Context)
+                    catch
+                        throw:{ok, die} -> ok
+                    end,
+                    {ok, undefined};
                 {error, Reason, Index, Level, Data} ->
                     File = ephp_context:get_active_file(Context),
                     Error = {error, Reason, Index, File, Level, Data},
