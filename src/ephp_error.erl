@@ -438,6 +438,9 @@ get_message(estrcast, {}) ->
 get_message(eundefidxstr, {Idx}) ->
     io_lib:format("Uninitialized string offset: ~p", [Idx]);
 
+get_message(eundefidx, {Idx}) when is_integer(Idx) ->
+    io_lib:format("Undefined offset ~b", [Idx]);
+
 get_message(eundefidx, {Idx}) ->
     io_lib:format("Undefined index: ~s", [Idx]);
 
