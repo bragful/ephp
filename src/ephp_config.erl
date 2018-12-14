@@ -13,6 +13,7 @@
     get/2,
     get_bool/1,
     get_bool/2,
+    get_atom/1,
 
     set/2,
 
@@ -92,6 +93,14 @@ get_bool(Key, Default) ->
                 <<"0">> -> false;
                 Other -> ephp_data:to_bool(Other)
             end
+    end.
+
+-spec get_atom(Key :: binary()) -> atom().
+
+get_atom(Key) ->
+    case get(Key, undefined) of
+        Val when is_binary(Val) -> binary_to_atom(Val, utf8);
+        Val when is_atom(Val) -> Val
     end.
 
 -spec set(Key :: binary(), Value :: mixed()) -> ok.

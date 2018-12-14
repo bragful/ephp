@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2017 Altenwald Solutions, S.L.
+Copyright (c) 2013-2018 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -18,13 +18,22 @@ In the same way, you can use for server PHP pages in an easy way.
 The port is not 100% complete, please refer to [compatibility table](doc/COMPATIBILITY.md).
 
 
+### <a name="Donation">Donation</a> ###
+
+If you want to support the project to advance faster with the development you can make a donation. Thanks!
+
+[![paypal](https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBYJ5V2ZWWZ8G)
+
+
 ### <a name="Requirements">Requirements</a> ###
 
 ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 20.1 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 20.3 | :x: | fails in math lib |
+| 20.2 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 20.1 | :heavy_check_mark: | |
 | 20.0 | :heavy_check_mark: | |
 | 19.3 | :heavy_check_mark: | Recommended if you use OTP 19 |
 | 19.2 | :heavy_check_mark: | |

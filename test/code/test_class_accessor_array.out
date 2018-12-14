@@ -1,0 +1,8 @@
+1
+2
+3
+4
+
+Notice: Undefined offset 4 in {{CWD}}/test/code/test_class_accessor_array.php on line 8
+
+Notice: Undefined index: error in {{CWD}}/test/code/test_class_accessor_array.php on line 11

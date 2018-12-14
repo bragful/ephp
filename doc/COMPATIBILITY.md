@@ -179,6 +179,7 @@ Functions
    * [dirname](http://www.php.net/dirname)
    * [is_dir](http://www.php.net/is_dir)
    * [file_exists](http://www.php.net/file_exists)
+   * [glob](http://www.php.net/glob)
 
 * Class related functions:
    * [get_class](http://www.php.net/get_class)

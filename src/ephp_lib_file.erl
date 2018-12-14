@@ -20,7 +20,8 @@
     fread/4,
     fwrite/5,
     fseek/5,
-    feof/3
+    feof/3,
+    glob/4
 ]).
 
 -include_lib("kernel/include/file.hrl").
@@ -29,6 +30,14 @@
 -define(SEEK_SET, 0).
 -define(SEEK_CUR, 1).
 -define(SEEK_END, 2).
+
+-define(GLOB_ERR, 4).
+-define(GLOB_MARK, 8).
+-define(GLOB_NOCHECK, 16).
+-define(GLOB_NOSORT, 32).
+-define(GLOB_BRACE, 128).
+-define(GLOB_NOESCAPE, 8192).
+-define(GLOB_ONLYDIR, 1073741824).
 
 -define(READ_LENGTH, 1024).
 
@@ -62,7 +71,8 @@ init_func() -> [
     {fseek, [
         {args, {2, 3, -1, [resource, integer, {integer, ?SEEK_SET}]}}
     ]},
-    {feof, [{args, {1, 1, false, [resource]}}]}
+    {feof, [{args, {1, 1, false, [resource]}}]},
+    {glob, [{args, {1, 2, false, [string, {integer, 0}]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -74,7 +84,14 @@ init_config() -> [].
 init_const() -> [
     {<<"SEEK_SET">>, ?SEEK_SET},
     {<<"SEEK_CUR">>, ?SEEK_CUR},
-    {<<"SEEK_END">>, ?SEEK_END}
+    {<<"SEEK_END">>, ?SEEK_END},
+    {<<"GLOB_MARK">>, ?GLOB_MARK},
+    {<<"GLOB_NOSORT">>, ?GLOB_NOSORT},
+    {<<"GLOB_NOCHECK">>, ?GLOB_NOCHECK},
+    {<<"GLOB_NOESCAPE">>, ?GLOB_NOESCAPE},
+    {<<"GLOB_BRACE">>, ?GLOB_BRACE},
+    {<<"GLOB_ONLYDIR">>, ?GLOB_ONLYDIR},
+    {<<"GLOB_ERR">>, ?GLOB_ERR}
 ].
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
@@ -263,3 +280,37 @@ read_all(Resource, Data) ->
         {ok, NewData} ->
             read_all(Resource, <<Data/binary, NewData/binary>>)
     end.
+
+-spec glob(context(), line(), Pattern::var_value(), Flags::var_value()) ->
+      ephp_array().
+
+glob(_Context, _Line, {_, Pattern}, {_, Flags}) ->
+    Files = filelib:wildcard(binary_to_list(Pattern)),
+    PrFiles = glob_flags(Pattern, lists:map(fun list_to_binary/1, Files), Flags),
+    ephp_array:from_list(PrFiles).
+
+
+glob_flags(Pattern, Files, Flags) when Flags band ?GLOB_MARK > 0 ->
+    NewFiles = lists:map(fun(File) ->
+        case filelib:is_dir(File) of
+            true -> <<File/binary, "/">>;
+            false -> File
+        end
+    end, Files),
+    glob_flags(Pattern, NewFiles, Flags band (bnot ?GLOB_MARK));
+
+glob_flags(Pattern, Files, Flags) when Flags band ?GLOB_ONLYDIR > 0 ->
+    Dirs = [ File || File <- Files, filelib:is_dir(File) ],
+    glob_flags(Pattern, Dirs, Flags band (bnot ?GLOB_ONLYDIR));
+
+glob_flags(Pattern, [], Flags) when Flags band ?GLOB_NOCHECK > 0 ->
+    glob_flags(Pattern, [Pattern], Flags band (bnot ?GLOB_NOCHECK));
+
+glob_flags(Pattern, Files, Flags) when Flags band ?GLOB_NOCHECK > 0 ->
+    glob_flags(Pattern, Files, Flags band (bnot ?GLOB_NOCHECK));
+
+glob_flags(_Pattern, Files, ?GLOB_NOSORT) ->
+    Files;
+
+glob_flags(_Pattern, Files, 0) ->
+    lists:sort(Files).
