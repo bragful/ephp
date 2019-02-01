@@ -6,7 +6,8 @@ otp_release:
 - 21.2
 - 21.1
 - 21.0
-- 20.3
+# fails in math and number conversion:
+#- 20.3
 - 20.2
 - 20.1
 - 20.0
