@@ -1,5 +1,5 @@
 @author "Manuel Rubio" <manuel@altenwald.com>
-@copyright 2013-2018 Altenwald Solutions, S.L.
+@copyright 2013-2019 Altenwald Solutions, S.L.
 @title ePHP
 
 @doc
@@ -7,6 +7,8 @@
 <a href='https://codecov.io/gh/bragful/ephp'><img src='https://img.shields.io/codecov/c/github/bragful/ephp.svg' alt='Codecov' /></a>
 <a href='https://raw.githubusercontent.com/bragful/ephp/master/COPYING'><img src='https://img.shields.io/github/license/bragful/ephp.svg' alt='License: LGPL 2.1'/></a>
 <a href='https://gitter.im/bragful/ephp'><img src='https://img.shields.io/gitter/room/bragful/ephp.svg' alt="Gitter"/></a>
+<a href='https://hex.pm/packages/ephp'><img src='https://img.shields.io/hexpm/v/ephp.svg' alt="Hex"/></a>
+
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
@@ -26,8 +28,11 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 20.3 | :x: | fails in math lib |
-| 20.2 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 21.2 | :heavy_check_mark: | Recommended if you use OTP 21 |
+| 21.1 | :heavy_check_mark: | |
+| 21.0 | :heavy_check_mark: | |
+| 20.3 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 20.2 | :heavy_check_mark: | |
 | 20.1 | :heavy_check_mark: | |
 | 20.0 | :heavy_check_mark: | |
 | 19.3 | :heavy_check_mark: | Recommended if you use OTP 19 |
@@ -39,21 +44,12 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 | 18.2 | :heavy_check_mark: | |
 | 18.1 | :heavy_check_mark: | |
 | 18.0 | :heavy_check_mark: | |
-| 17.5 | :heavy_check_mark: | Recommended if you use OTP 17 |
-| 17.4 | :heavy_check_mark: | |
-| 17.3 | :x: | fail in SSL |
-| 17.1 | :heavy_check_mark: | |
-| 17.0 | :heavy_check_mark: | |
-| R16B03-1 | :heavy_check_mark: | Recommended if you use OTP R16 |
-| R16B03 | :heavy_check_mark: | |
-| R16B02 | :heavy_check_mark: | |
-| R16B01 | :x: | fails in math lib |
 
 == Getting Started ==
 
 A simple way to use, is include in your project <code>rebar.config</code> the following dependency line:
 
-<pre lang="erlang">    {ephp, ".*", {git, "git://github.com/bragful/ephp.git", master}}</pre>
+<pre lang="erlang">    {ephp, "0.1.0"}</pre>
 
 And use the following code in your project:
 

@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2018 Altenwald Solutions, S.L.
+Copyright (c) 2013-2019 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -10,6 +10,7 @@ __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.co
 [![Codecov](https://img.shields.io/codecov/c/github/bragful/ephp.svg)](https://codecov.io/gh/bragful/ephp)
 [![License: LGPL 2.1](https://img.shields.io/github/license/bragful/ephp.svg)](https://raw.githubusercontent.com/bragful/ephp/master/COPYING)
 [![Gitter](https://img.shields.io/gitter/room/bragful/ephp.svg)](https://gitter.im/bragful/ephp)
+[![Hex](https://img.shields.io/hexpm/v/ephp.svg)](https://hex.pm/packages/ephp)
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
 
@@ -31,8 +32,11 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 20.3 | :x: | fails in math lib |
-| 20.2 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 21.2 | :heavy_check_mark: | Recommended if you use OTP 21 |
+| 21.1 | :heavy_check_mark: | |
+| 21.0 | :heavy_check_mark: | |
+| 20.3 | :heavy_check_mark: | Recommended if you use OTP 20 |
+| 20.2 | :heavy_check_mark: | |
 | 20.1 | :heavy_check_mark: | |
 | 20.0 | :heavy_check_mark: | |
 | 19.3 | :heavy_check_mark: | Recommended if you use OTP 19 |
@@ -44,15 +48,6 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 | 18.2 | :heavy_check_mark: | |
 | 18.1 | :heavy_check_mark: | |
 | 18.0 | :heavy_check_mark: | |
-| 17.5 | :heavy_check_mark: | Recommended if you use OTP 17 |
-| 17.4 | :heavy_check_mark: | |
-| 17.3 | :x: | fail in SSL |
-| 17.1 | :heavy_check_mark: | |
-| 17.0 | :heavy_check_mark: | |
-| R16B03-1 | :heavy_check_mark: | Recommended if you use OTP R16 |
-| R16B03 | :heavy_check_mark: | |
-| R16B02 | :heavy_check_mark: | |
-| R16B01 | :x: | fails in math lib |
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
@@ -60,7 +55,7 @@ ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are fu
 A simple way to use, is include in your project `rebar.config` the following dependency line:
 
 ```erlang
-    {ephp, ".*", {git, "git://github.com/bragful/ephp.git", master}}
+    {ephp, "0.1.0"}
 ```
 
 And use the following code in your project:
