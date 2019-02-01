@@ -1,18 +1,12 @@
 {"1.1.0",
-[{<<"ezic">>,
-  {git,"https://github.com/waj/ezic.git",
-       {ref,"f27b57e00a9d4aeb75ee7147390a2b2f8812697b"}},
-  0},
+[{<<"ezic">>,{pkg,<<"ezic">>,<<"0.2.0">>},0},
  {<<"recon">>,{pkg,<<"recon">>,<<"2.3.2">>},0},
- {<<"unistring">>,
-  {git,"https://github.com/altenwald/unistring.git",
-       {ref,"9edbf2afc049d1a7b47d2ec054de04b9bcf5d095"}},
-  0},
- {<<"zucchini">>,
-  {git,"https://github.com/altenwald/zucchini.git",
-       {ref,"e73578f1e1a960c9af1cc3be6bb84bdf59680358"}},
-  0}]}.
+ {<<"unistring">>,{pkg,<<"unistring">>,<<"0.1.0">>},0},
+ {<<"zucchini">>,{pkg,<<"zucchini">>,<<"0.1.0">>},0}]}.
 [
 {pkg_hash,[
- {<<"recon">>, <<"4444C879BE323B1B133EEC5241CB84BD3821EA194C740D75617E106BE4744318">>}]}
+ {<<"ezic">>, <<"62C6076884580255A5BFE3CA9DCE3397EDD6B1786B49339D3F9AED2F9F7ED8CA">>},
+ {<<"recon">>, <<"4444C879BE323B1B133EEC5241CB84BD3821EA194C740D75617E106BE4744318">>},
+ {<<"unistring">>, <<"F1D07520C0A92BDF9A1D46F4A45BA424F27FA2D081F7C0ABA1F665C16A26B6C8">>},
+ {<<"zucchini">>, <<"93F8508FDEF86395BB071BD582E4D844BB012F2AF3E986C4E49804E90E2B2B9F">>}]}
 ].

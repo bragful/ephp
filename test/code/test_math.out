@@ -41,7 +41,7 @@ atan(1.0) = 0.78539816339745
 
 Warning: atan() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 33
 atan('a') = 
-atanh(0.5) = 0.54930614433406
+atanh(0.5) = 54 ( x 100 and floor)
 
 Warning: atanh() expects parameter 1 to be double, string given in {{CWD}}/test/code/test_math.php on line 35
 atanh('a') = 

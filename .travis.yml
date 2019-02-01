@@ -3,8 +3,10 @@ script: "make compile test"
 install: "sudo pip install codecov"
 after_success: "codecov"
 otp_release:
-# fails math library...
-#- 20.3
+- 21.2
+- 21.1
+- 21.0
+- 20.3
 - 20.2
 - 20.1
 - 20.0
@@ -17,20 +19,6 @@ otp_release:
 - 18.2
 - 18.1
 - 18.0
-- 17.5
-- 17.4
-# fails SSL (not recommended)
-#- 17.3
-# not available:
-#- 17.2
-- 17.1
-- 17.0
-- R16B03-1
-- R16B03
-- R16B02
-# fails with base_convert because of integer_to_binary/2 issue
-#- R16B01
 notifications:
   slack:
     secure: R/DFvrTxdCqOtfQ9Fp9x21Dsd74nltDk98LR8Gq/hydJIR8IC6I62b8XLje74YFb0yjtXc6v3AIrZAu8WuLDn6fij+yGV0nRy4z3pZA2Sq9qN1QEZ2MYpRJWy36ZU4qf/ST3ZcUArIQr7hGslpSEJy7f6PhKajcU/5p97Ps3k2s=
-

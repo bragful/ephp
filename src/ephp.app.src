@@ -8,5 +8,12 @@
         ezic,
         zucchini
     ]},
-    {env, []}
+    {env, []},
+    {maintainers, ["Manuel Rubio"]},
+    {licenses, ["LGPL 2.1"]},
+    {links, [
+        {"Github", "https://github.com/bragful/ephp"}
+    ]},
+    {exclude_files, []},
+    {include_files, []}
 ]}.

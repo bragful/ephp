@@ -1,16 +1,12 @@
-CheckFor = fun(Tuple, Module) ->
-    lists:member(Tuple, Module:module_info(exports))
-end,
-
-NATIVE_FLOOR = case CheckFor({floor, 1}, erlang) of
+NATIVE_FLOOR = case erlang:function_exported(erlang, floor, 1) of
     true -> [{d, 'NATIVE_FLOOR', "1"}];
     false -> []
 end,
-NATIVE_CEIL = case CheckFor({ceil, 1}, erlang) of
+NATIVE_CEIL = case erlang:function_exported(erlang, ceil, 1) of
     true -> [{d, 'NATIVE_CEIL', "1"}];
     false -> []
 end,
-PCRE_VERSION = case CheckFor({version, 0}, re) of
+PCRE_VERSION = case erlang:function_exported(re, version, 0) of
     false -> {d, 'PCRE_VERSION', "8.02 2010-03-19"};
     true -> {d, 'PCRE_VERSION', binary_to_list(re:version())}
 end,

@@ -7,7 +7,7 @@
 date_default_timezone_set('UTC');
 
 print "microtime() -> " . microtime() . "\n";
-print "microtime(true) -> " . microtime(true) . "\n";
+print "floor(microtime(true)) -> " . floor(microtime(true)) . "\n";
 print "microtime(false) -> " . microtime(false) . "\n";
 
 print date_default_timezone_get() . "\n";

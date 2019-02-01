@@ -3,7 +3,7 @@
 -----------
 
 microtime() -> 0.701 1474806235
-microtime(true) -> 1474806235.70099997520446
+floor(microtime(true)) -> 1474806235
 microtime(false) -> 0.701 1474806235
 UTC
 

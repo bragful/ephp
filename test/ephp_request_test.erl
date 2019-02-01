@@ -37,22 +37,39 @@ eval(Filename) ->
             Error
     end.
 
+% OTP_RELEASE was included in OTP 21
+-ifndef(OTP_RELEASE).
 test_code(File) ->
     {File, ?_assert(begin
         try
-            {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
-            {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
-            {ok, CWD} = file:get_cwd(),
-            OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
-                list_to_binary(CWD), [global]),
-            ?assertEqual(OutFile, iolist_to_binary(OutCode)),
-            true
+            run_test_code(File)
         catch Type:Reason ->
             ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
                 [File, Type, Reason, erlang:get_stacktrace()]),
             false
         end
     end)}.
+-else.
+test_code(File) ->
+    {File, ?_assert(begin
+        try
+            run_test_code(File)
+        catch Type:Reason:Stacktrace ->
+            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
+                [File, Type, Reason, Stacktrace]),
+            false
+        end
+    end)}.
+-endif.
+
+run_test_code(File) ->
+    {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
+    {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
+    {ok, CWD} = file:get_cwd(),
+    OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
+        list_to_binary(CWD), [global]),
+    ?assertEqual(OutFile, iolist_to_binary(OutCode)),
+    true.
 
 code_to_test_() ->
     catch ets:new(php_session, [named_table]),
