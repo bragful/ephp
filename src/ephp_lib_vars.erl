@@ -48,7 +48,7 @@ init_func() -> [
     {php_is_resource, [{alias, <<"is_resource">>}]},
     print_r,
     {isset, [{args, [raw]}]},
-    empty,
+    {empty, [{args, [raw]}]},
     gettype,
     {unset, [{args, [raw]}]},
     {var_dump, [pack_args]}
@@ -180,19 +180,13 @@ print_r(Context, Line, {_,Value}, {_,false}) ->
 
 -spec isset(context(), line(), var_value()) -> boolean().
 
-isset(Context, _Line, {_,Var}) ->
+isset(Context, _Line, {_, Var}) ->
     ephp_context:isset(Context, Var).
 
 -spec empty(context(), line(), var_value()) -> boolean().
 
-empty(_Context, _Line, {_,Value}) ->
-    case Value of
-        undefined -> true;
-        <<"0">> -> true;
-        <<>> -> true;
-        false -> true;
-        _ -> false
-    end.
+empty(Context, _Line, {_, Var}) ->
+    ephp_context:empty(Context, Var).
 
 -spec gettype(context(), line(), var_value()) -> binary().
 

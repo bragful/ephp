@@ -36,6 +36,7 @@
     set/3,
     del/2,
     isset/2,
+    empty/2,
     solve/2,
     destroy/1,
     destroy_all/1,
@@ -165,6 +166,10 @@ get(Context, VarPath) ->
 isset(Context, VarPath) ->
     #state{vars = Vars} = load_state(Context),
     ephp_vars:isset(Vars, VarPath, Context).
+
+empty(Context, VarPath) ->
+    #state{vars = Vars} = load_state(Context),
+    ephp_vars:empty(Vars, VarPath, Context).
 
 set(Context, VarPath, Value) ->
     State = load_state(Context),
@@ -1173,8 +1178,11 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
             throw({return, ReturnError});
         ({raw, Default}, {[RArg|RArgs], I, Args, S}) ->
             {RArgs, I+1, Args ++ [{RArg,Default}], S};
-        (raw, {[RArg|RArgs], I, Args, S}) ->
+        (raw, {[#variable{} = RArg|RArgs], I, Args, S}) ->
             {RRArg, NewState} = resolve_indexes(RArg, S),
+            {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
+        (raw, {[RArg|RArgs], I, Args, S}) ->
+            {RRArg, NewState} = resolve(RArg, S),
             {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
         ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
             {A, NewState} = case resolve(RArg,S) of

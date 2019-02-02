@@ -14,6 +14,7 @@
     get/3,
     set/4,
     isset/3,
+    empty/3,
     ref/5,
     del/3,
     zip_args/7,
@@ -40,6 +41,14 @@ get(Vars, VarPath, Context) ->
 
 isset(Vars, VarPath, Context) ->
     exists(VarPath, erlang:get(Vars), Context).
+
+empty(_Vars, undefined, _Context) -> true;
+empty(_Vars, <<"0">>, _Context) -> true;
+empty(_Vars, <<>>, _Context) -> true;
+empty(_Vars, false, _Context) -> true;
+empty(Vars, #variable{} = VarPath, Context) ->
+    empty(Vars, search(VarPath, erlang:get(Vars), Context, false), Context);
+empty(_Vars, _, _Context) -> false.
 
 set(Vars, VarPath, Value, Context) ->
     erlang:put(Vars, change(VarPath, Value, erlang:get(Vars), Context)),
