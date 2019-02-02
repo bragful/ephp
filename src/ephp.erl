@@ -230,6 +230,16 @@ main(["-l", File]) ->
             quit(1)
     end;
 
+main(["-p", File]) ->
+    try
+        io:format("parsing =>~n~p~n---~n", [ephp_parser:file(File)]),
+        quit(0)
+    catch
+        error:{badmatch, {error, enoent}} ->
+            io:format("Could not open input file: ~s~n", [File]),
+            quit(1)
+    end;
+
 main([Filename|_] = RawArgs) ->
     start(),
     case file:read_file(Filename) of
