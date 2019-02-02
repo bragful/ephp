@@ -237,6 +237,13 @@ search(#variable{name = Root, idx = [], line = Line, type = object,
         {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
     undefined;
 
+search(#variable{name = Root, idx = [], line = Line, type = array},
+       undefined, Context, _Base) ->
+    File = ephp_context:get_active_file(Context),
+    ephp_error:handle_error(Context,
+        {error, eundefidx, Line, File, ?E_NOTICE, {Root}}),
+    undefined;
+
 search(#variable{name = Root, idx = [], line = Line}, undefined, Context,
        true) ->
     File = ephp_context:get_active_file(Context),
@@ -324,6 +331,11 @@ search(#variable{name = Root, idx = [], line = Line, type = Type,
             ephp_error:handle_error(Context,
                 {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
             undefined;
+        error when Type =:= array ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefidx, Line, File, ?E_NOTICE, {Root}}),
+            undefined;
         error ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
@@ -342,7 +354,7 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
        Vars, Context, Base) when ?IS_ARRAY(Vars) ->
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
-            search(Var#variable{name = NewRoot, idx = Idx}, Vars, Context, false);
+            search(Var#variable{name = NewRoot, idx = Idx, type = array}, Vars, Context, false);
         {ok, #var_ref{pid = RefVarsPID, ref = #variable{idx = NewIdx} = RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             search(NewRefVar, erlang:get(RefVarsPID), Context, false);
@@ -419,10 +431,10 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                     end
             end;
         {ok, NewVars} when ?IS_ARRAY(NewVars) ->
-            search(Var#variable{name = NewRoot, idx = Idx}, NewVars,
-                   Context, false);
+            search(Var#variable{name = NewRoot, idx = Idx, type = array}, NewVars,
+                   Context, Base);
         {ok, NewVars} ->
-            search(Var#variable{name = NewRoot, idx = Idx}, NewVars,
+            search(Var#variable{name = NewRoot, idx = Idx, type = array}, NewVars,
                    Context, Base);
         _ when Context =:= undefined ->
             undefined;
@@ -433,6 +445,11 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
                 {error, eundefattr, Line, File, ?E_NOTICE, {Root, ClassName}}),
+            undefined;
+        _ when Type =:= array ->
+            File = ephp_context:get_active_file(Context),
+            ephp_error:handle_error(Context,
+                {error, eundefidx, Line, File, ?E_NOTICE, {Root}}),
             undefined;
         _Error ->
             File = ephp_context:get_active_file(Context),

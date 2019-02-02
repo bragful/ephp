@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL);
+
 $data = [ 1,2,3 ];
 
 print_r($data);
