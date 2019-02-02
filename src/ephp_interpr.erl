@@ -93,9 +93,11 @@ run(Context, #print{expression=Expr, line=Line}, Cover) ->
 
 run(Context, #eval{statements=Statements, line=Line}, Cover) ->
     ok = ephp_cover:store(Cover, eval, Context, Line),
-    lists:foldl(fun(Statement, State) ->
-        run_depth(Context, Statement, State, Cover)
-    end, false, Statements).
+    lists:foldl(fun(_Statement, {return, _} = State) ->
+                    State;
+                   (Statement, State) ->
+                    run_depth(Context, Statement, State, Cover)
+                end, false, Statements).
 
 -spec run_depth(context(), statement(), flow_status(),
                 Cover :: boolean()) -> flow_status().
