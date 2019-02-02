@@ -357,6 +357,9 @@ get_message(enoarray, {}) ->
 get_message(einvalid, {Function, Spec, Val}) ->
     io_lib:format("~s(): Invalid `~s' (~p)", [Function, Spec, Val]);
 
+get_message(eundefvar, {Offset}) when is_integer(Offset) ->
+    io_lib:format("Undefined offset: ~b", [Offset]);
+
 get_message(eundefvar, {Var}) ->
     io_lib:format("Undefined variable: ~s", [Var]);
 
