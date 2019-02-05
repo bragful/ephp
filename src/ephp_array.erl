@@ -36,7 +36,8 @@
     cursor/2,
     ksort/2,
     keys/1,
-    values/1
+    values/1,
+    pop/1
 ]).
 
 
@@ -47,7 +48,7 @@ new() -> #ephp_array{}.
 
 -spec size(ephp_array()) -> non_neg_integer().
 %% @doc retrieve the size of the array.
-size(#ephp_array{size=Size}) -> Size.
+size(#ephp_array{size = Size}) -> Size.
 
 
 -spec find(mixed(), ephp_array()) -> {ok, mixed()} | error.
@@ -242,3 +243,12 @@ keys(#ephp_array{values = Values}) ->
 %% @doc returns list only with the values (no keys).
 values(#ephp_array{values = Values}) ->
     [ V || {_, V} <- Values ].
+
+-spec pop(ephp_array()) -> {mixed(), ephp_array()}.
+%% @doc returns a tuple with the value poped from the array (last element) and
+%%      the rest of the array.
+pop(#ephp_array{size = 0} = Array) -> {undefined, Array};
+pop(#ephp_array{values = Values, size = Size} = Array) ->
+    {_, Value} = lists:last(Values),
+    HeadValues = lists:droplast(Values),
+    {Value, Array#ephp_array{values = HeadValues, size = Size - 1}}.

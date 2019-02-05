@@ -17,6 +17,7 @@
     array_change_key_case/4,
     array_chunk/5,
     array_column/5,
+    array_pop/3,
     reset/3,
     current/3,
     php_end/3,
@@ -61,7 +62,8 @@ init_func() -> [
     {next, [{args, {1, 1, undefined, [array]}}, {alias, <<"each">>}]},
     {key, [{args, {1, 1, undefined, [array]}}]},
     {ksort, [{args, {1, 2, false, [array, {integer, ?SORT_REGULAR}]}}]},
-    {array_keys, [array]}
+    {array_keys, [array]},
+    {array_pop, [array]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -295,6 +297,14 @@ ksort(Context, _Line, {ArrayVar, Array}, {_, SortType}) ->
 %% @doc returns a new array with the keys.
 array_keys(_Context, _Line, {_, Array}) ->
     ephp_array:keys(Array).
+
+
+-spec array_pop(context(), line(), Array::var_value()) -> ephp_array().
+%% @doc returns the last element of the array and removes it from the array.
+array_pop(Context, _Line, {VarArray, Array}) ->
+    {Head, TailArray} = ephp_array:pop(Array),
+    ephp_context:set(Context, VarArray, TailArray),
+    Head.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
