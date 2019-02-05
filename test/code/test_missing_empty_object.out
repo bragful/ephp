@@ -1,0 +1,5 @@
+
+Notice: Undefined index: error in {{CWD}}/test/code/test_missing_empty_object.php on line 5
+isset check: OK
+object(stdClass)#1 (0) {
+}

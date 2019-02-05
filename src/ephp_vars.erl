@@ -374,15 +374,12 @@ search(#variable{name = Root, idx = [], line = Line, type = Type,
 search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                  class = ClassName} = Var,
        Vars, Context, Base) when ?IS_ARRAY(Vars) ->
-    case ephp_array:find(Root, Vars) of
+    case translate_mem(ephp_array:find(Root, Vars)) of
         {ok, #var_ref{ref = global}} ->
             search(Var#variable{name = NewRoot, idx = Idx, type = array}, Vars, Context, false);
         {ok, #var_ref{pid = RefVarsPID, ref = #variable{idx = NewIdx} = RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             search(NewRefVar, erlang:get(RefVarsPID), Context, false);
-        {ok, MemRef} when ?IS_MEM(MemRef) ->
-            search(Var#variable{name = NewRoot, idx = Idx},
-                   ephp_mem:get(MemRef), Context, false);
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             {object, ObjRoot, _} = NewRoot,
             Ctx = ephp_object:get_context(ObjRef),
@@ -479,6 +476,10 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                 {error, eundefvar, Line, File, ?E_NOTICE, {Root}}),
             undefined
     end.
+
+translate_mem({ok, MemRef}) when ?IS_MEM(MemRef) ->
+    {ok, ephp_mem:get(MemRef)};
+translate_mem(Other) -> Other.
 
 run_method_get(Context, ObjRef, {object, Idx, _Line}) ->
     ClassName = ephp_object:get_class_name(ObjRef),
