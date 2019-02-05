@@ -838,6 +838,16 @@ resolve(#call{name = Object} = Call, State) when ?IS_OBJECT(Object) ->
             ephp_error:error({error, enostrfunc, Call#call.line, ?E_ERROR, {}})
     end;
 
+resolve(#call{name = Fun} = Call, State) when ?IS_ARRAY(Fun) ->
+    case ephp_array:to_list(Fun) of
+        [{_, ObjRef}, {_, Name}] when ?IS_OBJECT(ObjRef) andalso is_binary(Name) ->
+            RealCall = Call#call{name = Name, type = object},
+            run_method(ObjRef, RealCall, State);
+        _ ->
+            %% FIXME: something more here?
+            throw({error, implementation})
+    end;
+
 resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     {Name, NewState} = resolve(Fun, State),
     if  %% FIXME: only to avoid infinite-loop
@@ -1480,7 +1490,10 @@ resolve_var(#variable{name = <<"this">>,
 resolve_var(#variable{idx = [{object, #call{} = Call, _}]} = Var,
             #state{ref = Ref, vars = Vars} = State) ->
     InstanceVar = Var#variable{idx = []},
-    Instance = ephp_vars:get(Vars, InstanceVar, Ref),
+    Instance = case ephp_vars:get(Vars, InstanceVar, Ref) of
+        ObjRef when ?IS_OBJECT(ObjRef) -> ObjRef;
+        MemRef when ?IS_MEM(MemRef) -> ephp_mem:get(MemRef)
+    end,
     #ephp_object{class = Class} = ephp_object:get(Instance),
     case ephp_class:get_method(Class, Call#call.line, Call#call.name) of
         #class_method{access = public} ->
