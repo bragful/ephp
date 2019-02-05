@@ -191,7 +191,13 @@ exists(#variable{name = Root, idx=[]}, Vars, _Context) ->
     case ephp_array:find(Root, Vars) of
         error -> false;
         {ok, undefined} -> false;
-        _ -> true
+        {ok, MemRef} when ?IS_MEM(MemRef) ->
+            case ephp_mem:get(MemRef) of
+                undefined -> false;
+                _ -> true
+            end;
+        _Value ->
+            true
     end;
 
 exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
@@ -572,11 +578,22 @@ change(#variable{name = <<"this">>, idx = [{object, ObjRoot, _Line}|Idx]} = Var,
     Vars;
 
 %% TODO: check when auto is passed as idx to trigger an error
-change(#variable{name = Root, idx = [{object, NewRoot, _Line}|Idx]} = Var,
+change(#variable{name = Root, idx = [{object, NewRoot, _Line}|Idx], line = Line},
        Value, Vars, Context) ->
     ObjRef = case ephp_array:find(Root, Vars) of
         {ok, ObRf} when ?IS_OBJECT(ObRf) -> ObRf;
-        {ok, MemRef} when ?IS_MEM(MemRef) -> ephp_mem:get(MemRef)
+        {ok, MemRef} when ?IS_MEM(MemRef) ->
+            case ephp_mem:get(MemRef) of
+                undefined ->
+                    ephp_error:handle_error(Context, {error, eobj4empty, Line,
+                                                      ephp_context:get_active_file(Context),
+                                                      ?E_WARNING, undefined}),
+                    Classes = ephp_context:get_classes(Context),
+                    StdClass = ephp_class:instance(Classes, Context, Context, <<"stdClass">>, Line),
+                    ephp_mem:set(MemRef, StdClass),
+                    StdClass;
+                ObRf -> ObRf
+            end
     end,
     #ephp_object{context = Ctx, class = Class} = RI = ephp_object:get(ObjRef),
     SetMethod = ephp_class:get_method(Class, <<"__set">>),
@@ -588,7 +605,6 @@ change(#variable{name = Root, idx = [{object, NewRoot, _Line}|Idx]} = Var,
             run_method_set(Ctx, ObjRef, NewRoot, Value);
         {_, #class_method{}} ->
             File = ephp_context:get_active_file(Context),
-            Line = Var#variable.line,
             ClassName = Class#class.name,
             ephp_error:handle_error(Context, {error, eindirectmod, Line, File,
                                               ?E_NOTICE, {NewRoot, ClassName}});

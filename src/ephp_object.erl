@@ -61,6 +61,8 @@ get(Ref, ObjectId) ->
 
 -spec get(obj_ref()) -> undefined | ephp_object().
 %% @doc retrieves an object based on the Object ID.
+get(undefined) ->
+    undefined;
 get(#obj_ref{pid = Objects, ref = ObjectId}) ->
     get(Objects, ObjectId).
 

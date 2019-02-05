@@ -135,6 +135,9 @@ handle_error(edupinterface, _Level, {Class, Interface}) ->
 handle_error(enoobjthis, _Level, {}) ->
     "Using $this when not in object context";
 
+handle_error(eobj4empty, _Level, undefined) ->
+    "Creating default object from empty value";
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 

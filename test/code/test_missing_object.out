@@ -1,0 +1,10 @@
+isset check: OK
+
+Warning: Creating default object from empty value in {{CWD}}/test/code/test_missing_object.php on line 14
+object(stdClass)#1 (1) {
+  ["help"]=>
+  array(1) {
+    ["a"]=>
+    int(100)
+  }
+}
