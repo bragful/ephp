@@ -13,6 +13,7 @@
     clone/1,
     get/3,
     set/4,
+    set_bulk/3,
     isset/3,
     empty/3,
     ref/5,
@@ -49,6 +50,12 @@ empty(_Vars, false, _Context) -> true;
 empty(Vars, #variable{} = VarPath, Context) ->
     empty(Vars, search(VarPath, erlang:get(Vars), Context, false), Context);
 empty(_Vars, _, _Context) -> false.
+
+set_bulk(VarRef, VarVals, Context) ->
+    Vars = lists:foldl(fun({VarPath, Value}, Vars) ->
+        change(VarPath, Value, Vars, Context)
+    end, erlang:get(VarRef), VarVals),
+    erlang:put(VarRef, Vars).
 
 set(Vars, VarPath, Value, Context) ->
     erlang:put(Vars, change(VarPath, Value, erlang:get(Vars), Context)),

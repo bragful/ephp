@@ -34,6 +34,7 @@
     clone/1,
     get/2,
     set/3,
+    set_bulk/2,
     del/2,
     isset/2,
     empty/2,
@@ -170,6 +171,12 @@ isset(Context, VarPath) ->
 empty(Context, VarPath) ->
     #state{vars = Vars} = load_state(Context),
     ephp_vars:empty(Vars, VarPath, Context).
+
+set_bulk(_Context, []) -> ok;
+set_bulk(Context, VarVals) ->
+    State = load_state(Context),
+    ephp_vars:set_bulk(State#state.vars, VarVals, Context),
+    ok.
 
 set(Context, VarPath, Value) ->
     State = load_state(Context),

@@ -555,26 +555,28 @@ instance_of(_Context, _Data, _Type) ->
     false.
 
 initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
-    lists:foreach(fun
-        (#class_attr{type = static, name = Name, init_value = RawVal}) ->
+    Bulk = lists:foldl(fun
+        (#class_attr{type = static, name = Name, init_value = RawVal}, Acc) ->
             Val = ephp_context:solve(Ctx, RawVal),
-            ephp_context:set(Ctx, #variable{name = Name}, Val);
-        (#class_attr{type = normal}) ->
-            ignore
-    end, Attrs).
+            [{#variable{name = Name}, Val}|Acc];
+        (#class_attr{type = normal}, Acc) ->
+            Acc
+    end, [], Attrs),
+    ephp_context:set_bulk(Ctx, lists:reverse(Bulk)).
 
 initialize(Ctx, _ClassName, #class{attrs=Attrs}) ->
-    lists:foreach(fun
+    Bulk = lists:foldl(fun
         (#class_attr{type = normal, access = private, class_name = CName,
-                     name = Name, init_value = RawVal}) ->
+                     name = Name, init_value = RawVal}, Acc) ->
             Val = ephp_context:solve(Ctx, RawVal),
-            ephp_context:set(Ctx, #variable{name = {private, Name, CName}}, Val);
-        (#class_attr{type = normal, name = Name, init_value = RawVal}) ->
+            [{#variable{name = {private, Name, CName}}, Val}|Acc];
+        (#class_attr{type = normal, name = Name, init_value = RawVal}, Acc) ->
             Val = ephp_context:solve(Ctx, RawVal),
-            ephp_context:set(Ctx, #variable{name=Name}, Val);
-        (#class_attr{type = static}) ->
-            ignore
-    end, lists:reverse(Attrs)).
+            [{#variable{name=Name}, Val}|Acc];
+        (#class_attr{type = static}, Acc) ->
+            Acc
+    end, [], lists:reverse(Attrs)),
+    ephp_context:set_bulk(Ctx, lists:reverse(Bulk)).
 
 get_constructor(Ref, #class{name = Name, methods = Methods,
                             extends = Extends}) ->
