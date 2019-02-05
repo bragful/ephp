@@ -21,12 +21,13 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    flush,
     ob_start,
+    flush,
     {flush, [{alias, <<"ob_flush">>}]},
+    {flush, [{alias, <<"ob_end_flush">>}]},
     ob_get_contents,
     ob_get_length,
-    {flush, [{alias, <<"ob_end_flush">>}]},
+    {ob_get_length, [{alias, <<"ob_get_level">>}]},
     ob_clean,
     {ob_clean, [{alias, <<"ob_end_clean">>}]}
 ].
