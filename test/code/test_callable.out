@@ -1,2 +1,4 @@
 hello world!Hello World!Hello World!Hello World!A
 Hello PHP!
+
+Warning: call_user_func() expects parameter 1 to be a valid callback, no array or string given in {{CWD}}/test/code/test_callable.php on line 41

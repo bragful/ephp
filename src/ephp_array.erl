@@ -35,7 +35,8 @@
     current/1,
     cursor/2,
     ksort/2,
-    keys/1
+    keys/1,
+    values/1
 ]).
 
 
@@ -236,3 +237,8 @@ str2bin2low(Key) -> ephp_string:to_lower(ephp_data:to_bin(Key)).
 %% @doc returns an array only with the keys.
 keys(#ephp_array{values = Values}) ->
     ephp_array:from_list([ K || {K, _} <- Values ]).
+
+-spec values(ephp_array()) -> [mixed()].
+%% @doc returns list only with the values (no keys).
+values(#ephp_array{values = Values}) ->
+    [ V || {_, V} <- Values ].

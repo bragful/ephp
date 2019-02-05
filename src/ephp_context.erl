@@ -1232,45 +1232,45 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
             throw({return, ReturnError})
     end.
 
-check_arg(State, Line, I, Type, MemRef, ReturnError) when ?IS_MEM(MemRef) ->
-    check_arg(State, Line, I, Type, ephp_mem:get(MemRef), ReturnError);
 check_arg(_State, _Line, _I, mixed, _A, _ReturnError) ->
     ok;
+check_arg(State, Line, I, Type, MemRef, ReturnError) when ?IS_MEM(MemRef) ->
+    check_arg(State, Line, I, Type, ephp_mem:get(MemRef), ReturnError);
 check_arg(State, Line, I, string, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) ->
     throw_warning(State, Line, I, <<"string">>, A, ReturnError);
-check_arg(State, Line, I, {string,_}, A, ReturnError)
+check_arg(State, Line, I, {string, _}, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) ->
     throw_warning(State, Line, I, <<"string">>, A, ReturnError);
 check_arg(State, Line, I, integer, A, ReturnError)
         when not is_number(A) ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
-check_arg(State, Line, I, {integer,_}, A, ReturnError)
+check_arg(State, Line, I, {integer, _}, A, ReturnError)
         when not is_number(A) ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, str_or_int, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
-check_arg(State, Line, I, {str_or_int,_}, A, ReturnError)
+check_arg(State, Line, I, {str_or_int, _}, A, ReturnError)
         when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, double, A, ReturnError) when not is_number(A) ->
     throw_warning(State, Line, I, <<"double">>, A, ReturnError);
-check_arg(State, Line, I, {double,_}, A, ReturnError) when not is_number(A) ->
+check_arg(State, Line, I, {double, _}, A, ReturnError) when not is_number(A) ->
     throw_warning(State, Line, I, <<"double">>, A, ReturnError);
 check_arg(State, Line, I, array, A, ReturnError) when not ?IS_ARRAY(A) ->
     throw_warning(State, Line, I, <<"array">>, A, ReturnError);
-check_arg(State, Line, I, {array,_}, A, ReturnError) when not ?IS_ARRAY(A) ->
+check_arg(State, Line, I, {array, _}, A, ReturnError) when not ?IS_ARRAY(A) ->
     throw_warning(State, Line, I, <<"array">>, A, ReturnError);
 check_arg(State, Line, I, object, A, ReturnError) when not ?IS_OBJECT(A) ->
     throw_warning(State, Line, I, <<"object">>, A, ReturnError);
-check_arg(State, Line, I, {object,_}, A, ReturnError) when not ?IS_OBJECT(A) ->
+check_arg(State, Line, I, {object, _}, A, ReturnError) when not ?IS_OBJECT(A) ->
     throw_warning(State, Line, I, <<"object">>, A, ReturnError);
 check_arg(State, Line, I, boolean, A, ReturnError)
         when not is_boolean(A) andalso not is_number(A)
         andalso not is_binary(A) ->
     throw_warning(State, Line, I, <<"boolean">>, A, ReturnError);
-check_arg(State, Line, I, {boolean,_}, A, ReturnError)
+check_arg(State, Line, I, {boolean, _}, A, ReturnError)
         when not is_boolean(A) andalso not is_number(A)
         andalso not is_binary(A) ->
     throw_warning(State, Line, I, <<"boolean">>, A, ReturnError);
@@ -1283,8 +1283,11 @@ check_arg(State, Line, I, {resource, _}, A, ReturnError)
 %%       string
 check_arg(State, Line, I, path, A, ReturnError) when not is_binary(A) ->
     throw_warning(State, Line, I, <<"a valid path">>, A, ReturnError);
-check_arg(State, Line, I, {path,_}, A, ReturnError) when not is_binary(A) ->
+check_arg(State, Line, I, {path, _}, A, ReturnError) when not is_binary(A) ->
     throw_warning(State, Line, I, <<"a valid path">>, A, ReturnError);
+check_arg(State, Line, I, callable, A, ReturnError)
+        when not (?IS_ARRAY(A) orelse is_binary(A)) ->
+    throw_warning(State, Line, I, <<"a valid callback">>, A, ReturnError);
 %% TODO add more checks here!
 check_arg(_State, _Line, _I, _Check, _Var, _ReturnError) ->
     ok.
