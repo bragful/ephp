@@ -75,6 +75,12 @@
 
 -define(PHP_DEFAULT_TIMEZONE, <<"UTC">>).
 
+-define(SORT_REGULAR, 0).
+-define(SORT_NUMERIC, 1).
+-define(SORT_STRING, 2).
+-define(SORT_LOCALE_STRING, 5).
+-define(SORT_FLAG_CASE, 8).
+
 -type error_level() :: pos_integer().
 
 -type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.

@@ -22,15 +22,12 @@
     php_end/3,
     prev/3,
     next/3,
-    key/3
+    key/3,
+    ksort/4,
+    array_keys/3
 ]).
 
 -include("ephp.hrl").
-
--define(SORT_REGULAR, 0).
--define(SORT_NUMERIC, 1).
--define(SORT_STRING, 2).
--define(SORT_LOCALE_STRING, 5).
 
 -define(CASE_LOWER, 0).
 -define(CASE_UPPER, 1).
@@ -62,7 +59,9 @@ init_func() -> [
     {prev, [{args, {1, 1, undefined, [array]}}]},
     {next, [{args, {1, 1, undefined, [array]}}]},
     {next, [{args, {1, 1, undefined, [array]}}, {alias, <<"each">>}]},
-    {key, [{args, {1, 1, undefined, [array]}}]}
+    {key, [{args, {1, 1, undefined, [array]}}]},
+    {ksort, [{args, {1, 2, false, [array, {integer, ?SORT_REGULAR}]}}]},
+    {array_keys, [array]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -282,6 +281,20 @@ key(_Context, _Line, {_, Array}) ->
         {ok, {Key, _Value}} -> Key
     end.
 
+
+-spec ksort(context(), line(), Array::var_value(), SortType::var_value()) -> boolean().
+%% @doc order the array based on the keys modifying the original. The function
+%%      returns true if the ordering was ok, otherwise false. We can use different
+%%      sort types: SORT_REGULAR (default), SORT_NUMERIC, SORT_STRING,
+%%      SORT_LOCALE_STRING, SORT_NATURAL, SORT_FLAG_CASE.
+ksort(Context, _Line, {ArrayVar, Array}, {_, SortType}) ->
+    ephp_context:set(Context, ArrayVar, ephp_array:ksort(Array, SortType)).
+
+
+-spec array_keys(context(), line(), Array::var_value()) -> ephp_array().
+%% @doc returns a new array with the keys.
+array_keys(_Context, _Line, {_, Array}) ->
+    ephp_array:keys(Array).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

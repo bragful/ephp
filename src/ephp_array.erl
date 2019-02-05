@@ -33,7 +33,9 @@
     next/1,
     prev/1,
     current/1,
-    cursor/2
+    cursor/2,
+    ksort/2,
+    keys/1
 ]).
 
 
@@ -211,3 +213,26 @@ current(#ephp_array{cursor = Cursor, values = Values}) ->
 %% @doc set the cursor for an array.
 cursor(#ephp_array{} = Array, Cursor) ->
     Array#ephp_array{cursor = Cursor}.
+
+ksort(#ephp_array{values = Values} = Array, ?SORT_REGULAR) ->
+    Array#ephp_array{values = lists:keysort(1, Values)};
+ksort(#ephp_array{values = Values} = Array, ?SORT_NUMERIC) ->
+    TempValues = [ {ephp_data:to_number(K), {K, V}} || {K, V} <- Values ],
+    SortValues = [ {K, V} || {_, {K, V}} <- lists:keysort(1, TempValues) ],
+    Array#ephp_array{values = SortValues};
+ksort(#ephp_array{values = Values} = Array, ?SORT_STRING) ->
+    TempValues = [ {ephp_data:to_bin(K), {K, V}} || {K, V} <- Values ],
+    SortValues = [ {K, V} || {_, {K, V}} <- lists:keysort(1, TempValues) ],
+    Array#ephp_array{values = SortValues};
+ksort(#ephp_array{values = Values} = Array, Sort) when Sort =:= (?SORT_STRING bor ?SORT_FLAG_CASE) ->
+    TempValues = [ {str2bin2low(K), {K, V}} || {K, V} <- Values ],
+    SortValues = [ {K, V} || {_, {K, V}} <- lists:keysort(1, TempValues) ],
+    Array#ephp_array{values = SortValues}.
+%% FIXME: check how to do the rest... SORT_LOCALE_STRING and SORT_NATURAL.
+
+str2bin2low(Key) -> ephp_string:to_lower(ephp_data:to_bin(Key)).
+
+-spec keys(ephp_array()) -> ephp_array().
+%% @doc returns an array only with the keys.
+keys(#ephp_array{values = Values}) ->
+    ephp_array:from_list([ K || {K, _} <- Values ]).
