@@ -537,8 +537,10 @@ change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             ephp_object:remove(Context, ObjRef),
             ephp_array:store(Root, Value, Vars);
-        {ok, MemRef} when (?IS_OBJECT(Value) orelse ?IS_MEM(Value)) andalso
-                          ?IS_MEM(MemRef) ->
+        {ok, MemRef} when ?IS_OBJECT(Value) andalso ?IS_MEM(MemRef) ->
+            ephp_mem:set(MemRef, Value),
+            Vars;
+        {ok, MemRef} when ?IS_MEM(Value) andalso ?IS_MEM(MemRef) ->
             ephp_mem:remove(MemRef),
             ephp_array:store(Root, Value, Vars);
         {ok, MemRef} when ?IS_MEM(MemRef) ->
@@ -572,7 +574,10 @@ change(#variable{name = <<"this">>, idx = [{object, ObjRoot, _Line}|Idx]} = Var,
 %% TODO: check when auto is passed as idx to trigger an error
 change(#variable{name = Root, idx = [{object, NewRoot, _Line}|Idx]} = Var,
        Value, Vars, Context) ->
-    {ok, #obj_ref{} = ObjRef} = ephp_array:find(Root, Vars),
+    ObjRef = case ephp_array:find(Root, Vars) of
+        {ok, ObRf} when ?IS_OBJECT(ObRf) -> ObRf;
+        {ok, MemRef} when ?IS_MEM(MemRef) -> ephp_mem:get(MemRef)
+    end,
     #ephp_object{context = Ctx, class = Class} = RI = ephp_object:get(ObjRef),
     SetMethod = ephp_class:get_method(Class, <<"__set">>),
     Attrib = ephp_class:get_attribute(Class, NewRoot),
