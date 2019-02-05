@@ -11,7 +11,8 @@
     handle_error/3,
     get_class/3,
     class_alias/4,
-    class_exists/4
+    class_exists/4,
+    interface_exists/4
 ]).
 
 -include("ephp.hrl").
@@ -21,7 +22,8 @@
 init_func() -> [
     {get_class, [{args, {1, 1, false, [object]}}]},
     class_alias,
-    {class_exists, [{args, {1, 2, false, [string, {boolean, true}]}}]}
+    {class_exists, [{args, {1, 2, false, [string, {boolean, true}]}}]},
+    {interface_exists, [{args, {1, 2, false, [string, {boolean, true}]}}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -170,4 +172,13 @@ class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
             Type =/= interface;
         {error, enoexist} ->
             false
+    end.
+
+-spec interface_exists(context(), line(), Class :: var_value(),
+                       AutoLoad :: var_value()) -> boolean().
+
+interface_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
+    case ephp_class:get(Context, Class, AutoLoad) of
+        {ok, #class{type = interface}} -> true;
+        _ -> false
     end.
