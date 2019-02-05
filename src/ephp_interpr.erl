@@ -396,6 +396,11 @@ run_depth(Context, #variable{type = static, name = VarName} = Var,
     ephp_context:set(Context, Var, RealValue),
     false;
 
+run_depth(Context, #variable{} = Var, false, Cover) ->
+    ok = ephp_cover:store(Cover, variable, Context, Var#variable.line),
+    ephp_context:solve(Context, Var),
+    false;
+
 run_depth(_Context, Statement, false, _Cover) ->
     ephp_error:error({error, eunknownst, undefined, ?E_CORE_ERROR, Statement}),
     break;

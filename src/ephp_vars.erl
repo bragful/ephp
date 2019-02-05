@@ -385,6 +385,19 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
             Ctx = ephp_object:get_context(ObjRef),
             ObjVars = erlang:get(ephp_context:get_vars(Ctx)),
             case ephp_context:get_active_class(Context) of
+                <<>> when is_record(ObjRoot, call) ->
+                    RealClassName = ephp_object:get_class_name(ObjRef),
+                    Call = ObjRoot#call{class = RealClassName, type = object},
+                    Value = ephp_context:call_method(Context, ObjRef, Call),
+                    case Idx of
+                        [H|T] ->
+                            NewObjVar = #variable{type = object, line = Line,
+                                                  name = H, idx = T},
+                            %% FIXME: maybe Context and Base should be different?
+                            search(NewObjVar, Value, Context, Base);
+                        [] ->
+                            Value
+                    end;
                 <<>> ->
                     Class = ephp_object:get_class(ObjRef),
                     case ephp_class:get_attribute(Class, ObjRoot) of
