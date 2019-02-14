@@ -9,6 +9,8 @@ date_default_timezone_set('UTC');
 print "microtime() -> " . microtime() . "\n";
 print "floor(microtime(true)) -> " . floor(microtime(true)) . "\n";
 print "microtime(false) -> " . microtime(false) . "\n";
+print "floor(microtime(1)) -> " . floor(microtime(1)) . "\n";
+print "microtime(0) -> " . microtime(0) . "\n";
 
 print date_default_timezone_get() . "\n";
 

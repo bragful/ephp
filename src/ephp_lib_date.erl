@@ -74,7 +74,9 @@ microtime(_Context, _Line, {_, false}) ->
     {MS,S,US} = ephp_datetime:timestamp(),
     Posix = ephp_data:to_bin(MS * 1000000 + S),
     MiliSec = ephp_data:to_bin((US div 1000) / 1000),
-    <<MiliSec/binary, " ", Posix/binary>>.
+    <<MiliSec/binary, " ", Posix/binary>>;
+microtime(Context, Line, {Var, Val}) ->
+    microtime(Context, Line, {Var, ephp_data:to_boolean(Val)}).
 
 -spec microtime(context(), line()) -> binary().
 
