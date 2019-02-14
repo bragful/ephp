@@ -18,6 +18,8 @@ printf("%%X = '%X'\n", $n);
 
 printf("%%+d = '%+d'\n", $n);
 printf("%%+d = '%+d'\n", $u);
+printf("%%+010d = '%+010d'\n", $n);
+printf("%%+010d = '%+010d'\n", $u);
 
 printf("%%h (no existent) = %h\n");
 printf("%%h (no existent) = %h\n", "");

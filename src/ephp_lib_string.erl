@@ -560,6 +560,7 @@ adjust(Text, Pad, Justify, Size) ->
     end.
 
 add_sign(true, Number, Binary) when Number >= 0 -> <<"+",Binary/binary>>;
+add_sign(_, Number, Binary) when Number < 0 -> <<"-",Binary/binary>>;
 add_sign(_, _, Binary) -> Binary.
 
 format(<<"b">>, _Sign, Pad, Justify, Size, _Decimal, Value) ->
@@ -571,8 +572,8 @@ format(<<"c">>, _Sign, _Pad, _Justify, _Size, _Decimal, Value) ->
     <<Number:8>>;
 format(<<"d">>, Sign, Pad, Justify, Size, _Decimal, Value) ->
     Number = ephp_data:to_int(Value),
-    Binary = integer_to_binary(Number),
-    adjust(add_sign(Sign, Number, Binary), Pad, Justify, Size);
+    Binary = integer_to_binary(abs(Number)),
+    add_sign(Sign, Number, adjust(Binary, Pad, Justify, Size));
 format(<<"e">>, Sign, Pad, Justify, Size, undefined, Value) ->
     Precision = ephp_config:get(<<"precision">>),
     Number = ephp_data:to_float(Value),

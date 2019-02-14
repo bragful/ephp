@@ -12,8 +12,10 @@
 %X = '29EA6AD'
 %+d = '+43951789'
 %+d = '-43951789'
+%+010d = '+0043951789'
+%+010d = '-0043951789'
 
-Warning: printf(): Too few arguments in {{CWD}}/test/code/test_printf.php on line 22
+Warning: printf(): Too few arguments in {{CWD}}/test/code/test_printf.php on line 24
 %h (no existent) = 
 %h (no existent) = #---20 
 %'.-20s = hello...............
