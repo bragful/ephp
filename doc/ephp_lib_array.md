@@ -12,7 +12,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#array_change_key_case-4">array_change_key_case/4</a></td><td></td></tr><tr><td valign="top"><a href="#array_chunk-5">array_chunk/5</a></td><td></td></tr><tr><td valign="top"><a href="#array_column-5">array_column/5</a></td><td>in an array of arrays it retries the subelements with the key passed
-as a param.</td></tr><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#array_unique-4">array_unique/4</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#current-3">current/3</a></td><td>retrieve the current element under the cursor for an array.</td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#key-3">key/3</a></td><td>returns the key under the cursor or undefined if an error happens.</td></tr><tr><td valign="top"><a href="#list-3">list/3</a></td><td></td></tr><tr><td valign="top"><a href="#next-3">next/3</a></td><td>moves the cursor to the next element and retrieves it if it's possible,
+as a param.</td></tr><tr><td valign="top"><a href="#array_keys-3">array_keys/3</a></td><td>returns a new array with the keys.</td></tr><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#array_pop-3">array_pop/3</a></td><td>returns the last element of the array and removes it from the array.</td></tr><tr><td valign="top"><a href="#array_unique-4">array_unique/4</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#current-3">current/3</a></td><td>retrieve the current element under the cursor for an array.</td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#key-3">key/3</a></td><td>returns the key under the cursor or undefined if an error happens.</td></tr><tr><td valign="top"><a href="#ksort-4">ksort/4</a></td><td>order the array based on the keys modifying the original.</td></tr><tr><td valign="top"><a href="#list-3">list/3</a></td><td></td></tr><tr><td valign="top"><a href="#next-3">next/3</a></td><td>moves the cursor to the next element and retrieves it if it's possible,
 false otherwise.</td></tr><tr><td valign="top"><a href="#php_end-3">php_end/3</a></td><td>moves the array cursor to the last element and retrieves it.</td></tr><tr><td valign="top"><a href="#prev-3">prev/3</a></td><td>moves the cursor to the previous element and retrieves it if it's
 possible, false otherwise.</td></tr><tr><td valign="top"><a href="#reset-3">reset/3</a></td><td>resets the cursor for an array moving it to the first element and
 retrieving that element if it's exists, false otherwise.</td></tr></table>
@@ -52,6 +52,17 @@ array_column(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 in an array of arrays it retries the subelements with the key passed
 as a param. It let you to change the new key to retrieve the elements.
 
+<a name="array_keys-3"></a>
+
+### array_keys/3 ###
+
+<pre><code>
+array_keys(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+returns a new array with the keys.
+
 <a name="array_merge-3"></a>
 
 ### array_merge/3 ###
@@ -60,6 +71,17 @@ as a param. It let you to change the new key to retrieve the elements.
 array_merge(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Arrays::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 <br />
+
+<a name="array_pop-3"></a>
+
+### array_pop/3 ###
+
+<pre><code>
+array_pop(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+</code></pre>
+<br />
+
+returns the last element of the array and removes it from the array.
 
 <a name="array_unique-4"></a>
 
@@ -145,6 +167,20 @@ key(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">l
 <br />
 
 returns the key under the cursor or undefined if an error happens.
+
+<a name="ksort-4"></a>
+
+### ksort/4 ###
+
+<pre><code>
+ksort(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, SortType::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+</code></pre>
+<br />
+
+order the array based on the keys modifying the original. The function
+returns true if the ordering was ok, otherwise false. We can use different
+sort types: SORT_REGULAR (default), SORT_NUMERIC, SORT_STRING,
+SORT_LOCALE_STRING, SORT_NATURAL, SORT_FLAG_CASE.
 
 <a name="list-3"></a>
 
