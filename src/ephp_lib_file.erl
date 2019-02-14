@@ -41,6 +41,8 @@
 
 -define(READ_LENGTH, 1024).
 
+-define(DIRECTORY_SEPARATOR, <<"/">>).
+
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
@@ -91,7 +93,8 @@ init_const() -> [
     {<<"GLOB_NOESCAPE">>, ?GLOB_NOESCAPE},
     {<<"GLOB_BRACE">>, ?GLOB_BRACE},
     {<<"GLOB_ONLYDIR">>, ?GLOB_ONLYDIR},
-    {<<"GLOB_ERR">>, ?GLOB_ERR}
+    {<<"GLOB_ERR">>, ?GLOB_ERR},
+    {<<"DIRECTORY_SEPARATOR">>, ?DIRECTORY_SEPARATOR}
 ].
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
