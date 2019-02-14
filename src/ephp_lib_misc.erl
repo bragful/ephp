@@ -9,6 +9,7 @@
     init_config/0,
     init_const/0,
     handle_error/3,
+    constant/3,
     define/4,
     defined/3,
     sleep/3,
@@ -23,10 +24,11 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    define,
-    defined,
-    sleep,
-    usleep,
+    {constant, [string]},
+    {define, [string, mixed]},
+    {defined, [string]},
+    {sleep, [integer]},
+    {usleep, [integer]},
     {exit, [
         {args, {0, 1, undefined, [{mixed, undefined}]}},
         {alias, <<"die">>}
@@ -72,6 +74,12 @@ handle_error(enoenoughin, _Level, {Function, Cmd, Size1, Size2}) ->
 
 handle_error(_Type, _Level, _Data) ->
     ignore.
+
+
+-spec constant(context(), line(), Name :: var_value()) -> mixed().
+
+constant(Context, _Line, {_, ConstantName}) ->
+    ephp_context:get_const(Context, ConstantName, true).
 
 
 -spec define(context(), line(), Constant :: var_value(),
