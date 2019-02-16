@@ -10,6 +10,7 @@
     init_const/0,
     handle_error/3,
     constant/3,
+    uniqid/4,
     define/4,
     defined/3,
     sleep/3,
@@ -25,6 +26,9 @@
 
 init_func() -> [
     {constant, [string]},
+    {uniqid, [
+        {args, {0, 2, undefined, [{string, <<>>}, {boolean, false}]}}
+    ]},
     {define, [string, mixed]},
     {defined, [string]},
     {sleep, [integer]},
@@ -80,6 +84,19 @@ handle_error(_Type, _Level, _Data) ->
 
 constant(Context, _Line, {_, ConstantName}) ->
     ephp_context:get_const(Context, ConstantName, true).
+
+
+-spec uniqid(context(), line(), var_value(), var_value()) -> binary().
+
+uniqid(_Context, _Line, {_, Prefix}, {_, Extended}) ->
+    {M, S, U} = ephp_datetime:timestamp(),
+    Res = integer_to_binary((M * 1000000 + S) * 1000000 + U, 16),
+    Str = ephp_string:to_lower(Res),
+    Rand = case ephp_data:to_bool(Extended) of
+        true -> float_to_binary(ephp_data:urand(), [compact, {decimals, 8}]);
+        false -> <<>>
+    end,
+    <<Prefix/binary, Str/binary, Rand/binary>>.
 
 
 -spec define(context(), line(), Constant :: var_value(),

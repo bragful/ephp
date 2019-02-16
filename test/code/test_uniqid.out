@@ -1,0 +1,4 @@
+uniqid() = 53d5415caa0d8
+uniqid('x') = x53d5415caa0d8
+uniqid('', true) = 53d5415caa0d80.72643441
+uniqid('y', true) = y53d5415caa0d80.72643441

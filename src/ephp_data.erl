@@ -23,7 +23,8 @@
     zero_if_undef/1,
     pad_to_bin/2,
     ceiling/1,
-    flooring/1
+    flooring/1,
+    urand/0
 ]).
 
 -spec gettype(mixed()) -> binary().
@@ -399,4 +400,11 @@ ceiling(X) ->
         true -> T;
         false -> T + 1
     end.
+-endif.
+
+-spec urand() -> float().
+-ifdef(TEST).
+urand() -> 0.72643441.
+-else.
+urand() -> rand:uniform().
 -endif.
