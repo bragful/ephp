@@ -118,12 +118,16 @@ posix_time_ms() ->
 
 -spec timestamp() -> os:timestamp().
 
--ifdef(TEST).
-timestamp() ->
-    {1474,806235,701464}.
--else.
+-ifndef(TEST).
+%% @doc Show timestamp. This function makes possible to overload the normal
+%%      Erlang behaviour to make tests reliable.
+%% @end
 timestamp() ->
     os:timestamp().
+-else.
+%% @private
+timestamp() ->
+    {1474,806235,701464}.
 -endif.
 
 -spec normalize_tz(string() | binary()) -> string().

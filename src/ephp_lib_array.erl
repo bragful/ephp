@@ -1,3 +1,5 @@
+%% @doc Array related functions. Here you can see documentation about the
+%%      implementation of the PHP functions for the section called <i>Array</i>.
 -module(ephp_lib_array).
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
@@ -71,7 +73,7 @@ init_func() -> [
 init_config() -> [].
 
 -spec init_const() -> ephp_func:php_const_results().
-
+%% @private
 init_const() -> [
     {<<"SORT_REGULAR">>, ?SORT_REGULAR},
     {<<"SORT_NUMERIC">>, ?SORT_NUMERIC},
@@ -83,7 +85,7 @@ init_const() -> [
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
                    Args::term()) -> string() | ignore.
-
+%% @private
 handle_error(enooffset, _Level, {Offset}) ->
     io_lib:format("Undefined offset: ~p", [Offset]);
 

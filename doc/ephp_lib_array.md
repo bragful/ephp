@@ -1,18 +1,25 @@
 
 
 # Module ephp_lib_array #
+* [Description](#description)
 * [Function Index](#index)
 * [Function Details](#functions)
 
+Array related functions.
+
 __Behaviours:__ [`ephp_func`](ephp_func.md).
 
-<a name="index"></a>
+<a name="description"></a>
+
+## Description ##
+Here you can see documentation about the
+implementation of the PHP functions for the section called _Array_.<a name="index"></a>
 
 ## Function Index ##
 
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#array_change_key_case-4">array_change_key_case/4</a></td><td></td></tr><tr><td valign="top"><a href="#array_chunk-5">array_chunk/5</a></td><td></td></tr><tr><td valign="top"><a href="#array_column-5">array_column/5</a></td><td>in an array of arrays it retries the subelements with the key passed
-as a param.</td></tr><tr><td valign="top"><a href="#array_keys-3">array_keys/3</a></td><td>returns a new array with the keys.</td></tr><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#array_pop-3">array_pop/3</a></td><td>returns the last element of the array and removes it from the array.</td></tr><tr><td valign="top"><a href="#array_unique-4">array_unique/4</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#current-3">current/3</a></td><td>retrieve the current element under the cursor for an array.</td></tr><tr><td valign="top"><a href="#handle_error-3">handle_error/3</a></td><td></td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#key-3">key/3</a></td><td>returns the key under the cursor or undefined if an error happens.</td></tr><tr><td valign="top"><a href="#ksort-4">ksort/4</a></td><td>order the array based on the keys modifying the original.</td></tr><tr><td valign="top"><a href="#list-3">list/3</a></td><td></td></tr><tr><td valign="top"><a href="#next-3">next/3</a></td><td>moves the cursor to the next element and retrieves it if it's possible,
+as a param.</td></tr><tr><td valign="top"><a href="#array_keys-3">array_keys/3</a></td><td>returns a new array with the keys.</td></tr><tr><td valign="top"><a href="#array_merge-3">array_merge/3</a></td><td></td></tr><tr><td valign="top"><a href="#array_pop-3">array_pop/3</a></td><td>returns the last element of the array and removes it from the array.</td></tr><tr><td valign="top"><a href="#array_unique-4">array_unique/4</a></td><td></td></tr><tr><td valign="top"><a href="#count-3">count/3</a></td><td></td></tr><tr><td valign="top"><a href="#current-3">current/3</a></td><td>retrieve the current element under the cursor for an array.</td></tr><tr><td valign="top"><a href="#in_array-5">in_array/5</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#key-3">key/3</a></td><td>returns the key under the cursor or undefined if an error happens.</td></tr><tr><td valign="top"><a href="#ksort-4">ksort/4</a></td><td>order the array based on the keys modifying the original.</td></tr><tr><td valign="top"><a href="#list-3">list/3</a></td><td></td></tr><tr><td valign="top"><a href="#next-3">next/3</a></td><td>moves the cursor to the next element and retrieves it if it's possible,
 false otherwise.</td></tr><tr><td valign="top"><a href="#php_end-3">php_end/3</a></td><td>moves the array cursor to the last element and retrieves it.</td></tr><tr><td valign="top"><a href="#prev-3">prev/3</a></td><td>moves the cursor to the previous element and retrieves it if it's
 possible, false otherwise.</td></tr><tr><td valign="top"><a href="#reset-3">reset/3</a></td><td>resets the cursor for an array moving it to the first element and
 retrieving that element if it's exists, false otherwise.</td></tr></table>
@@ -112,15 +119,6 @@ current(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 
 retrieve the current element under the cursor for an array.
 
-<a name="handle_error-3"></a>
-
-### handle_error/3 ###
-
-<pre><code>
-handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type()</a>, Level::<a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Args::term()) -&gt; string() | ignore
-</code></pre>
-<br />
-
 <a name="in_array-5"></a>
 
 ### in_array/5 ###
@@ -136,15 +134,6 @@ in_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 
 <pre><code>
 init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
-</code></pre>
-<br />
-
-<a name="init_const-0"></a>
-
-### init_const/0 ###
-
-<pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
 </code></pre>
 <br />
 

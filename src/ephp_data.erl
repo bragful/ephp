@@ -403,8 +403,12 @@ ceiling(X) ->
 -endif.
 
 -spec urand() -> float().
--ifdef(TEST).
-urand() -> 0.72643441.
--else.
+-ifndef(TEST).
+%% @doc Show random decimal number. This function makes possible to overload the
+%%      normal Erlang behaviour to make tests reliable.
+%% @end
 urand() -> rand:uniform().
+-else.
+%% @private
+urand() -> 0.72643441.
 -endif.
