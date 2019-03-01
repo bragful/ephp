@@ -140,48 +140,53 @@ register_module(Ctx, Module) ->
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
--spec eval(Filename :: binary(), context(), PHP :: string() | binary()) ->
+-spec eval(Filename :: binary(), context(),
+           PHP :: string() | binary() | [term()]) ->
     {ok, Result :: binary()} |
     {error, reason(), line(), File::binary(), error_level(), Data::any()}.
 %% @equiv eval/2
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
-%%      constants.
+%%      constants and evaluates the code for the third parameter. This parameter
+%%      could contents a binary text with PHP code or a parsed PHP content.
 %% @end
-eval(Filename, Context, PHP) ->
+eval(Filename, Context, PHP) when is_binary(PHP) ->
     case catch ephp_parser:parse(PHP) of
-        {error, eparse, Line, _ErrorLevel, Data} ->
-            ephp_error:handle_error(Context, {error, eparse, Line,
-                Filename, ?E_PARSE, Data}),
-            {error, eparse, Line, Filename, ?E_PARSE, Data};
+        {error, ErrorName, Line, ErrorLevel, Data} ->
+            ephp_error:handle_error(Context, {error, ErrorName, Line,
+                Filename, ErrorLevel, Data}),
+            {error, ErrorName, Line, Filename, ErrorLevel, Data};
         Compiled ->
-            Cover = ephp_cover:get_config(),
-            ok = ephp_cover:init_file(Cover, Filename, Compiled),
-            case catch ephp_interpr:process(Context, Compiled, Cover) of
-                {ok, Return} ->
-                    try
-                        ephp_shutdown:shutdown(Context)
-                    catch
-                        throw:{ok, die} -> ok
-                    end,
-                    {ok, Return};
-                die ->
-                    try
-                        ephp_shutdown:shutdown(Context)
-                    catch
-                        throw:{ok, die} -> ok
-                    end,
-                    {ok, undefined};
-                {error, Reason, Index, Level, Data} ->
-                    File = ephp_context:get_active_file(Context),
-                    Error = {error, Reason, Index, File, Level, Data},
-                    try
-                        ephp_error:handle_error(Context, Error)
-                    catch
-                        throw:{ok, die} -> ok
-                    end,
-                    ephp_shutdown:shutdown(Context),
-                    Error
-            end
+            eval(Filename, Context, Compiled)
+    end;
+
+eval(Filename, Context, Compiled) ->
+    Cover = ephp_cover:get_config(),
+    ok = ephp_cover:init_file(Cover, Filename, Compiled),
+    case catch ephp_interpr:process(Context, Compiled, Cover) of
+        {ok, Return} ->
+            try
+                ephp_shutdown:shutdown(Context)
+            catch
+                throw:{ok, die} -> ok
+            end,
+            {ok, Return};
+        die ->
+            try
+                ephp_shutdown:shutdown(Context)
+            catch
+                throw:{ok, die} -> ok
+            end,
+            {ok, undefined};
+        {error, Reason, Index, Level, Data} ->
+            File = ephp_context:get_active_file(Context),
+            Error = {error, Reason, Index, File, Level, Data},
+            try
+                ephp_error:handle_error(Context, Error)
+            catch
+                throw:{ok, die} -> ok
+            end,
+            ephp_shutdown:shutdown(Context),
+            Error
     end.
 
 -spec start() -> ok.
