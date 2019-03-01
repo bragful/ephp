@@ -11,6 +11,7 @@
 -export([
     start_link/0,
     clone/1,
+    variable/2,
     get/3,
     set/4,
     set_bulk/3,
@@ -37,6 +38,9 @@ clone(Vars) ->
     erlang:put(NewVars, erlang:get(Vars)),
     NewVars.
 
+variable(Name, Idx) ->
+    #variable{name = Name, idx = Idx}.
+
 get(Vars, VarPath, Context) ->
     search(VarPath, erlang:get(Vars), Context, true).
 
@@ -52,8 +56,13 @@ empty(Vars, #variable{} = VarPath, Context) ->
 empty(_Vars, _, _Context) -> false.
 
 set_bulk(VarRef, VarVals, Context) ->
-    Vars = lists:foldl(fun({VarPath, Value}, Vars) ->
-        change(VarPath, Value, Vars, Context)
+    Vars = lists:foldl(fun
+        ({VarPath, Value}, Vars) when is_record(VarPath, variable) ->
+            change(VarPath, Value, Vars, Context);
+        ({VarName, Value}, Vars) when is_binary(VarName) ->
+            change(#variable{name = VarName}, Value, Vars, Context);
+        ({VarName, Idx, Value}, Vars) when is_binary(VarName) ->
+            change(#variable{name = VarName, idx = Idx}, Value, Vars, Context)
     end, erlang:get(VarRef), VarVals),
     erlang:put(VarRef, Vars).
 
