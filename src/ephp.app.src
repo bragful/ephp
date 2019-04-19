@@ -9,7 +9,6 @@
         zucchini
     ]},
     {env, []},
-    {maintainers, ["Manuel Rubio"]},
     {licenses, ["LGPL 2.1"]},
     {links, [
         {"Github", "https://github.com/bragful/ephp"}
