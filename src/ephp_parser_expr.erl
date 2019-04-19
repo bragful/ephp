@@ -753,8 +753,12 @@ concat(T) -> [T].
 
 solve(Expression) ->
     Postfix = shunting_yard(parse_negative(Expression), [], []),
-    [Operation] = gen_op(Postfix, []),
-    Operation.
+    case gen_op(Postfix, []) of
+        [Operation] ->
+            Operation;
+        [{UnExpected, _, Pos}|_] ->
+            throw_error(eparse, Pos, {unexpected, UnExpected})
+    end.
 
 gen_op([], Stack) ->
     Stack;
