@@ -6,7 +6,8 @@
         kernel,
         stdlib,
         ezic,
-        zucchini
+        zucchini,
+        unistring
     ]},
     {env, []},
     {licenses, ["LGPL 2.1"]},
