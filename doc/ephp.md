@@ -125,7 +125,7 @@ __abstract datatype__: `vars_id()`
 
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td>creates a new context using <code>-</code> as script name.</td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td>creates a new context passing <code>Filename</code> as param.</td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td>eval PHP code in a context passed as params.</td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td>adds the <code>Filename</code> to configure properly the <code>__FILE__</code> and <code>__DIR__</code>
-constants.</td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td>called from script passing the name of the filename to be run or
+constants and evaluates the code for the third parameter.</td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td>called from script passing the name of the filename to be run or
 nothing to show the help message.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
 is set properly before use ephp.</td></tr><tr><td valign="top"><a href="#stop_cover-0">stop_cover/0</a></td><td>stops the cover system.</td></tr></table>
 
@@ -172,14 +172,15 @@ eval PHP code in a context passed as params.
 ### eval/3 ###
 
 <pre><code>
-eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
+eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary() | [term()]) -&gt; {ok, Result::binary()} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
 </code></pre>
 <br />
 
 Equivalent to `eval / 2`.
 
 adds the `Filename` to configure properly the `__FILE__` and `__DIR__`
-constants.
+constants and evaluates the code for the third parameter. This parameter
+could contents a binary text with PHP code or a parsed PHP content.
 
 <a name="main-1"></a>
 

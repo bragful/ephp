@@ -28,11 +28,12 @@ If you want to support the project to advance faster with the development you ca
 
 ### <a name="Requirements">Requirements</a> ###
 
-ePHP requires to be run over an Erlang/OTP +R16, but not all the versions are full compatible or recommended. See the list:
+ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are full compatible or recommended. See the list:
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 21.2 | :heavy_check_mark: | Recommended if you use OTP 21 |
+| 21.3 | :heavy_check_mark: | Recommended if you use OTP 21 |
+| 21.2 | :heavy_check_mark: | |
 | 21.1 | :heavy_check_mark: | |
 | 21.0 | :heavy_check_mark: | |
 | 20.3 | :x: | fails in math lib |

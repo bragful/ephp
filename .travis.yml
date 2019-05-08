@@ -3,6 +3,7 @@ script: "make compile test"
 install: "sudo pip install codecov"
 after_success: "codecov"
 otp_release:
+- 21.3
 - 21.2
 - 21.1
 - 21.0
