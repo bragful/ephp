@@ -130,7 +130,7 @@ fold(Fun, Initial, #ephp_array{values = Values}) ->
     lists:foldl(fun({K, V}, Acc) -> Fun(K, V, Acc) end, Initial, Values).
 
 
--spec from_list([mixed()]) -> ephp_array().
+-spec from_list([any()]) -> ephp_array().
 %% @doc transform the list passed as param in a PHP Array.
 from_list(List) when is_list(List) ->
     lists:foldl(fun

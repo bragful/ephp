@@ -16,11 +16,9 @@
 ]).
 
 -record(mem, {
-    data :: mixed,
-    links = 0 :: pos_integer()
+    data :: mixed(),
+    links = 0 :: non_neg_integer()
 }).
-
--type mem() :: #mem{}.
 
 -spec start_link() -> {ok, module()}.
 %% @doc starts the memory storage system for referenced data.
@@ -62,7 +60,7 @@ get(#mem_ref{mem_id = MemId}) ->
     end.
 
 
--spec get_with_links(mem_ref()) -> {any(), pos_integer()}.
+-spec get_with_links(mem_ref()) -> {any(), non_neg_integer()}.
 %% @doc get the content for a specific MemId and the number of links.
 get_with_links(#mem_ref{mem_id = MemId}) ->
     Ref = get_id(),
@@ -133,13 +131,13 @@ add(Data) ->
     MemRef.
 
 
--spec search_empty(mem()) -> mem_ref().
+-spec search_empty(array:array()) -> mem_ref().
 %% @hidden
 %% @doc search for a free index inside of the storage.
 search_empty(Mem) ->
     search_empty(1, Mem).
 
--spec search_empty(I :: pos_integer(), mem()) -> mem_ref().
+-spec search_empty(I :: pos_integer(), array:array()) -> mem_ref().
 %% @hidden
 %% @doc search for a free index inside of the storage. Recursive function.
 search_empty(I, Mem) ->

@@ -4,19 +4,30 @@
 
 -include("ephp.hrl").
 
--type php_function() :: atom().
--type php_function_opt() :: atom() | {atom(), any()}.
--type php_function_opts() :: [php_function_opts()].
--type php_function_result() ::
-    php_function() | {php_function(), php_function_opts}.
--type php_function_results() :: [php_function_result()].
-
+% init_conf
+-type php_config_results() :: [{config_section(), [config_param()]}].
 -type config_section() :: binary().
 -type config_param() :: mixed().
--type php_config_results() :: [{config_section(), [config_param()]}].
 
+% init_const
+-type php_const_results() :: [{const_name(), number() | binary()}].
 -type const_name() :: binary().
--type php_const_results() :: [{const_name(), float() | integer() | binary()}].
+
+% init_func
+-type php_function_results() :: [php_function_defs()].
+
+-type php_function_defs() :: php_function() |
+                             {php_function(), php_function_opts()}.
+
+-type php_function() :: atom().
+-type php_function_opts() :: [php_function_opt()].
+-type php_function_opt() :: pack_args |
+                            {alias, php_function_alias()} |
+                            php_function_args().
+
+-type php_function_alias() :: binary().
+
+-type php_function_args() :: {args, validation_args()}.
 
 -type default_value() :: mixed().
 -type error_return_value() :: mixed().
@@ -42,7 +53,6 @@
 -export_type([
     php_function/0,
     php_function_results/0,
-    php_function_result/0,
     php_function_opts/0,
     php_function_opt/0,
 

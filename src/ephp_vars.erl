@@ -212,9 +212,9 @@ exists(#variable{name = Root, idx=[]}, Vars, _Context) ->
 exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
         when ?IS_ARRAY(Vars) ->
     case ephp_array:find(Root, Vars) of
-        {ok, #var_ref{ref=global}} ->
+        {ok, #var_ref{ref = global}} ->
             exists(#variable{name = NewRoot, idx = Idx}, Vars, Context);
-        {ok, #var_ref{pid=RefVarsPID, ref=#variable{idx=NewIdx}=RefVar}} ->
+        {ok, #var_ref{pid = RefVarsPID, ref = #variable{idx = NewIdx} = RefVar}} ->
             NewRefVar = RefVar#variable{idx = NewIdx ++ [NewRoot|Idx]},
             isset(RefVarsPID, NewRefVar, Context);
         {ok, #obj_ref{} = ObjRef} ->

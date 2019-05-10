@@ -25,12 +25,14 @@
 
 -export_type([uri/0, option/0, options/0, stream/0]).
 
--callback open(uri(), options()) -> {ok, pid()} | {error, reason()}.
--callback close(pid()) -> ok | {error, reason()}.
--callback read(pid(), options()) -> {ok, binary()} | eof | {error, reason()}.
--callback write(pid(), binary(), options()) -> ok | {error, reason()}.
--callback position(pid(), file:location()) -> ok | {error, reason()}.
--callback is_eof(pid()) -> boolean() | {error, reason()}.
+-type stream_resource() :: any().
+
+-callback open(uri(), options()) -> {ok, stream_resource()} | {error, reason()}.
+-callback close(stream_resource()) -> ok | {error, reason()}.
+-callback read(stream_resource(), options()) -> {ok, binary()} | eof | {error, reason()}.
+-callback write(stream_resource(), binary(), options()) -> ok | {error, reason()}.
+-callback position(stream_resource(), file:location()) -> ok | {error, reason()}.
+-callback is_eof(stream_resource()) -> boolean() | {error, reason()}.
 
 
 -spec parse_uri(binary()) -> {stream(), uri()}.

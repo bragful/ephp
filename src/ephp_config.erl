@@ -53,12 +53,14 @@ stop_local() ->
     erlang:erase(ephp_config),
     ok.
 
--spec get(Key :: binary()) -> mixed().
+-type config_key() :: binary() | atom().
+
+-spec get(config_key()) -> mixed().
 
 get(Key) ->
     get(Key, undefined).
 
--spec get(Key :: binary(), Default :: mixed()) -> mixed().
+-spec get(config_key(), Default :: mixed() | [atom()]) -> mixed() | [atom()].
 
 get(Key, Default) ->
     case erlang:get(ephp_config) of
@@ -73,12 +75,12 @@ get(Key, Default) ->
             end
     end.
 
--spec get_bool(Key :: binary()) -> boolean().
+-spec get_bool(config_key()) -> boolean().
 
 get_bool(Key) ->
     get_bool(Key, false).
 
--spec get_bool(Key :: binary(), Default :: boolean())  -> boolean().
+-spec get_bool(config_key(), Default :: boolean())  -> boolean().
 
 get_bool(Key, Default) ->
     case get(Key, Default) of
@@ -95,7 +97,7 @@ get_bool(Key, Default) ->
             end
     end.
 
--spec get_atom(Key :: binary()) -> atom().
+-spec get_atom(config_key()) -> atom().
 
 get_atom(Key) ->
     case get(Key, undefined) of
@@ -103,7 +105,7 @@ get_atom(Key) ->
         Val when is_atom(Val) -> Val
     end.
 
--spec set(Key :: binary(), Value :: mixed()) -> ok.
+-spec set(config_key(), Value :: mixed() | [atom()]) -> ok.
 
 set(Key, Value) ->
     case erlang:get(ephp_config) of

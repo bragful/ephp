@@ -26,4 +26,7 @@ ephp:
 shell:
 	./rebar3 as dev shell
 
+check:
+	./rebar3 dialyzer
+
 .PHONY: doc test compile all shell ephp

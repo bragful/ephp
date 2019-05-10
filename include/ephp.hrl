@@ -88,10 +88,10 @@
 -type file_name() :: binary().
 
 -record(ephp_array, {
-    size = 0 :: pos_integer(),
+    size = 0 :: non_neg_integer(),
     values = [] :: [any()],
-    last_num_index = 0 :: pos_integer(),
-    cursor = 1 :: pos_integer()
+    last_num_index = 0 :: non_neg_integer(),
+    cursor = 1 :: pos_integer() | false
 }).
 
 -type ephp_array() :: #ephp_array{}.
@@ -111,7 +111,8 @@
 
 -type reason() :: atom() | string().
 
--type line() :: {{line, non_neg_integer()}, {column, non_neg_integer()}}.
+-type line() :: {{line, non_neg_integer()}, {column, non_neg_integer()}} |
+                undefined.
 
 % main statements
 
@@ -278,7 +279,7 @@
 -type class_index() :: {class, binary(), line()}.
 
 -type variable_types() :: normal | array | object | class | static.
--type data_type() :: binary().
+-type data_type() :: binary() | undefined.
 
 -record(variable, {
     type = normal :: variable_types(),
@@ -321,7 +322,7 @@
 -record(call, {
     type = normal :: call_types(),
     class :: undefined | class_name(),
-    name :: binary(),
+    name :: binary() | obj_ref() | ephp_array(),
     args = [] :: [expression()],
     line :: line()
 }).
@@ -342,9 +343,9 @@
 -record(stack_trace, {
     function :: binary(),
     line :: integer() | undefined,
-    file :: binary(),
+    file :: binary() | undefined,
     class :: binary() | undefined,
-    object :: obj_ref(),
+    object :: obj_ref() | undefined,
     type :: binary() | undefined, %% ::, -> or undefined
     args :: [mixed()]
 }).
@@ -369,7 +370,7 @@
 
 -record(var_ref, {
     pid :: context() | undefined,
-    ref :: #variable{} | undefined
+    ref :: #variable{} | global | undefined
 }).
 
 -type var_ref() :: #var_ref{}.

@@ -93,7 +93,7 @@ get_class(Objects, ObjectId) ->
     (array:get(ObjectId, ObjectsData))#ephp_object.class.
 
 
--spec set_class(ephp:objects_id(), class()) -> ok.
+-spec set_class(ephp:obj_ref(), class()) -> ok.
 %% @doc set a class for an existent object.
 set_class(#obj_ref{pid = Objects, ref = ObjectId}, Class) ->
     ObjectsData = erlang:get(Objects),
@@ -245,12 +245,12 @@ clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->
     NewObjRef.
 
 
--spec search_empty(ephp:objects_id()) -> object_id().
+-spec search_empty(array:array()) -> object_id().
 %% @doc search an empty slot and returns the Object ID.
 search_empty(Objects) ->
     search_empty(1, Objects).
 
--spec search_empty(I :: pos_integer(), ephp:objects_id()) -> object_id().
+-spec search_empty(I :: pos_integer(), array:array()) -> object_id().
 %% @doc search en empty slot and returns the Object ID. This function uses the
 %%      first param as iterator to search the ID.
 %% @end
