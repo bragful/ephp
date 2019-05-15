@@ -92,11 +92,41 @@ php_function() = atom()
 
 
 
+### <a name="type-php_function_alias">php_function_alias()</a> ###
+
+
+<pre><code>
+php_function_alias() = binary()
+</code></pre>
+
+
+
+
+### <a name="type-php_function_args">php_function_args()</a> ###
+
+
+<pre><code>
+php_function_args() = {args, <a href="#type-validation_args">validation_args()</a>}
+</code></pre>
+
+
+
+
+### <a name="type-php_function_defs">php_function_defs()</a> ###
+
+
+<pre><code>
+php_function_defs() = <a href="#type-php_function">php_function()</a> | {<a href="#type-php_function">php_function()</a>, <a href="#type-php_function_opts">php_function_opts()</a>}
+</code></pre>
+
+
+
+
 ### <a name="type-php_function_opt">php_function_opt()</a> ###
 
 
 <pre><code>
-php_function_opt() = atom() | {atom(), any()}
+php_function_opt() = pack_args | {alias, <a href="#type-php_function_alias">php_function_alias()</a>} | <a href="#type-php_function_args">php_function_args()</a>
 </code></pre>
 
 
@@ -106,17 +136,7 @@ php_function_opt() = atom() | {atom(), any()}
 
 
 <pre><code>
-php_function_opts() = [<a href="#type-php_function_opts">php_function_opts()</a>]
-</code></pre>
-
-
-
-
-### <a name="type-php_function_result">php_function_result()</a> ###
-
-
-<pre><code>
-php_function_result() = <a href="#type-php_function">php_function()</a> | {<a href="#type-php_function">php_function()</a>, php_function_opts}
+php_function_opts() = [<a href="#type-php_function_opt">php_function_opt()</a>]
 </code></pre>
 
 
@@ -126,7 +146,7 @@ php_function_result() = <a href="#type-php_function">php_function()</a> | {<a hr
 
 
 <pre><code>
-php_function_results() = [<a href="#type-php_function_result">php_function_result()</a>]
+php_function_results() = [<a href="#type-php_function_defs">php_function_defs()</a>]
 </code></pre>
 
 

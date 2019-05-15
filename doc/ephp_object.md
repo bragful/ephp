@@ -236,7 +236,7 @@ stores an object given the Object ID.
 ### set_class/2 ###
 
 <pre><code>
-set_class(Obj_ref::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, Class::<a href="#type-class">class()</a>) -&gt; ok
+set_class(Obj_ref::<a href="ephp.md#type-obj_ref">ephp:obj_ref()</a>, Class::<a href="#type-class">class()</a>) -&gt; ok
 </code></pre>
 <br />
 

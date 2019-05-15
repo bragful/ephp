@@ -55,7 +55,7 @@ uri() = binary()
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>close a stream given the schema and the resource previously opened.</td></tr><tr><td valign="top"><a href="#get_res_id-1">get_res_id/1</a></td><td>obtains the resource ID given a resource as param.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>open a stream given the schema, URI and options.</td></tr><tr><td valign="top"><a href="#parse_uri-1">parse_uri/1</a></td><td>parse the URI to separate in stream and the rest of the URI.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor for the stream to the specified location.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>request a read to the stream implementation.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>initilize the stream subsystem.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>request a write to the stream implementation.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>close a stream given the schema and the resource previously opened.</td></tr><tr><td valign="top"><a href="#get_res_id-1">get_res_id/1</a></td><td>obtains the resource ID given a resource as param.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>open a stream given the URI and options.</td></tr><tr><td valign="top"><a href="#parse_uri-1">parse_uri/1</a></td><td>parse the URI to separate in stream and the rest of the URI.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor for the stream to the specified location.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>request a read to the stream implementation.</td></tr><tr><td valign="top"><a href="#read_file-1">read_file/1</a></td><td>read the whole content via URI and return it.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>initilize the stream subsystem.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>request a write to the stream implementation.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -104,7 +104,7 @@ open(URL::<a href="#type-uri">uri()</a>, Options::<a href="#type-options">option
 </code></pre>
 <br />
 
-open a stream given the schema, URI and options.
+open a stream given the URI and options.
 
 <a name="parse_uri-1"></a>
 
@@ -138,6 +138,17 @@ read(Resource::<a href="#type-resource">resource()</a>, Options::<a href="#type-
 <br />
 
 request a read to the stream implementation.
+
+<a name="read_file-1"></a>
+
+### read_file/1 ###
+
+<pre><code>
+read_file(URL::<a href="#type-uri">uri()</a>) -&gt; {ok, binary()} | {error, <a href="#type-reason">reason()</a>}
+</code></pre>
+<br />
+
+read the whole content via URI and return it.
 
 <a name="start_link-0"></a>
 

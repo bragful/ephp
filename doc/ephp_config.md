@@ -1,8 +1,23 @@
 
 
 # Module ephp_config #
+* [Data Types](#types)
 * [Function Index](#index)
 * [Function Details](#functions)
+
+<a name="types"></a>
+
+## Data Types ##
+
+
+
+
+### <a name="type-config_key">config_key()</a> ###
+
+
+<pre><code>
+config_key() = binary() | atom()
+</code></pre>
 
 <a name="index"></a>
 
@@ -21,7 +36,7 @@
 ### get/1 ###
 
 <pre><code>
-get(Key::binary()) -&gt; <a href="#type-mixed">mixed()</a>
+get(Key::<a href="#type-config_key">config_key()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -30,7 +45,7 @@ get(Key::binary()) -&gt; <a href="#type-mixed">mixed()</a>
 ### get/2 ###
 
 <pre><code>
-get(Key::binary(), Default::<a href="#type-mixed">mixed()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+get(Key::<a href="#type-config_key">config_key()</a>, Default::<a href="#type-mixed">mixed()</a> | [atom()]) -&gt; <a href="#type-mixed">mixed()</a> | [atom()]
 </code></pre>
 <br />
 
@@ -39,7 +54,7 @@ get(Key::binary(), Default::<a href="#type-mixed">mixed()</a>) -&gt; <a href="#t
 ### get_atom/1 ###
 
 <pre><code>
-get_atom(Key::binary()) -&gt; atom()
+get_atom(Key::<a href="#type-config_key">config_key()</a>) -&gt; atom()
 </code></pre>
 <br />
 
@@ -48,7 +63,7 @@ get_atom(Key::binary()) -&gt; atom()
 ### get_bool/1 ###
 
 <pre><code>
-get_bool(Key::binary()) -&gt; boolean()
+get_bool(Key::<a href="#type-config_key">config_key()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -57,7 +72,7 @@ get_bool(Key::binary()) -&gt; boolean()
 ### get_bool/2 ###
 
 <pre><code>
-get_bool(Key::binary(), Default::boolean()) -&gt; boolean()
+get_bool(Key::<a href="#type-config_key">config_key()</a>, Default::boolean()) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -84,7 +99,7 @@ read_config(File::<a href="#type-file_name">file_name()</a>) -&gt; <a href="prop
 ### set/2 ###
 
 <pre><code>
-set(Key::binary(), Value::<a href="#type-mixed">mixed()</a>) -&gt; ok
+set(Key::<a href="#type-config_key">config_key()</a>, Value::<a href="#type-mixed">mixed()</a> | [atom()]) -&gt; ok
 </code></pre>
 <br />
 

@@ -122,7 +122,7 @@ value and changing that value in each element.
 ### from_list/1 ###
 
 <pre><code>
-from_list(List::[<a href="#type-mixed">mixed()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+from_list(List::[any()]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 <br />
 

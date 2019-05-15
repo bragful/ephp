@@ -56,7 +56,7 @@ get the content for a specific MemId.
 ### get_with_links/1 ###
 
 <pre><code>
-get_with_links(Mem_ref::<a href="#type-mem_ref">mem_ref()</a>) -&gt; {any(), pos_integer()}
+get_with_links(Mem_ref::<a href="#type-mem_ref">mem_ref()</a>) -&gt; {any(), non_neg_integer()}
 </code></pre>
 <br />
 

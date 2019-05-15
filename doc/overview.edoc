@@ -50,7 +50,7 @@ ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are ful
 
 A simple way to use, is include in your project <code>rebar.config</code> the following dependency line:
 
-<pre lang="erlang">    {ephp, "0.1.0"}</pre>
+<pre lang="erlang">    {ephp, "0.2.5"}</pre>
 
 And use the following code in your project:
 
