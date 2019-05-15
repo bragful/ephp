@@ -11,6 +11,7 @@
     open/2,
     close/1,
     read/2,
+    read_file/1,
     write/3,
     position/2,
     is_eof/1
@@ -42,6 +43,12 @@ close(PID) ->
 read(PID, Options) ->
     {size, Size} = lists:keyfind(size, 1, Options),
     file:read(PID, Size).
+
+
+-spec read_file(ephp_stream:uri()) -> {ok, binary()} | {error, reason()}.
+%% @doc read the whole file from filesystem.
+read_file(URL) ->
+    file:read_file(URL).
 
 
 -spec write(file:fd(), binary(), ephp_stream:options()) ->

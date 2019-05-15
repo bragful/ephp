@@ -39,8 +39,6 @@
 -define(GLOB_NOESCAPE, 8192).
 -define(GLOB_ONLYDIR, 1073741824).
 
--define(READ_LENGTH, 1024).
-
 -define(DIRECTORY_SEPARATOR, <<"/">>).
 
 -spec init_func() -> ephp_func:php_function_results().
@@ -201,12 +199,10 @@ fclose(Context, Line, {_, Resource}) ->
 
 file_get_contents(_Context, _Line, [{_, File}, {_, false}, {_, undefined},
                                     {_, 0}, {_, undefined}]) ->
-    case ephp_stream:open(File, [read]) of
-        {ok, Resource} ->
-            Data = read_all(Resource, <<>>),
-            ok = ephp_stream:close(Resource),
+    case ephp_stream:read_file(File) of
+        {ok, Data} ->
             Data;
-        {error, enoent} ->
+        {error, _Reason} ->
             %% TODO error message???
             false
     end.
@@ -272,17 +268,6 @@ fseek(_Context, _Line, {_, Resource}, {_, Offset}, {_, Whence}) ->
 feof(_Context, _Line, {_, Resource}) ->
     ephp_stream:is_eof(Resource).
 
-
-read_all(Resource, Data) ->
-    case ephp_stream:read(Resource, [{size, ?READ_LENGTH}]) of
-        {error, _} ->
-            %% TODO: maybe it requires to trigger an error
-            Data;
-        eof ->
-            Data;
-        {ok, NewData} ->
-            read_all(Resource, <<Data/binary, NewData/binary>>)
-    end.
 
 -spec glob(context(), line(), Pattern::var_value(), Flags::var_value()) ->
       ephp_array().

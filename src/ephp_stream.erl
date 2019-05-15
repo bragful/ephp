@@ -12,6 +12,7 @@
     open/2,
     close/1,
     read/2,
+    read_file/1,
     write/3,
     position/2,
     is_eof/1
@@ -33,14 +34,34 @@
 -callback write(stream_resource(), binary(), options()) -> ok | {error, reason()}.
 -callback position(stream_resource(), file:location()) -> ok | {error, reason()}.
 -callback is_eof(stream_resource()) -> boolean() | {error, reason()}.
-
+-callback read_file(stream_resource()) -> {ok, binary()} | {error, reason()}.
 
 -spec parse_uri(binary()) -> {stream(), uri()}.
 %% @doc parse the URI to separate in stream and the rest of the URI.
 parse_uri(URL) ->
-    case binary:split(URL, <<":">>) of
-        [URI] -> {<<"file">>, URI};
-        [Schema, URI] -> {Schema, URI}
+    case binary:split(URL, <<"://">>) of
+        [URL] -> {<<"file">>, URL};
+        [<<"file">>, URI] -> {<<"file">>, URI};
+        [Schema, _URI] -> {Schema, URL}
+    end.
+
+
+-spec get_mod_and_url(uri()) -> {stream(), uri()}.
+%% @hidden
+get_mod_and_url(URL) ->
+    {Schema, URI} = parse_uri(URL),
+    Prefix = ephp_config:get(<<"context.prefix_module">>, <<"ephp_stream_">>),
+    try
+        Module = binary_to_existing_atom(<<Prefix/binary, Schema/binary>>, utf8),
+        case erlang:function_exported(Module, open, 2) of
+            true ->
+                {Module, URI};
+            false ->
+                {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL}
+        end
+    catch
+        error:badarg ->
+            {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL}
     end.
 
 
@@ -58,22 +79,9 @@ get_res_id(#resource{id = ID}) ->
 
 
 -spec open(uri(), options()) -> {ok, resource()} | {error, reason()}.
-%% @doc open a stream given the schema, URI and options.
+%% @doc open a stream given the URI and options.
 open(URL, Options) ->
-    {Schema, URI} = parse_uri(URL),
-    Prefix = ephp_config:get(<<"context.prefix_module">>, <<"ephp_stream_">>),
-    {StreamMod, URIorURL} = try
-        Module = binary_to_existing_atom(<<Prefix/binary, Schema/binary>>, utf8),
-        case erlang:function_exported(Module, open, 2) of
-            true ->
-                {Module, URI};
-            false ->
-                {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL}
-        end
-    catch
-        error:badarg ->
-            {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL}
-    end,
+    {StreamMod, URIorURL} = get_mod_and_url(URL),
     case StreamMod:open(URIorURL, Options) of
         {ok, PID} ->
             ID = get_last_id(),
@@ -119,3 +127,10 @@ position(#resource{module = Module, pid = PID}, Location) ->
 %% @doc returns true if EOF is achieved by the file cursor or false otherwise.
 is_eof(#resource{module = Module, pid = PID}) ->
     Module:is_eof(PID).
+
+
+-spec read_file(uri()) -> {ok, binary()} | {error, reason()}.
+%% @doc read the whole content via URI and return it.
+read_file(URL) ->
+    {StreamMod, URIorURL} = get_mod_and_url(URL),
+    StreamMod:read_file(URIorURL).

@@ -74,10 +74,7 @@ find_file(Name) ->
             FullPath;
         (Path, {error, enoent}) ->
             FullPath = filename:join(Path, Name),
-            case filelib:is_file(FullPath) of
-                true -> file:read_file(FullPath);
-                false -> {error, enoent}
-            end;
+            ephp_stream:read_file(FullPath);
         (_, FullPath) ->
             FullPath
     end, {error, enoent}, get_paths()).
