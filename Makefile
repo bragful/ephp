@@ -29,4 +29,9 @@ shell:
 check:
 	./rebar3 dialyzer
 
-.PHONY: doc test compile all shell ephp
+publish: compile
+	ln -snf _build/default/lib/ephp/ebin
+	./rebar3 hex publish
+	rm -f ebin
+
+.PHONY: doc test compile all shell ephp publish
