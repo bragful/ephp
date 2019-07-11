@@ -32,6 +32,7 @@ ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are ful
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
+| 22.0 | :heavy_check_mark: | Recommended if you use OTP 22 |
 | 21.3 | :heavy_check_mark: | Recommended if you use OTP 21 |
 | 21.2 | :heavy_check_mark: | |
 | 21.1 | :heavy_check_mark: | |
@@ -56,7 +57,7 @@ ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are ful
 A simple way to use, is include in your project `rebar.config` the following dependency line:
 
 ```erlang
-    {ephp, "0.2.5"}
+    {ephp, "0.2.6"}
 ```
 
 And use the following code in your project:
