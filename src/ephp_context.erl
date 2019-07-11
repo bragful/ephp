@@ -1087,7 +1087,7 @@ resolve({silent, Statement}, #state{errors=Errors}=State) ->
         resolve(Statement, State)
     end);
 
-resolve(#function{name = undefined, use = Use} = Anon,
+resolve(#function{name = undefined, use = Use, line = Line} = Anon,
         #state{vars = Vars} = State) ->
     {NewUse, NState} = lists:foldl(fun
         (#variable{} = K, {Acc, S}) ->
@@ -1096,7 +1096,18 @@ resolve(#function{name = undefined, use = Use} = Anon,
         (#ref{var = #variable{} = V}, {Acc, S}) ->
             {Acc ++ [{#var_ref{pid = Vars, ref = V}, V}], S}
     end, {[], State}, Use),
-    {Anon#function{use = NewUse}, NState};
+    ClassName = <<"Closure">>,
+    Instance = #instance{name = ClassName, line = Line},
+    {Object, RState} = resolve(Instance, NState),
+    case Anon#function.args of
+        [] -> ok;
+        Args ->
+            Params = resolve_params_anon(Args),
+            ephp_object:set_attr(Object, #variable{name = <<"parameter">>}, Params)
+    end,
+    Ctx = ephp_object:get_context(Object),
+    ephp_context:set_meta(Ctx, invoke, Anon#function{use = NewUse}),
+    {Object, RState};
 
 resolve(#cast{type = Type, content = C, line = Line}, State) ->
     {Value, NState} = resolve(C, State),
@@ -1113,6 +1124,14 @@ resolve(#clone{var = Var, line = Line}, State) ->
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
+resolve_params_anon(Args) ->
+    resolve_params_anon(Args, ephp_array:new()).
+
+resolve_params_anon([], Array) -> Array;
+resolve_params_anon([#variable{name = Name, default_value = undefined}|Args], Array) ->
+    resolve_params_anon(Args, ephp_array:store(<<"$", Name/binary>>, <<"<required>">>, Array));
+resolve_params_anon([#variable{name = Name}|Args], Array) ->
+    resolve_params_anon(Args, ephp_array:store(<<"$", Name/binary>>, <<"<optional>">>, Array)).
 
 register_superglobals(GlobalCtx, Vars) ->
     #state{vars = GlobalVars} = load_state(GlobalCtx),
@@ -1349,7 +1368,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
         object -> Object
     end,
     #class{name = ClassName, file = ClassFile} = Class,
-    #class_method{args=RawMethodArgs} = ClassMethod = case Call#call.name of
+    #class_method{args = RawMethodArgs} = ClassMethod = case Call#call.name of
         <<"__construct">> ->
             #class_method{name = MethodName} =
                 ephp_class:get_constructor(Classes, Class);
@@ -1435,6 +1454,8 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
         builtin ->
             {M, F} = ClassMethod#class_method.builtin,
             VArgs = case ClassMethod#class_method.validation_args of
+                no_resolve ->
+                    no_resolve;
                 undefined ->
                     undefined;
                 {_Min, _Max, _RetErr, _ValArgs} = VA ->
@@ -1445,6 +1466,10 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
             end,
             Index = Call#call.line,
             try resolve_args(VArgs, RawArgs, NState, Index) of
+                {FArgs, FState} when ClassMethod#class_method.validation_args =:= no_resolve ->
+                    save_state(FState),
+                    Value = erlang:apply(M, F, [Ref, RegInstance, Index, FArgs]),
+                    {Value, (load_state(Ref))#state{ref = Ref}};
                 {FArgs, FState} ->
                     FMArgs = zip_args(FArgs, MethodArgs),
                     save_state(FState),
@@ -1626,46 +1651,35 @@ resolve_cast(_State, _Line, array,
              #obj_ref{pid = Objects, ref = ObjectId}) ->
     #ephp_object{context = Ctx, class = Class} =
         ephp_object:get(Objects, ObjectId),
-    lists:foldl(fun(#class_attr{name=Name}, Array) ->
-        Value = ephp_context:get(Ctx, #variable{name=Name}),
+    lists:foldl(fun(#class_attr{name = Name}, Array) ->
+        Value = ephp_context:get(Ctx, #variable{name = Name}),
         ephp_array:store(Name, Value, Array)
     end, ephp_array:new(), Class#class.attrs);
 resolve_cast(_State, _Line, array, undefined) ->
     ephp_array:new();
-resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
+resolve_cast(#state{ref = LocalCtx, class = Classes, global = GlobalCtx},
              Line, object, Array) when ?IS_ARRAY(Array) ->
     ClassName = <<"stdClass">>,
-    #obj_ref{pid = Objects, ref = ObjectId} = ObjRef =
-        ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
-    #ephp_object{context=Ctx, class=Class} = Val =
-        ephp_object:get(Objects, ObjectId),
-    NewClass = ephp_array:fold(fun(K, V, C) ->
-        ephp_context:set(Ctx, #variable{name=K}, V),
-        ephp_class:add_if_no_exists_attrib(C, K)
-    end, Class, Array),
-    ephp_object:set(Objects, ObjectId, Val#ephp_object{class=NewClass}),
+    ObjRef = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    VarVals = [ {#variable{name = K}, V} || {K, V} <- ephp_array:to_list(Array) ],
+    ephp_object:set_bulk_attr(ObjRef, VarVals),
     ObjRef;
-resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
+resolve_cast(#state{ref = LocalCtx, class = Classes, global = GlobalCtx},
              Line, object, N) when
         is_number(N) orelse is_binary(N) orelse is_boolean(N) orelse
         N =:= infinity orelse N =:= nan ->
     ClassName = <<"stdClass">>,
-    #obj_ref{pid = Objects, ref = ObjectId} = ObjRef =
-        ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
-    #ephp_object{context=Ctx, class=Class} = Val =
-        ephp_object:get(Objects, ObjectId),
-    ephp_context:set(Ctx, #variable{name = <<"scalar">>}, N),
-    NewClass = ephp_class:add_if_no_exists_attrib(Class, <<"scalar">>),
-    ephp_object:set(Objects, ObjectId, Val#ephp_object{class=NewClass}),
+    ObjRef = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    ephp_object:set_attr(ObjRef, #variable{name = <<"scalar">>}, N),
     ObjRef;
-resolve_cast(#state{ref=LocalCtx,class=Classes,global=GlobalCtx},
+resolve_cast(#state{ref = LocalCtx, class = Classes, global = GlobalCtx},
              Line, object, undefined) ->
     ClassName = <<"stdClass">>,
     ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line);
-resolve_cast(_State, _Line, object, #obj_ref{}=Object) ->
+resolve_cast(_State, _Line, object, #obj_ref{} = Object) ->
     Object.
 
-resolve_indexes(#variable{idx=Indexes}=Var, State) ->
+resolve_indexes(#variable{idx = Indexes} = Var, State) ->
     {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
         {Value, NState} = resolve(Idx, NS),
         {I ++ [Value], NState}

@@ -33,8 +33,26 @@
     remove_all/2,
     remove/2,
     remove/3,
-    clone/2
+    clone/2,
+    set_attr/3,
+    set_bulk_attr/2
 ]).
+
+set_attr(#obj_ref{pid = Objects, ref = ObjectId} = Object,
+         #variable{name = AttrName} = Attr, Value) ->
+    #ephp_object{context = Ctx, class = Class} = Obj = ephp_object:get(Object),
+    ephp_context:set(Ctx, Attr, Value),
+    NewClass = ephp_class:add_if_no_exists_attrib(Class, AttrName),
+    ephp_object:set(Objects, ObjectId, Obj#ephp_object{class = NewClass}),
+    ok.
+
+set_bulk_attr(#obj_ref{pid = Objects, ref = ObjectId} = Object, Values) when is_list(Values) ->
+    #ephp_object{context = Ctx, class = Class} = Obj = ephp_object:get(Object),
+    Vars = [ AttrName || {#variable{name = AttrName}, _} <- Values ],
+    NewClass = ephp_class:add_if_no_exists_attrib(Class, Vars),
+    ephp_object:set(Objects, ObjectId, Obj#ephp_object{class = NewClass}),
+    ephp_context:set_bulk(Ctx, Values),
+    ok.
 
 -spec start_link() -> {ok, ephp:objects_id()}.
 %% @doc creates a new Objects storage.

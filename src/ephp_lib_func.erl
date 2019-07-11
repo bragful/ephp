@@ -8,6 +8,7 @@
     init_func/0,
     init_config/0,
     init_const/0,
+    get_classes/0,
     register_shutdown_function/3,
     get_defined_functions/2,
     function_exists/3,
@@ -38,6 +39,11 @@ init_config() -> [].
 -spec init_const() -> ephp_func:php_const_results().
 
 init_const() -> [].
+
+-spec get_classes() -> [class()].
+
+get_classes() ->
+    ephp_class_closure:get_classes().
 
 -spec register_shutdown_function(context(), line(), [var_value()]) -> ok.
 

@@ -6,8 +6,8 @@
 %%
 %%      <pre lang="erlang"><![CDATA[
 %%      Array0 = ephp_array:new().
-%%      Array1 = ephp_array:store(auto, <<"hello world!">>).
-%%      Array2 = ephp_array:store(auto, <<"bye!">>).
+%%      Array1 = ephp_array:store(auto, <<"hello world!">>, Array0).
+%%      Array2 = ephp_array:store(auto, <<"bye!">>, Array1).
 %%      ArrayN = ephp_array:from_list([1, 2, 3, 4, 5]).
 %%      ]]></pre>
 %% @end
