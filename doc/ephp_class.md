@@ -74,7 +74,7 @@ loader() = binary()
 
 ### add_if_no_exists_attrib/2 ###
 
-`add_if_no_exists_attrib(Class, Name) -> any()`
+`add_if_no_exists_attrib(Class, Names) -> any()`
 
 <a name="class_attr-1"></a>
 

@@ -233,9 +233,6 @@ to_bin(infinity) -> <<"INF">>;
 
 to_bin(undefined) -> <<>>;
 
-%% FIXME looks like the closures are numbered and __toString gives:
-to_bin(#function{}) -> <<"lambda_1">>;
-
 to_bin(MemRef) when ?IS_MEM(MemRef) -> to_bin(ephp_mem:get(MemRef)).
 
 -spec to_bin(context(), line(), mixed()) -> binary().
@@ -247,7 +244,7 @@ to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
     ephp_error:handle_error(Ctx, Error),
     <<"Array">>;
 
-to_bin(Context, Line, #obj_ref{} = ObjRef) ->
+to_bin(Context, Line, ObjRef) when ?IS_OBJECT(ObjRef) ->
     #ephp_object{class = #class{name = ClassName}} = ephp_object:get(ObjRef),
     try
         Call = #call{name = <<"__toString">>, line = Line, type = object},

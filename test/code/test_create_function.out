@@ -1,2 +1,13 @@
 New anonymous function: lambda_1
 ln(2) + ln(2.71828182845905) = 1.69314718055995
+ln(2) + ln(2.71828182845905) = 1.69314718055995
+string(8) "lambda_1"
+object(Closure)#2 (1) {
+  ["parameter"]=>
+  array(2) {
+    ["$a"]=>
+    string(10) "<required>"
+    ["$b"]=>
+    string(10) "<required>"
+  }
+}

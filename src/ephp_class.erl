@@ -711,11 +711,15 @@ set_static(Ref, ClassName, MethodName, Vars, Context) ->
 get_consts(#class{constants = Constants}) ->
     Constants.
 
-add_if_no_exists_attrib(#class{attrs=Attrs}=Class, Name) ->
+add_if_no_exists_attrib(#class{} = Class, Names) when is_list(Names) ->
+    lists:foldl(fun(Name, C) ->
+        add_if_no_exists_attrib(C, Name)
+    end, Class, Names);
+add_if_no_exists_attrib(#class{attrs = Attrs} = Class, Name) ->
     case get_attribute(Class, Name) of
         undefined ->
             Class#class{
-                attrs=Attrs ++ [#class_attr{name = Name}]
+                attrs = Attrs ++ [#class_attr{name = Name}]
             };
         _ ->
             Class

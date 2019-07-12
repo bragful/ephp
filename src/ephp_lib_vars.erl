@@ -129,12 +129,13 @@ var_dump(Context, Line, {_, Value}) ->
 -spec print_r(context(), line(), var_value(), Output :: boolean()) ->
       true | binary().
 
-print_r(Context, Line, {_, #obj_ref{} = ObjRef}, {_, true}) ->
+print_r(Context, Line, {_, ObjRef}, {_, true}) when ?IS_OBJECT(ObjRef) ->
     case ephp_object:get(ObjRef) of
         #ephp_object{class=Class, context=Ctx} ->
             RecCtl = gb_sets:new(),
             Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
                 Value = ephp_context:get(Ctx, #variable{name=Name}),
+                %% FIXME: print_r with arrays inside of objects isn't working this way
                 ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
                 <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
                   ValDumped/binary>>
@@ -144,11 +145,12 @@ print_r(Context, Line, {_, #obj_ref{} = ObjRef}, {_, true}) ->
             ephp_data:to_bin(Context, Line, undefined)
     end;
 
-print_r(Context, _Line, {_, #obj_ref{} = ObjRef}, {_, false}) ->
-    #ephp_object{class=Class, context=Ctx} = ephp_object:get(ObjRef),
+print_r(Context, _Line, {_, ObjRef}, {_, false}) when ?IS_OBJECT(ObjRef) ->
+    #ephp_object{class = Class, context = Ctx} = ephp_object:get(ObjRef),
     RecCtl = gb_sets:new(),
-    Data = lists:foldl(fun(#class_attr{name=Name}, Output) ->
-        Value = ephp_context:get(Ctx, #variable{name=Name}),
+    Data = lists:foldl(fun(#class_attr{name = Name}, Output) ->
+        Value = ephp_context:get(Ctx, #variable{name = Name}),
+        %% FIXME: print_r with arrays inside of objects isn't working this way
         ValDumped = print_r_fmt(Ctx, Value, <<?SPACES>>, RecCtl),
         <<Output/binary, ?SPACES, "[", Name/binary, "] => ",
           ValDumped/binary>>
@@ -295,9 +297,13 @@ var_dump_fmt(_Context, _Line, Resource, _Spaces, _RecCtl)
     DesNum = integer_to_binary(ephp_stream:get_res_id(Resource)),
     <<"resource(", DesNum/binary, ") of type (stream)\n">>;
 
-var_dump_fmt(Context, Line, #obj_ref{} = ObjRef,
-             Spaces, RecCtl) ->
+var_dump_fmt(Context, Line, ObjRef, Spaces, RecCtl) when ?IS_OBJECT(ObjRef) ->
+    IsLambda = ephp_context:get_meta(ephp_object:get_context(ObjRef), is_lambda),
     case ephp_object:get(ObjRef) of
+    #ephp_object{class = #class{name = <<"Closure">>}} when IsLambda ->
+        Id = integer_to_binary(ObjRef#obj_ref.ref),
+        Name = <<"lambda_", Id/binary>>,
+        var_dump_fmt(Context, Line, Name, Spaces, RecCtl);
     #ephp_object{class = Class, context = Ctx} ->
         #class{name = ClassName} = Class,
         lists:foldl(fun(#class_attr{name = RawName, access = Access} = CA, Output) ->

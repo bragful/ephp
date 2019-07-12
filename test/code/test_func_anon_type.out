@@ -1,2 +1,11 @@
-{closure}
+|{closure}|
 object
+object(Closure)#1 (1) {
+  ["parameter"]=>
+  array(2) {
+    ["$enclose"]=>
+    string(10) "<required>"
+    ["$data"]=>
+    string(10) "<optional>"
+  }
+}
