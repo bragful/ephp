@@ -85,6 +85,7 @@
     set_class_alias/3,
 
     set_global/2,
+    get_global/1,
     generate_subcontext/1,
     generate_subcontext/2,
 
@@ -412,8 +413,11 @@ set_class_alias(Context, ClassName, ClassAlias) ->
 
 set_global(Context, GlobalContext) ->
     State = load_state(Context),
-    save_state(State#state{global=GlobalContext}),
+    save_state(State#state{global = GlobalContext}),
     ok.
+
+get_global(Context) ->
+    (load_state(Context))#state.global.
 
 generate_subcontext(Context) ->
     generate_subcontext(Context, Context).
@@ -634,7 +638,7 @@ resolve(Object, State) when ?IS_OBJECT(Object) ->
     {Object, State};
 
 resolve({pre_incr, Var, _Line}, #state{ref = Ref} = State) ->
-    case catch get_var_path(Var, State) of
+    case get_var_path(Var, State) of
         #variable{}=VarPath ->
             case ephp_vars:get(State#state.vars, VarPath, Ref) of
                 undefined ->
@@ -796,24 +800,24 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
                active_real_class = Class} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
-    {ok, NewVars} = ephp_vars:start_link(),
+    {ok, FuncVars} = ephp_vars:start_link(),
     {ok, SubContext} = start_mirror(NState#state{
-        vars = NewVars,
+        vars = FuncVars,
         global = Ref,
         active_fun = ?FUNC_ANON_NAME,
         active_fun_args = length(RawArgs)}),
-    ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line, Ref),
+    ephp_vars:zip_args(Vars, FuncVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line, Ref),
     lists:foreach(fun
         ({#variable{} = K, V}) ->
-            ephp_vars:set(NewVars, K, V, Ref);
+            ephp_vars:set(FuncVars, K, V, Ref);
         ({#var_ref{pid = NVars, ref = V}, N}) ->
-            ephp_vars:ref(NewVars, N, NVars, V, Ref)
+            ephp_vars:ref(FuncVars, N, NVars, V, Ref)
     end, Use),
-    register_superglobals(Ref, NewVars),
+    register_superglobals(Ref, FuncVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, ?FUNC_ANON_NAME),
     Refs = lists:map(fun
         (#variable{} = Var) ->
-            #var_ref{pid = NewVars, ref = Var};
+            #var_ref{pid = FuncVars, ref = Var};
         (#var_ref{} = VarRef) ->
             VarRef
     end, FuncArgs),
@@ -823,7 +827,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
         _ -> undefined
     end,
     destroy(SubContext),
-    ephp_vars:destroy(Ref, NewVars),
+    ephp_vars:destroy(Ref, FuncVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
     ephp_stack:pop(Ref),
     {Value, NState};
@@ -856,91 +860,9 @@ resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     end,
     resolve(Call#call{name = Name}, NewState);
 
-resolve(#call{type = normal, name = Fun, args = RawArgs, line = Index} = _Call,
-        #state{ref = Ref, vars = Vars, funcs = Funcs, const = Const,
-               active_file = File} = State) ->
-    GlobalRef = case State#state.global of
-        undefined -> Ref;
-        GR -> GR
-    end,
-    case ephp_func:get(Funcs, Fun) of
-    {ok, #reg_func{type = builtin, pack_args = PackArgs, builtin = {M, F},
-                   validation_args = no_resolve}} ->
-        FState = State#state{active_fun = Fun},
-        {Args, NState} = resolve_args(no_resolve, RawArgs, FState, Index),
-        save_state(NState),
-        Value = if
-            PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
-            true -> erlang:apply(M,F,[Ref,Index|Args])
-        end,
-        destroy_args(NState, Args),
-        {Value, (load_state(Ref))#state{ref=Ref}};
-    {ok, #reg_func{type = builtin, pack_args = PackArgs, builtin = {M, F},
-                   validation_args = VA}} ->
-        FState = State#state{active_fun = Fun},
-        VArgs = case VA of
-            undefined ->
-                undefined;
-            {_Min, _Max, _RetErr, _ValArgs} ->
-                VA;
-            _ when is_list(VA) ->
-                {expected_min_args(VA), expected_max_args(M, F), undefined, VA}
-        end,
-        try resolve_args(VArgs, RawArgs, FState, Index) of
-            {Args, NState} ->
-                ResArgs = [ Val || {_Var, Val} <- Args ],
-                ephp_stack:push(Ref, File, Index, Fun, ResArgs,
-                                undefined, undefined),
-                save_state(NState),
-                Value = if
-                    PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
-                    true -> erlang:apply(M,F,[Ref,Index|Args])
-                end,
-                ephp_stack:pop(Ref),
-                destroy_args(NState, Args),
-                {Value, (load_state(Ref))#state{ref=Ref}}
-        catch
-            throw:{return,Value} ->
-                {Value, State}
-        end;
-    {ok,#reg_func{type=php, args=RawFuncArgs, file=AFile, code=Code}} ->
-        {Args, NStatePrev} = resolve_args(RawArgs, State),
-        {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
-        save_state(NState),
-        {ok, NewVars} = ephp_vars:start_link(),
-        {ok, SubContext} = start_mirror(NState#state{
-            vars = NewVars,
-            global = GlobalRef,
-            active_file = AFile,
-            active_fun = Fun,
-            active_class = <<>>,
-            active_real_class = <<>>,
-            active_fun_args = length(Args)}),
-        ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
-        register_superglobals(GlobalRef, NewVars),
-        ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
-        Refs = lists:map(fun
-            (#variable{} = Var) ->
-                #var_ref{pid = NewVars, ref = Var};
-            (#ref{var = Var}) ->
-                #var_ref{pid = NewVars, ref = Var};
-            (#var_ref{} = VarRef) ->
-                VarRef
-        end, FuncArgs),
-        ephp_stack:push(Ref, File, Index, Fun, Refs, undefined, undefined),
-        Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-            {return, V} -> V;
-            _ -> undefined
-        end,
-        ephp_func:set_static(Funcs, Fun, NewVars, Ref),
-        destroy(SubContext),
-        ephp_vars:destroy(Ref, NewVars),
-        ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
-        ephp_stack:pop(Ref),
-        {Value, NState};
-    error ->
-        ephp_error:error({error, eundefun, Index, ?E_ERROR, {Fun}})
-    end;
+resolve(#call{type = normal, name = Fun} = Call,
+        #state{funcs = Funcs} = State) ->
+    resolve_function(Call, ephp_func:get(Funcs, Fun), State);
 
 %% TODO error if no class scope
 resolve(#call{type = class, class = <<"self">>} = Call,
@@ -1018,10 +940,10 @@ resolve({global, _Var, _Line}, #state{global = undefined} = State) ->
     {undefined, State};
 
 resolve({global, GVars, _Line},
-        #state{global = GlobalCtx, vars = Vars} = State) ->
+        #state{ref = Ref, global = GlobalCtx, vars = Vars} = State) ->
     #state{vars=GlobalVars} = load_state(GlobalCtx),
     lists:foreach(fun(GlobalVar) ->
-        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar, State#state.ref)
+        ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar, Ref)
     end, GVars),
     {undefined, State};
 
@@ -1115,7 +1037,7 @@ resolve(#cast{type = Type, content = C, line = Line}, State) ->
 
 resolve(#clone{var = Var, line = Line}, State) ->
     case resolve(Var, State) of
-        {#obj_ref{} = ObjRef, NState} ->
+        {ObjRef, NState} when ?IS_OBJECT(ObjRef) ->
             {ephp_object:clone(State#state.ref, ObjRef), NState};
         _ ->
             ephp_error:error({error, enoclone, Line, ?E_ERROR, {}})
@@ -1123,6 +1045,101 @@ resolve(#clone{var = Var, line = Line}, State) ->
 
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
+
+
+resolve_function(#call{name = Fun, args = RawArgs, line = Index},
+                 {ok, #reg_func{type = builtin, pack_args = PackArgs,
+                                builtin = {M, F},
+                                validation_args = no_resolve}},
+                 #state{ref = Ref} = State) ->
+    FState = State#state{active_fun = Fun},
+    {Args, NState} = resolve_args(no_resolve, RawArgs, FState, Index),
+    save_state(NState),
+    Value = if
+        PackArgs -> erlang:apply(M, F, [Ref, Index, Args]);
+        true -> erlang:apply(M, F, [Ref, Index|Args])
+    end,
+    destroy_args(NState, Args),
+    {Value, (load_state(Ref))#state{ref = Ref}};
+
+resolve_function(#call{name = Fun, args = RawArgs, line = Index} = _Call,
+                 {ok, #reg_func{type = builtin, pack_args = PackArgs,
+                                builtin = {M, F},
+                                validation_args = VA}},
+                 #state{ref = Ref, active_file = File} = State) ->
+    FState = State#state{active_fun = Fun},
+    VArgs = case VA of
+        undefined ->
+            undefined;
+        {_Min, _Max, _RetErr, _ValArgs} ->
+            VA;
+        _ when is_list(VA) ->
+            {expected_min_args(VA), expected_max_args(M, F), undefined, VA}
+    end,
+    try resolve_args(VArgs, RawArgs, FState, Index) of
+        {Args, NState} ->
+            ResArgs = [ Val || {_Var, Val} <- Args ],
+            ephp_stack:push(Ref, File, Index, Fun, ResArgs,
+                            undefined, undefined),
+            save_state(NState),
+            Value = if
+                PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
+                true -> erlang:apply(M,F,[Ref,Index|Args])
+            end,
+            ephp_stack:pop(Ref),
+            destroy_args(NState, Args),
+            {Value, (load_state(Ref))#state{ref=Ref}}
+    catch
+        throw:{return, Value} ->
+            {Value, State}
+    end;
+
+resolve_function(#call{name = Fun, args = RawArgs, line = Index},
+                 {ok,#reg_func{type = php, args = RawFuncArgs, file = AFile,
+                               code = Code}},
+                 #state{ref = Ref, vars = Vars, const = Const,
+                        active_file = File, funcs = Funcs} = State) ->
+    GlobalRef = case State#state.global of
+        undefined -> Ref;
+        GR -> GR
+    end,
+    {Args, NStatePrev} = resolve_args(RawArgs, State),
+    {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
+    save_state(NState),
+    {ok, NewVars} = ephp_vars:start_link(),
+    SArgs = length(Args),
+    {ok, SubContext} = start_mirror(NState#state{vars = NewVars,
+                                                 global = GlobalRef,
+                                                 active_file = AFile,
+                                                 active_fun = Fun,
+                                                 active_class = <<>>,
+                                                 active_real_class = <<>>,
+                                                 active_fun_args = SArgs}),
+    ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
+    register_superglobals(GlobalRef, NewVars),
+    ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
+    Refs = lists:map(fun(#variable{} = Var) ->
+                            #var_ref{pid = NewVars, ref = Var};
+                        (#ref{var = Var}) ->
+                            #var_ref{pid = NewVars, ref = Var};
+                        (#var_ref{} = VarRef) ->
+                            VarRef
+                      end, FuncArgs),
+    ephp_stack:push(Ref, File, Index, Fun, Refs, undefined, undefined),
+    Value = case ephp_interpr:run(SubContext, #eval{statements = Code}) of
+        {return, V} -> V;
+        _ -> undefined
+    end,
+    ephp_func:set_static(Funcs, Fun, NewVars, Ref),
+    destroy(SubContext),
+    ephp_vars:destroy(Ref, NewVars),
+    ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
+    ephp_stack:pop(Ref),
+    {Value, NState};
+
+resolve_function(#call{name = Fun, line = Index}, error, _State) ->
+    ephp_error:error({error, eundefun, Index, ?E_ERROR, {Fun}}).
+
 
 resolve_params_anon(Args) ->
     resolve_params_anon(Args, ephp_array:new()).
@@ -1201,43 +1218,9 @@ resolve_args(_, undefined, State, _Line) ->
     {[], State};
 resolve_args(undefined, RawArgs, State, _Line) ->
     resolve_args(RawArgs, State);
-resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
-    {RestRawArgs, _I, Args, NewState} = lists:foldl(fun
-        ({_, Default}, {[], I, Args, S}) ->
-            {[], I+1, Args ++ [{undefined, Default}], S};
-        (_Type, {[], I, _Args, S}) ->
-            File = S#state.active_file,
-            Function = S#state.active_fun,
-            Data = {Function, MinArgs, I-1},
-            ephp_error:handle_error(S#state.ref, {error, ewrongminarity, Line,
-                File, ?E_WARNING, Data}),
-            throw({return, ReturnError});
-        ({raw, Default}, {[RArg|RArgs], I, Args, S}) ->
-            {RArgs, I+1, Args ++ [{RArg,Default}], S};
-        (raw, {[#variable{} = RArg|RArgs], I, Args, S}) ->
-            {RRArg, NewState} = resolve_indexes(RArg, S),
-            {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
-        (raw, {[RArg|RArgs], I, Args, S}) ->
-            {RRArg, NewState} = resolve(RArg, S),
-            {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
-        ({VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
-            {A, NewState} = case resolve(RArg,S) of
-                {MemRef, NS} when ?IS_MEM(MemRef) ->
-                    resolve(ephp_mem:get(MemRef), NS);
-                {A0, NS} ->
-                    {A0, NS}
-            end,
-            check_arg(State, Line, I, VArg, A, ReturnError),
-            {RArgs, I+1, Args ++ [{RArg,A}], NewState};
-        (VArg, {[RArg|RArgs], I, Args, S}) ->
-            {A, NewState} = case resolve(RArg,S) of
-                {MemRef, NS} when ?IS_MEM(MemRef) ->
-                    resolve(ephp_mem:get(MemRef), NS);
-                {A0, NS} ->
-                    {A0, NS}
-            end,
-            check_arg(State, Line, I, VArg, A, ReturnError),
-            {RArgs, I+1, Args ++ [{RArg,A}], NewState}
+resolve_args({_MinArgs, MaxArgs, ReturnError, VArgs} = Validation, RawArgs, State, Line) ->
+    {RestRawArgs, _I, Args, NewState} = lists:foldl(fun(Type, Acc) ->
+        validate_arg({Validation, Line}, Type, Acc)
     end, {RawArgs, 1, [], State}, VArgs),
     case RestRawArgs of
         [] ->
@@ -1250,6 +1233,53 @@ resolve_args({MinArgs, MaxArgs, ReturnError, VArgs}, RawArgs, State, Line) ->
             ephp_error:handle_error(NewState#state.ref, Error),
             throw({return, ReturnError})
     end.
+
+
+validate_arg(_Validation, {_, Default}, {[], I, Args, S}) ->
+    {[], I+1, Args ++ [{undefined, Default}], S};
+
+validate_arg({{MinArgs, _MaxArgs, ReturnError, _VArgs}, Line},
+             _Type, {[], I, _Args, S}) ->
+    File = S#state.active_file,
+    Function = S#state.active_fun,
+    Data = {Function, MinArgs, I-1},
+    ephp_error:handle_error(S#state.ref, {error, ewrongminarity, Line,
+        File, ?E_WARNING, Data}),
+    throw({return, ReturnError});
+
+validate_arg(_Validation, {raw, Default}, {[RArg|RArgs], I, Args, S}) ->
+    {RArgs, I+1, Args ++ [{RArg, Default}], S};
+
+validate_arg(_Validation, raw, {[#variable{} = RArg|RArgs], I, Args, S}) ->
+    {RRArg, NewState} = resolve_indexes(RArg, S),
+    {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
+
+validate_arg(_Validation, raw, {[RArg|RArgs], I, Args, S}) ->
+    {RRArg, NewState} = resolve(RArg, S),
+    {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
+
+validate_arg({{_MinArgs, _MaxArgs, ReturnError, _VArgs}, Line},
+             {VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
+    {A, NewState} = case resolve(RArg,S) of
+        {MemRef, NS} when ?IS_MEM(MemRef) ->
+            resolve(ephp_mem:get(MemRef), NS);
+        {A0, NS} ->
+            {A0, NS}
+    end,
+    check_arg(S, Line, I, VArg, A, ReturnError),
+    {RArgs, I+1, Args ++ [{RArg,A}], NewState};
+
+validate_arg({{_MinArgs, _MaxArgs, ReturnError, _VArgs}, Line},
+             VArg, {[RArg|RArgs], I, Args, S}) ->
+    {A, NewState} = case resolve(RArg,S) of
+        {MemRef, NS} when ?IS_MEM(MemRef) ->
+            resolve(ephp_mem:get(MemRef), NS);
+        {A0, NS} ->
+            {A0, NS}
+    end,
+    check_arg(S, Line, I, VArg, A, ReturnError),
+    {RArgs, I+1, Args ++ [{RArg,A}], NewState}.
+
 
 check_arg(_State, _Line, _I, mixed, _A, _ReturnError) ->
     ok;
@@ -1329,44 +1359,70 @@ zip_args(ValArgs, FuncArgs) ->
     end, {[], ValArgs}, FuncArgs),
     Result.
 
+
+get_class_from(MethodVars, RegInstance, AName, Line, State) when ?IS_OBJECT(RegInstance) ->
+    #ephp_object{class = Class} = ephp_object:get(RegInstance),
+    ephp_vars:set(MethodVars,
+                  #variable{name = <<"this">>, type = object,
+                            class = Class#class.name, line = Line},
+                  RegInstance, State#state.ref),
+    if
+        AName =/= undefined andalso AName =/= Class#class.name ->
+            {ok, ModifiedClass} = ephp_class:get(State#state.class, AName),
+            {RegInstance, ModifiedClass};
+        true ->
+            {RegInstance, Class}
+    end;
+
+get_class_from(_MethodVars, #class{name = AName} = Class, AName, _Line, _State) ->
+    {undefined, Class};
+
+get_class_from(_MethodVars, #class{name = undefined} = Class, _AName, _Line, _State) ->
+    {undefined, Class};
+
+get_class_from(_MethodVars, #class{}, AName, _Line, State) ->
+    %% TODO maybe this should require $this???
+    {ok, ModifiedClass} = ephp_class:get(State#state.class, AName),
+    {undefined, ModifiedClass}.
+
+
+maybe_enostatic_log(Class, undefined, MethodName,
+                    #class_method{type = Type},
+                    Line, State) when Type =/= static ->
+    ephp_error:handle_error(State#state.ref, {error, enostatic, Line,
+                                              State#state.active_file,
+                                              ?E_STRICT,
+                                              {Class#class.name,
+                                               MethodName}});
+maybe_enostatic_log(_Class, _Object, _MethodName, _ClassMethod,
+                    _Line, _State) ->
+    ok.
+
+maybe_ecallprivate_log(ClassName, MCName, Access, IsChild, MethodName, Line)
+    when (Access =:= private andalso MCName =/= ClassName) orelse
+         (Access =:= protected andalso not IsChild) ->
+    ephp_error:error({error, ecallprivate, Line, ?E_ERROR,
+                      {ClassName, MCName, MethodName, Access}});
+maybe_ecallprivate_log(_ClassName, _MCName, _Access, _IsChild, _MethodName, _Line) ->
+    ok.
+
+
+maybe_destroy_vars_from_method(<<"__destruct">>, _MethodVars, _Ref) -> ok;
+maybe_destroy_vars_from_method(_MethodName, MethodVars, Ref) ->
+    ephp_vars:destroy(Ref, MethodVars).
+
+
 run_method(RegInstance, #call{name = Name} = Call, State)
         when not is_binary(Name) ->
     {<<RealName/binary>>, NewState} = resolve(Name, State),
     run_method(RegInstance, Call#call{name = RealName}, NewState);
 
 run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call,
-           #state{ref = Ref, const = Const, vars = Vars,
-                  class = Classes} = State) ->
+           #state{ref = Ref, class = Classes} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
-    {ok, NewVars} = ephp_vars:start_link(),
-    Class = case RegInstance of
-        #obj_ref{} ->
-            #ephp_object{class = C} = ephp_object:get(RegInstance),
-            ephp_vars:set(NewVars, #variable{name = <<"this">>, type = object,
-                                             class = C#class.name, line = Line},
-                          RegInstance, Ref),
-            Object = RegInstance,
-            if
-                AName =/= undefined andalso C#class.name =/= AName ->
-                    {ok, C2} = ephp_class:get(Classes, AName),
-                    C2;
-                true ->
-                    C
-            end;
-        #class{name = AN} = C when AN =:= AName orelse AName =:= undefined ->
-            Object = undefined,
-            C;
-        #class{} ->
-            %% TODO maybe this should require $this???
-            Object = undefined,
-            {ok, C} = ephp_class:get(Classes, AName),
-            C
-    end,
-    RealObject = case Call#call.type of
-        class -> undefined;
-        object -> Object
-    end,
-    #class{name = ClassName, file = ClassFile} = Class,
+    {ok, MethodVars} = ephp_vars:start_link(),
+    {Object, Class} = get_class_from(MethodVars, RegInstance, AName, Line, State),
+    #class{name = ClassName} = Class,
     #class_method{args = RawMethodArgs} = ClassMethod = case Call#call.name of
         <<"__construct">> ->
             #class_method{name = MethodName} =
@@ -1377,113 +1433,105 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
                           access = Access, name = MethodName} = CM =
                 ephp_class:get_method(Class, Line, CallName),
             IsChild = ephp_class:instance_of(Ref, RegInstance, MCName),
-            if
-                (Access =:= private andalso MCName =/= ClassName) orelse
-                (Access =:= protected andalso not IsChild) ->
-                    ephp_error:error({error, ecallprivate, Line, ?E_ERROR,
-                                      {ClassName, MCName, MethodName, Access}});
-                true ->
-                    ok
-            end,
+            maybe_ecallprivate_log(ClassName, MCName, Access, IsChild, MethodName, Line),
             CM
         end,
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
-    if
-        ClassMethod#class_method.type =/= static andalso Object =:= undefined ->
-            ephp_error:handle_error(Ref, {error, enostatic, Call#call.line,
-                                          State#state.active_file, ?E_STRICT,
-                                          {C#class.name, MethodName}});
-        true ->
-            ok
+    maybe_enostatic_log(Class, Object, MethodName, ClassMethod, Line, NState),
+    run_method(ClassMethod, Class, Object, Call, Args,
+               MethodVars, MethodName, MethodArgs, RegInstance, NState).
+
+run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
+           Call, Args, MethodVars, MethodName, MethodArgs, _RegInstance,
+           #state{ref = Ref, class = Classes, vars = Vars,
+                  const = Const} = State) ->
+    RealObject = case Call#call.type of
+        class -> undefined;
+        object -> Object
     end,
-    case ClassMethod#class_method.code_type of
-        php ->
-            ephp_vars:zip_args(Vars, NewVars, Args, MethodArgs, MethodName,
-                               Call#call.line, Ref),
-            {ok, SubContext} = start_mirror(NState#state{
-                vars = NewVars,
-                global = Ref,
-                active_file = ClassFile,
-                active_fun = MethodName,
-                active_fun_args = length(Args),
-                active_real_class = ClassName,
-                active_class = ClassMethod#class_method.class_name}),
-            register_superglobals(Ref, NewVars),
-            OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
-            ephp_const:set_bulk(Const, [
-                {<<"__FUNCTION__">>, MethodName},
-                {<<"__METHOD__">>,
-                 <<(ClassMethod#class_method.class_name)/binary,
-                   "::", MethodName/binary>>}
-            ]),
-            %% TODO: with static (late binding) this changes
-            set_active_class(Ref, ClassMethod#class_method.class_name),
-            set_active_real_class(Ref, ClassName),
-            Refs = lists:map(fun
-                (#variable{} = Var) ->
-                    #var_ref{pid = NewVars, ref = Var};
-                (#var_ref{} = VarRef) ->
-                    VarRef;
-                (#ref{} = VarRef) ->
-                    VarRef
-            end, MethodArgs),
-            ephp_stack:push(Ref, NState#state.active_file, Call#call.line,
-                            MethodName, Refs, ClassName, RealObject),
-            Code = ClassMethod#class_method.code,
-            Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
-                {return, V} -> V;
-                _ -> undefined
-            end,
-            ephp_class:set_static(Classes, ClassName, MethodName, NewVars, Ref),
-            destroy(SubContext),
-            if
-                MethodName =/= <<"__destruct">> ->
-                    ephp_vars:destroy(Ref, NewVars);
+    ephp_vars:zip_args(Vars, MethodVars, Args, MethodArgs, MethodName,
+                        Call#call.line, Ref),
+    {ok, SubContext} = start_mirror(State#state{
+        vars = MethodVars,
+        global = Ref,
+        active_file = Class#class.file,
+        active_fun = MethodName,
+        active_fun_args = length(Args),
+        active_real_class = Class#class.name,
+        active_class = ClassMethod#class_method.class_name}),
+    register_superglobals(Ref, MethodVars),
+    OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
+    ephp_const:set_bulk(Const, [
+        {<<"__FUNCTION__">>, MethodName},
+        {<<"__METHOD__">>,
+            <<(ClassMethod#class_method.class_name)/binary,
+            "::", MethodName/binary>>}
+    ]),
+    %% TODO: with static (late binding) this changes
+    set_active_class(Ref, ClassMethod#class_method.class_name),
+    set_active_real_class(Ref, Class#class.name),
+    Refs = lists:map(fun
+        (#variable{} = Var) ->
+            #var_ref{pid = MethodVars, ref = Var};
+        (#var_ref{} = VarRef) ->
+            VarRef;
+        (#ref{} = VarRef) ->
+            VarRef
+    end, MethodArgs),
+    ephp_stack:push(Ref, State#state.active_file, Call#call.line,
+                    MethodName, Refs, Class#class.name, RealObject),
+    Code = ClassMethod#class_method.code,
+    Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+        {return, V} -> V;
+        _ -> undefined
+    end,
+    ephp_class:set_static(Classes, Class#class.name, MethodName, MethodVars, Ref),
+    destroy(SubContext),
+    maybe_destroy_vars_from_method(MethodName, MethodVars, Ref),
+    ephp_const:set_bulk(Const, [
+        {<<"__FUNCTION__">>, State#state.active_fun},
+        {<<"__METHOD__">>, OldMethodName}
+    ]),
+    set_active_class(Ref, State#state.active_class),
+    set_active_real_class(Ref, State#state.active_real_class),
+    ephp_stack:pop(Ref),
+    {Value, State};
+
+run_method(#class_method{code_type = builtin} = ClassMethod, _Class, _Object,
+           #call{args = RawArgs, line = Index},
+           _Args, _MethodVars, _MethodName, MethodArgs, RegInstance,
+           #state{ref = Ref} = State) ->
+    {M, F} = ClassMethod#class_method.builtin,
+    VArgs = case ClassMethod#class_method.validation_args of
+        no_resolve ->
+            no_resolve;
+        undefined ->
+            undefined;
+        {_Min, _Max, _RetErr, _ValArgs} = VA ->
+            VA;
+        VA when is_list(VA) ->
+            {expected_min_args(VA), expected_max_args(M, F),
+                undefined, VA}
+    end,
+    try resolve_args(VArgs, RawArgs, State, Index) of
+        {FArgs, FState} when ClassMethod#class_method.validation_args =:= no_resolve ->
+            save_state(FState),
+            Value = erlang:apply(M, F, [Ref, RegInstance, Index, FArgs]),
+            {Value, (load_state(Ref))#state{ref = Ref}};
+        {FArgs, FState} ->
+            FMArgs = zip_args(FArgs, MethodArgs),
+            save_state(FState),
+            Value = if
+                ClassMethod#class_method.pack_args ->
+                    erlang:apply(M, F, [Ref, RegInstance, Index, FMArgs]);
                 true ->
-                    ok
+                    erlang:apply(M, F, [Ref, RegInstance, Index|FMArgs])
             end,
-            ephp_const:set_bulk(Const, [
-                {<<"__FUNCTION__">>, State#state.active_fun},
-                {<<"__METHOD__">>, OldMethodName}
-            ]),
-            set_active_class(Ref, State#state.active_class),
-            set_active_real_class(Ref, State#state.active_real_class),
-            ephp_stack:pop(Ref),
-            {Value, NState};
-        builtin ->
-            {M, F} = ClassMethod#class_method.builtin,
-            VArgs = case ClassMethod#class_method.validation_args of
-                no_resolve ->
-                    no_resolve;
-                undefined ->
-                    undefined;
-                {_Min, _Max, _RetErr, _ValArgs} = VA ->
-                    VA;
-                VA when is_list(VA) ->
-                    {expected_min_args(VA), expected_max_args(M, F),
-                     undefined, VA}
-            end,
-            Index = Call#call.line,
-            try resolve_args(VArgs, RawArgs, NState, Index) of
-                {FArgs, FState} when ClassMethod#class_method.validation_args =:= no_resolve ->
-                    save_state(FState),
-                    Value = erlang:apply(M, F, [Ref, RegInstance, Index, FArgs]),
-                    {Value, (load_state(Ref))#state{ref = Ref}};
-                {FArgs, FState} ->
-                    FMArgs = zip_args(FArgs, MethodArgs),
-                    save_state(FState),
-                    Value = if
-                        ClassMethod#class_method.pack_args ->
-                            erlang:apply(M, F, [Ref, RegInstance, Index, FMArgs]);
-                        true ->
-                            erlang:apply(M, F, [Ref, RegInstance, Index|FMArgs])
-                    end,
-                    destroy_args(NState, FMArgs),
-                    {Value, (load_state(Ref))#state{ref=Ref}}
-            catch
-                throw:{return,Value} ->
-                    {Value, NState}
-            end
+            destroy_args(State, FMArgs),
+            {Value, (load_state(Ref))#state{ref=Ref}}
+    catch
+        throw:{return,Value} ->
+            {Value, State}
     end.
 
 destroy_args(_State, []) ->
@@ -1760,74 +1808,77 @@ resolve_op(#operation{type = instanceof, expression_left = Op1,
     {ephp_class:instance_of(Ref, OpRes1, ClassName), State1};
 
 resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
-                      line=Index},
-           #state{active_file=File}=State) ->
+                      line=Index}, State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
-    {case Type of
-        <<"+">> when ?IS_ARRAY(OpRes1) andalso ?IS_ARRAY(OpRes2) ->
-            lists:foldl(fun({K,V}, A) ->
-                case ephp_array:find(K, A) of
-                    error -> ephp_array:store(K, V, A);
-                    _ -> A
-                end
-            end, OpRes1, ephp_array:to_list(OpRes2));
-        <<"+">> ->
-            ephp_data:zero_if_undef(OpRes1) + ephp_data:zero_if_undef(OpRes2);
-        <<"-">> ->
-            ephp_data:zero_if_undef(OpRes1) - ephp_data:zero_if_undef(OpRes2);
-        <<"*">> ->
-            ephp_data:zero_if_undef(OpRes1) * ephp_data:zero_if_undef(OpRes2);
-        <<"/">> ->
-            A = ephp_data:zero_if_undef(OpRes1),
-            B = ephp_data:zero_if_undef(OpRes2),
-            if
-                B == 0 ->
-                    Error = {error, edivzero, Index, File, ?E_WARNING, {}},
-                    ephp_error:handle_error(State#state.ref, Error);
-                B == infinity ->
-                    0;
-                true ->
-                    A / B
-            end;
-        <<"%">> ->
-            trunc(ephp_data:zero_if_undef(OpRes1)) rem
-            trunc(ephp_data:zero_if_undef(OpRes2));
-        <<"<">> when OpRes1 =:= undefined -> true;
-        <<"<">> when OpRes2 =:= undefined -> false;
-        <<"<">> -> OpRes1 < OpRes2;
-        <<">">> when OpRes1 =:= undefined -> false;
-        <<">">> when OpRes1 =:= undefined -> true;
-        <<">">> -> OpRes1 > OpRes2;
-        <<">=">> when OpRes1 =:= undefined andalso OpRes2 =:= undefined -> true;
-        <<">=">> when OpRes1 =:= undefined -> true;
-        <<">=">> when OpRes2 =:= undefined -> false;
-        <<">=">> -> OpRes1 >= OpRes2;
-        <<"=<">> when OpRes1 =:= undefined andalso OpRes2 =:= undefined -> true;
-        <<"=<">> when OpRes1 =:= undefined -> false;
-        <<"=<">> when OpRes2 =:= undefined -> true;
-        <<"=<">> -> OpRes1 =< OpRes2;
-        <<"==">> when ?IS_OBJECT(OpRes1) andalso ?IS_OBJECT(OpRes2) ->
-            ephp_object:get_class_name(OpRes1) =:=
-            ephp_object:get_class_name(OpRes2);
-        <<"==">> -> ephp_data:is_equal(OpRes1, OpRes2);
-        <<"===">> -> OpRes1 =:= OpRes2;
-        <<"!=">> -> OpRes1 /= OpRes2;
-        <<"!==">> -> OpRes1 =/= OpRes2;
-        <<"^">> -> ephp_data:zero_if_undef(OpRes1) bxor
-                   ephp_data:zero_if_undef(OpRes2);
-        <<"|">> -> ephp_data:zero_if_undef(OpRes1) bor
-                   ephp_data:zero_if_undef(OpRes2);
-        <<"&">> -> ephp_data:zero_if_undef(OpRes1) band
-                   ephp_data:zero_if_undef(OpRes2);
-        instanceof -> ephp_object:get_class_name(OpRes1) =:=
-                      ephp_object:get_class_name(OpRes2)
-    end, State2};
+    {resolve_op(Type, OpRes1, OpRes2, Index, State2), State2};
 
 resolve_op(Cond, State) ->
     {Value, NewState} = resolve(Cond, State),
     BoolValue = ephp_data:to_bool(Value),
     {BoolValue, NewState}.
+
+
+resolve_op(<<"+">>, OpRes1, OpRes2, _Index, _State) when ?IS_ARRAY(OpRes1) andalso
+                                                         ?IS_ARRAY(OpRes2) ->
+    lists:foldl(fun({K,V}, A) ->
+        case ephp_array:find(K, A) of
+            error -> ephp_array:store(K, V, A);
+            _ -> A
+        end
+    end, OpRes1, ephp_array:to_list(OpRes2));
+resolve_op(<<"+">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:zero_if_undef(OpRes1) + ephp_data:zero_if_undef(OpRes2);
+resolve_op(<<"-">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:zero_if_undef(OpRes1) - ephp_data:zero_if_undef(OpRes2);
+resolve_op(<<"*">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:zero_if_undef(OpRes1) * ephp_data:zero_if_undef(OpRes2);
+resolve_op(<<"/">>, OpRes1, OpRes2, Index, State) ->
+    A = ephp_data:zero_if_undef(OpRes1),
+    B = ephp_data:zero_if_undef(OpRes2),
+    if
+        B == 0 ->
+            #state{active_file = File} = State,
+            Error = {error, edivzero, Index, File, ?E_WARNING, {}},
+            ephp_error:handle_error(State#state.ref, Error);
+        B == infinity ->
+            0;
+        true ->
+            A / B
+    end;
+resolve_op(<<"%">>, OpRes1, OpRes2, _Index, _State) ->
+    trunc(ephp_data:zero_if_undef(OpRes1)) rem
+    trunc(ephp_data:zero_if_undef(OpRes2));
+resolve_op(<<"<">>, undefined, _OpRes2, _Index, _State) -> true;
+resolve_op(<<"<">>, _OpRes1, undefined, _Index, _State) -> false;
+resolve_op(<<"<">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 < OpRes2;
+resolve_op(<<">">>, undefined, _OpRes2, _Index, _State) -> false;
+resolve_op(<<">">>, _OpRes1, undefined, _Index, _State) -> true;
+resolve_op(<<">">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 > OpRes2;
+resolve_op(<<">=">>, undefined, undefined, _Index, _State) -> true;
+resolve_op(<<">=">>, undefined, _OpRes2, _Index, _State) -> true;
+resolve_op(<<">=">>, _OpRes1, undefined, _Index, _State) -> false;
+resolve_op(<<">=">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 >= OpRes2;
+resolve_op(<<"=<">>, undefined, undefined, _Index, _State) -> true;
+resolve_op(<<"=<">>, undefined, _OpRes2, _Index, _State) -> false;
+resolve_op(<<"=<">>, _OpRes1, undefined, _Index, _State) -> true;
+resolve_op(<<"=<">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 =< OpRes2;
+resolve_op(<<"==">>, OpRes1, OpRes2, _Index, _State) when ?IS_OBJECT(OpRes1) andalso
+                                                          ?IS_OBJECT(OpRes2) ->
+    ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2);
+resolve_op(<<"==">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:is_equal(OpRes1, OpRes2);
+resolve_op(<<"===">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 =:= OpRes2;
+resolve_op(<<"!=">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 /= OpRes2;
+resolve_op(<<"!==">>, OpRes1, OpRes2, _Index, _State) -> OpRes1 =/= OpRes2;
+resolve_op(<<"^">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:zero_if_undef(OpRes1) bxor ephp_data:zero_if_undef(OpRes2);
+resolve_op(<<"|">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:zero_if_undef(OpRes1) bor ephp_data:zero_if_undef(OpRes2);
+resolve_op(<<"&">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:zero_if_undef(OpRes1) band ephp_data:zero_if_undef(OpRes2);
+resolve_op(instanceof, OpRes1, OpRes2, _Index, _State) ->
+    ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2).
 
 -spec load_state(context()) -> #state{}.
 

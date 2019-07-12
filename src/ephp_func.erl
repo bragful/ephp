@@ -176,10 +176,9 @@ is_defined(Ref, FuncName) ->
 
 get_functions(Ref) ->
     Funcs = erlang:get(Ref),
-    Get = fun
-        (#reg_func{name=Name, type=builtin}) -> {Name, <<"internal">>};
-        (#reg_func{name=Name, type=php}) -> {Name, <<"user">>}
-    end,
+    Get = fun(#reg_func{name = Name, type = builtin}) -> {Name, <<"internal">>};
+             (#reg_func{name = Name, type = php}) -> {Name, <<"user">>}
+          end,
     [ Get(FuncName) || {_,FuncName} <- dict:to_list(Funcs) ].
 
 register_func(Ref, File, PHPFunc, Args, Code) ->
@@ -193,32 +192,30 @@ register_func(Ref, File, PHPFunc, Module, Fun, PackArgs, ValArgs)
         when is_atom(Module) andalso is_atom(Fun) ->
     Funcs = erlang:get(Ref),
     IPHPFunc = ephp_string:to_lower(PHPFunc),
-    RegFunc = #reg_func{
-        name=IPHPFunc,
-        type=builtin,
-        file=File,
-        builtin={Module, Fun},
-        pack_args=PackArgs,
-        validation_args=ValArgs},
+    RegFunc = #reg_func{name = IPHPFunc,
+                        type = builtin,
+                        file = File,
+                        builtin = {Module, Fun},
+                        pack_args = PackArgs,
+                        validation_args = ValArgs},
     erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok;
 
 register_func(Ref, File, PHPFunc, Args, Code, PackArgs, ValArgs) ->
     Funcs = erlang:get(Ref),
     IPHPFunc = ephp_string:to_lower(PHPFunc),
-    RegFunc = #reg_func{
-        name=IPHPFunc,
-        type=php,
-        file=File,
-        args=Args,
-        code=Code,
-        pack_args=PackArgs,
-        validation_args=ValArgs},
+    RegFunc = #reg_func{name = IPHPFunc,
+                        type = php,
+                        file = File,
+                        args = Args,
+                        code = Code,
+                        pack_args = PackArgs,
+                        validation_args = ValArgs},
     erlang:put(Ref, dict:store(IPHPFunc, RegFunc, Funcs)),
     ok.
 
 
-run(Context, #call{line=Line}=Call) ->
+run(Context, #call{line = Line} = Call) ->
     try
         ephp_context:solve(Context, Call),
         false
