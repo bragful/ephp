@@ -1304,8 +1304,7 @@ check_arg(State, Line, I, path, A, ReturnError) when not is_binary(A) ->
     throw_warning(State, Line, I, <<"a valid path">>, A, ReturnError);
 check_arg(State, Line, I, {path, _}, A, ReturnError) when not is_binary(A) ->
     throw_warning(State, Line, I, <<"a valid path">>, A, ReturnError);
-check_arg(State, Line, I, callable, A, ReturnError)
-        when not (?IS_ARRAY(A) orelse is_binary(A)) ->
+check_arg(State, Line, I, callable, A, ReturnError) when not ?IS_CALLABLE(A) ->
     throw_warning(State, Line, I, <<"a valid callback">>, A, ReturnError);
 %% TODO add more checks here!
 check_arg(_State, _Line, _I, _Check, _Var, _ReturnError) ->

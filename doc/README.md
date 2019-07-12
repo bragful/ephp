@@ -94,6 +94,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp.md" class="module">ephp</a></td></tr>
 <tr><td><a href="ephp_array.md" class="module">ephp_array</a></td></tr>
 <tr><td><a href="ephp_class.md" class="module">ephp_class</a></td></tr>
+<tr><td><a href="ephp_class_closure.md" class="module">ephp_class_closure</a></td></tr>
 <tr><td><a href="ephp_class_exception.md" class="module">ephp_class_exception</a></td></tr>
 <tr><td><a href="ephp_config.md" class="module">ephp_config</a></td></tr>
 <tr><td><a href="ephp_const.md" class="module">ephp_const</a></td></tr>

@@ -8,7 +8,8 @@
     get_classes/0,
 
     closure_construct/4,
-    closure_invoke/4
+    closure_invoke/4,
+    closure_to_string/3
 ]).
 
 -import(ephp_class, [class_attr/2, class_attr/3]).
@@ -38,6 +39,12 @@ get_classes() -> [
                 builtin = {?MODULE, closure_invoke},
                 pack_args = true,
                 validation_args = no_resolve
+            },
+            #class_method{
+                name = <<"__toString">>,
+                code_type = builtin,
+                args = [],
+                builtin = {?MODULE, closure_to_string}
             }
         ]
     }
@@ -52,3 +59,14 @@ closure_invoke(Ctx, ObjRef, Line, Params) ->
     OriginParams = [ Name || {Name, _} <- Params ],
     Call = #call{name = AnonFunc, args = OriginParams, line = Line},
     ephp_context:solve(Ctx, Call).
+
+closure_to_string(_Ctx, #obj_ref{ref = Id} = ObjRef, Line) ->
+    ObjCtx = ephp_object:get_context(ObjRef),
+    case ephp_context:get_meta(ObjCtx, is_lambda) of
+        true ->
+            <<"lambda_", (integer_to_binary(Id))/binary>>;
+        _ ->
+            Data = {<<"Closure">>},
+            Error = {error, enotostring, Line, ?E_RECOVERABLE_ERROR, Data},
+            ephp_error:error(Error)
+    end.

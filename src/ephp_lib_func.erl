@@ -99,11 +99,15 @@ call_user_func(Context, Line, _Args) ->
 -spec create_function(context(), line(), Args :: var_value(),
                       Code :: var_value()) -> #function{}.
 
-create_function(_Context, {{line, Line}, _}, {_, Args}, {_, Code}) ->
+create_function(Context, {{line, Line}, _}, {_, Args}, {_, Code}) ->
     Pos = {code, Line, 1},
     {_, _, A} = ephp_parser_func:funct_args(<<Args/binary, ")">>, Pos, []),
     {_, _, C} = ephp_parser:code(Code, Pos, []),
-    ephp_parser:add_line(#function{args = A, code = C}, Pos).
+    Closure = ephp_parser:add_line(#function{args = A, code = C}, Pos),
+    ObjRef = ephp_context:solve(Context, Closure),
+    ObjCtx = ephp_object:get_context(ObjRef),
+    ephp_context:set_meta(ObjCtx, is_lambda, true),
+    ObjRef.
 
 
 call(Context, FuncName, Args) when is_binary(FuncName) andalso is_list(Args) ->

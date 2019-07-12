@@ -145,7 +145,8 @@ set_error_handler(Context, _Line, {_, #function{}=ErrorHandler}, {_, ErrorLevel}
 
 set_error_handler(Context, Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
     %% FIXME: ErrorHandler maybe could be a callable instead...
-    case ephp_context:is_defined_function(Context, ErrorHandler) of
+    case ephp_context:is_defined_function(Context, ErrorHandler) orelse
+         ?IS_OBJECT(ErrorHandler) of
         true ->
             case ephp_error:get_error_handler_func(Context) of
                 {OldErrorHandler, _} ->
@@ -156,7 +157,7 @@ set_error_handler(Context, Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
             ephp_error:set_error_handler_func(Context, ErrorHandler, ErrorLevel),
             OldErrorHandler;
         false ->
-            Data = {<<"set_error_handler">>, ephp_data:to_bin(ErrorHandler)},
+            Data = {<<"set_error_handler">>, ephp_data:to_bin(Context, Line, ErrorHandler)},
             File = ephp_context:get_active_file(Context),
             Error = {error, einvalidcallback, Line, File, ?E_WARNING, Data},
             ephp_error:handle_error(Context, Error),
@@ -173,7 +174,8 @@ restore_error_handler(Context, _Line) ->
 
 set_exception_handler(Context, Line, {_, ExceptionHandler}) ->
     %% FIXME: ExceptionHandler maybe could be a callable instead...
-    case ephp_context:is_defined_function(Context, ExceptionHandler) of
+    case ephp_context:is_defined_function(Context, ExceptionHandler) orelse
+         ?IS_OBJECT(ExceptionHandler) of
         true ->
             OldExceptionHandler = ephp_error:get_exception_handler_func(Context),
             ephp_error:set_exception_handler_func(Context, ExceptionHandler),

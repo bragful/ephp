@@ -1,0 +1,4 @@
+New anonymous function: lambda_1
+ln(2) + ln(2.71828182845905) = 1.69314718055995
+
+Catchable fatal error: Object of class Closure could not be converted to string in {{CWD}}/test/code/test_create_function_error.php on line 7

@@ -27,6 +27,9 @@
 -define(IS_MEM(M), is_record(M, mem_ref)).
 -define(IS_CLASS(C), is_record(C, class)).
 -define(IS_RESOURCE(R), is_record(R, resource)).
+-define(IS_CALLABLE(C),
+    erlang:'or'(?IS_ARRAY(A),
+        erlang:'or'(is_binary(A), ?IS_OBJECT(A)))).
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).
