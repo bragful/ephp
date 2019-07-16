@@ -118,7 +118,6 @@
                          array_def |
                          enclosed |
                          unclosed |
-                         {term(), abstract} |
                          {public | private | protected, static | abstract, boolean()}.
 
 -record(parser, {

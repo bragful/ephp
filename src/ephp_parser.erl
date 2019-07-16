@@ -479,8 +479,6 @@ code_block(<<"#",Rest/binary>>, Parser, Parsed) ->
 code_block(<<"/*",Rest/binary>>, Parser, Parsed) ->
     {Rest0, Parser0, _} = comment_block(Rest, Parser, Parsed),
     code_block(Rest0, Parser0, Parsed);
-code_block(<<";",Rest/binary>>, #parser{level = {_, abstract}} = Parser, Parsed) ->
-    {Rest, inc_pos(Parser), Parsed};
 %% TODO change this to use always 'code/3' as one statement and block calls
 %%      several times until '}' is received. Same for old block but given known
 %%      constants instead.
