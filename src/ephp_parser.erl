@@ -866,7 +866,8 @@ comment_block(<<_/utf8, Rest/binary>>, Parser, Parsed) ->
 %% helper functions
 %%------------------------------------------------------------------------------
 
-copy_level(#parser{level = Level}, Parser) -> set_level(Level, Parser).
+copy_level(#parser{level = Level, array_type = ArrayType}, Parser) ->
+    (set_level(Level, Parser))#parser{array_type = ArrayType}.
 set_level(Level, Parser) -> Parser#parser{level = Level}.
 
 add_to_text(L, _Parser, [#print_text{text=Text}=P|Parsed]) ->
@@ -907,7 +908,7 @@ code_statement_level(Parser) -> set_level(code_statement, Parser).
 arg_level(Parser) -> set_level(arg, Parser).
 array_level(Parser) -> set_level(array, Parser).
 array_curly_level(Parser) -> set_level(array_curly, Parser).
-array_def_level(Parser) -> set_level({array_def, 0}, Parser).
+array_def_level(Parser) -> (set_level(array_def, Parser))#parser{array_type = old}.
 literal_level(Parser) -> set_level(literal, Parser).
 
 enclosed_level(Parser) -> set_level(enclosed, Parser).

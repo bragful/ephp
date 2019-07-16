@@ -115,7 +115,7 @@
                          arg |
                          array |
                          array_curly |
-                         {array_def, pos_integer()} |
+                         array_def |
                          enclosed |
                          unclosed |
                          {term(), abstract} |
@@ -124,5 +124,8 @@
 -record(parser, {
     level = root :: parser_levels(),
     row = 1 :: pos_integer(),
-    col = 1 :: pos_integer()
+    col = 1 :: pos_integer(),
+    array_type = old :: old | php54,
+    access :: undefined | access_types(),
+    final = false :: boolean()
 }).

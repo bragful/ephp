@@ -21,7 +21,7 @@
     st_use_or_block/3, funct_name/3
 ]).
 
-array_def_54_level(Parser) -> Parser#parser{level = {array_def, 54}}.
+array_def_54_level(Parser) -> Parser#parser{level = array_def, array_type = php54}.
 
 add_op('end', []) ->
     [];
@@ -146,27 +146,27 @@ array_def(<<SP:8,Rest/binary>>, Parser, Args) when ?IS_SPACE(SP) ->
     array_def(Rest, inc_pos(Parser), Args);
 array_def(<<SP:8,Rest/binary>>, Parser, Args) when ?IS_NEWLINE(SP) ->
     array_def(Rest, new_line(Parser), Args);
-array_def(<<")",Rest/binary>>, #parser{level = {array_def, 0}} = Parser, Args) ->
+array_def(<<")",Rest/binary>>, #parser{level = array_def, array_type = old} = Parser, Args) ->
     {Rest, inc_pos(Parser), Args};
-array_def(<<"]",Rest/binary>>, #parser{level = {array_def, 54}} = Parser, Args) ->
+array_def(<<"]",Rest/binary>>, #parser{level = array_def, array_type = php54} = Parser, Args) ->
     {Rest, inc_pos(Parser), Args};
 %% TODO add error missing closing params
 array_def(Rest, Parser, Args) when Rest =/= <<>> ->
     case expression(Rest, Parser, []) of
-        {<<")",Rest0/binary>>, #parser{level = {array_def, 0}} = Parser0, [Idx,Arg]} ->
+        {<<")",Rest0/binary>>, #parser{level = array_def, array_type = old} = Parser0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx=Idx, element=Arg}, Parser),
             {Rest0, inc_pos(Parser0), Args ++ [NewArg]};
-        {<<")",Rest0/binary>>, #parser{level = {array_def, 0}} = Parser0, undefined} ->
+        {<<")",Rest0/binary>>, #parser{level = array_def, array_type = old} = Parser0, undefined} ->
             {Rest0, inc_pos(Parser0), Args};
-        {<<")",Rest0/binary>>, #parser{level = {array_def, 0}} = Parser0, Arg} ->
+        {<<")",Rest0/binary>>, #parser{level = array_def, array_type = old} = Parser0, Arg} ->
             NewArg = add_line(#array_element{element = Arg}, Parser),
             {Rest0, inc_pos(Parser0), Args ++ [NewArg]};
-        {<<"]",Rest0/binary>>, #parser{level = {array_def, 54}} = Parser0, [Idx,Arg]} ->
+        {<<"]",Rest0/binary>>, #parser{level = array_def, array_type = php54} = Parser0, [Idx,Arg]} ->
             NewArg = add_line(#array_element{idx = Idx, element = Arg}, Parser),
             {Rest0, inc_pos(Parser0), Args ++ [NewArg]};
-        {<<"]",Rest0/binary>>, #parser{level = {array_def, 54}} = Parser0, undefined} ->
+        {<<"]",Rest0/binary>>, #parser{level = array_def, array_type = php54} = Parser0, undefined} ->
             {Rest0, inc_pos(Parser0), Args};
-        {<<"]",Rest0/binary>>, #parser{level = {array_def, 54}} = Parser0, Arg} ->
+        {<<"]",Rest0/binary>>, #parser{level = array_def, array_type = php54} = Parser0, Arg} ->
             NewArg = add_line(#array_element{element = Arg}, Parser),
             {Rest0, inc_pos(Parser0), Args ++ [NewArg]};
         {<<",",Rest0/binary>>, Parser0, [Idx,Arg]} ->
@@ -194,7 +194,7 @@ expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Parser, Parsed)
             NewParsed = add_op({OpL, precedence(OpL), Parser}, Parsed),
             expression(Rest0, Parser0, NewParsed);
         {<<"(", Rest0/binary>>, Parser0} ->
-            NewParser = array_def_level(add_pos(Parser0, 1)),
+            NewParser = array_def_level(inc_pos(Parser0)),
             {Rest1, Parser1, Content} = array_def(Rest0, NewParser, []),
             NewParsed = add_op(add_line(#array{elements = Content}, Parser), Parsed),
             expression(Rest1, copy_level(Parser, Parser1), NewParsed)
@@ -359,35 +359,35 @@ expression(<<A:8,_/binary>> = Rest, #parser{level = arg} = Parser, Parsed)
             {Rest, Parser, Op}
     end;
 % FINAL -array definition array(...)-
-expression(<<A:8,_/binary>> = Rest, #parser{level = {array_def, 0}} = Parser,
+expression(<<A:8,_/binary>> = Rest, #parser{level = array_def, array_type = old} = Parser,
            [{op, _}, #if_block{}|_])
         when A =:= $, orelse A =:= $) ->
     throw_error(eparse, Parser, Rest);
-expression(<<A:8,_/binary>> = Rest, #parser{level = {array_def, 0}} = Parser, [Parsed])
+expression(<<A:8,_/binary>> = Rest, #parser{level = array_def, array_type = old} = Parser, [Parsed])
         when A =:= $, orelse A =:= $) ->
     {Rest, Parser, add_op('end', [Parsed])};
-expression(<<A:8,_/binary>> = Rest, #parser{level = {array_def, 0}} = Parser, Parsed)
+expression(<<A:8,_/binary>> = Rest, #parser{level = array_def, array_type = old} = Parser, Parsed)
         when A =:= $, orelse A =:= $) ->
     case Parsed of
         [Arg, Idx] -> {Rest, Parser, [Idx, add_op('end', [Arg])]};
         [] -> {Rest, Parser, undefined}
     end;
 % FINAL -array definition [...]-
-expression(<<A:8,_/binary>> = Rest, #parser{level = {array_def, 54}} = Parser,
+expression(<<A:8,_/binary>> = Rest, #parser{level = array_def, array_type = php54} = Parser,
            [{op,_}, #if_block{}|_])
         when A =:= $, orelse A =:= $] ->
     throw_error(eparse, Parser, Rest);
-expression(<<A:8,_/binary>> = Rest, #parser{level = {array_def, 54}} = Parser, [Parsed])
+expression(<<A:8,_/binary>> = Rest, #parser{level = array_def, array_type = php54} = Parser, [Parsed])
         when A =:= $, orelse A =:= $] ->
     {Rest, Parser, add_op('end', [Parsed])};
-expression(<<A:8,_/binary>> = Rest, #parser{level = {array_def, 54}} = Parser, Parsed)
+expression(<<A:8,_/binary>> = Rest, #parser{level = array_def, array_type = php54} = Parser, Parsed)
         when A =:= $, orelse A =:= $] ->
     case Parsed of
         [Arg, Idx] -> {Rest, Parser, [Idx, add_op('end', [Arg])]};
         [] -> {Rest, Parser, undefined}
     end;
 % KEY & VALUE -array_def old and new-
-expression(<<"=>",Rest/binary>>, #parser{level = {array_def, _}} = Parser, [{op, _} = Op|Parsed]) ->
+expression(<<"=>",Rest/binary>>, #parser{level = array_def} = Parser, [{op, _} = Op|Parsed]) ->
     expression(Rest, add_pos(Parser, 2), [{op,[]}, add_op('end', [Op])|Parsed]);
 % FINAL -all but parens-
 expression(<<A:8,_/binary>> = Rest, #parser{level = L} = Parser, [{op, _}, #if_block{}|_])
