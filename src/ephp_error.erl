@@ -313,6 +313,9 @@ get_message(eparse, {unexpected, Value}) when is_binary(Value) ->
 get_message(eparse, {Value, Type}) when is_binary(Type) ->
     io_lib:format("syntax error, unexpected '~s' (~s)", [Value, Type]);
 
+get_message(eparse, {Value, Type, Expected}) when is_binary(Type) ->
+    io_lib:format("syntax error, unexpected '~s' (~s), expecting '~s'", [Value, Type, Expected]);
+
 get_message(eparse, {Type}) when is_binary(Type) ->
     io_lib:format("parse error, expecting ~s", [Type]);
 

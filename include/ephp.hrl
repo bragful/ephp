@@ -279,7 +279,7 @@
 -type constant() :: #constant{}.
 
 -type object_index() :: {object, binary(), line()}.
--type class_index() :: {class, binary(), line()}.
+-type class_index() :: {class, class_name(), line()}.
 
 -type variable_types() :: normal | array | object | class | static.
 -type data_type() :: binary() | undefined.
@@ -347,7 +347,7 @@
     function :: binary(),
     line :: integer() | undefined,
     file :: binary() | undefined,
-    class :: binary() | undefined,
+    class :: class_name() | undefined,
     object :: obj_ref() | undefined,
     type :: binary() | undefined, %% ::, -> or undefined
     args :: [mixed()]
@@ -520,4 +520,3 @@
 }).
 
 -type catch_block() :: #catch_block{}.
-
