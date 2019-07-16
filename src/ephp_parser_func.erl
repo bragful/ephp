@@ -9,7 +9,7 @@
          funct_args/3, funct_name/3]).
 
 -import(ephp_parser, [
-    add_line/2, add_pos/2, new_line/1, arg_level/1, copy_level/2,
+    add_line/2, add_pos/2, new_line/1, arg_level/1, copy_rowcol/2,
     remove_spaces/2, inc_pos/1,
 
     variable/3, code/3, code_block/3,
@@ -118,7 +118,7 @@ st_function(Rest, Parser, Parsed) ->
                                   args = Args,
                                   code = CodeBlock,
                                   return_ref = ReturnRef}, Parser),
-    {Rest4, copy_level(Parser, Parser4), [Function|Parsed]}.
+    {Rest4, copy_rowcol(Parser4, Parser), [Function|Parsed]}.
 
 funct_name(<<A:8,Rest/binary>>, Parser, []) when ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     funct_name(Rest, inc_pos(Parser), [<<A:8>>]);
@@ -169,7 +169,7 @@ funct_args(<<"$",_/binary>> = Rest, Parser, Parsed) ->
             {Rest2, Parser2, Default} =
                 ephp_parser_expr:expression(Rest1, NewParser, []),
             NewVar = Var#variable{default_value = Default},
-            funct_args(Rest2, copy_level(Parser, Parser2), [NewVar|Parsed]);
+            funct_args(Rest2, copy_rowcol(Parser2, Parser), [NewVar|Parsed]);
         {Rest1, Parser1} ->
             funct_args(Rest1, inc_pos(Parser1), [Var|Parsed])
     end.

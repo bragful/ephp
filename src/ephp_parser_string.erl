@@ -9,7 +9,7 @@
 
 -import(ephp_parser, [
     add_pos/2, new_line/1, add_line/2, variable/3, throw_error/3, new_line/2,
-    enclosed_level/1, unclosed_level/1, copy_level/2, inc_pos/1
+    enclosed_level/1, unclosed_level/1, copy_rowcol/2, inc_pos/1
 ]).
 
 string(<<"\"", Rest/binary>>, Parser, []) ->
@@ -64,17 +64,17 @@ heredoc(<<"\\", OctBin:8, Rest/binary>>, Parser, Text) when ?IS_OCT(OctBin) ->
 heredoc(<<"${",Rest/binary>>, Parser, Text) ->
     NewParser = ephp_parser:enclosed_level(add_pos(Parser, 2)),
     {<<"}", Rest0/binary>>, Parser0, [Var]} = variable(Rest, NewParser, []),
-    heredoc(Rest0, ephp_parser:copy_level(Parser, Parser0),
+    heredoc(Rest0, ephp_parser:copy_rowcol(Parser0, Parser),
             add_text(Var, Parser, Text));
 heredoc(<<"{$",Rest/binary>>, Parser, Text) ->
     NewParser = ephp_parser:enclosed_level(add_pos(Parser, 2)),
     {<<"}", Rest0/binary>>, Parser0, [Var]} = variable(Rest, NewParser, []),
-    heredoc(Rest0, ephp_parser:copy_level(Parser, Parser0),
+    heredoc(Rest0, ephp_parser:copy_rowcol(Parser0, Parser),
             add_text(Var, Parser, Text));
 heredoc(<<"$", A:8, B/binary>>, Parser, Text) when ?IS_ALPHA(A) orelse A =:= $_ ->
     Rest = <<A:8, B/binary>>,
     {Rest0, Parser0, [Var]} = variable(Rest, inc_pos(Parser), []),
-    heredoc(Rest0, ephp_parser:copy_level(Parser, Parser0),
+    heredoc(Rest0, ephp_parser:copy_rowcol(Parser0, Parser),
             add_text(Var, Parser, Text));
 heredoc(<<"\n",Rest/binary>>, Parser, Text) ->
     heredoc(Rest, new_line(Parser), add_text(<<"\n">>, Parser, Text));
@@ -288,18 +288,18 @@ string_command(<<"${", Rest/binary>>, Parser, #command{text = C} = S) ->
     NewParser = enclosed_level(add_pos(Parser, 2)),
     {<<"}", Rest0/binary>>, Parser0, [Var]} = variable(Rest, NewParser, []),
     NewText = S#command{text = [Var|C]},
-    string_command(Rest0, copy_level(Parser, inc_pos(Parser0)), NewText);
+    string_command(Rest0, copy_rowcol(inc_pos(Parser0), Parser), NewText);
 string_command(<<"{$",Rest/binary>>, Parser, #command{text = C} = S) ->
     NewParser = enclosed_level(add_pos(Parser, 2)),
     {<<"}", Rest0/binary>>, Parser0, [Var]} = variable(Rest, NewParser, []),
     NewText = S#command{text = [Var|C]},
-    string_command(Rest0, inc_pos(copy_level(Parser, Parser0)), NewText);
+    string_command(Rest0, inc_pos(copy_rowcol(Parser0, Parser)), NewText);
 string_command(<<"$", A:8, Rest/binary>>, Parser,
                #command{text=C}=S) when ?IS_ALPHA(A) orelse A =:= $_ ->
     NewParser = unclosed_level(inc_pos(Parser)),
     {Rest0, Parser0, [Var]} = variable(<<A:8, Rest/binary>>, NewParser, []),
     NewText = S#command{text = [Var|C]},
-    string_command(Rest0, copy_level(Parser, Parser0), NewText);
+    string_command(Rest0, copy_rowcol(Parser0, Parser), NewText);
 string_command(<<A/utf8, Rest/binary>>, Parser, #command{text = [C|R]} = S)
         when is_binary(C) ->
     NewText = S#command{text = [<<C/binary, A/utf8>>|R]},

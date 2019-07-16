@@ -105,7 +105,7 @@ st_interface_content(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>,
     st_interface_content(<<SP:8,Rest/binary>>, static_level(add_pos(Parser,6)),
                          Class);
 st_interface_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
-                     #parser{level = {RawAccess, Type, Final}} = Parser,
+                     #parser{level = Type, access = RawAccess, final = Final} = Parser,
                      #class{methods = Methods} = Interface) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
@@ -188,9 +188,9 @@ st_class_content(<<V:8,A:8,R:8,SP:8,Rest/binary>>, Parser, Class) when
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     st_class_content(<<SP:8,Rest/binary>>, public_level(add_pos(Parser, 3)), Class);
 st_class_content(<<"$",_/binary>> = Rest,
-                 #parser{level = {Access, Type, Final}} = Parser,
-                 #class{attrs=Attrs}=Class) when Access =/= unset orelse
-                                                 Type =:= static ->
+                 #parser{level = Type, access = Access, final = Final} = Parser,
+                 #class{attrs = Attrs} = Class) when Access =/= undefined orelse
+                                                     Type =:= static ->
     Attr = case ephp_parser_expr:expression(Rest, Parser, []) of
         {Rest0, Parser0, #assign{variable = #variable{name=VarName},
                                  expression = Expr}} ->
@@ -210,7 +210,7 @@ st_class_content(<<"$",_/binary>> = Rest,
 st_class_content(<<"$", _/binary>> = _Rest, Parser, _Class) ->
     ephp_parser:throw_error(eparse, Parser, {<<"`\"function (T_FUNCTION)\"'">>});
 st_class_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
-                 #parser{level = {RawAccess, Type, Final}} = Parser,
+                 #parser{level = Type, access = RawAccess, final = Final} = Parser,
                  #class{methods = Methods} = Class) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
@@ -244,7 +244,7 @@ st_class_content(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8, SP:8, Rest/binary>>,
     NewParser = abstract_level(add_pos(Parser, 8)),
     st_class_content(<<SP:8, Rest/binary>>, NewParser, Class).
 
-access(unset) -> public;
+access(undefined) -> public;
 access(Other) -> Other.
 
 st_implements(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
@@ -259,10 +259,10 @@ st_implements(<<A:8, _/binary>> = Rest, Parser, Parsed) when ?IS_ALPHA(A) ->
 st_implements(<<"{", _/binary>> = Rest, Parser, Parsed) ->
     {Rest, Parser, Parsed}.
 
-normal_public_level(Parser) -> Parser#parser{level = {unset, normal, false}}.
-public_level(#parser{level = {_, Type, Final}} = Parser) -> Parser#parser{level = {public, Type, Final}}.
-protected_level(#parser{level = {_, Type, Final}} = Parser) -> Parser#parser{level = {protected, Type, Final}}.
-private_level(#parser{level = {_, Type, Final}} = Parser) -> Parser#parser{level = {private, Type, Final}}.
-static_level(#parser{level = {Access, _, Final}} = Parser) -> Parser#parser{level = {Access, static, Final}}.
-abstract_level(#parser{level = {Access, _, Final}} = Parser) -> Parser#parser{level = {Access, abstract, Final}}.
-final_level(#parser{level = {Access, Type, _}} = Parser) -> Parser#parser{level = {Access, Type, true}}.
+normal_public_level(Parser) -> Parser#parser{level = normal, final = false, access = undefined}.
+public_level(Parser) -> Parser#parser{access = public}.
+protected_level(Parser) -> Parser#parser{access = protected}.
+private_level(Parser) -> Parser#parser{access = private}.
+static_level(Parser) -> Parser#parser{level = static}.
+abstract_level(Parser) -> Parser#parser{level = abstract}.
+final_level(Parser) -> Parser#parser{final = true}.

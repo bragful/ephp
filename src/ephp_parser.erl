@@ -5,7 +5,7 @@
 -export([parse/1, file/1]).
 
 -export([
-    add_pos/2, new_line/1, copy_level/2, add_line/2, remove_spaces/2,
+    add_pos/2, new_line/1, copy_rowcol/2, add_line/2, remove_spaces/2,
     throw_error/3, code_block/3, code/3, new_line/2, inc_pos/1,
 
     array_def_level/1, code_statement_level/1, arg_level/1,
@@ -48,7 +48,7 @@ document(<<"<?php",Rest/binary>>, Parser, Parsed) ->
 document(<<"<?=", Rest/binary>>, Parser, Parsed) ->
     NewParser = code_value_level(add_pos(Parser, 3)),
     {Rest0, Parser0, Text} = code(Rest, NewParser, []),
-    document(Rest0, copy_level(Parser, Parser0), [get_print(Text, NewParser)|Parsed]);
+    document(Rest0, copy_rowcol(Parser0, Parser), [get_print(Text, NewParser)|Parsed]);
 document(<<"<?", Rest/binary>>, #parser{level = literal} = Parser, Parsed) ->
     %% TODO: if short is not permitted, use as text
     {Rest, add_pos(Parser, 2), Parsed};
@@ -102,7 +102,7 @@ code(<<T:8,R:8,Y:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(T,$T,$t) andalso ?OR(R,$R,$r) andalso ?OR(Y,$Y,$y) andalso
         (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     {Rest0, Parser0, Code} = code_block(<<SP:8, Rest/binary>>, add_pos(Parser, 3), []),
-    code(Rest0, copy_level(Parser, Parser0),
+    code(Rest0, copy_rowcol(Parser0, Parser),
          [add_line(#try_catch{code_block = Code}, Parser)|Parsed]);
 %% TODO catch must be part of try, couldn't be separate!
 code(<<C:8,A:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Parser, [#try_catch{} = Try|Parsed])
@@ -116,7 +116,7 @@ code(<<C:8,A:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Parser, [#try_catch{} = Try|Parse
     #try_catch{catches = Catches} = Try,
     NewCatch = add_line(#catch_block{exception = Arg, code_block = Code}, Parser),
     NewTry = Try#try_catch{catches = Catches ++ [NewCatch]},
-    code(Rest2, copy_level(Parser, Parser2), [NewTry|Parsed]);
+    code(Rest2, copy_rowcol(Parser2, Parser), [NewTry|Parsed]);
 %% TODO finally must be part of try, couldn't be separate!
 code(<<F:8,I:8,N:8,A:8,L:8,L:8,Y:8,SP:8,Rest/binary>>, Parser,
      [#try_catch{} = Try|Parsed]) when
@@ -124,17 +124,17 @@ code(<<F:8,I:8,N:8,A:8,L:8,L:8,Y:8,SP:8,Rest/binary>>, Parser,
         ?OR(A,$A,$a) andalso ?OR(L,$L,$l) andalso ?OR(Y,$Y,$y) andalso
         (not (?IS_ALPHA(SP) orelse ?IS_NUMBER(SP) orelse SP =:= $_)) ->
     {Rest0, Parser0, Code} = code_block(<<SP:8, Rest/binary>>, add_pos(Parser, 7), []),
-    code(Rest0, copy_level(Parser, Parser0), [Try#try_catch{finally = Code}|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Try#try_catch{finally = Code}|Parsed]);
 code(<<"@", _/binary>> = Rest, Parser, Parsed) ->
     {Rest0, Parser0, Exp} = expression(Rest, code_statement_level(Parser), []),
-    code(Rest0, copy_level(Parser, Parser0), [Exp|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Exp|Parsed]);
 code(<<G:8,L:8,O:8,B:8,A:8,L:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(G,$G,$g) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
         ?OR(B,$B,$b) andalso ?OR(A,$A,$a) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0} = remove_spaces(Rest, add_pos(Parser, 7)),
     {Rest1, Parser1, [Global]} = st_global(Rest0, Parser0, []),
-    code(Rest1, copy_level(Parser, Parser1), [Global|Parsed]);
+    code(Rest1, copy_rowcol(Parser1, Parser), [Global|Parsed]);
 code(<<"}",Rest/binary>>, #parser{level = code_block} = Parser, Parsed) ->
     {Rest, inc_pos(Parser), lists:reverse(Parsed)};
 code(<<"}",Rest/binary>>, #parser{level = switch_block} = Parser, Parsed) ->
@@ -184,31 +184,31 @@ code(<<T:8,R:8,U:8,E:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(T,$t,$T) andalso ?OR(R,$r,$R) andalso ?OR(U,$u,$U)
         andalso ?OR(E,$e,$E) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0, Exp} = expression(Rest, Parser, add_op(true, [])),
-    code(Rest0, copy_level(Parser, Parser0), [Exp|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Exp|Parsed]);
 code(<<F:8,A:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(A,$a,$A) andalso ?OR(L,$l,$L)
         andalso ?OR(S,$s,$S) andalso ?OR(E,$e,$E)
         andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0, Exp} = expression(Rest, Parser, add_op(false, [])),
-    code(Rest0, copy_level(Parser, Parser0), [Exp|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Exp|Parsed]);
 code(<<I:8,F:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(I,$i,$I) andalso ?OR(F,$f,$F)
         andalso (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Parser0} = remove_spaces(<<SP:8,Rest/binary>>, Parser),
     {Rest1, Parser1, [If]} = st_if(Rest0, Parser0, []),
-    code(Rest1, copy_level(Parser,Parser1), [If|Parsed]);
+    code(Rest1, copy_rowcol(Parser1, Parser), [If|Parsed]);
 code(<<W:8,H:8,I:8,L:8,E:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(W,$w,$W) andalso ?OR(H,$h,$H) andalso ?OR(I,$i,$I)
         andalso ?OR(L,$l,$L) andalso ?OR(E,$e,$E)
         andalso (?IS_SPACE(SP) orelse SP =:= $() ->
     {Rest0, Parser0} = remove_spaces(<<SP:8,Rest/binary>>, add_pos(Parser, 5)),
     {Rest1, Parser1, NewParsed} = st_while(Rest0, Parser0, Parsed),
-    code(Rest1, copy_level(Parser, Parser1), NewParsed);
+    code(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
 code(<<D:8,O:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(D,$d,$D) andalso ?OR(O,$o,$O) andalso
         (?IS_SPACE(SP) orelse ?OR(SP,${,$:) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0, [DoWhile]} = st_do_while(Rest, add_pos(Parser, 3), []),
-    code(Rest0, copy_level(Parser,Parser0), [DoWhile|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [DoWhile|Parsed]);
 code(<<F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso ?OR(E,$e,$E) andalso ?OR(A,$a,$A) andalso ?OR(C,$c,$C)
@@ -216,13 +216,13 @@ code(<<F:8,O:8,R:8,E:8,A:8,C:8,H:8,SP:8,Rest/binary>>, Parser, Parsed)
         andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
     {Rest0, Parser0} = remove_spaces(<<SP:8, Rest/binary>>, Parser),
     {Rest1, Parser1, NewParsed} = st_foreach(Rest0, Parser0, Parsed),
-    code(Rest1, copy_level(Parser, Parser1), NewParsed);
+    code(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
 code(<<F:8,O:8,R:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(F,$f,$F) andalso ?OR(O,$o,$O) andalso ?OR(R,$r,$R)
         andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
     {Rest0, Parser0} = remove_spaces(<<SP:8,Rest/binary>>, Parser),
     {Rest1, Parser1, NewParsed} = st_for(Rest0, Parser0, Parsed),
-    code(Rest1, copy_level(Parser, Parser1), NewParsed);
+    code(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
 code(<<E:8,L:8,S:8,E:8,SP:8,_/binary>> = Rest, #parser{level = if_old_block} = Parser, Parsed)
         when ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S)
         andalso (SP =:= $: orelse ?IS_SPACE(SP) orelse ?OR(SP,$i,$I)) ->
@@ -233,7 +233,7 @@ code(<<S:8,W:8,I:8,T:8,C:8,H:8,SP:8,Rest/binary>>, Parser, Parsed) when
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
     {<<"(",_/binary>> = Rest0, Parser0} = remove_spaces(<<SP:8,Rest/binary>>, Parser),
     {Rest1, Parser1, NewParsed} = st_switch(Rest0, add_pos(Parser0, 6), Parsed),
-    code(Rest1, copy_level(Parser, Parser1), NewParsed);
+    code(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
 code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, #parser{level = Level} = Parser, Parsed) when
         (Level =:= switch_block orelse Level =:= switch_old_block) andalso
         ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(S,$S,$s) andalso
@@ -246,7 +246,7 @@ code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, #parser{level = Level} = Parser, Pars
     end,
     NewParsed = [add_line(#switch_case{label = Exp, code_block = []}, Parser)|
                  switch_case_block(Parsed)],
-    code(Rest1, copy_level(Parser, inc_pos(Parser1)), NewParsed);
+    code(Rest1, copy_rowcol(inc_pos(Parser1), Parser), NewParsed);
 code(<<C:8,A:8,S:8,E:8,SP:8,Rest/binary>>, #parser{level = code_statement} = Parser, Parsed) when
         ?OR(C,$C,$c) andalso ?OR(A,$A,$a) andalso ?OR(S,$S,$s) andalso
         ?OR(E,$E,$e) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
@@ -265,7 +265,7 @@ code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
     NewParsed = [add_line(#switch_case{label = default,
                                        code_block = []},
                           Parser)|switch_case_block(Parsed)],
-    code(Rest0, copy_level(Parser, inc_pos(Parser0)), NewParsed);
+    code(Rest0, copy_rowcol(inc_pos(Parser0), Parser), NewParsed);
 code(<<D:8,E:8,F:8,A:8,U:8,L:8,T:8,SP:8,Rest/binary>>,
      #parser{level = code_statement} = Parser, Parsed) when
         ?OR(D,$D,$d) andalso ?OR(E,$E,$e) andalso ?OR(F,$F,$f) andalso
@@ -298,7 +298,7 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Parser, Parsed) when
             ephp_parser_class:st_class(<<SP:8, Rest/binary>>, add_pos(Parser, 5),
                                        Class)
     end,
-    code(Rest0, copy_level(Parser, Parser0), [Class0|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Class0|Parsed]);
 code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) andalso
         ?OR(E,$E,$e) andalso ?OR(R,$R,$r) andalso ?OR(F,$F,$f) andalso
@@ -308,7 +308,7 @@ code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) w
     {Rest0, Parser0, Interface0} =
         ephp_parser_class:st_interface(<<SP:8, Rest/binary>>, add_pos(Parser, 9),
                                        Interface),
-    code(Rest0, copy_level(Parser, Parser0), [Interface0|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Interface0|Parsed]);
 code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(E,$e,$E) andalso ?OR(C,$c,$C) andalso ?OR(H,$h,$H) andalso
         ?OR(O,$o,$O) andalso
@@ -322,9 +322,9 @@ code(<<E:8,C:8,H:8,O:8,SP:8,Rest/binary>>, Parser, Parsed) when
             Print = A1#operation{
                 expression_left = get_print(A1#operation.expression_left, Parser)
             },
-            code(Rest0, copy_level(Parser, Parser0), [Print|Parsed]);
+            code(Rest0, copy_rowcol(Parser0, Parser), [Print|Parsed]);
         _ ->
-            code(Rest0, copy_level(Parser, Parser0), [Call0|Parsed])
+            code(Rest0, copy_rowcol(Parser0, Parser), [Call0|Parsed])
     end;
 code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(P,$p,$P) andalso ?OR(R,$r,$R) andalso ?OR(I,$i,$I)
@@ -339,9 +339,9 @@ code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Parser, Parsed)
             Print = A1#operation{
                 expression_left = get_print(A1#operation.expression_left, Parser)
             },
-            code(Rest0, copy_level(Parser, Parser0), [Print|Parsed]);
+            code(Rest0, copy_rowcol(Parser0, Parser), [Print|Parsed]);
         _ ->
-            code(Rest0, copy_level(Parser, Parser0), [Call0|Parsed])
+            code(Rest0, copy_rowcol(Parser0, Parser), [Call0|Parsed])
     end;
 code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N)
@@ -349,21 +349,21 @@ code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Parser, Parsed)
     {Rest0, Parser0, #assign{variable = #constant{} = Const, expression = Value}} =
         expression(Rest, add_pos(Parser, 6), []),
     Constant = Const#constant{type = define, value = Value},
-    code(Rest0, copy_level(Parser, Parser0), [Constant|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Constant|Parsed]);
 code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
         ?OR(O,$O,$o) andalso ?IS_SPACE(SP) ->
     {Rest0, Parser0, [#function{}=Function]} =
         ephp_parser_func:st_function(Rest, add_pos(Parser, 9), []),
-    code(Rest0, copy_level(Parser, Parser0), Parsed ++ [Function]);
+    code(Rest0, copy_rowcol(Parser0, Parser), Parsed ++ [Function]);
 code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
         ?OR(O,$O,$o) andalso ?IS_NEWLINE(SP) ->
     {Rest0, Parser0, #function{} = Function} =
         ephp_parser_func:st_function(Rest, new_line(Parser), []),
-    code(Rest0, copy_level(Parser, Parser0), Parsed ++ [Function]);
+    code(Rest0, copy_rowcol(Parser0, Parser), Parsed ++ [Function]);
 code(<<"?>\n",Rest/binary>>, #parser{level = code_value} = Parser, [Parsed]) ->
     {Rest, new_line(Parser), Parsed};
 code(<<"?>",Rest/binary>>, #parser{level = code_value} = Parser, [Parsed]) ->
@@ -375,14 +375,14 @@ code(<<"?>\n",Rest/binary>>, #parser{level = L} = Parser, Parsed) when
         L =:= switch_old_block ->
     NewParser = new_line(literal_level(Parser)),
     {Rest0, Parser0, Text} = document(Rest, NewParser, []),
-    code(Rest0, copy_level(Parser, Parser0), Text ++ Parsed);
+    code(Rest0, copy_rowcol(Parser0, Parser), Text ++ Parsed);
 code(<<"?>",Rest/binary>>, #parser{level = L} = Parser, Parsed) when
         L =:= code_block orelse L =:= if_old_block orelse
         L =:= while_old_block orelse L =:= for_old_block orelse
         L =:= foreach_old_block orelse L =:= switch_block orelse
         L =:= switch_old_block ->
     {Rest0, Parser0, Text} = document(Rest, literal_level(add_pos(Parser, 2)), []),
-    code(Rest0, copy_level(Parser, Parser0), Text ++ Parsed);
+    code(Rest0, copy_rowcol(Parser0, Parser), Text ++ Parsed);
 code(<<"?>", _/binary>> = Rest, #parser{level = code_statement} = Parser, Parsed) ->
     {Rest, Parser, Parsed};
 code(<<"?>\n", Rest/binary>>, Parser, Parsed) ->
@@ -400,7 +400,7 @@ code(<<"/*", Rest/binary>>, Parser, Parsed) ->
     code(Rest0, Parser0, Parsed);
 code(<<"<<<", _/binary>> = Rest, Parser, Parsed) ->
     {Rest0, Parser0, S} = ephp_parser_string:string(Rest,Parser,[]),
-    code(Rest0, copy_level(Parser, Parser0), [S|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [S|Parsed]);
 code(<<I:8,N:8,C:8,L:8,U:8,D:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(C,$C,$c) andalso
         ?OR(L,$L,$l) andalso ?OR(U,$U,$u) andalso ?OR(D,$D,$d) andalso
@@ -442,20 +442,20 @@ code(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(C,$C,$c) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0, Parsed0} = static(Rest, add_pos(Parser, 7), []),
-    code(Rest0, copy_level(Parser, Parser0), Parsed0 ++ Parsed);
+    code(Rest0, copy_rowcol(Parser0, Parser), Parsed0 ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Parser, [#constant{}|_])
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     throw_error(eparse, Parser, Rest);
 code(<<A:8,_/binary>> = Rest, Parser, Parsed) when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Parser0, Parsed0} = expression(Rest, Parser, []),
-    code(Rest0, copy_level(Parser, Parser0), [Parsed0] ++ Parsed);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Parsed0] ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Parser, Parsed) when ?IS_NUMBER(A)
                                            orelse A =:= $- orelse A =:= $(
                                            orelse A =:= $" orelse A =:= $'
                                            orelse A =:= $$ orelse A =:= $+
                                            orelse A =:= 126 orelse A =:= $! ->
     {Rest0, Parser0, Exp} = expression(Rest, Parser, []),
-    code(Rest0, copy_level(Parser, Parser0), [Exp|Parsed]);
+    code(Rest0, copy_rowcol(Parser0, Parser), [Exp|Parsed]);
 code(<<Space:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(Space) ->
     code(Rest, inc_pos(Parser), Parsed);
 code(<<NewLine:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(NewLine) ->
@@ -517,10 +517,10 @@ static(Rest, Parser, Parsed) ->
     case expression(Rest, arg_level(Parser), []) of
         {Rest0, Parser0, #assign{variable = Var} = Assign} ->
             NewAssign = Assign#assign{variable = Var#variable{type = static}},
-            static(Rest0, copy_level(Parser, Parser0), Parsed ++ [NewAssign]);
+            static(Rest0, copy_rowcol(Parser0, Parser), Parsed ++ [NewAssign]);
         {Rest0, Parser0, #variable{} = Var} ->
             NewVar = Var#variable{type = static},
-            static(Rest0, copy_level(Parser, Parser0), Parsed ++ [NewVar])
+            static(Rest0, copy_rowcol(Parser0, Parser), Parsed ++ [NewVar])
     end.
 
 variable(<<SP:8,Rest/binary>>, Parser, []) when ?IS_SPACE(SP) ->
@@ -561,7 +561,7 @@ var_access(<<"[", Rest/binary>>, Parser, [#variable{idx = Indexes} = Var]) ->
         _ -> RawIdx
     end,
     NewVar = Var#variable{idx = Indexes ++ [Idx]},
-    var_access(Rest1, copy_level(Parser, Parser1), [NewVar]);
+    var_access(Rest1, copy_rowcol(Parser1, Parser), [NewVar]);
 var_access(<<"{", Rest/binary>>, Parser, [#variable{idx = Indexes} = Var]) ->
     NewParser = array_curly_level(inc_pos(Parser)),
     {Rest1, Parser1, RawIdx} = expression(Rest, NewParser, []),
@@ -570,20 +570,20 @@ var_access(<<"{", Rest/binary>>, Parser, [#variable{idx = Indexes} = Var]) ->
         _ -> RawIdx
     end,
     NewVar = Var#variable{idx = Indexes ++ [Idx]},
-    var_access(Rest1, copy_level(Parser, Parser1), [NewVar]);
+    var_access(Rest1, copy_rowcol(Parser1, Parser), [NewVar]);
 var_access(<<"->",Rest/binary>>, #parser{level = L} = Parser, [#variable{} = Var])
         when is_number(L) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Parser}, add_op(Var, [])),
     {Rest0, Parser0, [Exp]} = accessor(Rest, arg_level(add_pos(Parser, 2)), []),
-    var_access(Rest0, copy_level(Parser, Parser0), [add_op('end', add_op(Exp, Op))]);
+    var_access(Rest0, copy_rowcol(Parser0, Parser), [add_op('end', add_op(Exp, Op))]);
 var_access(<<"->",Rest/binary>>, Parser, [#variable{} = Var]) ->
     % TODO move this code to ephp_parser_expr
     OpL = <<"->">>,
     Op = add_op({OpL, precedence(OpL), Parser}, add_op(Var, [])),
     {Rest0, Parser0, [Exp]} = accessor(Rest, add_pos(Parser, 2), []),
-    var_access(Rest0, copy_level(Parser, Parser0), [add_op('end', add_op(Exp, Op))]);
+    var_access(Rest0, copy_rowcol(Parser0, Parser), [add_op('end', add_op(Exp, Op))]);
 var_access(Rest, Parser, Parsed) ->
     {Rest, Parser, Parsed}.
 
@@ -601,11 +601,11 @@ accessor(<<"{", Rest/binary>>, Parser, []) ->
     case remove_spaces(Rest0, Parser0) of
         {<<"(", Rest1/binary>>, Parser1} ->
             NParser1 = inc_pos(Parser1),
-            {Rest2, Pos2, Args} = ephp_parser_func:call_args(Rest1, NParser1, []),
-            {Rest2, copy_level(Parser, Pos2),
+            {Rest2, Parser2, Args} = ephp_parser_func:call_args(Rest1, NParser1, []),
+            {Rest2, copy_rowcol(Parser2, Parser),
              [add_line(#call{name = Acc, args = Args}, Parser1)]};
         {Rest1, Parser1} ->
-            {Rest1, copy_level(Parser, Parser1), [Acc]}
+            {Rest1, copy_rowcol(Parser1, Parser), [Acc]}
     end;
 accessor(<<>>, Parser, Parsed) ->
     {<<>>, Parser, Parsed};
@@ -648,7 +648,7 @@ constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
     {Rest1, Parser1, [Var]} = variable(<<"$", Rest/binary>>, NewParser, []),
     NewVar = Var#variable{type = class, class = C#constant.name},
-    {Rest1, copy_level(Parser, Parser1), [NewVar]};
+    {Rest1, copy_rowcol(Parser1, Parser), [NewVar]};
 constant_wait(<<"::",Rest/binary>>, Parser, [#constant{} = Cons]) ->
     case constant(Rest, add_pos(Parser, 2), []) of
         {Rest1, Parser1, [#constant{name = <<"class">>}]} ->
@@ -695,13 +695,11 @@ st_while(<<"(",Rest/binary>>, Parser, Parsed) ->
     NewParser = inc_pos(Parser),
     {<<")",Rest1/binary>>, Parser1, Conditions} =
         expression(Rest, arg_level(NewParser), []),
-    {Rest2, Pos2, CodeBlock} = code_block(Rest1, while_block_level(Parser1), []),
-    While = add_line(#while{
-        type=pre,
-        conditions=Conditions,
-        loop_block=CodeBlock
-    }, Parser),
-    {Rest2, copy_level(Parser, Pos2), [While|Parsed]};
+    {Rest2, Parser2, CodeBlock} = code_block(Rest1, while_block_level(Parser1), []),
+    While = add_line(#while{type = pre,
+                            conditions = Conditions,
+                            loop_block = CodeBlock}, Parser),
+    {Rest2, copy_rowcol(Parser2, Parser), [While|Parsed]};
 st_while(<<>>, Parser, _Parsed) ->
     throw_error(eparse, Parser, <<>>).
 
@@ -712,10 +710,10 @@ st_do_while(Rest, Parser, Parsed) ->
     end,
     {<<WhileRaw:5/binary,Rest1/binary>>, Parser1} = remove_spaces(Rest0, Parser0),
     <<"while">> = ephp_string:to_lower(WhileRaw),
-    {Rest2, Pos2, [While]} = st_while(Rest1, Parser1, []),
+    {Rest2, Parser2, [While]} = st_while(Rest1, Parser1, []),
     DoWhile = add_line(While#while{type = post,
                                    loop_block = CodeBlock}, Parser),
-    {Rest2, copy_level(Parser, Pos2), [DoWhile|Parsed]}.
+    {Rest2, copy_rowcol(Parser2, Parser), [DoWhile|Parsed]}.
 
 st_if(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_if(Rest, inc_pos(Parser), Parsed);
@@ -736,10 +734,10 @@ st_if(<<"(",Rest/binary>>, Parser, []) ->
     NewParser = inc_pos(Parser),
     {<<")",Rest1/binary>>, Parser1, Conditions} =
         expression(Rest, arg_level(NewParser), []),
-    {Rest2, Pos2, CodeBlock} = code_block(Rest1, if_block_level(Parser1), []),
+    {Rest2, Parser2, CodeBlock} = code_block(Rest1, if_block_level(Parser1), []),
     If = add_line(#if_block{conditions = Conditions,
-                            true_block=CodeBlock}, Parser),
-    st_if(Rest2, copy_level(Parser, Pos2), [If]);
+                            true_block = CodeBlock}, Parser),
+    st_if(Rest2, copy_rowcol(Parser2, Parser), [If]);
 st_if(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Parser, [#if_block{} = If|Parsed]) when
         ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S) andalso
         (?OR(SP,${,$:) orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
@@ -747,7 +745,7 @@ st_if(<<E:8,L:8,S:8,E:8,SP:8,Rest/binary>>, Parser, [#if_block{} = If|Parsed]) w
     BlockParser = if_block_level(Parser0),
     {Rest1, Parser1, CodeBlock} = code_block(Rest0, BlockParser, []),
     IfWithElse = If#if_block{false_block = CodeBlock},
-    {Rest1, copy_level(Parser, Parser1), [IfWithElse|Parsed]};
+    {Rest1, copy_rowcol(Parser1, Parser), [IfWithElse|Parsed]};
 st_if(<<E:8,L:8,S:8,E:8,I:8,F:8,SP:8,Rest/binary>>, Parser,
       [#if_block{} = If|Parsed]) when
         ?OR(E,$e,$E) andalso ?OR(L,$l,$L) andalso ?OR(S,$s,$S) andalso
@@ -755,7 +753,7 @@ st_if(<<E:8,L:8,S:8,E:8,I:8,F:8,SP:8,Rest/binary>>, Parser,
         (SP =:= $( orelse ?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest1, Parser1, CodeBlock} = st_if(<<SP:8,Rest/binary>>, add_pos(Parser, 6), []),
     IfWithElse = If#if_block{false_block = CodeBlock},
-    {Rest1, copy_level(Parser, Parser1), [IfWithElse|Parsed]};
+    {Rest1, copy_rowcol(Parser1, Parser), [IfWithElse|Parsed]};
 st_if(<<>>, Parser, [#if_block{}] = Parsed) ->
     {<<>>, Parser, Parsed};
 st_if(<<>>, Parser, _Parsed) ->
@@ -788,9 +786,9 @@ st_foreach(<<"(",Rest/binary>>, Parser, Parsed) ->
     {<<AS:2/binary,Rest1/binary>>, Parser1} = remove_spaces(Rest0, Parser0),
     <<"as">> = ephp_string:to_lower(AS),
     NewParser = array_def_level(add_pos(Parser1, 2)),
-    {<<")",Rest2/binary>>, Pos2, ExpIter} = expression(Rest1, NewParser, []),
-    BlockParser = foreach_block_level(inc_pos(Pos2)),
-    {Rest3, Pos3, CodeBlock} = code_block(Rest2, BlockParser, []),
+    {<<")",Rest2/binary>>, Parser2, ExpIter} = expression(Rest1, NewParser, []),
+    BlockParser = foreach_block_level(inc_pos(Parser2)),
+    {Rest3, Parser3, CodeBlock} = code_block(Rest2, BlockParser, []),
     RawFor = add_line(#foreach{iter = ExpIter,
                                elements = Exp,
                                loop_block = CodeBlock}, Parser),
@@ -802,7 +800,7 @@ st_foreach(<<"(",Rest/binary>>, Parser, Parsed) ->
         [KIter,Iter] ->
             RawFor#foreach{kiter = KIter, iter = Iter}
     end,
-    {Rest3, copy_level(Parser, Pos3), [For|Parsed]}.
+    {Rest3, copy_rowcol(Parser3, Parser), [For|Parsed]}.
 
 switch_case_block([]) ->
     [];
@@ -821,9 +819,9 @@ st_switch(<<"(",Rest/binary>>, Parser, Parsed) ->
         {<<":", Rest1/binary>>, Parser1} ->
             switch_old_block_level(inc_pos(Parser1))
     end,
-    {Rest2, Pos2, CodeBlock} = code(Rest1, NewParser, []),
+    {Rest2, Parser2, CodeBlock} = code(Rest1, NewParser, []),
     Switch = add_line(#switch{condition = Cond, cases = CodeBlock}, Parser),
-    {Rest2, copy_level(Parser, Pos2), [Switch|Parsed]}.
+    {Rest2, copy_rowcol(Parser2, Parser), [Switch|Parsed]}.
 
 st_for(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_for(Rest, inc_pos(Parser), Parsed);
@@ -832,14 +830,14 @@ st_for(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
 st_for(<<"(",Rest/binary>>, Parser, Parsed) ->
     {<<";",Rest0/binary>>, Parser0, Init} = args(Rest, inc_pos(Parser), []),
     {<<";",Rest1/binary>>, Parser1, [Cond]} = args(Rest0, inc_pos(Parser0), []),
-    {<<")",Rest2/binary>>, Pos2, Upda} = args(Rest1, inc_pos(Parser1), []),
-    {Rest3, Pos3, CodeBlock} = code_block(Rest2,
-                                          for_block_level(inc_pos(Pos2)), []),
+    {<<")",Rest2/binary>>, Parser2, Upda} = args(Rest1, inc_pos(Parser1), []),
+    {Rest3, Parser3, CodeBlock} = code_block(Rest2,
+                                             for_block_level(inc_pos(Parser2)), []),
     For = add_line(#for{init = Init,
                         conditions = Cond,
                         update = Upda,
                         loop_block = CodeBlock}, Parser),
-    {Rest3, copy_level(Parser, Pos3), [For|Parsed]}.
+    {Rest3, copy_rowcol(Parser3, Parser), [For|Parsed]}.
 
 comment_line(<<>>, Parser, Parsed) ->
     {<<>>, Parser, Parsed};
@@ -864,8 +862,8 @@ comment_block(<<_/utf8, Rest/binary>>, Parser, Parsed) ->
 %% helper functions
 %%------------------------------------------------------------------------------
 
-copy_level(#parser{level = Level, array_type = ArrayType}, Parser) ->
-    (set_level(Level, Parser))#parser{array_type = ArrayType}.
+copy_rowcol(#parser{row = Row, col = Col}, Parser) ->
+    Parser#parser{row = Row, col = Col}.
 set_level(Level, Parser) -> Parser#parser{level = Level}.
 
 add_to_text(L, _Parser, [#print_text{text=Text}=P|Parsed]) ->

@@ -118,7 +118,8 @@
                          array_def |
                          enclosed |
                          unclosed |
-                         {public | private | protected, static | abstract, boolean()}.
+                         static |
+                         abstract.
 
 -record(parser, {
     level = root :: parser_levels(),

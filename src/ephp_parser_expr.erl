@@ -8,7 +8,7 @@
 -include("ephp_parser.hrl").
 
 -import(ephp_parser, [
-    add_pos/2, new_line/1, copy_level/2, add_line/2, remove_spaces/2,
+    add_pos/2, new_line/1, copy_rowcol/2, add_line/2, remove_spaces/2,
     throw_error/3, inc_pos/1, get_line/1,
 
     array_def_level/1, code_statement_level/1, arg_level/1,
@@ -182,7 +182,7 @@ expression(<<A:8,_/binary>> = Rest, Parser,
            [{op, [_, {<<"->">>, _, _}]}|_] = Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Parser0, [Constant]} = constant(Rest, Parser, []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Constant, Parsed));
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed));
 % ARRAY(...) -old-
 expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(A,$a,$A) andalso ?OR(R,$r,$R) andalso ?OR(Y,$y,$Y)
@@ -197,20 +197,20 @@ expression(<<A:8,R:8,R:8,A:8,Y:8,SP:8,Rest/binary>>, Parser, Parsed)
             NewParser = array_def_level(inc_pos(Parser0)),
             {Rest1, Parser1, Content} = array_def(Rest0, NewParser, []),
             NewParsed = add_op(add_line(#array{elements = Content}, Parser), Parsed),
-            expression(Rest1, copy_level(Parser, Parser1), NewParsed)
+            expression(Rest1, copy_rowcol(Parser1, Parser), NewParsed)
     end;
 % [...] -array new-
 expression(<<"[", Rest/binary>>, Parser, []) ->
     NewParser = array_def_54_level(inc_pos(Parser)),
     {Rest1, Parser1, Content} = array_def(Rest, NewParser, []),
     NewParsed = add_op(add_line(#array{elements=Content}, Parser), []),
-    expression(Rest1, copy_level(Parser, Parser1), NewParsed);
+    expression(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
 expression(<<"[", Rest/binary>>, Parser, [{op, []}|_] = Parsed) ->
     % ARRAY DEF
     NewParser = array_def_54_level(inc_pos(Parser)),
     {Rest1, Parser1, Content} = array_def(Rest, NewParser, []),
     NewParsed = add_op(add_line(#array{elements = Content}, Parser), Parsed),
-    expression(Rest1, copy_level(Parser, Parser1), NewParsed);
+    expression(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
 expression(<<"[", Rest/binary>>, Parser, [{op, Op}|_] = Parsed) ->
     case lists:last(Op) of
         {_, {RightOrLeft, _}, _} when RightOrLeft =:= right orelse
@@ -219,7 +219,7 @@ expression(<<"[", Rest/binary>>, Parser, [{op, Op}|_] = Parsed) ->
             NewParser = array_def_54_level(inc_pos(Parser)),
             {Rest1, Parser1, Content} = array_def(Rest, NewParser, []),
             NewParsed = add_op(add_line(#array{elements = Content}, Parser), Parsed),
-            expression(Rest1, copy_level(Parser, Parser1), NewParsed);
+            expression(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
         _ ->
             % ARRAY INDEX
             NewParsed = [#variable{name = add_op('end', Parsed)}],
@@ -256,7 +256,7 @@ expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
     {Rest1, Parser1, Args} = ephp_parser_func:funct_args(Rest0, Parser0, []),
     BaseFunction = add_line(#function{args = Args}, Parser),
     {Rest2, Parser2, Function} = st_use_or_block(Rest1, Parser1, BaseFunction),
-    expression(Rest2, copy_level(Parser, Parser2), add_op(Function, Parsed));
+    expression(Rest2, copy_rowcol(Parser2, Parser), add_op(Function, Parsed));
 % INSTANCEOF
 expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
            Parser, Parsed) when
@@ -284,7 +284,7 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
         {Rest3, Parser3} ->
             add_line(#instance{name = ObjName}, Parser)
     end,
-    expression(Rest3, copy_level(Parser, Parser3), add_op(Instance,Parsed));
+    expression(Rest3, copy_rowcol(Parser3, Parser), add_op(Instance,Parsed));
 % CLONE ...
 expression(<<C:8,L:8,O:8,N:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(C,$C,$c) andalso ?OR(L,$L,$l) andalso ?OR(O,$O,$o) andalso
@@ -333,7 +333,7 @@ expression(<<"(",Rest/binary>>, Parser, [{op, Op}|Parsed]) ->
             {Rest0, Parser0, [Function]} =
                 ephp_parser_func:function(Rest, inc_pos(Parser), [Call|Parsed]),
             NewOp = {op, Op1 ++ [Function]},
-            expression(Rest0, copy_level(Parser, Parser0), [NewOp|Parsed]);
+            expression(Rest0, copy_rowcol(Parser0, Parser), [NewOp|Parsed]);
         _ ->
             exp_parens(Rest, inc_pos(Parser), [{op, Op}|Parsed])
     end;
@@ -443,14 +443,14 @@ expression(<<"?>",_/binary>> = Rest, #parser{level = L} = Parser, Parsed)
 % VARIABLE
 expression(<<"$",Rest/binary>>, Parser, Parsed) ->
     {Rest0, Parser0, [Var]} = variable(Rest, inc_pos(Parser), []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Var, Parsed));
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Var, Parsed));
 % NUMBER
 expression(<<A:8, _/binary>> = Rest, Parser, Parsed) when ?IS_NUMBER(A) ->
     {Rest0, Parser0, [Number]} = number(Rest, Parser, []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Number, Parsed));
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Number, Parsed));
 expression(<<".", A:8, _/binary>> = Rest, Parser, Parsed) when ?IS_NUMBER(A) ->
     {Rest0, Parser0, [Number]} = number(Rest, Parser, []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Number, Parsed));
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Number, Parsed));
 % STRING
 expression(<<A:8,_/binary>> = Rest, Parser, Parsed) when
         A =:= $" orelse A =:= $' orelse A =:= $` ->
@@ -552,7 +552,7 @@ expression(<<Op:1/binary,Rest/binary>>, Parser, Parsed) when ?IS_OP1(Op) ->
 expression(<<A:8,_/binary>> = Rest, Parser, [{op,[]}|_] = Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, NewParser, [Constant]} = constant(Rest, Parser, []),
-    expression(Rest0, copy_level(Parser, NewParser), add_op(Constant, Parsed));
+    expression(Rest0, copy_rowcol(NewParser, Parser), add_op(Constant, Parsed));
 expression(<<A:8,_/binary>> = Rest, Parser, [{op,Ops}|_]=Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Parser0, [Constant]} = constant(Rest, Parser, []),
@@ -560,12 +560,12 @@ expression(<<A:8,_/binary>> = Rest, Parser, [{op,Ops}|_]=Parsed) when
         #constant{} ->
             throw_error(eparse, Parser, {Constant#constant.name, <<"T_STRING">>});
         _ ->
-            expression(Rest0, copy_level(Parser, Parser0), add_op(Constant, Parsed))
+            expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed))
     end;
 expression(<<A:8, _/binary>> = Rest, Parser, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Parser0, [Constant]} = constant(Rest, Parser, []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Constant, Parsed));
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed));
 % FINAL -switch-
 expression(<<":", _/binary>> = Rest, #parser{level = switch_label} = Parser, [Exp]) ->
     {Rest, Parser, add_op('end', [Exp])};
@@ -602,10 +602,10 @@ expression(<<>>, Parser, _Parsed) ->
 
 exp_parens(Rest, #parser{level = L, col = C} = Parser, Parsed) when not is_number(L) ->
     {Rest0, Parser0, Op} = expression(Rest, Parser#parser{level = 1, col = C + 1}, []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Op, Parsed));
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Op, Parsed));
 exp_parens(Rest, #parser{level = L, col = C} = Parser, Parsed) ->
     {Rest0, Parser0, Op} = expression(Rest, Parser#parser{level = L + 1, col = C + 1}, []),
-    expression(Rest0, copy_level(Parser, Parser0), add_op(Op, Parsed)).
+    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Op, Parsed)).
 
 -type associativity() :: no_assoc | left | right.
 -spec precedence(binary()) -> {associativity(), pos_integer()} | false.
