@@ -277,12 +277,17 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
         {<<A:8, _/binary>> = Rest0, Parser0} when ?IS_ALPHA(A) orelse A =:= $_ ->
             funct_name(Rest0, Parser0, [])
     end,
+    %% TODO ensure the namespace is solved in runtime when it's not a binary
+    {NS, RealObjName} = if
+        is_binary(ObjName) -> ephp_class:str2ns(ObjName);
+        true -> {undefined, ObjName}
+    end,
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->
             {Rest3, Parser3, Args} = ephp_parser_func:call_args(Rest2, Parser2, []),
-            add_line(#instance{name = ObjName, args = Args}, Parser);
+            add_line(#instance{name = RealObjName, namespace = NS, args = Args}, Parser);
         {Rest3, Parser3} ->
-            add_line(#instance{name = ObjName}, Parser)
+            add_line(#instance{name = RealObjName, namespace = NS}, Parser)
     end,
     expression(Rest3, copy_rowcol(Parser3, Parser), add_op(Instance,Parsed));
 % CLONE ...

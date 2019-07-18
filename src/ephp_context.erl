@@ -20,9 +20,12 @@
 
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
+    active_fun_ns = [] :: namespace(),
     active_fun_args = 0 :: non_neg_integer(),
     active_class = <<>> :: class_name(),
-    active_real_class = <<>> :: class_name()
+    active_class_ns = [] :: namespace(),
+    active_real_class = <<>> :: class_name(),
+    active_real_class_ns = [] :: namespace()
 }).
 
 %% ------------------------------------------------------------------
@@ -51,9 +54,11 @@
     get_active_file/1,
     set_active_file/2,
     get_active_class/1,
-    set_active_class/2,
+    set_active_class/3,
+    get_active_class_ns/1,
     get_active_real_class/1,
-    set_active_real_class/2,
+    set_active_real_class/3,
+    get_active_real_class_ns/1,
 
     get_output/1,
     set_output/2,
@@ -63,11 +68,13 @@
     call_function/2,
     register_func/5,
     register_func/6,
+    register_func/7,
     get_functions/1,
     get_function/2,
     is_defined_function/2,
 
     get_active_function/1,
+    get_active_function_ns/1,
     get_active_function_arity/1,
 
     set_errors_id/2,
@@ -82,7 +89,7 @@
     call_method/3,
     register_class/2,
     register_interface/2,
-    set_class_alias/3,
+    set_class_alias/5,
 
     set_global/2,
     get_global/1,
@@ -242,59 +249,59 @@ get_classes(Context) ->
 get_funcs(Context) ->
     (load_state(Context))#state.funcs.
 
-register_func(Context, PHPFunc, Module, Fun, PackArgs, VA)
+register_func(Context, PHPFunc, ModuleOrArgs, FunOrCode, VA) ->
+    register_func(Context, PHPFunc, ModuleOrArgs, FunOrCode, false, VA).
+
+register_func(Context, PHPFunc, ModuleOrArgs, FunOrCode, PackArgs, VA) ->
+    register_func(Context, [], PHPFunc, ModuleOrArgs, FunOrCode, PackArgs, VA).
+
+register_func(Context, NS, PHPFunc, Module, Fun, PackArgs, VA)
         when is_atom(Module) andalso is_atom(Fun) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
+    #state{funcs = Funcs, active_file = File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun, PackArgs, VA),
+    ephp_func:register_func(Funcs, AbsFile, NS, PHPFunc, Module, Fun, PackArgs, VA),
     ok;
 
-register_func(Context, PHPFunc, Args, Code, PackArgs, VA) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
+register_func(Context, NS, PHPFunc, Args, Code, PackArgs, VA) ->
+    #state{funcs = Funcs, active_file = File} = load_state(Context),
     AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, PackArgs, VA),
-    ok.
-
-register_func(Context, PHPFunc, Module, Fun, VA)
-        when is_atom(Module) andalso is_atom(Fun) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
-    AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Module, Fun, false, VA),
-    ok;
-
-register_func(Context, PHPFunc, Args, Code, VA) ->
-    #state{funcs=Funcs, active_file=File} = load_state(Context),
-    AbsFile = filename:absname(File),
-    ephp_func:register_func(Funcs, AbsFile, PHPFunc, Args, Code, false, VA),
+    ephp_func:register_func(Funcs, AbsFile, NS, PHPFunc, Args, Code, PackArgs, VA),
     ok.
 
 get_functions(Context) ->
-    #state{funcs=Funcs} = load_state(Context),
+    #state{funcs = Funcs} = load_state(Context),
     ephp_func:get_functions(Funcs).
 
 get_function(Context, FuncName) ->
-    #state{funcs=Funcs} = load_state(Context),
-    ephp_func:get(Funcs, FuncName).
+    get_function(Context, [], FuncName).
+
+get_function(Context, NS, FuncName) ->
+    #state{funcs = Funcs} = load_state(Context),
+    ephp_func:get(Funcs, NS, FuncName).
 
 is_defined_function(Context, FuncName) ->
-    #state{funcs=Funcs} = load_state(Context),
+    #state{funcs = Funcs} = load_state(Context),
     ephp_func:is_defined(Funcs, FuncName).
 
 get_active_function(Context) ->
-    #state{active_fun=ActiveFun} = load_state(Context),
+    #state{active_fun = ActiveFun} = load_state(Context),
     ActiveFun.
 
+get_active_function_ns(Context) ->
+    #state{active_fun_ns = ActiveFunNS} = load_state(Context),
+    ActiveFunNS.
+
 get_active_function_arity(Context) ->
-    #state{active_fun_args=ActiveFunArgs} = load_state(Context),
+    #state{active_fun_args = ActiveFunArgs} = load_state(Context),
     ActiveFunArgs.
 
 get_errors_id(Context) ->
-    #state{errors=Errors} = load_state(Context),
+    #state{errors = Errors} = load_state(Context),
     Errors.
 
 set_errors_id(Context, Errors) ->
     State = load_state(Context),
-    save_state(State#state{errors=Errors}),
+    save_state(State#state{errors = Errors}),
     ok.
 
 get_const(Context, Name, Index) ->
@@ -322,8 +329,14 @@ get_active_file(Context) ->
 get_active_class(Context) ->
     (load_state(Context))#state.active_class.
 
+get_active_class_ns(Context) ->
+    (load_state(Context))#state.active_class_ns.
+
 get_active_real_class(Context) ->
     (load_state(Context))#state.active_real_class.
+
+get_active_real_class_ns(Context) ->
+    (load_state(Context))#state.active_real_class_ns.
 
 set_active_file(Context, undefined) ->
     Filename = <<"php shell code">>,
@@ -345,15 +358,17 @@ set_active_file(Context, Filename) ->
     ]),
     ok.
 
-set_active_class(Context, ClassName) ->
+set_active_class(Context, NS, ClassName) ->
     #state{const = Const} = State = load_state(Context),
-    save_state(State#state{active_class = ClassName}),
-    ephp_const:set(Const, <<"__CLASS__">>, ClassName),
+    save_state(State#state{active_class = ClassName,
+                           active_class_ns = NS}),
+    ephp_const:set(Const, <<"__CLASS__">>, ephp_class:ns2str(NS, ClassName)),
     ok.
 
-set_active_real_class(Context, ClassName) ->
+set_active_real_class(Context, NS, ClassName) ->
     State = load_state(Context),
-    save_state(State#state{active_real_class = ClassName}),
+    save_state(State#state{active_real_class = ClassName,
+                           active_real_class_ns = NS}),
     ok.
 
 get_output(Context) ->
@@ -407,9 +422,9 @@ register_interface(Context, Interface) ->
     ephp_class:register_interface(Context, AbsFile, Interface),
     ok.
 
-set_class_alias(Context, ClassName, ClassAlias) ->
-    #state{class=Classes} = load_state(Context),
-    ephp_class:set_alias(Classes, ClassName, ClassAlias).
+set_class_alias(Context, ClassNS, ClassName, ClassAliasNS, ClassAlias) ->
+    #state{class = Classes} = load_state(Context),
+    ephp_class:set_alias(Classes, ClassNS, ClassName, ClassAliasNS, ClassAlias).
 
 set_global(Context, GlobalContext) ->
     State = load_state(Context),
@@ -427,15 +442,21 @@ generate_subcontext(LocalContext, GlobalContext) ->
     start_link(State#state{ref = undefined, global = GlobalContext}).
 
 register_shutdown_func(Context, FuncName) ->
-    #state{shutdown=Ref} = load_state(Context),
-    ephp_shutdown:register_func(Ref, FuncName).
+    register_shutdown_func(Context, [], FuncName).
+
+register_shutdown_func(Context, NS, FuncName) ->
+    #state{shutdown = Ref} = load_state(Context),
+    ephp_shutdown:register_func(Ref, NS, FuncName).
 
 unregister_shutdown_func(Context, FuncName) ->
-    #state{shutdown=Ref} = load_state(Context),
-    ephp_shutdown:unregister_func(Ref, FuncName).
+    unregister_shutdown_func(Context, [], FuncName).
+
+unregister_shutdown_func(Context, NS, FuncName) ->
+    #state{shutdown = Ref} = load_state(Context),
+    ephp_shutdown:unregister_func(Ref, NS, FuncName).
 
 get_shutdown_funcs(Context) ->
-    #state{shutdown=Ref} = load_state(Context),
+    #state{shutdown = Ref} = load_state(Context),
     ephp_shutdown:get_funcs(Ref).
 
 %% ------------------------------------------------------------------
@@ -506,20 +527,23 @@ resolve(#assign{variable = #variable{type = class,
 %% TODO errors for parent
 resolve(#assign{variable = #variable{type = class,
                                      class = <<"parent">>} = Var} = Assign,
-        #state{class = Classes, active_class = ClassName} = State) ->
+        #state{class = Classes,
+               active_class = ClassName,
+               active_class_ns = ClassNS} = State) ->
     %% TODO error in case there are no parent
-    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
+    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassNS, ClassName),
     resolve(Assign#assign{variable = Var#variable{class = ParentName}}, State);
 
 resolve(#assign{variable = #variable{type = class,
                                      class = ClassName,
+                                     class_ns = NS,
                                      line = Index} = Var,
                 expression = Expr},
         #state{ref = Ref, class = Classes} = State) ->
     case catch get_var_path(Var, State) of
         #variable{} = VarPath ->
             {Value, NState} = resolve(Expr, State),
-            case ephp_class:get(Classes, ClassName) of
+            case ephp_class:get(Classes, NS, ClassName) of
                 {ok, #class{static_context = ClassCtx}} ->
                     Result = set(ClassCtx, VarPath, Value),
                     case Expr of
@@ -535,7 +559,7 @@ resolve(#assign{variable = #variable{type = class,
                     Result;
                 {error, enoexist} ->
                     ephp_error:error({error, eundefclass, Index,
-                        ?E_ERROR, {ClassName}})
+                        ?E_ERROR, {NS, ClassName}})
             end,
             {Value, NState};
         {error, _Reason} ->
@@ -571,10 +595,10 @@ resolve(#assign{variable = #variable{type = static, idx = []} = Var,
 resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
                 expression = Expr},
         #state{funcs = Funcs, ref = Ref, vars = Vars,
-               active_fun = ActiveFun,
+               active_fun = ActiveFun, active_fun_ns = ActiveFunNS,
                active_real_class = <<>>} = State) ->
     {Value, NState} = resolve(Expr, State),
-    RealValue = ephp_func:init_static_value(Funcs, ActiveFun, VarName, Value),
+    RealValue = ephp_func:init_static_value(Funcs, ActiveFunNS, ActiveFun, VarName, Value),
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
     case Expr of
         #instance{} -> ephp_object:remove(Ref, Value);
@@ -590,9 +614,10 @@ resolve(#assign{variable = #variable{type = static, name = VarName, idx = []},
                 expression = Expr},
         #state{class = Classes, ref = Ref, vars = Vars,
                active_fun = ActiveFun,
-               active_real_class = ActiveClass} = State) ->
+               active_real_class = ActiveClass,
+               active_real_class_ns = ActiveClassNS} = State) ->
     {Value, NState} = resolve(Expr, State),
-    RealValue = ephp_class:init_static_value(Classes, ActiveClass,
+    RealValue = ephp_class:init_static_value(Classes, ActiveClassNS, ActiveClass,
                                              ActiveFun, VarName, Value),
     ephp_vars:set(Vars, #variable{name = VarName}, RealValue, Ref),
     case Expr of
@@ -832,10 +857,10 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
     ephp_stack:pop(Ref),
     {Value, NState};
 
-resolve(#call{name = Object} = Call, State) when ?IS_OBJECT(Object) ->
+resolve(#call{name = Object, namespace = NS} = Call, State) when ?IS_OBJECT(Object) ->
     Invoke = Call#call{name = <<"__invoke">>, type = object},
     Class = ephp_object:get_class(Object),
-    case ephp_class:get_method(Class, <<"__invoke">>) of
+    case ephp_class:get_method(Class, NS, <<"__invoke">>) of
         #class_method{} ->
             run_method(Object, Invoke, State);
         undefined ->
@@ -860,9 +885,9 @@ resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     end,
     resolve(Call#call{name = Name}, NewState);
 
-resolve(#call{type = normal, name = Fun} = Call,
+resolve(#call{type = normal, name = Fun, namespace = NS} = Call,
         #state{funcs = Funcs} = State) ->
-    resolve_function(Call, ephp_func:get(Funcs, Fun), State);
+    resolve_function(Call, ephp_func:get(Funcs, NS, Fun), State);
 
 %% TODO error if no class scope
 resolve(#call{type = class, class = <<"self">>} = Call,
@@ -870,10 +895,10 @@ resolve(#call{type = class, class = <<"self">>} = Call,
     resolve(Call#call{class = Name}, State);
 
 %% TODO error if no class scope
-resolve(#call{type = class, class = <<"parent">>} = Call,
+resolve(#call{type = class, class = <<"parent">>, namespace = NS} = Call,
         #state{active_real_class = Name, class = Classes} = State) ->
     %% TODO error if no parent defined
-    {ok, #class{extends = Extends}} = ephp_class:get(Classes, Name),
+    {ok, #class{extends = Extends}} = ephp_class:get(Classes, NS, Name),
     %% TODO check name for class (parent or grandpa, ...)
     resolve(Call#call{class = Extends}, State);
 
@@ -883,19 +908,21 @@ resolve(#call{type = class, class = CurrentClassName} = Call,
     Object = ephp_vars:get(Vars, #variable{name = <<"this">>}, Ref),
     run_method(Object, Call, State);
 
-resolve(#call{type = class, class = Name, line = Index} = Call,
+resolve(#call{type = class, class = Name, namespace = NS, line = Index} = Call,
         #state{class = Classes, active_class = <<>>} = State) ->
-    case ephp_class:get(Classes, Name) of
+    case ephp_class:get(Classes, NS, Name) of
         {ok, Class} ->
             run_method(Class, Call, State);
         {error, enoexist} ->
-            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {Name}})
+            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {NS, Name}})
     end;
 
 resolve(#call{type = class, class = Name, line = Index} = Call,
-        #state{class = Classes, active_class = CurrentClassName,
+        #state{class = Classes,
+               active_class = CurrentClassName,
+               active_class_ns = NS,
                ref = Ref} = State) ->
-    {ok, CurrentClass} = ephp_class:get(Classes, CurrentClassName),
+    {ok, CurrentClass} = ephp_class:get(Classes, NS, CurrentClassName),
     case ephp_class:instance_of(Ref, CurrentClass, Name) of
         true ->
             Object = ephp_vars:get(State#state.vars,
@@ -918,9 +945,9 @@ resolve(#instance{name = ClassName} = I, State) when not is_binary(ClassName) ->
     {RClassName, NState} = resolve(ClassName, State),
     resolve(I#instance{name = RClassName}, NState);
 
-resolve(#instance{name = ClassName, args = RawArgs, line = Line} = Instance,
+resolve(#instance{name = ClassName, namespace = ClassNS, args = RawArgs, line = Line} = Instance,
         #state{ref = LocalCtx, class = Classes, global = GlobalCtx} = State) ->
-    Object = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    Object = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassNS, ClassName, Line),
     #obj_ref{pid = Objects, ref = ObjectId} = Object,
     #ephp_object{class = Class} = Obj = ephp_object:get(Object),
     ephp_object:set(Objects, ObjectId, Obj#ephp_object{instance = Instance}),
@@ -951,35 +978,41 @@ resolve(#constant{type = class, class = <<"self">>, line = Index},
         #state{active_class = <<>>}) ->
     ephp_error:error({error, enoclassscope, Index, ?E_ERROR, {<<"self">>}});
 
-resolve(#constant{type = class, class = <<"self">>, name = Name, line = Index},
+resolve(#constant{type = class, class = <<"self">>, name = Name, line = Index,
+                  namespace = NameSpace},
         #state{ref = Ref, const = Const,
                active_class = ClassName} = State) ->
-    {ephp_const:get(Const, ClassName, Name, Index, Ref), State};
+    {ephp_const:get(Const, NameSpace, ClassName, Name, Index, Ref), State};
 
 %% TODO error if there are no active class
 resolve(#constant{type = class, class = <<"parent">>, name = Name,
                   line = Index},
         #state{ref = Ref, const = Const, class = Classes,
-               active_real_class = ClassName} = State) ->
+               active_real_class = ClassName,
+               active_real_class_ns = ClassNS} = State) ->
     %% TODO: error if the parent isn't defined
-    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
+    {ok, #class{namespace = NameSpace, extends = ParentName}} =
+        ephp_class:get(Classes, ClassNS, ClassName),
     %% TODO check if there are a parent of a parent...
-    {ephp_const:get(Const, ParentName, Name, Index, Ref), State};
+    {ephp_const:get(Const, NameSpace, ParentName, Name, Index, Ref), State};
 
 resolve(#constant{type = class, class = #variable{} = Var, name = Name,
                   line = Line},
         #state{ref = Ref, const = Const} = State) ->
     {ObjRef, NState} = resolve(Var, State),
-    #ephp_object{class = #class{name = ClassName}} = ephp_object:get(ObjRef),
-    {ephp_const:get(Const, ClassName, Name, Line, Ref), NState};
+    #ephp_object{class = #class{namespace = NameSpace, name = ClassName}} =
+        ephp_object:get(ObjRef),
+    {ephp_const:get(Const, NameSpace, ClassName, Name, Line, Ref), NState};
 
-resolve(#constant{type = class, class = ClassName, name = Name, line =  Line},
+resolve(#constant{type = class, class = ClassName, name = Name, line =  Line,
+                  namespace = NameSpace},
         #state{ref = Ref, const = Const} = State) ->
-    {ephp_const:get(Const, ClassName, Name, Line, Ref), State};
+    {ephp_const:get(Const, NameSpace, ClassName, Name, Line, Ref), State};
 
-resolve(#constant{type = normal, name = Name, line = Line},
+resolve(#constant{type = normal, name = Name, line = Line,
+                  namespace = NameSpace},
         #state{ref = Ref, const = Const} = State) ->
-    {ephp_const:get(Const, Name, Line, Ref), State};
+    {ephp_const:get(Const, NameSpace, undefined, Name, Line, Ref), State};
 
 resolve(#print_text{text = Text}, #state{output = Output} = State) ->
     ephp_output:push(Output, Text),
@@ -1094,7 +1127,7 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = _Call,
             {Value, State}
     end;
 
-resolve_function(#call{name = Fun, args = RawArgs, line = Index},
+resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
                  {ok,#reg_func{type = php, args = RawFuncArgs, file = AFile,
                                code = Code}},
                  #state{ref = Ref, vars = Vars, const = Const,
@@ -1117,7 +1150,8 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index},
                                                  active_fun_args = SArgs}),
     ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
     register_superglobals(GlobalRef, NewVars),
-    ephp_const:set(Const, <<"__FUNCTION__">>, Fun),
+    FullFunName = ephp_class:ns2str(Call#call.namespace, Fun),
+    ephp_const:set(Const, <<"__FUNCTION__">>, FullFunName),
     Refs = lists:map(fun(#variable{} = Var) ->
                             #var_ref{pid = NewVars, ref = Var};
                         (#ref{var = Var}) ->
@@ -1130,10 +1164,11 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index},
         {return, V} -> V;
         _ -> undefined
     end,
-    ephp_func:set_static(Funcs, Fun, NewVars, Ref),
+    ephp_func:set_static(Funcs, Call#call.namespace, Fun, NewVars, Ref),
     destroy(SubContext),
     ephp_vars:destroy(Ref, NewVars),
-    ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
+    OldFullFunName = ephp_class:ns2str(State#state.active_fun_ns, State#state.active_fun),
+    ephp_const:set(Const, <<"__FUNCTION__">>, OldFullFunName),
     ephp_stack:pop(Ref),
     {Value, NState};
 
@@ -1360,7 +1395,7 @@ zip_args(ValArgs, FuncArgs) ->
     Result.
 
 
-get_class_from(MethodVars, RegInstance, AName, Line, State) when ?IS_OBJECT(RegInstance) ->
+get_class_from(MethodVars, RegInstance, NS, AName, Line, State) when ?IS_OBJECT(RegInstance) ->
     #ephp_object{class = Class} = ephp_object:get(RegInstance),
     ephp_vars:set(MethodVars,
                   #variable{name = <<"this">>, type = object,
@@ -1368,21 +1403,21 @@ get_class_from(MethodVars, RegInstance, AName, Line, State) when ?IS_OBJECT(RegI
                   RegInstance, State#state.ref),
     if
         AName =/= undefined andalso AName =/= Class#class.name ->
-            {ok, ModifiedClass} = ephp_class:get(State#state.class, AName),
+            {ok, ModifiedClass} = ephp_class:get(State#state.class, NS, AName),
             {RegInstance, ModifiedClass};
         true ->
             {RegInstance, Class}
     end;
 
-get_class_from(_MethodVars, #class{name = AName} = Class, AName, _Line, _State) ->
+get_class_from(_MethodVars, #class{name = AName} = Class, _NS, AName, _Line, _State) ->
     {undefined, Class};
 
-get_class_from(_MethodVars, #class{name = undefined} = Class, _AName, _Line, _State) ->
+get_class_from(_MethodVars, #class{name = undefined} = Class, _NS, _AName, _Line, _State) ->
     {undefined, Class};
 
-get_class_from(_MethodVars, #class{}, AName, _Line, State) ->
+get_class_from(_MethodVars, #class{}, NS, AName, _Line, State) ->
     %% TODO maybe this should require $this???
-    {ok, ModifiedClass} = ephp_class:get(State#state.class, AName),
+    {ok, ModifiedClass} = ephp_class:get(State#state.class, NS, AName),
     {undefined, ModifiedClass}.
 
 
@@ -1421,7 +1456,8 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
            #state{ref = Ref, class = Classes} = State) ->
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {ok, MethodVars} = ephp_vars:start_link(),
-    {Object, Class} = get_class_from(MethodVars, RegInstance, AName, Line, State),
+    NS = Call#call.namespace,
+    {Object, Class} = get_class_from(MethodVars, RegInstance, NS, AName, Line, State),
     #class{name = ClassName} = Class,
     #class_method{args = RawMethodArgs} = ClassMethod = case Call#call.name of
         <<"__construct">> ->
@@ -1468,8 +1504,9 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
             "::", MethodName/binary>>}
     ]),
     %% TODO: with static (late binding) this changes
-    set_active_class(Ref, ClassMethod#class_method.class_name),
-    set_active_real_class(Ref, Class#class.name),
+    set_active_class(Ref, ClassMethod#class_method.namespace,
+                     ClassMethod#class_method.class_name),
+    set_active_real_class(Ref, Class#class.namespace, Class#class.name),
     Refs = lists:map(fun
         (#variable{} = Var) ->
             #var_ref{pid = MethodVars, ref = Var};
@@ -1485,15 +1522,16 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
         {return, V} -> V;
         _ -> undefined
     end,
-    ephp_class:set_static(Classes, Class#class.name, MethodName, MethodVars, Ref),
+    ephp_class:set_static(Classes, Class#class.namespace, Class#class.name,
+                          MethodName, MethodVars, Ref),
     destroy(SubContext),
     maybe_destroy_vars_from_method(MethodName, MethodVars, Ref),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, State#state.active_fun},
         {<<"__METHOD__">>, OldMethodName}
     ]),
-    set_active_class(Ref, State#state.active_class),
-    set_active_real_class(Ref, State#state.active_real_class),
+    set_active_class(Ref, State#state.active_class_ns, State#state.active_class),
+    set_active_real_class(Ref, State#state.active_real_class_ns, State#state.active_real_class),
     ephp_stack:pop(Ref),
     {Value, State};
 
@@ -1623,12 +1661,14 @@ resolve_var(#variable{name = <<"this">>, idx = [{object, VarName, Line}|_]},
             #state{active_class = <<>>}) when is_binary(VarName) ->
     ephp_error:error({error, enoobjthis, Line, ?E_ERROR, {}});
 resolve_var(#variable{name = <<"this">>, idx = [{object, VarName, Line}|Idx]} = Var,
-            #state{ref = Ref, vars = Vars, active_class = RunningClass} = State)
+            #state{ref = Ref, vars = Vars,
+                   active_class = RunningClass,
+                   active_class_ns = RunningClassNS} = State)
                 when is_binary(VarName) ->
     InstanceVar = Var#variable{idx = []},
     ObjRef = ephp_vars:get(Vars, InstanceVar, Ref),
     Context = ephp_object:get_context(ObjRef),
-    {ok, Class} = ephp_class:get(State#state.class, RunningClass),
+    {ok, Class} = ephp_class:get(State#state.class, RunningClassNS, RunningClass),
     {NewVar, NewState} =
         resolve_indexes(#variable{name = VarName, idx = Idx,
                                   type = object, class = Class#class.name,
@@ -1661,20 +1701,23 @@ resolve_var(#variable{type = class, class = <<"self">>} = Var,
 
 %% TODO error if it's out of scope to use parent
 resolve_var(#variable{type = class, class = <<"parent">>} = Var,
-            #state{class = Classes, active_class = ClassName} = State) ->
+            #state{class = Classes,
+                   active_class = ClassName,
+                   active_class_ns = ClassNS} = State) ->
     %% TODO error if the parent is not defined
-    {ok, #class{extends = ParentName}} = ephp_class:get(Classes, ClassName),
-    resolve_var(Var#variable{class = ParentName}, State);
+    {ok, #class{extends = ParentName, extends_ns = ParentNS}} =
+        ephp_class:get(Classes, ClassNS, ClassName),
+    resolve_var(Var#variable{class = ParentName, class_ns = ParentNS}, State);
 
-resolve_var(#variable{type = class, class = ClassName, line = Index} = Var,
+resolve_var(#variable{type = class, class = ClassName, class_ns = ClassNS, line = Index} = Var,
             #state{class = Classes} = State) ->
     {NewVar, NewState} = resolve_indexes(Var, State),
-    case ephp_class:get(Classes, ClassName) of
-        {ok, #class{static_context=ClassCtx}} ->
+    case ephp_class:get(Classes, ClassNS, ClassName) of
+        {ok, #class{static_context = ClassCtx}} ->
             Value = get(ClassCtx, NewVar),
             {Value, NewState};
         {error, enoexist} ->
-            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {ClassName}})
+            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {ClassNS, ClassName}})
     end.
 
 % TODO complete list of casting and errors
@@ -1707,7 +1750,7 @@ resolve_cast(_State, _Line, array, undefined) ->
 resolve_cast(#state{ref = LocalCtx, class = Classes, global = GlobalCtx},
              Line, object, Array) when ?IS_ARRAY(Array) ->
     ClassName = <<"stdClass">>,
-    ObjRef = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    ObjRef = ephp_class:instance(Classes, LocalCtx, GlobalCtx, [], ClassName, Line),
     VarVals = [ {#variable{name = K}, V} || {K, V} <- ephp_array:to_list(Array) ],
     ephp_object:set_bulk_attr(ObjRef, VarVals),
     ObjRef;
@@ -1716,13 +1759,13 @@ resolve_cast(#state{ref = LocalCtx, class = Classes, global = GlobalCtx},
         is_number(N) orelse is_binary(N) orelse is_boolean(N) orelse
         N =:= infinity orelse N =:= nan ->
     ClassName = <<"stdClass">>,
-    ObjRef = ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line),
+    ObjRef = ephp_class:instance(Classes, LocalCtx, GlobalCtx, [], ClassName, Line),
     ephp_object:set_attr(ObjRef, #variable{name = <<"scalar">>}, N),
     ObjRef;
 resolve_cast(#state{ref = LocalCtx, class = Classes, global = GlobalCtx},
              Line, object, undefined) ->
     ClassName = <<"stdClass">>,
-    ephp_class:instance(Classes, LocalCtx, GlobalCtx, ClassName, Line);
+    ephp_class:instance(Classes, LocalCtx, GlobalCtx, [], ClassName, Line);
 resolve_cast(_State, _Line, object, #obj_ref{} = Object) ->
     Object.
 

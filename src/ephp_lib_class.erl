@@ -49,8 +49,11 @@ handle_error(eincompatctx, _Level, {Class, Method}) ->
                   "statically, assuming $this from incompatible context",
                   [Class, Method]);
 
-handle_error(eundefclass, _Level, {Class}) ->
-    io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
+handle_error(eundefclass, _Level, {NS, Class}) ->
+    io_lib:format("Class '~s' not found", [ephp_class:ns2str(NS, Class)]);
+
+handle_error(eundefclass, _Level, {ClassName}) when is_binary(ClassName) ->
+    io_lib:format("Class '~s' not found", [ClassName]);
 
 handle_error(eundefmethod, _Level, {Class, MethodName}) ->
     io_lib:format("Call to undefined method ~s::~s()", [Class, MethodName]);
@@ -103,9 +106,6 @@ handle_error(enoconst, _Level, {ConstName}) ->
 handle_error(enointerface, _Level, {InterfaceName}) ->
     io_lib:format("Interface '~s' not found", [InterfaceName]);
 
-handle_error(enoclass, _Level, {ClassName}) ->
-    io_lib:format("Class '~s' not found", [ClassName]);
-
 handle_error(enomethods, _Level, {ClassName, Methods, 1}) ->
     io_lib:format("Class ~s contains 1 abstract method and must therefore "
                   "be declared abstract or implement the remaining methods "
@@ -151,7 +151,11 @@ get_class(_Context, _Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
                   ClassAlias :: var_value()) -> boolean().
 
 class_alias(Context, Line, {_,Name}, {_,Alias}) ->
-    case ephp_context:set_class_alias(Context, Name, Alias) of
+    {ClassName, ClassNS} = ephp_class:str2ns(Name),
+    {AliasName, AliasNS} = ephp_class:str2ns(Alias),
+    case ephp_context:set_class_alias(Context,
+                                      ClassNS, ClassName,
+                                      AliasNS, AliasName) of
         ok ->
             true;
         {error, enoexist} ->
@@ -170,7 +174,8 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
                    AutoLoad :: var_value()) -> boolean().
 
 class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
-    case ephp_class:get(Context, Class, AutoLoad) of
+    {ClassNS, ClassName} = ephp_class:str2ns(Class),
+    case ephp_class:get(Context, ClassNS, ClassName, AutoLoad) of
         {ok, #class{type = Type}} ->
             Type =/= interface;
         {error, enoexist} ->
@@ -181,7 +186,8 @@ class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
                        AutoLoad :: var_value()) -> boolean().
 
 interface_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
-    case ephp_class:get(Context, Class, AutoLoad) of
+    {ClassNS, ClassName} = ephp_class:str2ns(Class),
+    case ephp_class:get(Context, ClassNS, ClassName, AutoLoad) of
         {ok, #class{type = interface}} -> true;
         _ -> false
     end.

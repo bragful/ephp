@@ -127,5 +127,6 @@
     col = 1 :: pos_integer(),
     array_type = old :: old | php54,
     access :: undefined | access_types(),
-    final = false :: boolean()
+    final = false :: boolean(),
+    namespace = [] :: namespace()
 }).

@@ -255,7 +255,7 @@ st_implements(<<",", Rest/binary>>, Parser, Parsed) ->
     st_implements(Rest, inc_pos(Parser), Parsed);
 st_implements(<<A:8, _/binary>> = Rest, Parser, Parsed) when ?IS_ALPHA(A) ->
     {Rest0, Parser0, Name} = ephp_parser_func:funct_name(Rest, Parser, []),
-    st_implements(Rest0, Parser0, [Name|Parsed]);
+    st_implements(Rest0, Parser0, [{Parser#parser.namespace, Name}|Parsed]);
 st_implements(<<"{", _/binary>> = Rest, Parser, Parsed) ->
     {Rest, Parser, Parsed}.
 

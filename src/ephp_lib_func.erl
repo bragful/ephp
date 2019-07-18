@@ -77,6 +77,7 @@ get_defined_functions(Context, _Line) ->
 -spec function_exists(context(), line(), FuncName :: var_value()) -> boolean().
 
 function_exists(Context, _Line, {_,FuncName}) ->
+    %% TODO split NS from FuncName
     ephp_context:get_function(Context, FuncName) =/= error.
 
 -spec call_user_func_array(context(), line(), var_value(), var_value()) -> mixed().
@@ -133,7 +134,8 @@ call(Context, Callable, Args) when ?IS_ARRAY(Callable) andalso is_list(Args) ->
                     ephp_context:call_function(Context, Call);
                 [<<"parent">>, ParentMethod] ->
                     %% TODO: when parent isn't defined
-                    ParentName = ephp_class:get_parent(Context, Class),
+                    {ClassNS, ClassName} = ephp_class:str2ns(Class),
+                    ParentName = ephp_class:get_parent(Context, ClassNS, ClassName),
                     Call = #call{name = ParentMethod, class = ParentName,
                                  type = class},
                     ephp_context:call_function(Context, Call)

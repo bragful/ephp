@@ -260,10 +260,11 @@ run_depth(Context, #class{line = Line} = Class, Return, Cover) ->
     ephp_context:register_class(Context, Class),
     Return;
 
-run_depth(Context, #function{name=Name, args=Args, code=Code, line=Line},
+run_depth(Context, #function{name = Name, args = Args, code = Code,
+                             namespace = NS, line = Line},
           Return, Cover) ->
     ok = ephp_cover:store(Cover, function, Context, Line),
-    ephp_context:register_func(Context, Name, Args, Code, undefined),
+    ephp_context:register_func(Context, NS, Name, Args, Code, false, undefined),
     Return;
 
 run_depth(Context, {global, GlobalVar, Line}, Return, Cover) ->
@@ -386,11 +387,13 @@ run_depth(Context, #variable{type = static, name = VarName} = Var,
     ActiveFun = ephp_context:get_active_function(Context),
     RealValue = case ephp_context:get_active_real_class(Context) of
         <<>> ->
+            NS = Var#variable.class_ns,
             Funcs = ephp_context:get_funcs(Context),
-            ephp_func:init_static_value(Funcs, ActiveFun, VarName, undefined);
+            ephp_func:init_static_value(Funcs, NS, ActiveFun, VarName, undefined);
         ClassName ->
+            NS = ephp_context:get_active_real_class_ns(Context),
             Classes = ephp_context:get_classes(Context),
-            ephp_class:init_static_value(Classes, ClassName, ActiveFun, VarName,
+            ephp_class:init_static_value(Classes, NS, ClassName, ActiveFun, VarName,
                                          undefined)
     end,
     ephp_context:set(Context, Var, RealValue),

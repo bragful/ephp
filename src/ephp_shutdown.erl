@@ -11,8 +11,8 @@
 -export([
     start_link/0,
     destroy/1,
-    register_func/2,
-    unregister_func/2,
+    register_func/3,
+    unregister_func/3,
 
     get_funcs/1,
     shutdown/1
@@ -35,16 +35,16 @@ destroy(Ref) ->
     erlang:erase(Ref),
     ok.
 
--spec register_func(reference(), callable()) -> ok.
+-spec register_func(reference(), namespace(), callable()) -> ok.
 
-register_func(Ref, FuncName) ->
-    erlang:put(Ref, erlang:get(Ref) ++ [FuncName]),
+register_func(Ref, NS, FuncName) ->
+    erlang:put(Ref, erlang:get(Ref) ++ [{NS, FuncName}]),
     ok.
 
--spec unregister_func(reference(), callable()) -> ok.
+-spec unregister_func(reference(), namespace(), callable()) -> ok.
 
-unregister_func(Ref, FuncName) ->
-    erlang:put(Ref, erlang:get(Ref) -- [FuncName]),
+unregister_func(Ref, NS, FuncName) ->
+    erlang:put(Ref, erlang:get(Ref) -- [{NS, FuncName}]),
     ok.
 
 -spec get_funcs(reference()) -> [callable()].
@@ -55,11 +55,11 @@ get_funcs(Ref) ->
 -spec shutdown(context()) -> undefined.
 
 shutdown(Context) ->
-    Line = {{line,0},{column,0}},
+    Line = {{line,0}, {column,0}},
     Result = lists:foldl(fun
-        (FuncName, false) ->
-            Shutdown = #call{name = FuncName, line = Line},
-            ephp_interpr:run(Context, #eval{statements=[Shutdown]});
+        ({NS, FuncName}, false) ->
+            Shutdown = #call{name = FuncName, namespace = NS, line = Line},
+            ephp_interpr:run(Context, #eval{statements = [Shutdown]});
         (_, Break) ->
             Break
     end, false, ephp_context:get_shutdown_funcs(Context)),

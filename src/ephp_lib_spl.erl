@@ -29,8 +29,9 @@ init_const() -> [].
 
 -spec spl_autoload_call(context(), line(), var_value()) -> undefined.
 
-spl_autoload_call(Context, Line, {_, ClassName}) ->
-    case ephp_class:get(Context, ClassName, spl) of
+spl_autoload_call(Context, Line, {_, RawClassName}) ->
+    {ClassNS, ClassName} = ephp_class:str2ns(RawClassName),
+    case ephp_class:get(Context, ClassNS, ClassName, spl) of
         {ok, _Class} ->
             undefined;
         {error, enoexist} ->
@@ -39,7 +40,7 @@ spl_autoload_call(Context, Line, {_, ClassName}) ->
             Classes = ephp_context:get_classes(Context),
             ExceptionName = <<"LogicException">>,
             Exception = ephp_class:instance(Classes, Context, Context,
-                                            ExceptionName, Line),
+                                            [], ExceptionName, Line),
             #ephp_object{class = Class} = ephp_object:get(Exception),
             #class_method{name = ConstructorName} =
                 ephp_class:get_constructor(Classes, Class),

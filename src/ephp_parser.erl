@@ -299,6 +299,14 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Parser, Parsed) when
                                        Class)
     end,
     code(Rest0, copy_rowcol(Parser0, Parser), [Class0|Parsed]);
+code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
+        ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
+        ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
+        ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    {Rest0, Parser0, NameSpace} = namespace(<<SP:8, Rest/binary>>,
+                                            add_pos(Parser, 9), []),
+    code(Rest0, Parser0#parser{namespace = NameSpace}, Parsed);
 code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) andalso
         ?OR(E,$E,$e) andalso ?OR(R,$R,$r) andalso ?OR(F,$F,$f) andalso
@@ -501,6 +509,21 @@ code_block(<<>>, Parser, Parsed) ->
 code_block(Rest, Parser, Parsed) ->
     code(Rest, code_statement_level(Parser), Parsed).
 
+namespace(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
+    namespace(Rest, inc_pos(Parser), Parsed);
+namespace(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
+    namespace(Rest, new_line(Parser), Parsed);
+namespace(<<"\\", Rest/binary>>, Parser, Parsed) ->
+    namespace(Rest, inc_pos(Parser), [<<>>|Parsed]);
+namespace(<<A:8, _/binary>> = Rest, Parser, []) when
+        ?IS_ALPHANUM(A) orelse A =:= $_ ->
+    namespace(Rest, Parser, [<<>>]);
+namespace(<<A:8, Rest/binary>>, Parser, [NamePart|Parsed]) when
+        ?IS_ALPHANUM(A) orelse A =:= $_ ->
+    namespace(Rest, inc_pos(Parser), [<<NamePart/binary, A:8>>|Parsed]);
+namespace(Rest, Parser, Parsed) ->
+    {Rest, Parser, lists:reverse(Parsed)}.
+
 static(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     static(Rest, inc_pos(Parser), Parsed);
 static(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
@@ -603,7 +626,8 @@ accessor(<<"{", Rest/binary>>, Parser, []) ->
             NParser1 = inc_pos(Parser1),
             {Rest2, Parser2, Args} = ephp_parser_func:call_args(Rest1, NParser1, []),
             {Rest2, copy_rowcol(Parser2, Parser),
-             [add_line(#call{name = Acc, args = Args}, Parser1)]};
+             [add_line(#call{name = Acc, args = Args,
+                             namespace = Parser#parser.namespace}, Parser1)]};
         {Rest1, Parser1} ->
             {Rest1, copy_rowcol(Parser1, Parser), [Acc]}
     end;
@@ -642,12 +666,14 @@ constant(Rest, Parser, Parsed) ->
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
 constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
-    Call = #call{name = C#constant.name, line = C#constant.line},
+    Call = #call{name = C#constant.name, line = C#constant.line,
+                 namespace = Parser#parser.namespace},
     ephp_parser_func:function(Rest, inc_pos(Parser), [Call]);
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
     {Rest1, Parser1, [Var]} = variable(<<"$", Rest/binary>>, NewParser, []),
-    NewVar = Var#variable{type = class, class = C#constant.name},
+    {NS, RealClassName} = ephp_class:str2ns(C#constant.name),
+    NewVar = Var#variable{type = class, class = RealClassName, class_ns = NS},
     {Rest1, copy_rowcol(Parser1, Parser), [NewVar]};
 constant_wait(<<"::",Rest/binary>>, Parser, [#constant{} = Cons]) ->
     case constant(Rest, add_pos(Parser, 2), []) of
@@ -671,8 +697,11 @@ constant_known([#constant{name = <<"__LINE__">>}|Parsed], #parser{row = R} = Par
     [add_line(#int{int = R}, Parser)|Parsed];
 constant_known([#constant{name = <<"exit">>}|Parsed], Parser) ->
     [add_line(#call{name = <<"exit">>}, Parser)|Parsed];
-constant_known(C, _Parser) ->
-    C.
+constant_known([C|Parsed], Parser) ->
+    case lists:member(C#constant.name, ephp_const:special_consts()) of
+        true -> [C|Parsed];
+        false -> [C#constant{namespace = Parser#parser.namespace}|Parsed]
+    end.
 
 st_global(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_global(Rest, inc_pos(Parser), Parsed);

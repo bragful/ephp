@@ -169,8 +169,9 @@ exists(#variable{}, undefined, _Context) ->
 
 exists(#variable{type = class, class = <<"self">>} = Var, _Vars, Context) ->
     ClassName = ephp_context:get_active_class(Context),
+    ClassNS = ephp_context:get_active_class_ns(Context),
     Classes = ephp_context:get_classes(Context),
-    case ephp_class:get(Classes, ClassName) of
+    case ephp_class:get(Classes, ClassNS, ClassName) of
         {ok, #class{static_context = ClassCtx}} ->
             ephp_context:isset(ClassCtx, Var#variable{type = normal});
         _ ->
@@ -179,17 +180,18 @@ exists(#variable{type = class, class = <<"self">>} = Var, _Vars, Context) ->
 
 exists(#variable{type = class, class = <<"parent">>} = Var, _Vars, Context) ->
     ClassName = ephp_context:get_active_real_class(Context),
+    ClassNS = ephp_context:get_active_class_ns(Context),
     Classes = ephp_context:get_classes(Context),
-    case ephp_class:get(Classes, ClassName) of
+    case ephp_class:get(Classes, ClassNS, ClassName) of
         {ok, #class{extends = Parent}} ->
             ephp_context:isset(Context, Var#variable{class = Parent});
         _ ->
             false
     end;
 
-exists(#variable{type = class, class = ClassName} = Var, _Vars, Context) ->
+exists(#variable{type = class, class = ClassName, class_ns = ClassNS} = Var, _Vars, Context) ->
     Classes = ephp_context:get_classes(Context),
-    case ephp_class:get(Classes, ClassName) of
+    case ephp_class:get(Classes, ClassNS, ClassName) of
         {ok, #class{static_context = ClassCtx}} ->
             ephp_context:isset(ClassCtx, Var#variable{type = normal});
         _ ->
@@ -220,8 +222,9 @@ exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
         {ok, #obj_ref{} = ObjRef} ->
             Ctx = ephp_object:get_context(ObjRef),
             ActiveClass = ephp_context:get_active_class(Context),
+            ActiveClassNS = ephp_context:get_active_class_ns(Context),
             Classes = ephp_context:get_classes(Context),
-            {ok, Class} = ephp_class:get(Classes, ActiveClass),
+            {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
             {object, ObjRoot, _} = NewRoot,
             NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
                 #class_attr{access = private} ->
@@ -458,7 +461,8 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                     end;
                 ActiveClass ->
                     Classes = ephp_context:get_classes(Context),
-                    {ok, Class} = ephp_class:get(Classes, ActiveClass),
+                    ActiveClassNS = ephp_context:get_active_class_ns(Context),
+                    {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
                     case ephp_class:get_attribute(Class, ObjRoot) of
                         #class_attr{access = private} ->
                             NewObjRoot = {private, ObjRoot, Class#class.name},
@@ -585,8 +589,9 @@ change(#variable{name = <<"this">>, idx = [{object, ObjRoot, _Line}|Idx]} = Var,
     {ok, #obj_ref{} = ObjRef} = ephp_array:find(<<"this">>, Vars),
     ObjCtx = ephp_object:get_context(ObjRef),
     ActiveClass = ephp_context:get_active_class(Context),
+    ActiveClassNS = ephp_context:get_active_class_ns(Context),
     Classes = ephp_context:get_classes(Context),
-    {ok, Class} = ephp_class:get(Classes, ActiveClass),
+    {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
     NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
         #class_attr{access = private} ->
             NewObjRoot = {private, ObjRoot, Class#class.name},
@@ -612,7 +617,7 @@ change(#variable{name = Root, idx = [{object, NewRoot, _Line}|Idx], line = Line}
                                                       ephp_context:get_active_file(Context),
                                                       ?E_WARNING, undefined}),
                     Classes = ephp_context:get_classes(Context),
-                    StdClass = ephp_class:instance(Classes, Context, Context, <<"stdClass">>, Line),
+                    StdClass = ephp_class:instance(Classes, Context, Context, [], <<"stdClass">>, Line),
                     ephp_mem:set(MemRef, StdClass),
                     StdClass;
                 ObRf -> ObRf
@@ -649,8 +654,9 @@ change(#variable{name = Root, idx = [NewRoot|Idx]} = Var, Value, Vars, Ctx) ->
         {ok, ObjRef} when ?IS_OBJECT(ObjRef) ->
             ObjCtx = ephp_object:get_context(ObjRef),
             ActiveClass = ephp_context:get_active_class(Ctx),
+            ActiveClassNS = ephp_context:get_active_class_ns(Ctx),
             Classes = ephp_context:get_classes(Ctx),
-            {ok, Class} = ephp_class:get(Classes, ActiveClass),
+            {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
             {object, ObjRoot, _} = NewRoot,
             case ephp_class:get_attribute(Class, ObjRoot) of
                 #class_attr{access = private} ->

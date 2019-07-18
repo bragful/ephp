@@ -115,6 +115,7 @@ st_function(Rest, Parser, Parsed) ->
     {Rest3, Parser3, Args} = funct_args(Rest2, Parser2, []),
     {Rest4, Parser4, CodeBlock} = code_block(Rest3, Parser3, []),
     Function = add_line(#function{name = Name,
+                                  namespace = Parser#parser.namespace,
                                   args = Args,
                                   code = CodeBlock,
                                   return_ref = ReturnRef}, Parser),
