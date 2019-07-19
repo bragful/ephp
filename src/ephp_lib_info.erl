@@ -199,6 +199,7 @@ get_os() ->
     case os:type() of
         {unix, darwin} -> <<"Darwin">>;
         {unix, linux} -> <<"Linux">>;
+        {unix, freebsd} -> <<"FreeBSD">>;
         {win, nt} -> <<"WINNT">>;
         {win, _} -> <<"Windows">>
     end.
@@ -210,8 +211,9 @@ get_os_family() ->
     case os:type() of
         {unix, darwin} -> <<"OSX">>;
         {unix, linux} -> <<"LINUX">>;
-        %% BSD
-        %% Solaris
+        %% TODO Add more BSD
+        {unix, freebsd} -> <<"BSD">>;
+        %% TODO Add Solaris
         {win, _} -> <<"WIN">>;
         {_, _} -> <<"unknown">>
     end.
