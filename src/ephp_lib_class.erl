@@ -49,8 +49,8 @@ handle_error(eincompatctx, _Level, {Class, Method}) ->
                   "statically, assuming $this from incompatible context",
                   [Class, Method]);
 
-handle_error(eundefclass, _Level, {NS, Class}) ->
-    io_lib:format("Class '~s' not found", [ephp_class:ns2str(NS, Class)]);
+handle_error(eundefclass, _Level, {NS, ClassName}) when is_binary(ClassName) ->
+    io_lib:format("Class '~s' not found", [ephp_class:ns2str(NS, ClassName)]);
 
 handle_error(eundefclass, _Level, {ClassName}) when is_binary(ClassName) ->
     io_lib:format("Class '~s' not found", [ClassName]);
@@ -138,6 +138,12 @@ handle_error(enoobjthis, _Level, {}) ->
 handle_error(eobj4empty, _Level, undefined) ->
     "Creating default object from empty value";
 
+handle_error(enamespace, _Level, undefined) ->
+    "Namespace declaration statement has to be the very first statement or after any declare call in the script";
+
+handle_error(enamespaceblock, _Level, undefined) ->
+    "No code may exist outside of namespace {}";
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
@@ -150,9 +156,15 @@ get_class(_Context, _Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
                   ClassName :: var_value(),
                   ClassAlias :: var_value()) -> boolean().
 
-class_alias(Context, Line, {_,Name}, {_,Alias}) ->
-    {ClassName, ClassNS} = ephp_class:str2ns(Name),
-    {AliasName, AliasNS} = ephp_class:str2ns(Alias),
+class_alias(Context, Line, {_, Name}, {_, Alias}) ->
+    {ClassNS, ClassName} = if
+        is_binary(Name) -> ephp_class:str2ns(Name);
+        true -> {[], ephp_data:to_bin(Name)}
+    end,
+    {AliasNS, AliasName} = if
+        is_binary(Alias) -> ephp_class:str2ns(Alias);
+        true -> {[], ephp_data:to_bin(Alias)}
+    end,
     case ephp_context:set_class_alias(Context,
                                       ClassNS, ClassName,
                                       AliasNS, AliasName) of
@@ -161,7 +173,7 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
         {error, enoexist} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefclass, Line, File, ?E_WARNING, {Name}}),
+                {error, eundefclass, Line, File, ?E_WARNING, {ClassNS, ClassName}}),
             false;
         {error, eredefined} ->
             File = ephp_context:get_active_file(Context),

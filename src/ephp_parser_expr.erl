@@ -280,7 +280,7 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
     %% TODO ensure the namespace is solved in runtime when it's not a binary
     {NS, RealObjName} = if
         is_binary(ObjName) -> ephp_class:str2ns(ObjName);
-        true -> {undefined, ObjName}
+        true -> {[], ObjName}
     end,
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->

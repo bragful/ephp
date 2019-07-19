@@ -79,8 +79,10 @@ ns2str(NS, ClassName) ->
 -spec str2ns(binary()) -> {namespace(), class_name()}.
 %% @doc converts a string into a 2-tuple: namespace and class name.
 str2ns(Str) ->
-    Parts = binary:split(Str, <<"\\">>, [global]),
-    {lists:droplast(Parts), lists:last(Parts)}.
+    case binary:split(Str, <<"\\">>, [global]) of
+        [ClassName] -> {[], ClassName};
+        Parts -> {lists:droplast(Parts), lists:last(Parts)}
+    end.
 
 
 -spec start_link() -> {ok, ephp:classes_id()}.
@@ -102,11 +104,11 @@ destroy(Classes) ->
 
 -spec get(context(), namespace(), class_name(), AutoLoad::boolean()) -> get_return().
 %% @doc retrieves a class registered given the class name.
-get(Context, NS, ClassName, false) ->
+get(Context, NS, ClassName, false) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
     get(Classes, NS, ClassName);
 
-get(Context, NS, ClassName, spl) ->
+get(Context, NS, ClassName, spl) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
     case erlang:get(Classes) of
         #class_state{loaders = []} ->
@@ -115,7 +117,7 @@ get(Context, NS, ClassName, spl) ->
             get(Context, Classes, NS, ClassName, Loaders)
     end;
 
-get(Context, NS, ClassName, true) ->
+get(Context, NS, ClassName, true) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
     Funcs = ephp_context:get_funcs(Context),
     case ephp_func:is_defined(Funcs, <<"__autoload">>) of
@@ -507,8 +509,9 @@ register_interface(Ref, File, #class{name = Name, line = Index,
 get_extends_consts(_Ref, #class{extends = undefined}) ->
     [];
 get_extends_consts(Ref, #class{name = Name, extends = Extends,
+                               extends_ns = ExtendsNS,
                                type = interface, line = Index}) ->
-    case get(Ref, Extends, true) of
+    case get(Ref, ExtendsNS, Extends, true) of
         {ok, #class{type = interface} = Interface} ->
             get_consts(Interface) ++ get_extends_consts(Ref, Interface);
         {ok, #class{}} ->

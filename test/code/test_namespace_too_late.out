@@ -1,0 +1,2 @@
+
+Fatal error: Namespace declaration statement has to be the very first statement or after any declare call in the script in {{CWD}}/test/code/test_namespace_too_late.php on line 3

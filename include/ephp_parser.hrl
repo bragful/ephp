@@ -128,5 +128,6 @@
     array_type = old :: old | php54,
     access :: undefined | access_types(),
     final = false :: boolean(),
-    namespace = [] :: namespace()
+    namespace = [] :: namespace(),
+    namespace_can_be = true :: boolean()
 }).

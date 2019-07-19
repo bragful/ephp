@@ -1,0 +1,4 @@
+
+Notice: Use of undefined constant MissingConst - assumed 'MissingConst' in {{CWD}}/test/code/test_namespace_function.php on line 9
+MissingConst
+Coding\Style\MyCode\hello is saying: hello world!

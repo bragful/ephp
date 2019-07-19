@@ -559,7 +559,7 @@ resolve(#assign{variable = #variable{type = class,
                     Result;
                 {error, enoexist} ->
                     ephp_error:error({error, eundefclass, Index,
-                        ?E_ERROR, {NS, ClassName}})
+                                      ?E_ERROR, {NS, ClassName}})
             end,
             {Value, NState};
         {error, _Reason} ->
@@ -857,10 +857,10 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
     ephp_stack:pop(Ref),
     {Value, NState};
 
-resolve(#call{name = Object, namespace = NS} = Call, State) when ?IS_OBJECT(Object) ->
+resolve(#call{name = Object} = Call, State) when ?IS_OBJECT(Object) ->
     Invoke = Call#call{name = <<"__invoke">>, type = object},
     Class = ephp_object:get_class(Object),
-    case ephp_class:get_method(Class, NS, <<"__invoke">>) of
+    case ephp_class:get_method(Class, <<"__invoke">>) of
         #class_method{} ->
             run_method(Object, Invoke, State);
         undefined ->
@@ -1080,12 +1080,14 @@ resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
 
-resolve_function(#call{name = Fun, args = RawArgs, line = Index},
+resolve_function(#call{name = Fun, args = RawArgs, line = Index,
+                       namespace = NS},
                  {ok, #reg_func{type = builtin, pack_args = PackArgs,
                                 builtin = {M, F},
                                 validation_args = no_resolve}},
                  #state{ref = Ref} = State) ->
-    FState = State#state{active_fun = Fun},
+    FState = State#state{active_fun = Fun,
+                         active_fun_ns = NS},
     {Args, NState} = resolve_args(no_resolve, RawArgs, FState, Index),
     save_state(NState),
     Value = if
@@ -1095,12 +1097,14 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index},
     destroy_args(NState, Args),
     {Value, (load_state(Ref))#state{ref = Ref}};
 
-resolve_function(#call{name = Fun, args = RawArgs, line = Index} = _Call,
+resolve_function(#call{name = Fun, args = RawArgs, line = Index,
+                       namespace = NS} = _Call,
                  {ok, #reg_func{type = builtin, pack_args = PackArgs,
                                 builtin = {M, F},
                                 validation_args = VA}},
                  #state{ref = Ref, active_file = File} = State) ->
-    FState = State#state{active_fun = Fun},
+    FState = State#state{active_fun = Fun,
+                         active_fun_ns = NS},
     VArgs = case VA of
         undefined ->
             undefined;
@@ -1121,7 +1125,7 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = _Call,
             end,
             ephp_stack:pop(Ref),
             destroy_args(NState, Args),
-            {Value, (load_state(Ref))#state{ref=Ref}}
+            {Value, (load_state(Ref))#state{ref = Ref}}
     catch
         throw:{return, Value} ->
             {Value, State}

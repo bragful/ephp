@@ -63,9 +63,15 @@ document(<<"<?", Rest/binary>>, Parser, Parsed) ->
             document(Rest0, Parser0, [Eval|Parsed])
     end;
 document(<<"\n",Rest/binary>>, Parser, Parsed) ->
-    document(Rest, new_line(Parser), add_to_text(<<"\n">>, Parser, Parsed));
+    Parser1 = maybe_set_namespace(Parser),
+    document(Rest, new_line(Parser1), add_to_text(<<"\n">>, Parser1, Parsed));
 document(<<L:1/binary,Rest/binary>>, Parser, Parsed) ->
-    document(Rest, inc_pos(Parser), add_to_text(L, Parser, Parsed)).
+    Parser1 = maybe_set_namespace(Parser),
+    document(Rest, inc_pos(Parser1), add_to_text(L, Parser1, Parsed)).
+
+maybe_set_namespace(#parser{namespace_can_be = true} = Parser) ->
+    Parser#parser{namespace_can_be = false};
+maybe_set_namespace(Parser) -> Parser.
 
 code(<<"{", Rest/binary>>, Parser, Parsed) ->
     {Rest0, Parser0, Parsed0} = code(Rest, code_block_level(add_pos(Parser, 2)), []),
@@ -299,14 +305,34 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Parser, Parsed) when
                                        Class)
     end,
     code(Rest0, copy_rowcol(Parser0, Parser), [Class0|Parsed]);
-code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
+code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,Rest/binary>>,
+     #parser{namespace = [], namespace_can_be = true} = Parser, []) when
         ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
         ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
         ?OR(C,$C,$c) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0, NameSpace} = namespace(<<SP:8, Rest/binary>>,
                                             add_pos(Parser, 9), []),
-    code(Rest0, Parser0#parser{namespace = NameSpace}, Parsed);
+    case remove_spaces(Rest0, Parser0#parser{namespace = NameSpace,
+                                             namespace_can_be = false}) of
+        {<<";", _/binary>> = Rest1, Parser1} ->
+            code(Rest1, Parser1, []);
+        {<<"{", _/binary>> = Rest1, Parser1} ->
+            {Rest2, Parser2, CodeBlock} = code_block(Rest1, Parser1, []),
+            case code(Rest2, Parser2, []) of
+                {<<>>, _Parser, []} ->
+                    {Rest2, Parser2, CodeBlock};
+                {<<>>, _Parser, [Code|_]} ->
+                    Parser3 = add_rowcol(get_line(Code), Parser2),
+                    throw_error(enamespaceblock, Parser3, ?E_ERROR, undefined)
+            end
+    end;
+code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,_Rest/binary>>, Parser, _Parsed) when
+        ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
+        ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
+        ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    throw_error(enamespace, Parser, ?E_ERROR, undefined);
 code(<<I:8,N:8,T:8,E:8,R:8,F:8,A:8,C:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(I,$I,$i) andalso ?OR(N,$N,$n) andalso ?OR(T,$T,$t) andalso
         ?OR(E,$E,$e) andalso ?OR(R,$R,$r) andalso ?OR(F,$F,$f) andalso
@@ -891,6 +917,9 @@ comment_block(<<_/utf8, Rest/binary>>, Parser, Parsed) ->
 %% helper functions
 %%------------------------------------------------------------------------------
 
+add_rowcol({{line, Row}, {column, Col}}, Parser) ->
+    Parser#parser{row = Row, col = Col}.
+
 copy_rowcol(#parser{row = Row, col = Col}, Parser) ->
     Parser#parser{row = Row, col = Col}.
 set_level(Level, Parser) -> Parser#parser{level = Level}.
@@ -939,7 +968,43 @@ literal_level(Parser) -> set_level(literal, Parser).
 enclosed_level(Parser) -> set_level(enclosed, Parser).
 unclosed_level(Parser) -> set_level(unclosed, Parser).
 
-get_line(#parser{row = Row, col = Col}) -> {{line, Row}, {column, Col}}.
+get_line(#parser{row = Row, col = Col}) -> {{line, Row}, {column, Col}};
+get_line(#array{line = Line}) -> Line;
+get_line(#eval{line = Line}) -> Line;
+get_line(#print{line = Line}) -> Line;
+get_line(#print_text{line = Line}) -> Line;
+get_line(#variable{line = Line}) -> Line;
+get_line(#constant{line = Line}) -> Line;
+get_line(#int{line = Line}) -> Line;
+get_line(#float{line = Line}) -> Line;
+get_line(#text_to_process{line = Line}) -> Line;
+get_line(#text{line = Line}) -> Line;
+get_line(#if_block{line = Line}) -> Line;
+get_line(#assign{line = Line}) -> Line;
+get_line(#array_element{line = Line}) -> Line;
+get_line(#for{line = Line}) -> Line;
+get_line(#foreach{line = Line}) -> Line;
+get_line(#operation{line = Line}) -> Line;
+get_line(#concat{line = Line}) -> Line;
+get_line(#while{line = Line}) -> Line;
+get_line(#return{line = Line}) -> Line;
+get_line(#function{line = Line}) -> Line;
+get_line(#global{line = Line}) -> Line;
+get_line(#ref{line = Line}) -> Line;
+get_line(#switch{line = Line}) -> Line;
+get_line(#switch_case{line = Line}) -> Line;
+get_line(#call{line = Line}) -> Line;
+get_line(#class{line = Line}) -> Line;
+get_line(#class_method{line = Line}) -> Line;
+get_line(#class_const{line = Line}) -> Line;
+get_line(#class_attr{line = Line}) -> Line;
+get_line(#instance{line = Line}) -> Line;
+get_line(#cast{line = Line}) -> Line;
+get_line(#throw{line = Line}) -> Line;
+get_line(#try_catch{line = Line}) -> Line;
+get_line(#catch_block{line = Line}) -> Line;
+get_line(#clone{line = Line}) -> Line;
+get_line(#command{line = Line}) -> Line.
 
 add_line(true, _) -> true;
 add_line(false, _) -> false;

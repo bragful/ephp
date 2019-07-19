@@ -1,0 +1,2 @@
+
+Fatal error: No code may exist outside of namespace {} in {{CWD}}/test/code/test_namespace_block.php on line 8

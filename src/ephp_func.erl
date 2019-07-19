@@ -198,7 +198,7 @@ is_defined(Ref, FuncName) ->
 
 is_defined(Ref, NameSpace, FuncName) ->
     Funcs = erlang:get(Ref),
-    FullFuncName = {NameSpace, ephp_string:to_lower(FuncName)},
+    FullFuncName = {NameSpace, FuncName},
     dict:is_key(FullFuncName, Funcs).
 
 get_functions(Ref) ->
