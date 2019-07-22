@@ -895,15 +895,19 @@ resolve(#call{name = Fun} = Call, State) when ?IS_ARRAY(Fun) ->
 
 resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     {RawName, NewState} = resolve(Fun, State),
-    if  %% FIXME: only to avoid infinite-loop
-        RawName =:= Fun -> throw({error, implementation});
-        true -> ok
-    end,
-    {FunNS, RealName} = ephp_class:str2ns(RawName),
-    %% Note that dynamic is always using absolute (even if it's not starting with '\'.
-    %% so I#call.namespace is discarded.
-    RealNS = ephp_class:join_ns([], FunNS),
-    resolve(Call#call{name = RealName, namespace = RealNS}, NewState);
+    if
+        RawName =:= Fun ->
+            %% FIXME: only to avoid infinite-loop
+            throw({error, implementation});
+        is_binary(RawName) ->
+            {FunNS, RealName} = ephp_class:str2ns(RawName),
+            %% Note that dynamic is always using absolute (even if it's not starting with '\'.
+            %% so I#call.namespace is discarded.
+            RealNS = ephp_class:join_ns([], FunNS),
+            resolve(Call#call{name = RealName, namespace = RealNS}, NewState);
+        true ->
+            resolve(Call#call{name = RawName}, NewState)
+    end;
 
 resolve(#call{type = normal, name = Fun, namespace = NS} = Call,
         #state{funcs = Funcs} = State) ->
