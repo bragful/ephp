@@ -1,0 +1,4 @@
+object(stdClass)#1 (1) {
+  ["hi"]=>
+  string(12) "hello world!"
+}

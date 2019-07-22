@@ -1,0 +1,8 @@
+array(3) {
+  [0]=>
+  string(26) "nplurals=2; plural=n != 1;"
+  [1]=>
+  string(1) "2"
+  [2]=>
+  string(7) "n != 1;"
+}
