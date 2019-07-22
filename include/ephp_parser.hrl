@@ -129,5 +129,12 @@
     access :: undefined | access_types(),
     final = false :: boolean(),
     namespace = [] :: namespace(),
-    namespace_can_be = true :: boolean()
+    %% can_be could have the following contents:
+    %% - true: there is no namespace still set.
+    %% - false: there is not possible to set a namespace.
+    %% - only_block: only block namespaces could be defined.
+    %% - only_statement: only statement namespaces.
+    namespace_can_be = true :: boolean() |
+                               only_block |
+                               only_statement
 }).

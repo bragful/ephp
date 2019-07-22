@@ -1,0 +1,2 @@
+
+Fatal error: Cannot mix bracketed namespace declarations with unbracketed namespace declarations in {{CWD}}/test/code/test_namespace_mix.php on line 18

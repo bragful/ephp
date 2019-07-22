@@ -144,6 +144,9 @@ handle_error(enamespace, _Level, undefined) ->
 handle_error(enamespaceblock, _Level, undefined) ->
     "No code may exist outside of namespace {}";
 
+handle_error(enamespacemix, _Level, undefined) ->
+    "Cannot mix bracketed namespace declarations with unbracketed namespace declarations";
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 

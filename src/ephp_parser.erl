@@ -90,11 +90,17 @@ code_ns(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,Rest/binary>>,
                                             add_pos(Parser, 9), []),
     case remove_spaces(Rest0, Parser0#parser{namespace = NameSpace,
                                              namespace_can_be = false}) of
-        {<<";", _/binary>> = Rest1, Parser1} when NScanBe =:= true ->
-            code(Rest1, Parser1, Parsed);
+        {<<";", _/binary>> = Rest1, Parser1} when NScanBe =:= true
+                                           orelse NScanBe =:= only_statement ->
+            code(Rest1,
+                 Parser1#parser{namespace_can_be = only_statement},
+                 Parsed);
         {<<";", _/binary>>, Parser1} when NScanBe =:= only_block ->
             throw_error(enamespaceblock, Parser1, ?E_ERROR, undefined);
-        {<<"{", _/binary>> = Rest1, Parser1} ->
+        {<<"{", _/binary>>, Parser1} when NScanBe =:= only_statement ->
+            throw_error(enamespacemix, Parser1, ?E_ERROR, undefined);
+        {<<"{", _/binary>> = Rest1, Parser1} when NScanBe =:= only_block
+                                           orelse NScanBe =:= true ->
             {Rest2, Parser2, CodeBlock} = code_block(Rest1, Parser1, []),
             Parser2_1 = Parser2#parser{namespace = [],
                                        namespace_can_be = only_block},
@@ -349,6 +355,13 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Parser, Parsed) when
                                        Class)
     end,
     code(Rest0, copy_rowcol(Parser0, Parser), [Class0|Parsed]);
+code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,_/binary>> = Rest,
+     #parser{namespace_can_be = only_statement} = Parser, Parsed) when
+        ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
+        ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
+        ?OR(C,$C,$c) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    code_ns(Rest, Parser#parser{namespace = []}, Parsed);
 code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,_/binary>>, Parser, _Parsed) when
         ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
         ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
