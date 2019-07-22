@@ -60,7 +60,7 @@ find(Key, #ephp_array{values=Values}) ->
     end.
 
 
--spec find(mixed(), ephp_array(), mixed()) -> mixed().
+-spec find(mixed(), ephp_array(), any()) -> any().
 %% @doc finds an element by the passed as a param. If the value isn't found the
 %%      default value passed as param is returned.
 %% @end
@@ -216,6 +216,9 @@ current(#ephp_array{cursor = Cursor, values = Values}) ->
 cursor(#ephp_array{} = Array, Cursor) ->
     Array#ephp_array{cursor = Cursor}.
 
+
+-spec ksort(ephp_array(), Flags :: pos_integer()) -> ephp_array().
+%% @doc sort an array based on incoming flags (as a second param).
 ksort(#ephp_array{values = Values} = Array, ?SORT_REGULAR) ->
     Array#ephp_array{values = lists:keysort(1, Values)};
 ksort(#ephp_array{values = Values} = Array, ?SORT_NUMERIC) ->

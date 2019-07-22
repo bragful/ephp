@@ -48,16 +48,16 @@
     errors_id/0
 ]).
 
--opaque context_id() :: reference().
--opaque vars_id() :: reference().
--opaque output_id() :: reference().
--opaque funcs_id() :: reference().
--opaque classes_id() :: reference().
--opaque objects_id() :: reference().
--opaque consts_id() :: reference().
--opaque includes_id() :: reference().
--opaque shutdown_id() :: reference().
--opaque errors_id() :: reference().
+-type context_id() :: reference().
+-type vars_id() :: reference().
+-type output_id() :: reference().
+-type funcs_id() :: reference().
+-type classes_id() :: reference().
+-type objects_id() :: reference().
+-type consts_id() :: reference().
+-type includes_id() :: reference().
+-type shutdown_id() :: reference().
+-type errors_id() :: reference().
 
 -include("ephp.hrl").
 
@@ -340,14 +340,14 @@ stop_cover() ->
 
 -spec register_superglobals(context(), [string()]) -> ok.
 %% @doc register the superglobals variables in the context passed as param.
-register_superglobals(Ctx, [Filename|_] = RawArgs) ->
+register_superglobals(Ctx, [Filename|_] = RawArgs) when is_list(Filename) ->
     Args = [ ephp_data:to_bin(RawArg) || RawArg <- RawArgs ],
     ArrayArgs = ephp_array:from_list(Args),
     Server = [
         %% TODO: add the rest of _SERVER vars
         {<<"argc">>, ephp_array:size(ArrayArgs)},
         {<<"argv">>, ArrayArgs},
-        {<<"PHP_SELF">>, ephp_data:to_bin(Filename)}
+        {<<"PHP_SELF">>, list_to_binary(Filename)}
     ],
     ephp_context:set(Ctx, #variable{name = <<"_SERVER">>},
                      ephp_array:from_list(Server)),

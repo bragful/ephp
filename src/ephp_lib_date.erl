@@ -64,7 +64,7 @@ handle_error(_Type, _Level, _Args) ->
 time(_Context, _Line) ->
     ephp_datetime:posix_time().
 
--spec microtime(context(), line(), GetAsFloat :: {variable(),boolean()}) ->
+-spec microtime(context(), line(), GetAsFloat :: {variable() | undefined, boolean()}) ->
     float() | binary().
 
 microtime(_Context, _Line, {_, true}) ->
@@ -78,7 +78,7 @@ microtime(_Context, _Line, {_, false}) ->
 microtime(Context, Line, {Var, Val}) ->
     microtime(Context, Line, {Var, ephp_data:to_boolean(Val)}).
 
--spec microtime(context(), line()) -> binary().
+-spec microtime(context(), line()) -> float() | binary().
 
 microtime(Context, Line) ->
     microtime(Context, Line, {undefined, false}).
@@ -113,7 +113,7 @@ gmdate(Context, Line, {_,Format}) ->
 
 gmdate(_Context, _Line, Format, Timestamp) ->
     {M,S,U} = ephp_datetime:get_timestamp(Timestamp),
-    TZ = "GMT",
+    TZ = <<"GMT">>,
     Date = calendar:now_to_universal_time({M,S,U}),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
@@ -157,7 +157,7 @@ timezone_abbreviations_list(_Context, _Line) ->
 %% ----------------------------------------------------------------------------
 
 -spec date_format(ToAnalyze :: binary(), Result :: binary(),
-    {Timestamp :: integer(), Date :: date()}) -> binary().
+    {Timestamp :: integer(), Date :: date(), TZ :: binary()}) -> binary().
 
 date_format(<<>>, Result, _Date) ->
     Result;

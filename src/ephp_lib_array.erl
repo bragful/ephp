@@ -260,7 +260,7 @@ prev(Context, _Line, {Var, Array}) ->
     end.
 
 
--spec next(context(), line(), Array::var_value()) -> false | ephp_array().
+-spec next(context(), line(), Array::var_value()) -> false | mixed().
 %% @doc moves the cursor to the next element and retrieves it if it's possible,
 %%      false otherwise.
 %% @end
@@ -277,7 +277,7 @@ next(Context, _Line, {Var, Array}) ->
     end.
 
 
--spec key(context(), line(), Array::var_value()) -> false | ephp_array().
+-spec key(context(), line(), Array::var_value()) -> undefined | mixed().
 %% @doc returns the key under the cursor or undefined if an error happens.
 key(_Context, _Line, {_, Array}) ->
     case ephp_array:current(Array) of

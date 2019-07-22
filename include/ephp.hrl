@@ -110,7 +110,7 @@
 -type statement() :: tuple() | atom().
 -type statements() :: [statement()].
 
--type expression() :: operation().
+-type expression() :: operation() | mixed().
 
 -type reason() :: atom() | string().
 
@@ -407,7 +407,7 @@
 
 -record(class_const, {
     name :: binary(),
-    value :: any(),
+    value :: mixed(),
     line :: line()
 }).
 
@@ -421,19 +421,20 @@
     type = normal :: normal | static,
     init_value = undefined :: mixed(),
     final = false :: boolean(),
-    class_name :: class_name(),
+    %% FIXME: maybe it should be forced to be always present:
+    class_name :: class_name() | undefined,
     line :: line()
 }).
 
 -type class_attr() :: #class_attr{}.
 
 -record(class_method, {
-    name :: binary(),
+    name :: binary() | undefined,
     code_type = php :: php | builtin,
     args = [] :: [variable()],
     access = public :: access_types(),
     type = normal :: normal | static | abstract,
-    code :: [statement()] | {module(), Func :: atom()},
+    code :: [statement()] | {module(), Func :: atom()} | undefined,
     builtin :: {Module :: atom(), Func :: atom()},
     pack_args = false :: boolean(),
     validation_args :: ephp_func:validation_args(),
@@ -456,9 +457,9 @@
     constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
-    file :: binary(),
+    file :: binary() | undefined,
     line :: line(),
-    static_context :: context()
+    static_context :: context() | undefined
 }).
 
 -type class() :: #class{}.

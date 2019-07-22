@@ -208,7 +208,8 @@ unset(Context, _Line, {#variable{}, #variable{} = Var}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
-var_dump_fmt(Context, Line, {var_ref,VarPID,VarRef}, Spaces, RecCtl) ->
+var_dump_fmt(Context, Line, #var_ref{pid = VarPID, ref= VarRef}, Spaces,
+             RecCtl) ->
     case gb_sets:is_element(VarRef, RecCtl) of
         true ->
             <<"*RECURSION*\n">>;
@@ -412,7 +413,7 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
         end
     end, [], Value).
 
-print_r_fmt(Context, {var_ref, VarPID, VarRef}, Spaces, RecCtl) ->
+print_r_fmt(Context, #var_ref{pid = VarPID, ref = VarRef}, Spaces, RecCtl) ->
     case gb_sets:is_member(VarRef, RecCtl) of
         true ->
             <<"Array\n *RECURSION*\n">>;

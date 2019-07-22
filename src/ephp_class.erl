@@ -85,7 +85,7 @@ destroy(Classes) ->
 
 -type get_return() :: {ok, class()} | {error, enoexist}.
 
--spec get(context(), class_name(), AutoLoad::boolean()) -> get_return().
+-spec get(context(), class_name(), AutoLoad::boolean() | spl) -> get_return().
 %% @doc retrieves a class registered given the class name.
 get(Context, ClassName, false) ->
     Classes = ephp_context:get_classes(Context),
@@ -151,7 +151,7 @@ get(Ref, ClassName) ->
     end.
 
 
--spec set(ephp:classes_id(), class_name(), class()) -> ok.
+-spec set(ephp:classes_id(), class_name(), class() | {alias, class_name()}) -> ok.
 %% @doc adds a class using the class name inside of the handler.
 set(Ref, ClassName, Class) ->
     #class_state{classes = Classes} = State = erlang:get(Ref),
@@ -160,8 +160,7 @@ set(Ref, ClassName, Class) ->
     ok.
 
 
--type alias_return() :: {ok, class()} |
-                        {error, enoexist | eredefined}.
+-type alias_return() :: ok | {error, enoexist | eredefined}.
 
 -spec set_alias(ephp:classes_id(), Class :: class_name(),
                 Alias :: class_name()) -> alias_return().
@@ -301,7 +300,7 @@ attrs_set_class_name(Name, Attrs) ->
     [ A#class_attr{class_name = Name} || A <- Attrs ].
 
 
--spec tr_consts([class_const()], context()) -> [class_const()].
+-spec tr_consts([class_const()], context()) -> [{binary(), mixed()}].
 %% @doc solve the constants values.
 tr_consts(Consts, Context) ->
     lists:map(fun(#class_const{name = N, value = V}) ->
@@ -310,8 +309,8 @@ tr_consts(Consts, Context) ->
     end, Consts).
 
 
--spec extract_parents(ephp:classes_id(), class() | undefined) ->
-      [class()].
+-spec extract_parents(ephp:classes_id(), class() | class_name() | undefined) ->
+      [class_name()].
 %% @doc retrieve a list with all of the parent class records.
 extract_parents(_Ref, undefined) ->
     [];
@@ -326,8 +325,8 @@ extract_parents(Ref, Name) when is_binary(Name) ->
     [Name|extract_parents(Ref, Class)].
 
 
--spec extract_methods(ephp:classes_id(), Index::mixed(), [class_name()]) ->
-      [class_method()].
+-spec extract_methods(ephp:classes_id(), Index::line(), [class_name()]) ->
+      [{class_name(), class_method()}].
 %% @doc extract all of the methods from interfaces.
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
     AllMethodsDict = lists:foldl(fun(I, D) ->
@@ -372,13 +371,12 @@ extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
     end.
 
 
--spec arg_to_text(variable() | var_ref()) -> binary().
+-spec arg_to_text(variable()) -> binary().
 %% @hidden
-arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>;
-arg_to_text(#var_ref{ref = #variable{name = Name}}) -> <<"$", Name/binary>>.
+arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>.
 
 
--spec check_dup([class()]) -> boolean().
+-spec check_dup([class()]) -> ok | class_name().
 %% @hidden
 check_dup([]) -> ok;
 check_dup([_Interface]) -> ok;
@@ -389,7 +387,7 @@ check_dup([Interface|Interfaces]) ->
     end.
 
 
--spec check_methods(class(), [class_method()]) -> [binary()].
+-spec check_methods([{class_name(), class_method()}], [class_method()]) -> [string()].
 %% @hidden
 check_methods(Interface, ClassMethods) ->
     lists:map(fun({IntName, #class_method{name = Name}}) ->
@@ -719,7 +717,7 @@ add_if_no_exists_attrib(#class{attrs = Attrs} = Class, Name) ->
     case get_attribute(Class, Name) of
         undefined ->
             Class#class{
-                attrs = Attrs ++ [#class_attr{name = Name}]
+                attrs = Attrs ++ [#class_attr{name = Name, class_name = Class#class.name}]
             };
         _ ->
             Class

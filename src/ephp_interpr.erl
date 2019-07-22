@@ -66,10 +66,11 @@ check_exception(Context, Exception) ->
     Error = {error, euncaught, Line, File, ?E_ERROR, Data},
     ephp_error:handle_error(Context, Error).
 
--type break() :: break | {break, pos_integer()}.
--type continue() :: continue | {continue, pos_integer()}.
+-type break() :: break | {break, non_neg_integer()}.
+-type continue() :: continue | {continue, non_neg_integer()}.
+-type flow_return() :: {return, mixed()}.
 
--type flow_status() :: break() | continue() | return() | false.
+-type flow_status() :: break() | continue() | flow_return() | false.
 
 -spec run(context(), main_statement()) -> flow_status().
 
