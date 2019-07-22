@@ -231,7 +231,7 @@ run_depth(Context, #print{expression=Expr, line=Line}, false, Cover) ->
     ephp_context:set_output(Context, ResText),
     false;
 
-run_depth(Context, #call{line=Line}=Call, false, Cover) ->
+run_depth(Context, #call{line = Line} = Call, false, Cover) ->
     ok = ephp_cover:store(Cover, {call, Call#call.name}, Context, Line),
     ephp_func:run(Context, Call);
 
@@ -312,33 +312,34 @@ run_depth(_Context, {continue, N}, false, _Cover) ->
 run_depth(_Context, Boolean, false, _Cover) when is_boolean(Boolean) ->
     false;
 
-run_depth(Context, #int{line=Line}, false, Cover) ->
+run_depth(Context, #int{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, int, Context, Line),
     false;
 
-run_depth(Context, #float{line=Line}, false, Cover) ->
+run_depth(Context, #float{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, float, Context, Line),
     false;
 
-run_depth(Context, #text{line=Line}, false, Cover) ->
+run_depth(Context, #text{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, text, Context, Line),
     false;
 
-run_depth(Context, #text_to_process{line=Line}=TP, false, Cover) ->
+run_depth(Context, #text_to_process{line = Line} = TP, false, Cover) ->
     ok = ephp_cover:store(Cover, text, Context, Line),
     ephp_context:solve(Context, TP),
     false;
 
-run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false, Cover) ->
+run_depth(Context, #variable{idx = [{object, #call{}, _}]} = Var, false, Cover) ->
     ok = ephp_cover:store(Cover, object, Context, Var#variable.line),
     ephp_context:solve(Context, Var),
     false;
 
-run_depth(Context, #constant{type=define,name=Name,value=Expr,line=Line},
+run_depth(Context, #constant{type = define, name = Name, value = Expr,
+                             namespace = NS, line = Line},
           false, Cover) ->
     ok = ephp_cover:store(Cover, define, Context, Line),
     Value = ephp_context:solve(Context, Expr),
-    ephp_context:register_const(Context, Name, Value),
+    ephp_context:register_const(Context, NS, Name, Value),
     false;
 
 run_depth(Context, #constant{line = Line}, false, Cover) ->

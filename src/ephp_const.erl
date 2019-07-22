@@ -31,7 +31,8 @@ special_consts() -> [
     <<"__FILE__">>,
     <<"__CLASS__">>,
     <<"__METHOD__">>,
-    <<"__FUNCTION__">>
+    <<"__FUNCTION__">>,
+    <<"__NAMESPACE__">>
 ].
 
 start_link() ->

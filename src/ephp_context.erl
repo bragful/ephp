@@ -81,7 +81,9 @@
     get_errors_id/1,
 
     get_const/3,
+    get_const/4,
     register_const/3,
+    register_const/4,
 
     load/2,
     load_once/2,
@@ -305,12 +307,21 @@ set_errors_id(Context, Errors) ->
     ok.
 
 get_const(Context, Name, Index) ->
-    #state{const=Const} = load_state(Context),
+    #state{const = Const} = load_state(Context),
     ephp_const:get(Const, Name, Index, Context).
 
+get_const(Context, NS, Name, Index) ->
+    #state{const = Const} = load_state(Context),
+    ephp_const:get(Const, NS, undefined, Name, Index, Context).
+
 register_const(Context, Name, Value) ->
-    #state{const=Const} = load_state(Context),
+    #state{const = Const} = load_state(Context),
     ephp_const:set(Const, Name, Value),
+    ok.
+
+register_const(Context, NS, Name, Value) ->
+    #state{const = Const} = load_state(Context),
+    ephp_const:set(Const, NS, undefined, Name, Value),
     ok.
 
 call_function(Context, Call) ->

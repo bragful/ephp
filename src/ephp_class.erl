@@ -72,6 +72,8 @@
 
 -spec ns2str(namespace(), class_name()) -> binary().
 %% @doc converts a namespace and class name to the string representation.
+ns2str(NS, <<>>) ->
+    ephp_string:join(NS, <<"\\">>);
 ns2str(NS, ClassName) ->
     ephp_string:join(NS ++ [ClassName], <<"\\">>).
 

@@ -110,12 +110,12 @@ st_function(Rest, Parser, Parsed) ->
         {<<"&", Rest0/binary>>, Parser0} -> true;
         {Rest0, Parser0} -> false
     end,
-    {Rest1, Parser1, Name} = funct_name(Rest0, Parser0, []),
+    {Rest1, Parser1, {NS, Name}} = funct_name(Rest0, Parser0, []),
     {<<"(", Rest2/binary>>, Parser2} = remove_spaces(Rest1, Parser1),
     {Rest3, Parser3, Args} = funct_args(Rest2, Parser2, []),
     {Rest4, Parser4, CodeBlock} = code_block(Rest3, Parser3, []),
     Function = add_line(#function{name = Name,
-                                  namespace = Parser#parser.namespace,
+                                  namespace = Parser#parser.namespace ++ NS,
                                   args = Args,
                                   code = CodeBlock,
                                   return_ref = ReturnRef}, Parser),
@@ -124,10 +124,10 @@ st_function(Rest, Parser, Parsed) ->
 funct_name(<<A:8,Rest/binary>>, Parser, []) when ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     funct_name(Rest, inc_pos(Parser), [<<A:8>>]);
 funct_name(<<A:8,Rest/binary>>, Parser, [N])
-        when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
+        when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ orelse A =:= $\\ ->
     funct_name(Rest, inc_pos(Parser), [<<N/binary, A:8>>]);
 funct_name(Rest, Parser, [Parsed]) ->
-    {Rest, Parser, Parsed}.
+    {Rest, Parser, ephp_class:str2ns(Parsed)}.
 
 funct_args(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     funct_args(Rest, inc_pos(Parser), Parsed);

@@ -37,24 +37,25 @@ document(<<>>, Parser, Parsed) ->
 document(<<"<?php",Rest/binary>>, #parser{level = literal} = Parser, Parsed) ->
     {Rest, add_pos(Parser, 5), Parsed};
 document(<<"<?php",Rest/binary>>, Parser, Parsed) ->
-    {Rest0, Parser0, NParsed} = code(Rest, normal_level(add_pos(Parser, 5)), []),
+    Parser0 = normal_level(add_pos(Parser, 5)),
+    {Rest1, Parser1, NParsed} = code_ns(Rest, Parser0, []),
     case NParsed of
         [] ->
-            document(Rest0, Parser0, Parsed);
+            document(Rest1, Parser1, Parsed);
         _ ->
             Eval = add_line(#eval{statements = lists:reverse(NParsed)}, Parser),
-            document(Rest0, Parser0, [Eval|Parsed])
+            document(Rest1, Parser1, [Eval|Parsed])
     end;
 document(<<"<?=", Rest/binary>>, Parser, Parsed) ->
     NewParser = code_value_level(add_pos(Parser, 3)),
-    {Rest0, Parser0, Text} = code(Rest, NewParser, []),
+    {Rest0, Parser0, Text} = code_ns(Rest, NewParser, []),
     document(Rest0, copy_rowcol(Parser0, Parser), [get_print(Text, NewParser)|Parsed]);
 document(<<"<?", Rest/binary>>, #parser{level = literal} = Parser, Parsed) ->
     %% TODO: if short is not permitted, use as text
     {Rest, add_pos(Parser, 2), Parsed};
 document(<<"<?", Rest/binary>>, Parser, Parsed) ->
     %% TODO: if short is not permitted, use as text
-    {Rest0, Parser0, NParsed} = code(Rest, normal_level(add_pos(Parser, 2)), []),
+    {Rest0, Parser0, NParsed} = code_ns(Rest, normal_level(add_pos(Parser, 2)), []),
     case NParsed of
         [] ->
             document(Rest0, Parser0, Parsed);
@@ -63,15 +64,58 @@ document(<<"<?", Rest/binary>>, Parser, Parsed) ->
             document(Rest0, Parser0, [Eval|Parsed])
     end;
 document(<<"\n",Rest/binary>>, Parser, Parsed) ->
-    Parser1 = maybe_set_namespace(Parser),
-    document(Rest, new_line(Parser1), add_to_text(<<"\n">>, Parser1, Parsed));
+    Parser1 = new_line(maybe_set_namespace(Parser)),
+    document(Rest, Parser1, add_to_text(<<"\n">>, Parser1, Parsed));
 document(<<L:1/binary,Rest/binary>>, Parser, Parsed) ->
-    Parser1 = maybe_set_namespace(Parser),
-    document(Rest, inc_pos(Parser1), add_to_text(L, Parser1, Parsed)).
+    Parser1 = inc_pos(maybe_set_namespace(Parser)),
+    document(Rest, Parser1, add_to_text(L, Parser1, Parsed)).
+
 
 maybe_set_namespace(#parser{namespace_can_be = true} = Parser) ->
     Parser#parser{namespace_can_be = false};
+maybe_set_namespace(#parser{namespace_can_be = only_block} = Parser) ->
+    throw_error(enamespaceblock, Parser, ?E_ERROR, undefined);
 maybe_set_namespace(Parser) -> Parser.
+
+
+code_ns(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,Rest/binary>>,
+        #parser{namespace = [], namespace_can_be = NScanBe} = Parser,
+        Parsed) when
+            ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
+            ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
+            ?OR(C,$C,$c) andalso
+            (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) andalso
+            NScanBe =/= false ->
+    {Rest0, Parser0, NameSpace} = namespace(<<SP:8, Rest/binary>>,
+                                            add_pos(Parser, 9), []),
+    case remove_spaces(Rest0, Parser0#parser{namespace = NameSpace,
+                                             namespace_can_be = false}) of
+        {<<";", _/binary>> = Rest1, Parser1} when NScanBe =:= true ->
+            code(Rest1, Parser1, Parsed);
+        {<<";", _/binary>>, Parser1} when NScanBe =:= only_block ->
+            throw_error(enamespaceblock, Parser1, ?E_ERROR, undefined);
+        {<<"{", _/binary>> = Rest1, Parser1} ->
+            {Rest2, Parser2, CodeBlock} = code_block(Rest1, Parser1, []),
+            Parser2_1 = Parser2#parser{namespace = [],
+                                       namespace_can_be = only_block},
+            code_ns(Rest2, Parser2_1, lists:reverse(CodeBlock) ++ Parsed)
+    end;
+code_ns(<<"//", Rest/binary>>, Parser, Parsed) ->
+    {Rest0, Parser0, _} = comment_line(Rest, add_pos(Parser, 2), Parsed),
+    code_ns(Rest0, Parser0, Parsed);
+code_ns(<<"#", Rest/binary>>, Parser, Parsed) ->
+    {Rest0, Parser0, _} = comment_line(Rest, inc_pos(Parser), Parsed),
+    code_ns(Rest0, Parser0, Parsed);
+code_ns(<<"/*", Rest/binary>>, Parser, Parsed) ->
+    {Rest0, Parser0, _} = comment_block(Rest, add_pos(Parser, 2), Parsed),
+    code_ns(Rest0, Parser0, Parsed);
+code_ns(<<Space:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(Space) ->
+    code_ns(Rest, inc_pos(Parser), Parsed);
+code_ns(<<NewLine:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(NewLine) ->
+    code_ns(Rest, new_line(Parser), Parsed);
+code_ns(Rest, Parser, Parsed) ->
+    code(Rest, Parser, Parsed).
+
 
 code(<<"{", Rest/binary>>, Parser, Parsed) ->
     {Rest0, Parser0, Parsed0} = code(Rest, code_block_level(add_pos(Parser, 2)), []),
@@ -305,29 +349,7 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Parser, Parsed) when
                                        Class)
     end,
     code(Rest0, copy_rowcol(Parser0, Parser), [Class0|Parsed]);
-code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,Rest/binary>>,
-     #parser{namespace = [], namespace_can_be = true} = Parser, []) when
-        ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
-        ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
-        ?OR(C,$C,$c) andalso
-        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
-    {Rest0, Parser0, NameSpace} = namespace(<<SP:8, Rest/binary>>,
-                                            add_pos(Parser, 9), []),
-    case remove_spaces(Rest0, Parser0#parser{namespace = NameSpace,
-                                             namespace_can_be = false}) of
-        {<<";", _/binary>> = Rest1, Parser1} ->
-            code(Rest1, Parser1, []);
-        {<<"{", _/binary>> = Rest1, Parser1} ->
-            {Rest2, Parser2, CodeBlock} = code_block(Rest1, Parser1, []),
-            case code(Rest2, Parser2, []) of
-                {<<>>, _Parser, []} ->
-                    {Rest2, Parser2, CodeBlock};
-                {<<>>, _Parser, [Code|_]} ->
-                    Parser3 = add_rowcol(get_line(Code), Parser2),
-                    throw_error(enamespaceblock, Parser3, ?E_ERROR, undefined)
-            end
-    end;
-code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,_Rest/binary>>, Parser, _Parsed) when
+code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,_/binary>>, Parser, _Parsed) when
         ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
         ?OR(E,$E,$e) andalso ?OR(S,$S,$s) andalso ?OR(P,$P,$p) andalso
         ?OR(C,$C,$c) andalso
@@ -664,36 +686,56 @@ accessor(_Rest, Parser, []) ->
                                 "`\"variable (T_VARIABLE)\"' or "
                                 "`'{'' or `'$''">>}).
 
+
+constant(<<A:8,Rest/binary>>, Parser, [])
+        when (?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ orelse A =:= $\\)
+        andalso Parser#parser.level =/= unclosed ->
+    constant(Rest, inc_pos(Parser), [add_line(#constant{name = <<A:8>>}, Parser)]);
+
 constant(<<A:8,Rest/binary>>, Parser, []) when ?IS_ALPHA(A) orelse A =:= $_ ->
     constant(Rest, inc_pos(Parser), [add_line(#constant{name = <<A:8>>}, Parser)]);
+
+constant(<<A:8,Rest/binary>>, Parser, [#constant{name = N} = C])
+        when (?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ orelse A =:= $\\)
+        andalso Parser#parser.level =/= unclosed ->
+    constant(Rest, inc_pos(Parser), [C#constant{name = <<N/binary, A:8>>}]);
+
 constant(<<A:8,Rest/binary>>, Parser, [#constant{name = N} = C])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ ->
     constant(Rest, inc_pos(Parser), [C#constant{name = <<N/binary, A:8>>}]);
+
 constant(<<SP:8,_/binary>> = Rest, #parser{level = unclosed} = Parser, [#constant{}] = Parsed)
         when ?IS_SPACE(SP) ->
     {Rest, Parser, Parsed};
+
 constant(<<SP:8,Rest/binary>>, Parser, [#constant{}] = Parsed)
         when ?IS_SPACE(SP) ->
     constant_wait(Rest, inc_pos(Parser), Parsed);
+
 constant(<<SP:8,_/binary>> = Rest, #parser{level = unclosed} = Parser, [#constant{}] =  Parsed)
         when ?IS_NEWLINE(SP) ->
     {Rest, Parser, Parsed};
+
 constant(<<SP:8,Rest/binary>>, Parser, [#constant{}] = Parsed)
         when ?IS_NEWLINE(SP) ->
     constant_wait(Rest, new_line(Parser), Parsed);
+
 constant(<<"(",_/binary>> = Rest, Parser, Parsed) ->
     constant_wait(Rest, Parser, Parsed);
 % TODO fail when unclosed is used?
+
 constant(<<"::",_/binary>> = Rest, Parser, Parsed) ->
     constant_wait(Rest, Parser, Parsed);
+
 constant(Rest, Parser, Parsed) ->
     {Rest, Parser, constant_known(Parsed, Parser)}.
 
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
 constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
-    Call = #call{name = C#constant.name, line = C#constant.line,
-                 namespace = Parser#parser.namespace},
+    {NS, Name} = ephp_class:str2ns(C#constant.name),
+    Call = #call{name = Name, line = C#constant.line,
+                 namespace = Parser#parser.namespace ++ NS},
     ephp_parser_func:function(Rest, inc_pos(Parser), [Call]);
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
@@ -719,14 +761,20 @@ constant_wait(<<SP:8,Rest/binary>>, Parser, [#constant{}] = Parsed)
 constant_wait(Rest, Parser, Parsed) ->
     {Rest, Parser, constant_known(Parsed, Parser)}.
 
-constant_known([#constant{name = <<"__LINE__">>}|Parsed], #parser{row = R} = Parser) ->
+constant_known([#constant{name = <<"__LINE__">>}|Parsed],
+               #parser{row = R} = Parser) ->
     [add_line(#int{int = R}, Parser)|Parsed];
+constant_known([#constant{name = <<"__NAMESPACE__">>}|Parsed],
+               #parser{namespace = NS} = Parser) ->
+    [add_line(#text{text = ephp_string:join(NS, <<"\\">>)}, Parser)|Parsed];
 constant_known([#constant{name = <<"exit">>}|Parsed], Parser) ->
     [add_line(#call{name = <<"exit">>}, Parser)|Parsed];
-constant_known([C|Parsed], Parser) ->
+constant_known([#constant{name = RawName} = C|Parsed], Parser) ->
+    {NS, Name} = ephp_class:str2ns(RawName),
     case lists:member(C#constant.name, ephp_const:special_consts()) of
         true -> [C|Parsed];
-        false -> [C#constant{namespace = Parser#parser.namespace}|Parsed]
+        false -> [C#constant{namespace = Parser#parser.namespace ++ NS,
+                             name = Name}|Parsed]
     end.
 
 st_global(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
@@ -916,9 +964,6 @@ comment_block(<<_/utf8, Rest/binary>>, Parser, Parsed) ->
 %%------------------------------------------------------------------------------
 %% helper functions
 %%------------------------------------------------------------------------------
-
-add_rowcol({{line, Row}, {column, Col}}, Parser) ->
-    Parser#parser{row = Row, col = Col}.
 
 copy_rowcol(#parser{row = Row, col = Col}, Parser) ->
     Parser#parser{row = Row, col = Col}.

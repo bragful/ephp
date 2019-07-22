@@ -17,10 +17,6 @@
     variable/3, comment_line/3, comment_block/3, constant/3
 ]).
 
--import(ephp_parser_func, [
-    st_use_or_block/3, funct_name/3
-]).
-
 array_def_54_level(Parser) -> Parser#parser{level = array_def, array_type = php54}.
 
 add_op('end', []) ->
@@ -255,7 +251,7 @@ expression(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,
         remove_spaces(<<SP:8, Rest/binary>>, add_pos(Parser, 9)),
     {Rest1, Parser1, Args} = ephp_parser_func:funct_args(Rest0, Parser0, []),
     BaseFunction = add_line(#function{args = Args}, Parser),
-    {Rest2, Parser2, Function} = st_use_or_block(Rest1, Parser1, BaseFunction),
+    {Rest2, Parser2, Function} = ephp_parser_func:st_use_or_block(Rest1, Parser1, BaseFunction),
     expression(Rest2, copy_rowcol(Parser2, Parser), add_op(Function, Parsed));
 % INSTANCEOF
 expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
@@ -271,23 +267,19 @@ expression(<<I:8,N:8,S:8,T:8,A:8,N:8,C:8,E:8,O:8,F:8,SP:8,Rest/binary>>,
 expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(N,$N,$n) andalso ?OR(E,$E,$e) andalso ?OR(W,$W,$w) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP) orelse SP =:= $() ->
-    {Rest1, Parser1, ObjName} = case remove_spaces(<<SP:8,Rest/binary>>, Parser) of
+    {Rest1, Parser1, {NS, ObjName}} = case remove_spaces(<<SP:8,Rest/binary>>, Parser) of
         {<<"$", _/binary>> = Rest0, Parser0} ->
-            expression(Rest0, Parser0, []);
+            {RestEx, ParserEx, Exp} = expression(Rest0, Parser0, []),
+            {RestEx, ParserEx, {[], Exp}};
         {<<A:8, _/binary>> = Rest0, Parser0} when ?IS_ALPHA(A) orelse A =:= $_ ->
-            funct_name(Rest0, Parser0, [])
-    end,
-    %% TODO ensure the namespace is solved in runtime when it's not a binary
-    {NS, RealObjName} = if
-        is_binary(ObjName) -> ephp_class:str2ns(ObjName);
-        true -> {[], ObjName}
+            ephp_parser_func:funct_name(Rest0, Parser0, [])
     end,
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->
             {Rest3, Parser3, Args} = ephp_parser_func:call_args(Rest2, Parser2, []),
-            add_line(#instance{name = RealObjName, namespace = NS, args = Args}, Parser);
+            add_line(#instance{name = ObjName, namespace = NS, args = Args}, Parser);
         {Rest3, Parser3} ->
-            add_line(#instance{name = RealObjName, namespace = NS}, Parser)
+            add_line(#instance{name = ObjName, namespace = NS}, Parser)
     end,
     expression(Rest3, copy_rowcol(Parser3, Parser), add_op(Instance,Parsed));
 % CLONE ...
