@@ -82,6 +82,7 @@
 
     get_const/3,
     get_const/4,
+    get_const/5,
     register_const/3,
     register_const/4,
 
@@ -313,6 +314,10 @@ get_const(Context, Name, Index) ->
 get_const(Context, NS, Name, Index) ->
     #state{const = Const} = load_state(Context),
     ephp_const:get(Const, NS, undefined, Name, Index, Context).
+
+get_const(Context, NS, Class, Name, Index) ->
+    #state{const = Const} = load_state(Context),
+    ephp_const:get(Const, NS, Class, Name, Index, Context).
 
 register_const(Context, Name, Value) ->
     #state{const = Const} = load_state(Context),
@@ -889,12 +894,16 @@ resolve(#call{name = Fun} = Call, State) when ?IS_ARRAY(Fun) ->
     end;
 
 resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
-    {Name, NewState} = resolve(Fun, State),
+    {RawName, NewState} = resolve(Fun, State),
     if  %% FIXME: only to avoid infinite-loop
-        Name =:= Fun -> throw({error, implementation});
+        RawName =:= Fun -> throw({error, implementation});
         true -> ok
     end,
-    resolve(Call#call{name = Name}, NewState);
+    {FunNS, RealName} = ephp_class:str2ns(RawName),
+    %% Note that dynamic is always using absolute (even if it's not starting with '\'.
+    %% so I#call.namespace is discarded.
+    RealNS = ephp_class:join_ns([], FunNS),
+    resolve(Call#call{name = RealName, namespace = RealNS}, NewState);
 
 resolve(#call{type = normal, name = Fun, namespace = NS} = Call,
         #state{funcs = Funcs} = State) ->
@@ -953,8 +962,12 @@ resolve({object, IdxToProcess, Line}, State) ->
     {{object, Idx, Line}, NState};
 
 resolve(#instance{name = ClassName} = I, State) when not is_binary(ClassName) ->
-    {RClassName, NState} = resolve(ClassName, State),
-    resolve(I#instance{name = RClassName}, NState);
+    {RawClassName, NState} = resolve(ClassName, State),
+    {ClassNS, RClassName} = ephp_class:str2ns(RawClassName),
+    %% Note that dynamic is always using absolute (even if it's not starting with '\'.
+    %% so I#instance.namespace is discarded.
+    RClassNS = ephp_class:join_ns([], ClassNS),
+    resolve(I#instance{name = RClassName, namespace = RClassNS}, NState);
 
 resolve(#instance{name = ClassName, namespace = ClassNS, args = RawArgs, line = Line} = Instance,
         #state{ref = LocalCtx, class = Classes, global = GlobalCtx} = State) ->
@@ -1518,28 +1531,28 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
         active_class = ClassMethod#class_method.class_name}),
     register_superglobals(Ref, MethodVars),
     OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
+    FullClassName = ephp_class:ns2str(Class#class.namespace,
+                                      ClassMethod#class_method.class_name),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, MethodName},
         {<<"__METHOD__">>,
-            <<(ClassMethod#class_method.class_name)/binary,
-            "::", MethodName/binary>>}
+            <<FullClassName/binary, "::", MethodName/binary>>}
     ]),
     %% TODO: with static (late binding) this changes
     set_active_class(Ref, ClassMethod#class_method.namespace,
                      ClassMethod#class_method.class_name),
     set_active_real_class(Ref, Class#class.namespace, Class#class.name),
-    Refs = lists:map(fun
-        (#variable{} = Var) ->
-            #var_ref{pid = MethodVars, ref = Var};
-        (#var_ref{} = VarRef) ->
-            VarRef;
-        (#ref{} = VarRef) ->
-            VarRef
-    end, MethodArgs),
+    Refs = lists:map(fun(#variable{} = Var) ->
+                            #var_ref{pid = MethodVars, ref = Var};
+                        (#var_ref{} = VarRef) ->
+                            VarRef;
+                        (#ref{} = VarRef) ->
+                            VarRef
+                     end, MethodArgs),
     ephp_stack:push(Ref, State#state.active_file, Call#call.line,
                     MethodName, Refs, Class#class.name, RealObject),
     Code = ClassMethod#class_method.code,
-    Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
+    Value = case ephp_interpr:run(SubContext, #eval{statements = Code}) of
         {return, V} -> V;
         _ -> undefined
     end,
