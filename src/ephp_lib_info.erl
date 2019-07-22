@@ -64,7 +64,12 @@ init_const() -> [
     {<<"PHP_SAPI">>, ephp_config:get(sapi_type, <<"cli">>)},
     {<<"PHP_EOL">>, get_os_eol()},
     % fake:
-    {<<"PHP_SHLIB_SUFFIX">>, <<"so">>}
+    {<<"PHP_SHLIB_SUFFIX">>, <<"so">>},
+    % assert options:
+    {<<"INI_USER">>, 1},
+    {<<"INI_PERDIR">>, 2},
+    {<<"INI_SYSTEM">>, 4},
+    {<<"INI_ALL">>, 7}
 ].
 
 -spec phpinfo(context(), line()) -> undefined.

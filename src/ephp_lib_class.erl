@@ -100,7 +100,7 @@ handle_error(efinalmethod, _Level, {Class, Method}) ->
 handle_error(enoclone, _Level, {}) ->
     "__clone method called on non-object";
 
-handle_error(enoconst, _Level, {ConstName}) ->
+handle_error(enoconst, _Level, {_NS, ConstName}) ->
     io_lib:format("Undefined class constant '~s'", [ConstName]);
 
 handle_error(enointerface, _Level, {InterfaceName}) ->

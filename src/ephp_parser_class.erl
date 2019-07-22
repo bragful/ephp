@@ -20,7 +20,7 @@ st_interface(<<A:8, Rest/binary>>, Parser, #class{name =  undefined} = I)
     {Rest0, Parser0, {NS, Name}} =
         ephp_parser_func:funct_name(<<A:8, Rest/binary>>, Parser, []),
     st_interface(Rest0, Parser0, I#class{name = Name,
-                                         namespace = Parser#parser.namespace ++ NS});
+                                         namespace = ephp_class:join_ns(Parser#parser.namespace, NS)});
 st_interface(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Parser,
              Interface) when ?OR(E,$E,$e) andalso ?OR(X,$X,$x) andalso
                              ?OR(T,$T,$t) andalso ?OR(N,$N,$n) andalso
@@ -29,7 +29,7 @@ st_interface(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Parser,
     {Rest0, Parser0} = remove_spaces(<<SP:8, Rest/binary>>, add_pos(Parser, 5)),
     {Rest1, Parser1, {NS, Extends}} = ephp_parser_func:funct_name(Rest0, Parser0, []),
     st_interface(Rest1, Parser1, Interface#class{extends = Extends,
-                                                 extends_ns = Parser#parser.namespace ++ NS});
+                                                 extends_ns = ephp_class:join_ns(Parser#parser.namespace, NS)});
 st_interface(<<"{", Rest/binary>>, Parser, Interface) ->
     st_interface_content(Rest, normal_public_level(inc_pos(Parser)), Interface).
 
@@ -42,7 +42,7 @@ st_class(<<A:8,Rest/binary>>, Parser, #class{name = undefined} = C)
     {Rest0, Parser0, {NS, Name}} =
         ephp_parser_func:funct_name(<<A:8, Rest/binary>>, Parser, []),
     st_class(Rest0, Parser0, C#class{name = Name,
-                                     namespace = Parser#parser.namespace ++ NS});
+                                     namespace = ephp_class:join_ns(Parser#parser.namespace, NS)});
 st_class(<<$\\, _/binary>>, Parser, _Class) ->
     ephp_parser:throw_error(eparse, Parser, {<<"\\">>, <<"T_NS_SEPARATOR">>, <<"{">>});
 st_class(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8, Rest/binary>>, Parser, Class) when
@@ -52,7 +52,7 @@ st_class(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8, Rest/binary>>, Parser, Class) when
     {Rest0, Parser0} = remove_spaces(<<SP:8, Rest/binary>>, add_pos(Parser, 5)),
     {Rest1, Parser1, {NS, Extends}} = ephp_parser_func:funct_name(Rest0, Parser0, []),
     st_class(Rest1, Parser1, Class#class{extends = Extends,
-                                         extends_ns = Parser#parser.namespace ++ NS});
+                                         extends_ns = ephp_class:join_ns(Parser#parser.namespace, NS)});
 st_class(<<I:8,M:8,P:8,L:8,E:8,M:8,E:8,N:8,T:8,S:8, SP:8, Rest/binary>>,
          Parser, Class) when
         ?OR(I,$I,$i) andalso ?OR(M,$M,$m) andalso ?OR(P,$P,$p) andalso
@@ -259,7 +259,7 @@ st_implements(<<",", Rest/binary>>, Parser, Parsed) ->
     st_implements(Rest, inc_pos(Parser), Parsed);
 st_implements(<<A:8, _/binary>> = Rest, Parser, Parsed) when ?IS_ALPHA(A) ->
     {Rest0, Parser0, {NS, Name}} = ephp_parser_func:funct_name(Rest, Parser, []),
-    st_implements(Rest0, Parser0, [{Parser#parser.namespace ++ NS, Name}|Parsed]);
+    st_implements(Rest0, Parser0, [{ephp_class:join_ns(Parser#parser.namespace, NS), Name}|Parsed]);
 st_implements(<<"{", _/binary>> = Rest, Parser, Parsed) ->
     {Rest, Parser, Parsed}.
 

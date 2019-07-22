@@ -1187,8 +1187,14 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
     ephp_stack:pop(Ref),
     {Value, NState};
 
-resolve_function(#call{name = Fun, line = Index}, error, _State) ->
-    ephp_error:error({error, eundefun, Index, ?E_ERROR, {Fun}}).
+resolve_function(#call{name = Fun, line = Index, namespace = []}, error, _State) ->
+    ephp_error:error({error, eundefun, Index, ?E_ERROR, {[], Fun}});
+
+resolve_function(#call{name = Fun, line = Index, namespace = NS} = Call, error, State) ->
+    case ephp_func:get(State#state.funcs, [], Fun) of
+        error -> ephp_error:error({error, eundefun, Index, ?E_ERROR, {NS, Fun}});
+        Else -> resolve_function(Call#call{namespace = []}, Else, State)
+    end.
 
 
 resolve_params_anon(Args) ->

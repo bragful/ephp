@@ -245,7 +245,7 @@ register_func(Ref, File, NS, PHPFunc, Args, Code, PackArgs, ValArgs) ->
     ok.
 
 
-run(Context, #call{line = Line} = Call) ->
+run(Context, #call{line = Line, namespace = NS} = Call) ->
     try
         ephp_context:solve(Context, Call),
         false
@@ -257,7 +257,7 @@ run(Context, #call{line = Line} = Call) ->
                 ?E_ERROR, Data});
         throw:{error, eundefun, _, Fun} ->
             File = ephp_context:get_active_file(Context),
-            Data = {Fun},
+            Data = {NS, Fun},
             ephp_error:handle_error(Context, {error, eundefun, Line, File,
                 ?E_ERROR, Data})
     end.

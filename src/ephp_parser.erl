@@ -500,9 +500,10 @@ code(<<S:8,T:8,A:8,T:8,I:8,C:8,SP:8,Rest/binary>>, Parser, Parsed) when
     {Rest0, Parser0, Parsed0} = static(Rest, add_pos(Parser, 7), []),
     code(Rest0, copy_rowcol(Parser0, Parser), Parsed0 ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Parser, [#constant{}|_])
-        when ?IS_ALPHA(A) orelse A =:= $_ ->
+        when ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     throw_error(eparse, Parser, Rest);
-code(<<A:8,_/binary>> = Rest, Parser, Parsed) when ?IS_ALPHA(A) orelse A =:= $_ ->
+code(<<A:8,_/binary>> = Rest, Parser, Parsed) when
+        ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     {Rest0, Parser0, Parsed0} = expression(Rest, Parser, []),
     code(Rest0, copy_rowcol(Parser0, Parser), [Parsed0] ++ Parsed);
 code(<<A:8,_/binary>> = Rest, Parser, Parsed) when ?IS_NUMBER(A)
@@ -735,7 +736,7 @@ constant(Rest, Parser, Parsed) ->
 constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
     {NS, Name} = ephp_class:str2ns(C#constant.name),
     Call = #call{name = Name, line = C#constant.line,
-                 namespace = Parser#parser.namespace ++ NS},
+                 namespace = ephp_class:join_ns(Parser#parser.namespace, NS)},
     ephp_parser_func:function(Rest, inc_pos(Parser), [Call]);
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
@@ -773,7 +774,7 @@ constant_known([#constant{name = RawName} = C|Parsed], Parser) ->
     {NS, Name} = ephp_class:str2ns(RawName),
     case lists:member(C#constant.name, ephp_const:special_consts()) of
         true -> [C|Parsed];
-        false -> [C#constant{namespace = Parser#parser.namespace ++ NS,
+        false -> [C#constant{namespace = ephp_class:join_ns(Parser#parser.namespace, NS),
                              name = Name}|Parsed]
     end.
 

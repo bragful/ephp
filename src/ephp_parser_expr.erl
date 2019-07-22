@@ -271,15 +271,21 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
         {<<"$", _/binary>> = Rest0, Parser0} ->
             {RestEx, ParserEx, Exp} = expression(Rest0, Parser0, []),
             {RestEx, ParserEx, {[], Exp}};
-        {<<A:8, _/binary>> = Rest0, Parser0} when ?IS_ALPHA(A) orelse A =:= $_ ->
+        {<<A:8, _/binary>> = Rest0, Parser0} when
+                ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
             ephp_parser_func:funct_name(Rest0, Parser0, [])
     end,
+    Namespace = ephp_class:join_ns(Parser#parser.namespace, NS),
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->
-            {Rest3, Parser3, Args} = ephp_parser_func:call_args(Rest2, Parser2, []),
-            add_line(#instance{name = ObjName, namespace = NS, args = Args}, Parser);
+            {Rest3, Parser3, Args} =
+                ephp_parser_func:call_args(Rest2, Parser2, []),
+            add_line(#instance{name = ObjName,
+                               namespace = Namespace,
+                               args = Args}, Parser);
         {Rest3, Parser3} ->
-            add_line(#instance{name = ObjName, namespace = NS}, Parser)
+            add_line(#instance{name = ObjName,
+                               namespace = Namespace}, Parser)
     end,
     expression(Rest3, copy_rowcol(Parser3, Parser), add_op(Instance,Parsed));
 % CLONE ...
@@ -547,11 +553,11 @@ expression(<<Op:1/binary,Rest/binary>>, Parser, Parsed) when ?IS_OP1(Op) ->
     expression(Rest, inc_pos(Parser), add_op({Op, precedence(Op), Parser}, Parsed));
 % CONSTANT / FUNCTION
 expression(<<A:8,_/binary>> = Rest, Parser, [{op,[]}|_] = Parsed) when
-        ?IS_ALPHA(A) orelse A =:= $_ ->
+        ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     {Rest0, NewParser, [Constant]} = constant(Rest, Parser, []),
     expression(Rest0, copy_rowcol(NewParser, Parser), add_op(Constant, Parsed));
 expression(<<A:8,_/binary>> = Rest, Parser, [{op,Ops}|_]=Parsed) when
-        ?IS_ALPHA(A) orelse A =:= $_ ->
+        ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     {Rest0, Parser0, [Constant]} = constant(Rest, Parser, []),
     case lists:last(Ops) of
         #constant{} ->
@@ -560,7 +566,7 @@ expression(<<A:8,_/binary>> = Rest, Parser, [{op,Ops}|_]=Parsed) when
             expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed))
     end;
 expression(<<A:8, _/binary>> = Rest, Parser, Parsed) when
-        ?IS_ALPHA(A) orelse A =:= $_ ->
+        ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     {Rest0, Parser0, [Constant]} = constant(Rest, Parser, []),
     expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed));
 % FINAL -switch-

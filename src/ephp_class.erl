@@ -24,6 +24,7 @@
 %% ------------------------------------------------------------------
 
 -export([
+    join_ns/2,
     ns2str/2,
     str2ns/1,
     start_link/0,
@@ -69,6 +70,9 @@
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
+
+join_ns(_BaseNS, [<<>>|RelativeNS]) -> RelativeNS;
+join_ns(BaseNS, RelativeNS) -> BaseNS ++ RelativeNS.
 
 -spec ns2str(namespace(), class_name()) -> binary().
 %% @doc converts a namespace and class name to the string representation.

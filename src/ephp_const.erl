@@ -52,18 +52,18 @@ get(Ref, Name, Line, Context) ->
 get(Ref, ClassName, Name, Line, Context) ->
     get(Ref, [], ClassName, Name, Line, Context).
 
-get(Ref, NameSpace, ClassName, Name, Line, Context) ->
+get(Ref, NS, ClassName, Name, Line, Context) ->
     Const = erlang:get(Ref),
-    case dict:find({NameSpace, ClassName, Name}, Const) of
+    case dict:find({NS, ClassName, Name}, Const) of
         {ok, Value} ->
             Value;
         error when Line =/= false andalso ClassName =:= undefined ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefconst, Line, File, ?E_NOTICE, {Name}}),
+                {error, eundefconst, Line, File, ?E_NOTICE, {NS, Name}}),
             Name;
         error when Line =/= false ->
-            ephp_error:error({error, enoconst, Line, ?E_ERROR, {Name}});
+            ephp_error:error({error, enoconst, Line, ?E_ERROR, {NS, Name}});
         error ->
             false
     end.
