@@ -334,7 +334,7 @@ get_message(enofile, {OpenFile, Func}) ->
         [Func, OpenFile]);
 
 get_message(eundefun, {NS, Fun}) ->
-    io_lib:format("Call to undefined function ~s()", [ephp_class:ns2str(NS, Fun)]);
+    io_lib:format("Call to undefined function ~s()", [ephp_ns:to_bin(NS, Fun)]);
 
 get_message(eunsupportop, {}) ->
     "Unsupported operand types";

@@ -85,12 +85,12 @@ handle_error(_Type, _Level, _Data) ->
 constant(Context, Line, {_, ConstantName}) ->
     case binary:split(ConstantName, <<"::">>) of
         [RawClassName, ConstName] ->
-            {ClassNS, ClassName} = ephp_class:str2ns(RawClassName),
-            NS = ephp_class:join_ns([], ClassNS),
+            {ClassNS, ClassName} = ephp_ns:parse(RawClassName),
+            NS = ephp_ns:normalize(ClassNS),
             ephp_context:get_const(Context, NS, ClassName, ConstName, Line);
         [RawConstName] ->
-            {ConstNS, ConstName} = ephp_class:str2ns(RawConstName),
-            NS = ephp_class:join_ns([], ConstNS),
+            {ConstNS, ConstName} = ephp_ns:parse(RawConstName),
+            NS = ephp_ns:normalize(ConstNS),
             ephp_context:get_const(Context, NS, ConstName, Line)
     end.
 

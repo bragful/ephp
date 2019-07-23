@@ -24,9 +24,6 @@
 %% ------------------------------------------------------------------
 
 -export([
-    join_ns/2,
-    ns2str/2,
-    str2ns/1,
     start_link/0,
     destroy/1,
 
@@ -70,26 +67,6 @@
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
-
-join_ns(_BaseNS, [<<>>|RelativeNS]) -> RelativeNS;
-join_ns(BaseNS, RelativeNS) -> BaseNS ++ RelativeNS.
-
--spec ns2str(namespace(), class_name()) -> binary().
-%% @doc converts a namespace and class name to the string representation.
-ns2str(NS, <<>>) ->
-    ephp_string:join(NS, <<"\\">>);
-ns2str(NS, ClassName) ->
-    ephp_string:join(NS ++ [ClassName], <<"\\">>).
-
-
--spec str2ns(binary()) -> {namespace(), class_name()}.
-%% @doc converts a string into a 2-tuple: namespace and class name.
-str2ns(Str) ->
-    case binary:split(Str, <<"\\">>, [global]) of
-        [ClassName] -> {[], ClassName};
-        Parts -> {lists:droplast(Parts), lists:last(Parts)}
-    end.
-
 
 -spec start_link() -> {ok, ephp:classes_id()}.
 %% @doc starts a classes handler.
@@ -154,7 +131,7 @@ get(Context, Classes, NS, ClassName, [Loader|Loaders]) ->
             {ok, Class};
         {error, enoexist} ->
             %% TODO check callable for Loader
-            FullClassName = ns2str(NS, ClassName),
+            FullClassName = ephp_ns:to_bin(NS, ClassName),
             Call = #call{name = Loader, args = [FullClassName]},
             ephp_context:call_function(Context, Call),
             get(Context, Classes, NS, ClassName, Loaders)
@@ -242,7 +219,7 @@ register_class(Ref, File, GlobalCtx,
         ok ->
             ok;
         {DupInterfaceNS, DupInterfaceName} ->
-            DupInterface = ephp_class:ns2str(DupInterfaceNS, DupInterfaceName),
+            DupInterface = ephp_ns:to_bin(DupInterfaceNS, DupInterfaceName),
             ephp_error:error({error, edupinterface, Index, ?E_ERROR,
                               {Name, DupInterface}})
     end,

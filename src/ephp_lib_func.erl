@@ -136,7 +136,7 @@ call(Context, Line, Callable, Args) when ?IS_ARRAY(Callable) andalso is_list(Arg
                     ephp_context:call_function(Context, Call);
                 [<<"parent">>, ParentMethod] ->
                     %% TODO: when parent isn't defined
-                    {ClassNS, ClassName} = ephp_class:str2ns(Class),
+                    {ClassNS, ClassName} = ephp_ns:parse(Class),
                     {ParentNS, ParentName} = ephp_class:get_parent(Context, ClassNS, ClassName),
                     Call = #call{name = ParentMethod, class = ParentName,
                                  namespace = ParentNS, type = class},

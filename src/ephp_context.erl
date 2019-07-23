@@ -378,7 +378,7 @@ set_active_class(Context, NS, ClassName) ->
     #state{const = Const} = State = load_state(Context),
     save_state(State#state{active_class = ClassName,
                            active_class_ns = NS}),
-    ephp_const:set(Const, <<"__CLASS__">>, ephp_class:ns2str(NS, ClassName)),
+    ephp_const:set(Const, <<"__CLASS__">>, ephp_ns:to_bin(NS, ClassName)),
     ok.
 
 set_active_real_class(Context, NS, ClassName) ->
@@ -900,10 +900,10 @@ resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
             %% FIXME: only to avoid infinite-loop
             throw({error, implementation});
         is_binary(RawName) ->
-            {FunNS, RealName} = ephp_class:str2ns(RawName),
+            {FunNS, RealName} = ephp_ns:parse(RawName),
             %% Note that dynamic is always using absolute (even if it's not starting with '\'.
             %% so I#call.namespace is discarded.
-            RealNS = ephp_class:join_ns([], FunNS),
+            RealNS = ephp_ns:normalize(FunNS),
             resolve(Call#call{name = RealName, namespace = RealNS}, NewState);
         true ->
             resolve(Call#call{name = RawName}, NewState)
@@ -967,10 +967,10 @@ resolve({object, IdxToProcess, Line}, State) ->
 
 resolve(#instance{name = ClassName} = I, State) when not is_binary(ClassName) ->
     {RawClassName, NState} = resolve(ClassName, State),
-    {ClassNS, RClassName} = ephp_class:str2ns(RawClassName),
+    {ClassNS, RClassName} = ephp_ns:parse(RawClassName),
     %% Note that dynamic is always using absolute (even if it's not starting with '\'.
     %% so I#instance.namespace is discarded.
-    RClassNS = ephp_class:join_ns([], ClassNS),
+    RClassNS = ephp_ns:normalize(ClassNS),
     resolve(I#instance{name = RClassName, namespace = RClassNS}, NState);
 
 resolve(#instance{name = ClassName, namespace = ClassNS, args = RawArgs, line = Line} = Instance,
@@ -1182,7 +1182,7 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
                                                  active_fun_args = SArgs}),
     ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
     register_superglobals(GlobalRef, NewVars),
-    FullFunName = ephp_class:ns2str(Call#call.namespace, Fun),
+    FullFunName = ephp_ns:to_bin(Call#call.namespace, Fun),
     ephp_const:set(Const, <<"__FUNCTION__">>, FullFunName),
     Refs = lists:map(fun(#variable{} = Var) ->
                             #var_ref{pid = NewVars, ref = Var};
@@ -1199,7 +1199,7 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
     ephp_func:set_static(Funcs, Call#call.namespace, Fun, NewVars, Ref),
     destroy(SubContext),
     ephp_vars:destroy(Ref, NewVars),
-    OldFullFunName = ephp_class:ns2str(State#state.active_fun_ns, State#state.active_fun),
+    OldFullFunName = ephp_ns:to_bin(State#state.active_fun_ns, State#state.active_fun),
     ephp_const:set(Const, <<"__FUNCTION__">>, OldFullFunName),
     ephp_stack:pop(Ref),
     {Value, NState};
@@ -1535,8 +1535,8 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
         active_class = ClassMethod#class_method.class_name}),
     register_superglobals(Ref, MethodVars),
     OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
-    FullClassName = ephp_class:ns2str(Class#class.namespace,
-                                      ClassMethod#class_method.class_name),
+    FullClassName = ephp_ns:to_bin(Class#class.namespace,
+                                   ClassMethod#class_method.class_name),
     ephp_const:set_bulk(Const, [
         {<<"__FUNCTION__">>, MethodName},
         {<<"__METHOD__">>,

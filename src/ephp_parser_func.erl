@@ -115,7 +115,7 @@ st_function(Rest, Parser, Parsed) ->
     {Rest3, Parser3, Args} = funct_args(Rest2, Parser2, []),
     {Rest4, Parser4, CodeBlock} = code_block(Rest3, Parser3, []),
     Function = add_line(#function{name = Name,
-                                  namespace = ephp_class:join_ns(Parser#parser.namespace, NS),
+                                  namespace = ephp_ns:join(Parser#parser.namespace, NS),
                                   args = Args,
                                   code = CodeBlock,
                                   return_ref = ReturnRef}, Parser),
@@ -127,7 +127,7 @@ funct_name(<<A:8,Rest/binary>>, Parser, [N])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ orelse A =:= $\\ ->
     funct_name(Rest, inc_pos(Parser), [<<N/binary, A:8>>]);
 funct_name(Rest, Parser, [Parsed]) ->
-    {Rest, Parser, ephp_class:str2ns(Parsed)}.
+    {Rest, Parser, ephp_ns:parse(Parsed)}.
 
 funct_args(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     funct_args(Rest, inc_pos(Parser), Parsed);

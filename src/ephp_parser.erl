@@ -747,14 +747,14 @@ constant(Rest, Parser, Parsed) ->
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
 constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
-    {NS, Name} = ephp_class:str2ns(C#constant.name),
+    {NS, Name} = ephp_ns:parse(C#constant.name),
     Call = #call{name = Name, line = C#constant.line,
-                 namespace = ephp_class:join_ns(Parser#parser.namespace, NS)},
+                 namespace = ephp_ns:join(Parser#parser.namespace, NS)},
     ephp_parser_func:function(Rest, inc_pos(Parser), [Call]);
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
     {Rest1, Parser1, [Var]} = variable(<<"$", Rest/binary>>, NewParser, []),
-    {NS, RealClassName} = ephp_class:str2ns(C#constant.name),
+    {NS, RealClassName} = ephp_ns:parse(C#constant.name),
     NewVar = Var#variable{type = class, class = RealClassName, class_ns = NS},
     {Rest1, copy_rowcol(Parser1, Parser), [NewVar]};
 constant_wait(<<"::",Rest/binary>>, Parser, [#constant{} = Cons]) ->
@@ -784,10 +784,10 @@ constant_known([#constant{name = <<"__NAMESPACE__">>}|Parsed],
 constant_known([#constant{name = <<"exit">>}|Parsed], Parser) ->
     [add_line(#call{name = <<"exit">>}, Parser)|Parsed];
 constant_known([#constant{name = RawName} = C|Parsed], Parser) ->
-    {NS, Name} = ephp_class:str2ns(RawName),
+    {NS, Name} = ephp_ns:parse(RawName),
     case lists:member(C#constant.name, ephp_const:special_consts()) of
         true -> [C|Parsed];
-        false -> [C#constant{namespace = ephp_class:join_ns(Parser#parser.namespace, NS),
+        false -> [C#constant{namespace = ephp_ns:join(Parser#parser.namespace, NS),
                              name = Name}|Parsed]
     end.
 

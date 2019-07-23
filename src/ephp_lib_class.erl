@@ -50,7 +50,7 @@ handle_error(eincompatctx, _Level, {Class, Method}) ->
                   [Class, Method]);
 
 handle_error(eundefclass, _Level, {NS, ClassName}) when is_binary(ClassName) ->
-    io_lib:format("Class '~s' not found", [ephp_class:ns2str(NS, ClassName)]);
+    io_lib:format("Class '~s' not found", [ephp_ns:to_bin(NS, ClassName)]);
 
 handle_error(eundefclass, _Level, {ClassName}) when is_binary(ClassName) ->
     io_lib:format("Class '~s' not found", [ClassName]);
@@ -161,11 +161,11 @@ get_class(_Context, _Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
 
 class_alias(Context, Line, {_, Name}, {_, Alias}) ->
     {ClassNS, ClassName} = if
-        is_binary(Name) -> ephp_class:str2ns(Name);
+        is_binary(Name) -> ephp_ns:parse(Name);
         true -> {[], ephp_data:to_bin(Name)}
     end,
     {AliasNS, AliasName} = if
-        is_binary(Alias) -> ephp_class:str2ns(Alias);
+        is_binary(Alias) -> ephp_ns:parse(Alias);
         true -> {[], ephp_data:to_bin(Alias)}
     end,
     case ephp_context:set_class_alias(Context,
@@ -189,7 +189,7 @@ class_alias(Context, Line, {_, Name}, {_, Alias}) ->
                    AutoLoad :: var_value()) -> boolean().
 
 class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
-    {ClassNS, ClassName} = ephp_class:str2ns(Class),
+    {ClassNS, ClassName} = ephp_ns:parse(Class),
     case ephp_class:get(Context, ClassNS, ClassName, AutoLoad) of
         {ok, #class{type = Type}} ->
             Type =/= interface;
@@ -201,7 +201,7 @@ class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
                        AutoLoad :: var_value()) -> boolean().
 
 interface_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
-    {ClassNS, ClassName} = ephp_class:str2ns(Class),
+    {ClassNS, ClassName} = ephp_ns:parse(Class),
     case ephp_class:get(Context, ClassNS, ClassName, AutoLoad) of
         {ok, #class{type = interface}} -> true;
         _ -> false

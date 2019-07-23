@@ -275,7 +275,7 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
                 ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
             ephp_parser_func:funct_name(Rest0, Parser0, [])
     end,
-    Namespace = ephp_class:join_ns(Parser#parser.namespace, NS),
+    Namespace = ephp_ns:join(Parser#parser.namespace, NS),
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->
             {Rest3, Parser3, Args} =

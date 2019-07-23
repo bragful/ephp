@@ -30,7 +30,7 @@ init_const() -> [].
 -spec spl_autoload_call(context(), line(), var_value()) -> undefined.
 
 spl_autoload_call(Context, Line, {_, RawClassName}) ->
-    {ClassNS, ClassName} = ephp_class:str2ns(RawClassName),
+    {ClassNS, ClassName} = ephp_ns:parse(RawClassName),
     case ephp_class:get(Context, ClassNS, ClassName, spl) of
         {ok, _Class} ->
             undefined;
