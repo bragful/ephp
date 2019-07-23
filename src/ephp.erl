@@ -262,6 +262,18 @@ main(["-p", File]) ->
             quit(1)
     end;
 
+main(["-i"]) ->
+    start(),
+    Content = <<"<?php phpinfo();">>,
+    ephp_config:start_link(?PHP_INI_FILE),
+    {ok, Ctx} = context_new(<<"-">>),
+    register_superglobals(Ctx, ["-"]),
+    {ok, _} = eval(<<"-">>, Ctx, Content),
+    Result = ephp_context:get_output(Ctx),
+    io:format("~s", [Result]),
+    ephp_context:destroy_all(Ctx),
+    quit(0);
+
 main([Filename|_] = RawArgs) ->
     start(),
     case file:read_file(Filename) of
