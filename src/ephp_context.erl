@@ -680,25 +680,14 @@ resolve(Object, State) when ?IS_OBJECT(Object) ->
 
 resolve({pre_incr, Var, _Line}, #state{ref = Ref} = State) ->
     case get_var_path(Var, State) of
-        #variable{}=VarPath ->
-            case ephp_vars:get(State#state.vars, VarPath, Ref) of
-                undefined ->
-                    ephp_vars:set(State#state.vars, VarPath, 1, Ref),
-                    {1, State};
-                V when is_number(V) ->
-                    ephp_vars:set(State#state.vars, VarPath, V+1, Ref),
-                    {V+1, State};
-                V when is_binary(V) andalso byte_size(V) > 0 ->
-                    NewVal = try
-                        binary_to_integer(V) + 1
-                    catch error:badarg ->
-                        ephp_data:increment_code(V)
-                    end,
-                    ephp_vars:set(State#state.vars, VarPath, NewVal, Ref),
-                    {NewVal, State};
-                V ->
-                    {V, State}
-            end;
+        #variable{} = VarPath ->
+            Value = ephp_vars:get(State#state.vars, VarPath, Ref),
+            NewValue = rich_increment(Value),
+            if
+                ?IS_MEM(Value) -> ephp_mem:set(Value, NewValue);
+                true -> ephp_vars:set(State#state.vars, VarPath, NewValue, Ref)
+            end,
+            {NewValue, State};
         {error, _Reason} ->
             {undefined, State}
     end;
@@ -717,24 +706,13 @@ resolve({pre_decr, Var, _Line}, #state{ref = Ref} = State) ->
 
 resolve({post_incr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath, Ref) of
-        undefined ->
-            ephp_vars:set(State#state.vars, VarPath, 1, Ref),
-            {undefined, State};
-        V when is_number(V) ->
-            ephp_vars:set(State#state.vars, VarPath, V+1, Ref),
-            {V, State};
-        V when is_binary(V) andalso byte_size(V) > 0 ->
-            NewVal = try
-                binary_to_integer(V) + 1
-            catch error:badarg ->
-                ephp_data:increment_code(V)
-            end,
-            ephp_vars:set(State#state.vars, VarPath, NewVal, Ref),
-            {V, State};
-        V ->
-            {V, State}
-    end;
+    Value = ephp_vars:get(State#state.vars, VarPath, Ref),
+    {OldValue, NewValue} = increment(Value),
+    if
+        ?IS_MEM(Value) -> ephp_mem:set(Value, NewValue);
+        true -> ephp_vars:set(State#state.vars, VarPath, NewValue, Ref)
+    end,
+    {OldValue, State};
 
 resolve({post_decr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
@@ -999,7 +977,7 @@ resolve({global, _Var, _Line}, #state{global = undefined} = State) ->
 
 resolve({global, GVars, _Line},
         #state{ref = Ref, global = GlobalCtx, vars = Vars} = State) ->
-    #state{vars=GlobalVars} = load_state(GlobalCtx),
+    #state{vars = GlobalVars} = load_state(GlobalCtx),
     lists:foreach(fun(GlobalVar) ->
         ephp_vars:ref(Vars, GlobalVar, GlobalVars, GlobalVar, Ref)
     end, GVars),
@@ -1110,6 +1088,31 @@ resolve(#clone{var = Var, line = Line}, State) ->
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
+
+increment(undefined) -> {undefined, undefined};
+increment(Value) when is_number(Value) -> {Value, Value + 1};
+increment(Value) when is_binary(Value) andalso byte_size(Value) > 0 ->
+    try
+        Val = binary_to_integer(Value),
+        {Val, Val + 1}
+    catch error:badarg ->
+        {Value, ephp_data:increment_code(Value)}
+    end;
+increment(Value) when ?IS_MEM(Value) ->
+    increment(ephp_mem:get(Value));
+increment(Value) -> {Value, Value}.
+
+rich_increment(undefined) -> 1;
+rich_increment(Value) when is_number(Value) -> Value + 1;
+rich_increment(Value) when is_binary(Value) andalso byte_size(Value) > 0 ->
+    try
+        binary_to_integer(Value) + 1
+    catch error:badarg ->
+        ephp_data:increment_code(Value)
+    end;
+rich_increment(Value) when ?IS_MEM(Value) ->
+    rich_increment(ephp_mem:get(Value));
+rich_increment(Value) -> Value.
 
 resolve_function(#call{name = Fun, args = RawArgs, line = Index,
                        namespace = NS},
