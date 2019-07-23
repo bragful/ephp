@@ -6,7 +6,7 @@
 -include("ephp_parser.hrl").
 
 -export([function/3, call_args/3, st_function/3, st_use_or_block/3, echo/3,
-         funct_args/3, funct_name/3]).
+         funct_args/3, funct_name/3, get_ns/2]).
 
 -import(ephp_parser, [
     add_line/2, add_pos/2, new_line/1, arg_level/1, copy_rowcol/2,
@@ -104,22 +104,32 @@ st_function(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_function(Rest, inc_pos(Parser), Parsed);
 st_function(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
     st_function(Rest, new_line(Parser), Parsed);
-% TODO if the following char is '(' maybe this is a anon-function
+% TODO if the following char is '(' maybe this is an anon-function
 st_function(Rest, Parser, Parsed) ->
     ReturnRef = case remove_spaces(Rest, Parser) of
         {<<"&", Rest0/binary>>, Parser0} -> true;
         {Rest0, Parser0} -> false
     end,
+    %% FIXME: we shouldn't let to the user define namespace in function definition
     {Rest1, Parser1, {NS, Name}} = funct_name(Rest0, Parser0, []),
     {<<"(", Rest2/binary>>, Parser2} = remove_spaces(Rest1, Parser1),
     {Rest3, Parser3, Args} = funct_args(Rest2, Parser2, []),
     {Rest4, Parser4, CodeBlock} = code_block(Rest3, Parser3, []),
     Function = add_line(#function{name = Name,
-                                  namespace = ephp_ns:join(Parser#parser.namespace, NS),
+                                  namespace = NS,
                                   args = Args,
                                   code = CodeBlock,
                                   return_ref = ReturnRef}, Parser),
     {Rest4, copy_rowcol(Parser4, Parser), [Function|Parsed]}.
+
+get_ns({[<<>>], Name}, _Parser) -> {[], Name};
+get_ns({[], Name}, #parser{use_func_list = FuncList} = Parser) ->
+    case lists:keyfind(Name, 1, FuncList) of
+        {Name, RealNS} -> {RealNS, Name};
+        false -> {ephp_parser:get_ns([], Parser), Name}
+    end;
+get_ns({NS, Name}, Parser) ->
+    {ephp_parser:get_ns(NS, Parser), Name}.
 
 funct_name(<<A:8,Rest/binary>>, Parser, []) when ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
     funct_name(Rest, inc_pos(Parser), [<<A:8>>]);
@@ -127,7 +137,7 @@ funct_name(<<A:8,Rest/binary>>, Parser, [N])
         when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ orelse A =:= $\\ ->
     funct_name(Rest, inc_pos(Parser), [<<N/binary, A:8>>]);
 funct_name(Rest, Parser, [Parsed]) ->
-    {Rest, Parser, ephp_ns:parse(Parsed)}.
+    {Rest, Parser, get_ns(ephp_ns:parse(Parsed), Parser)}.
 
 funct_args(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     funct_args(Rest, inc_pos(Parser), Parsed);

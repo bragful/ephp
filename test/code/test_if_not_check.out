@@ -1,5 +1,5 @@
 
-Notice:  Undefined variable: data in {{CWD}}/test/code/test_if_not_check.php on line 14
+Notice: Undefined variable: data in {{CWD}}/test/code/test_if_not_check.php on line 14
 bool(true)
 There is no data!
 Data is = 10

@@ -81,7 +81,7 @@ Features
     - [x] Define multiple namespaces in the same file
     - [x] Namespaces and dynamic features
     - [x] Constant `__NAMESPACE__`
-    - [ ] Aliasing/Importing (`use`)
+    - [x] Aliasing/Importing (`use`)
     - [x] Fallback to global space
 - Functional
     - [x] Closures

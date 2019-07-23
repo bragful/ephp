@@ -11,6 +11,7 @@
 -export([
     normalize/1,
     join/2,
+    split/1,
     to_bin/1,
     to_bin/2,
     parse/1
@@ -25,6 +26,12 @@ normalize(NS) -> NS.
 %% @doc join two namespaces to generate only one, checking for absolute and relative.
 join(_BaseNS, [<<>>|RelativeNS]) -> RelativeNS;
 join(BaseNS, RelativeNS) -> BaseNS ++ RelativeNS.
+
+-spec split(namespace()) -> {namespace(), binary()}.
+%% @doc retrieve last part of the namespace.
+split([Name]) -> {[], Name};
+split(NS) when is_list(NS) andalso length(NS) > 1 ->
+    {lists:droplast(NS), lists:last(NS)}.
 
 -spec to_bin(namespace()) -> binary().
 %% @doc converts a namespace to the string representation.

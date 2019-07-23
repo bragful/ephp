@@ -7,6 +7,7 @@
 -export([
     add_pos/2, new_line/1, copy_rowcol/2, add_line/2, remove_spaces/2,
     throw_error/3, code_block/3, code/3, new_line/2, inc_pos/1,
+    get_ns/2,
 
     array_def_level/1, code_statement_level/1, arg_level/1,
     code_block_level/1, enclosed_level/1, unclosed_level/1,
@@ -29,7 +30,7 @@ file(File) ->
 parse(Document) when is_list(Document) ->
     parse(list_to_binary(Document));
 parse(Document) ->
-    {_, _, Parsed} = document(Document, #parser{}, []),
+    {_Rest, _Parser, Parsed} = document(Document, #parser{}, []),
     lists:reverse(Parsed).
 
 document(<<>>, Parser, Parsed) ->
@@ -355,6 +356,23 @@ code(<<C:8,L:8,A:8,S:8,S:8,SP:8,Rest/binary>>, Parser, Parsed) when
                                        Class)
     end,
     code(Rest0, copy_rowcol(Parser0, Parser), [Class0|Parsed]);
+code(<<U:8,S:8,E:8,SP:8,Rest/binary>>, Parser, Parsed) when
+        ?OR(U,$U,$u) andalso ?OR(S,$S,$s) andalso ?OR(E,$E,$e) andalso
+        (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+    case remove_spaces(<<SP:8, Rest/binary>>, add_pos(Parser, 3)) of
+        {<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest0/binary>>, Parser0} when
+                ?OR(C,$C,$c) andalso ?OR(O,$O,$o) andalso ?OR(N,$N,$n) andalso
+                ?OR(S,$S,$s) andalso ?OR(T,$T,$t) andalso
+                (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+            use_const(<<SP:8,Rest0/binary>>, add_pos(Parser0, 5), Parsed);
+        {<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest0/binary>>, Parser0} when
+                ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
+                ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
+                ?OR(O,$O,$o) andalso (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+            use_function(<<SP:8,Rest0/binary>>, add_pos(Parser0, 8), Parsed);
+        {Rest0, Parser0} ->
+            use_list(Rest0, Parser0#parser{use_ns = []}, Parsed)
+    end;
 code(<<N:8,A:8,M:8,E:8,S:8,P:8,A:8,C:8,E:8,SP:8,_/binary>> = Rest,
      #parser{namespace_can_be = only_statement} = Parser, Parsed) when
         ?OR(N,$N,$n) andalso ?OR(A,$A,$a) andalso ?OR(M,$M,$m) andalso
@@ -571,10 +589,102 @@ code_block(<<>>, Parser, Parsed) ->
 code_block(Rest, Parser, Parsed) ->
     code(Rest, code_statement_level(Parser), Parsed).
 
-namespace(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
-    namespace(Rest, inc_pos(Parser), Parsed);
-namespace(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
-    namespace(Rest, new_line(Parser), Parsed);
+get_ns([], #parser{namespace = BaseNS}) -> BaseNS;
+get_ns(NS, #parser{use_list = UseList, namespace = BaseNS}) ->
+    FullNS = ephp_ns:join(BaseNS, NS),
+    case lists:keyfind(FullNS, 1, UseList) of
+        {NS, RealNS} -> RealNS;
+        false -> FullNS
+    end.
+
+use_const(Rest, #parser{use_const_list = ConstList,
+                        use_ns = UseNS} = Parser, Parsed) ->
+    {Rest0, Parser0, NameSpace} = namespace(Rest, Parser, []),
+    {NS, BaseName} = ephp_ns:split(NameSpace),
+    BaseNS = ephp_ns:join(UseNS, NS),
+    case remove_spaces(Rest0, Parser0) of
+        {<<"{", Rest1/binary>>, #parser{use_ns = []} = Parser1} ->
+            RealBaseNS = ephp_ns:join(BaseNS, BaseName),
+            use_const(Rest1, inc_pos(Parser1#parser{use_ns = RealBaseNS}), Parsed);
+        {<<"}", Rest1/binary>>, #parser{use_ns = UseNS} = Parser1}
+                when UseNS =/= [] ->
+            use_const(Rest1, inc_pos(Parser1#parser{use_ns = []}), Parsed);
+        %% TODO
+        % {<<$;, _/binary>>, Parser1} when UseNS =/= [] ->
+        %     throw_error(...);
+        % {<<$,, _/binary>>, #parser{use_ns = []} = Parser1} ->
+        %     throw_error(...);
+        {<<SEP:8, Rest1/binary>>, Parser1} when ?OR(SEP, $;, $,) ->
+            NewUseConstList = [{BaseName, BaseNS}|ConstList],
+            Parser2 = inc_pos(Parser1#parser{use_const_list = NewUseConstList}),
+            case SEP of
+                $; -> code(Rest1, Parser2, Parsed);
+                $, -> use_const(Rest1, Parser2, Parsed)
+            end
+    end.
+
+use_function(Rest, #parser{use_func_list = FuncList,
+                           use_ns = UseNS} = Parser, Parsed) ->
+    {Rest0, Parser0, NameSpace} = namespace(Rest, Parser, []),
+    {NS, BaseName} = ephp_ns:split(NameSpace),
+    BaseNS = ephp_ns:join(UseNS, NS),
+    case remove_spaces(Rest0, Parser0) of
+        {<<"{", Rest1/binary>>, #parser{use_ns = []} = Parser1} ->
+            RealBaseNS = ephp_ns:join(BaseNS, BaseName),
+            use_function(Rest1, inc_pos(Parser1#parser{use_ns = RealBaseNS}), Parsed);
+        {<<"}", Rest1/binary>>, #parser{use_ns = UseNS} = Parser1}
+                when UseNS =/= [] ->
+            use_function(Rest1, inc_pos(Parser1#parser{use_ns = []}), Parsed);
+        %% TODO
+        % {<<$;, _/binary>>, Parser1} when UseNS =/= [] ->
+        %     throw_error(...);
+        % {<<$,, _/binary>>, #parser{use_ns = []} = Parser1} ->
+        %     throw_error(...);
+        {<<SEP:8, Rest1/binary>>, Parser1} when ?OR(SEP, $;, $,) ->
+            NewUseConstList = [{BaseName, BaseNS}|FuncList],
+            Parser2 = inc_pos(Parser1#parser{use_func_list = NewUseConstList}),
+            case SEP of
+                $; -> code(Rest1, Parser2, Parsed);
+                $, -> use_function(Rest1, Parser2, Parsed)
+            end
+    end.
+
+use_list(Rest, #parser{use_ns = UseNS, use_list = UseList} = Parser, Parsed) ->
+    {Rest0, Parser0, NameSpace} = namespace(Rest, Parser, []),
+    {NS, Name} = ephp_ns:split(NameSpace),
+    BaseNS = ephp_ns:join(UseNS, NS ++ [Name]),
+    case remove_spaces(Rest0, Parser0) of
+        {<<"{", Rest1/binary>>, #parser{use_ns = []} = Parser1} ->
+            use_list(Rest1, inc_pos(Parser1#parser{use_ns = BaseNS}), Parsed);
+        {<<"}", Rest1/binary>>, #parser{use_ns = UseNS} = Parser1}
+                when UseNS =/= [] ->
+            use_list(Rest1, inc_pos(Parser1#parser{use_ns = []}), Parsed);
+        %% TODO
+        % {<<$;, _/binary>>, Parser1} when UseNS =/= [] ->
+        %     throw_error(...);
+        % {<<$,, _/binary>>, #parser{use_ns = []} = Parser1} ->
+        %     throw_error(...);
+        {<<SEP:8, Rest1/binary>>, Parser1} when ?OR(SEP, $;, $,) ->
+            AliasNS = [lists:last(BaseNS)],
+            NewUseList = [{AliasNS, BaseNS}|UseList],
+            Parser2 = inc_pos(Parser1#parser{use_list = NewUseList}),
+            case SEP of
+                $; -> code(Rest1, Parser2, Parsed);
+                $, -> use_list(Rest1, Parser2, Parsed)
+            end;
+        {<<A:8,S:8,SP:8,Rest1/binary>>, Parser1} when
+                ?OR(A,$A,$a) andalso ?OR(S,$S,$s) andalso
+                (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
+            {Rest2, Parser2, AliasNS} = namespace(<<SP:8, Rest1/binary>>,
+                                                  add_pos(Parser1, 2), []),
+            NewUseList = [{AliasNS, BaseNS}|UseList],
+            code(Rest2, Parser2#parser{use_list = NewUseList}, Parsed)
+    end.
+
+namespace(<<SP:8, Rest/binary>>, Parser, []) when ?IS_SPACE(SP) ->
+    namespace(Rest, inc_pos(Parser), []);
+namespace(<<SP:8, Rest/binary>>, Parser, []) when ?IS_NEWLINE(SP) ->
+    namespace(Rest, new_line(Parser), []);
 namespace(<<"\\", Rest/binary>>, Parser, Parsed) ->
     namespace(Rest, inc_pos(Parser), [<<>>|Parsed]);
 namespace(<<A:8, _/binary>> = Rest, Parser, []) when
@@ -747,9 +857,8 @@ constant(Rest, Parser, Parsed) ->
 %% if after one or several spaces there are a parens, it's a function
 %% but if not, it should returns
 constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
-    {NS, Name} = ephp_ns:parse(C#constant.name),
-    Call = #call{name = Name, line = C#constant.line,
-                 namespace = ephp_ns:join(Parser#parser.namespace, NS)},
+    {NS, Name} = ephp_parser_func:get_ns(ephp_ns:parse(C#constant.name), Parser),
+    Call = #call{name = Name, line = C#constant.line, namespace = NS},
     ephp_parser_func:function(Rest, inc_pos(Parser), [Call]);
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),

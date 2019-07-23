@@ -270,22 +270,20 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
     {Rest1, Parser1, {NS, ObjName}} = case remove_spaces(<<SP:8,Rest/binary>>, Parser) of
         {<<"$", _/binary>> = Rest0, Parser0} ->
             {RestEx, ParserEx, Exp} = expression(Rest0, Parser0, []),
-            {RestEx, ParserEx, {[], Exp}};
+            {RestEx, ParserEx, {Parser#parser.namespace, Exp}};
         {<<A:8, _/binary>> = Rest0, Parser0} when
                 ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
             ephp_parser_func:funct_name(Rest0, Parser0, [])
     end,
-    Namespace = ephp_ns:join(Parser#parser.namespace, NS),
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->
             {Rest3, Parser3, Args} =
                 ephp_parser_func:call_args(Rest2, Parser2, []),
             add_line(#instance{name = ObjName,
-                               namespace = Namespace,
+                               namespace = NS,
                                args = Args}, Parser);
         {Rest3, Parser3} ->
-            add_line(#instance{name = ObjName,
-                               namespace = Namespace}, Parser)
+            add_line(#instance{name = ObjName, namespace = NS}, Parser)
     end,
     expression(Rest3, copy_rowcol(Parser3, Parser), add_op(Instance,Parsed));
 % CLONE ...

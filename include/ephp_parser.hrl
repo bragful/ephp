@@ -136,5 +136,9 @@
     %% - only_statement: only statement namespaces.
     namespace_can_be = true :: boolean() |
                                only_block |
-                               only_statement
+                               only_statement,
+    use_list = [] :: [{namespace(), namespace()}],
+    use_ns = [] :: namespace(),
+    use_func_list = [] :: [{function_name(), namespace()}],
+    use_const_list = [] :: [{binary(), namespace()}]
 }).
