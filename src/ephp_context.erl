@@ -694,14 +694,16 @@ resolve({pre_incr, Var, _Line}, #state{ref = Ref} = State) ->
 
 resolve({pre_decr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath, Ref) of
-        undefined ->
-            {undefined, State};
-        V when is_number(V) ->
-            ephp_vars:set(State#state.vars, VarPath, V-1, Ref),
-            {V-1, State};
-        V ->
-            {V, State}
+    OldValue = ephp_vars:get(State#state.vars, VarPath, Ref),
+    case decrement(OldValue) of
+        {_, OldValue} ->
+            {OldValue, State};
+        {_, NewValue} when ?IS_MEM(NewValue) ->
+            ephp_mem:set(OldValue, NewValue),
+            {NewValue, State};
+        {_, NewValue} ->
+            ephp_vars:set(State#state.vars, VarPath, NewValue, Ref),
+            {NewValue, State}
     end;
 
 resolve({post_incr, Var, _Line}, #state{ref = Ref} = State) ->
@@ -716,14 +718,16 @@ resolve({post_incr, Var, _Line}, #state{ref = Ref} = State) ->
 
 resolve({post_decr, Var, _Line}, #state{ref = Ref} = State) ->
     VarPath = get_var_path(Var, State),
-    case ephp_vars:get(State#state.vars, VarPath, Ref) of
-        undefined ->
-            {undefined, State};
-        V when is_number(V) ->
-            ephp_vars:set(State#state.vars, VarPath, V-1, Ref),
-            {V, State};
-        V ->
-            {V, State}
+    CurValue = ephp_vars:get(State#state.vars, VarPath, Ref),
+    case decrement(CurValue) of
+        {CurValue, CurValue} ->
+            {CurValue, State};
+        {OldValue, NewValue} when ?IS_MEM(NewValue) ->
+            ephp_mem:set(CurValue, NewValue),
+            {OldValue, State};
+        {OldValue, NewValue} ->
+            ephp_vars:set(State#state.vars, VarPath, NewValue, Ref),
+            {OldValue, State}
     end;
 
 resolve({operation_minus, Expr, Line}, #state{ref = Ctx} = State) ->
@@ -1088,6 +1092,11 @@ resolve(#clone{var = Var, line = Line}, State) ->
 resolve(Unknown, _State) ->
     ephp_error:error({error, eundeftoken, undefined, ?E_CORE_ERROR, Unknown}).
 
+
+decrement(undefined) -> {undefined, undefined};
+decrement(Value) when is_number(Value) -> {Value, Value - 1};
+decrement(Value) when ?IS_MEM(Value) -> decrement(ephp_mem:get(Value));
+decrement(Value) -> {Value, Value}.
 
 increment(undefined) -> {undefined, undefined};
 increment(Value) when is_number(Value) -> {Value, Value + 1};
