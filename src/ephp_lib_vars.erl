@@ -107,18 +107,12 @@ var_dump(Context, Line, {_, Value}) ->
     RecCtl = gb_sets:new(),
     Result = case var_dump_fmt(Context, Line, Value, <<?SPACES_VD>>, RecCtl) of
         Elements when is_list(Elements) ->
-            Data = iolist_to_binary(Elements),
             case Value of
                 Value when ?IS_ARRAY(Value) ->
-                    Size = ephp_data:to_bin(ephp_array:size(Value)),
-                    <<"array(", Size/binary, ") {\n", Data/binary, "}\n">>;
-                #obj_ref{pid = Objects, ref = ObjectId} ->
-                    #ephp_object{class = #class{name = ClassName, attrs = Attrs}} =
-                        ephp_object:get(Objects, ObjectId),
-                    Size = ephp_data:to_bin(length(Attrs)),
-                    ID = integer_to_binary(ObjectId),
-                    <<"object(", (ClassName)/binary, ")#", ID/binary,
-                      " (", Size/binary, ") {\n", Data/binary, "}\n">>
+                    iolist_to_binary(var_dump_array(<<>>, Context, Line, Value,
+                                                    Elements, <<>>));
+                Value when ?IS_OBJECT(Value) ->
+                    iolist_to_binary(var_dump_object(<<>>, Value, Elements, <<>>))
             end;
         Element ->
             Element
@@ -306,7 +300,8 @@ var_dump_fmt(Context, Line, ObjRef, Spaces, RecCtl) when ?IS_OBJECT(ObjRef) ->
         Name = <<"lambda_", Id/binary>>,
         var_dump_fmt(Context, Line, Name, Spaces, RecCtl);
     #ephp_object{class = Class, context = Ctx} ->
-        #class{name = ClassName} = Class,
+        #class{name = ClassName, attrs = Attrs} = Class,
+        VisAttrs = [ Attr || Attr = #class_attr{type = normal} <- Attrs ],
         lists:foldl(fun(#class_attr{name = RawName, access = Access} = CA, Output) ->
             Variable = case Access of
                 private ->
@@ -332,30 +327,16 @@ var_dump_fmt(Context, Line, ObjRef, Spaces, RecCtl) when ?IS_OBJECT(ObjRef) ->
             end,
             Output ++ if
                 is_list(ValDumped) andalso ?IS_ARRAY(Value) ->
-                    Elements = ephp_data:to_bin(Context, Line,
-                                                ephp_array:size(Value)),
-                    [<<Spaces/binary, "[", CompleteName/binary, "]=>\n",
-                       Spaces/binary,"array(", Elements/binary, ") {\n",
-                       (iolist_to_binary(ValDumped))/binary, Spaces/binary,
-                       "}\n">>];
+                    Prefix = <<Spaces/binary, "[", CompleteName/binary, "]=>\n">>,
+                    var_dump_array(Prefix, Context, Line, Value, ValDumped, Spaces);
                 is_list(ValDumped) andalso ?IS_OBJECT(Value) ->
-                    #ephp_object{class=#class{attrs = Attrs}} = Object =
-                        ephp_object:get(Value),
-                    Size = ephp_data:to_bin(length(Attrs)),
-                    #ephp_object{id = InstanceID, class = SClass} = Object,
-                    ID = integer_to_binary(InstanceID),
-                    [
-                        <<Spaces/binary, "[", CompleteName/binary, "]=>\n",
-                          Spaces/binary, "object(", (SClass#class.name)/binary,
-                          ")#", ID/binary, " (", Size/binary, ") {\n">>
-                    ] ++ ValDumped ++ [
-                        <<Spaces/binary, "}\n">>
-                    ];
+                    Prefix = <<Spaces/binary, "[", CompleteName/binary, "]=>\n">>,
+                    var_dump_object(Prefix, Value, ValDumped, Spaces);
                 true ->
                     [<<Spaces/binary, "[", CompleteName/binary, "]=>\n",
                        Spaces/binary, ValDumped/binary>>]
             end
-        end, [], Class#class.attrs);
+        end, [], VisAttrs);
     undefined ->
         <<"NULL\n">>
     end;
@@ -384,34 +365,32 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                 ];
             V when is_list(V) andalso ?IS_MEM(Val) ->
                 {#ephp_array{} = Data, 1} = ephp_mem:get_with_links(Val),
-                Size = ephp_array:size(Data),
-                Elements = ephp_data:to_bin(Context, Line, Size),
-                [<<Spaces/binary, "[", KeyBin/binary, "]=>\n",
-                   Spaces/binary,"array(", Elements/binary, ") {\n",
-                   (iolist_to_binary(V))/binary, Spaces/binary,
-                   "}\n">>];
+                Prefix = <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
+                var_dump_array(Prefix, Context, Line, Data, V, Spaces);
             V when is_list(V) andalso ?IS_ARRAY(Val) ->
-                Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Val)),
-                [
-                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
-                      Spaces/binary,"array(", Elements/binary, ") {\n",
-                      (iolist_to_binary(V))/binary, Spaces/binary,
-                      "}\n">>];
+                Prefix = <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
+                var_dump_array(Prefix, Context, Line, Val, V, Spaces);
             V when is_list(V) andalso ?IS_OBJECT(Val) ->
-                #ephp_object{id = InstanceID,
-                             class = Class
-                                   = #class{attrs=Attrs}} = ephp_object:get(Val),
-                Size = ephp_data:to_bin(length(Attrs)),
-                ID = integer_to_binary(InstanceID),
-                [
-                    <<Spaces/binary, "[", KeyBin/binary, "]=>\n",
-                      Spaces/binary, "object(", (Class#class.name)/binary, ")#",
-                      ID/binary, " (", Size/binary, ") {\n">>
-                ] ++ V ++ [
-                    <<Spaces/binary, "}\n">>
-                ]
+                Prefix = <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
+                var_dump_object(Prefix, Val, V, Spaces)
         end
     end, [], Value).
+
+var_dump_array(Prefix, Context, Line, Value, SubValues, Spaces) ->
+    Elements = ephp_data:to_bin(Context, Line, ephp_array:size(Value)),
+    [<<Prefix/binary, Spaces/binary,"array(", Elements/binary, ") {\n",
+       (iolist_to_binary(SubValues))/binary, Spaces/binary, "}\n">>].
+
+var_dump_object(Prefix, Value, SubValues, Spaces) ->
+    #ephp_object{id = InstanceID, class = Class} = ephp_object:get(Value),
+    #class{attrs = Attrs} = Class,
+    VisAttrs = [ Attr || Attr = #class_attr{type = normal} <- Attrs ],
+    Size = ephp_data:to_bin(length(VisAttrs)),
+    ID = integer_to_binary(InstanceID),
+    [<<Prefix/binary, Spaces/binary, "object(", (Class#class.name)/binary,
+       ")#", ID/binary, " (", Size/binary, ") {\n">>] ++
+    SubValues ++
+    [<<Spaces/binary, "}\n">>].
 
 print_r_fmt(Context, #var_ref{pid = VarPID, ref = VarRef}, Spaces, RecCtl) ->
     case gb_sets:is_member(VarRef, RecCtl) of
