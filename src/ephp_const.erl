@@ -13,6 +13,7 @@
     get/4,
     get/5,
     get/6,
+    get_ns/1,
     set/3,
     set/4,
     set/5,
@@ -66,6 +67,18 @@ get(Ref, NS, ClassName, Name, Line, Context) ->
             ephp_error:error({error, enoconst, Line, ?E_ERROR, {NS, Name}});
         error ->
             false
+    end.
+
+get_ns(RawConstName) ->
+    case binary:split(RawConstName, <<"::">>) of
+        [RawClassName, ConstName] ->
+            {ClassNS, ClassName} = ephp_ns:parse(RawClassName),
+            NS = ephp_ns:normalize(ClassNS),
+            {NS, ClassName, ConstName};
+        [RawConstName] ->
+            {ConstNS, ConstName} = ephp_ns:parse(RawConstName),
+            NS = ephp_ns:normalize(ConstNS),
+            {NS, undefined, ConstName}
     end.
 
 set_bulk(Ref, Values) ->

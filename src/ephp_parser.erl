@@ -590,11 +590,18 @@ code_block(Rest, Parser, Parsed) ->
     code(Rest, code_statement_level(Parser), Parsed).
 
 get_ns([], #parser{namespace = BaseNS}) -> BaseNS;
-get_ns(NS, #parser{use_list = UseList, namespace = BaseNS}) ->
-    FullNS = ephp_ns:join(BaseNS, NS),
-    case lists:keyfind(FullNS, 1, UseList) of
-        {NS, RealNS} -> RealNS;
-        false -> FullNS
+get_ns([<<>>], _Parser) -> [];
+get_ns([FirstName|RestNames] = NS,
+       #parser{use_list = UseList, namespace = BaseNS}) ->
+    case ephp_string:to_lower(FirstName) of
+        <<"namespace">> ->
+            ephp_ns:join(BaseNS, RestNames);
+        _ ->
+            FullNS = ephp_ns:join(BaseNS, NS),
+            case lists:keyfind(FullNS, 1, UseList) of
+                {NS, RealNS} -> RealNS;
+                false -> FullNS
+        end
     end.
 
 use_const(Rest, #parser{use_const_list = ConstList,
@@ -863,17 +870,27 @@ constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
     {Rest1, Parser1, [Var]} = variable(<<"$", Rest/binary>>, NewParser, []),
-    {NS, RealClassName} = ephp_ns:parse(C#constant.name),
+    {RawNS, RealClassName} = ephp_ns:parse(C#constant.name),
+    NS = ephp_parser:get_ns(RawNS, Parser),
     NewVar = Var#variable{type = class, class = RealClassName, class_ns = NS},
     {Rest1, copy_rowcol(Parser1, Parser), [NewVar]};
 constant_wait(<<"::",Rest/binary>>, Parser, [#constant{} = Cons]) ->
     case constant(Rest, add_pos(Parser, 2), []) of
         {Rest1, Parser1, [#constant{name = <<"class">>}]} ->
+            %% syntax: MyClass::class
             {Rest1, Parser1, [add_line(#text{text = Cons#constant.name}, Parser)]};
         {Rest1, Parser1, [#constant{} = C]} ->
-            {Rest1, Parser1, [C#constant{type=class, class = Cons#constant.name}]};
+            {RawConsNS, ConstName} = ephp_ns:parse(Cons#constant.name),
+            ConsNS = ephp_parser:get_ns(RawConsNS, Parser),
+            {Rest1, Parser1, [C#constant{type = class,
+                                         class = ConstName,
+                                         namespace = ConsNS}]};
         {Rest1, Parser1, [#call{} = C]} ->
-            {Rest1, Parser1, [C#call{type = class, class = Cons#constant.name}]}
+            {RawConsNS, ConstName} = ephp_ns:parse(Cons#constant.name),
+            ConsNS = ephp_parser:get_ns(RawConsNS, Parser),
+            {Rest1, Parser1, [C#call{type = class,
+                                     class = ConstName,
+                                     namespace = ConsNS}]}
     end;
 constant_wait(<<SP:8,Rest/binary>>, Parser, [#constant{}] = Parsed)
         when ?IS_SPACE(SP) ->
@@ -889,15 +906,15 @@ constant_known([#constant{name = <<"__LINE__">>}|Parsed],
     [add_line(#int{int = R}, Parser)|Parsed];
 constant_known([#constant{name = <<"__NAMESPACE__">>}|Parsed],
                #parser{namespace = NS} = Parser) ->
-    [add_line(#text{text = ephp_string:join(NS, <<"\\">>)}, Parser)|Parsed];
+    [add_line(#text{text = ephp_ns:to_bin(NS)}, Parser)|Parsed];
 constant_known([#constant{name = <<"exit">>}|Parsed], Parser) ->
     [add_line(#call{name = <<"exit">>}, Parser)|Parsed];
 constant_known([#constant{name = RawName} = C|Parsed], Parser) ->
-    {NS, Name} = ephp_ns:parse(RawName),
+    {RawNS, Name} = ephp_ns:parse(RawName),
+    NS = ephp_parser:get_ns(RawNS, Parser),
     case lists:member(C#constant.name, ephp_const:special_consts()) of
         true -> [C|Parsed];
-        false -> [C#constant{namespace = ephp_ns:join(Parser#parser.namespace, NS),
-                             name = Name}|Parsed]
+        false -> [C#constant{namespace = NS, name = Name}|Parsed]
     end.
 
 st_global(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->

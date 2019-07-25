@@ -234,7 +234,7 @@ st_class_content(<<C:8,O:8,N:8,S:8,T:8, SP:8, Rest/binary>>,
     {Rest0, Parser0, #assign{variable = #constant{} = Cons, expression = Value}} =
         ephp_parser_expr:expression(<<SP:8, Rest/binary>>, add_pos(Parser, 5), []),
     Constant = #class_const{name = Cons#constant.name, value = Value},
-    NewClass = Class#class{constants=Constants ++ [Constant]},
+    NewClass = Class#class{constants = Constants ++ [Constant]},
     st_class_content(Rest0, normal_public_level(Parser0), NewClass);
 st_class_content(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8, SP:8, Rest/binary>>,
                  Parser, Class) when

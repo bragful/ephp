@@ -242,7 +242,7 @@ register_class(Ref, File, GlobalCtx,
                               {Class, Method}})
     end,
     Consts = ephp_context:get_consts(GlobalCtx),
-    ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
+    ephp_const:set_bulk(Consts, NS, Name, tr_consts(ConstDef, GlobalCtx)),
     {ok, Ctx} = ephp_context:generate_subcontext(GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,

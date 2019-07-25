@@ -83,16 +83,8 @@ handle_error(_Type, _Level, _Data) ->
 -spec constant(context(), line(), Name :: var_value()) -> mixed().
 
 constant(Context, Line, {_, ConstantName}) ->
-    case binary:split(ConstantName, <<"::">>) of
-        [RawClassName, ConstName] ->
-            {ClassNS, ClassName} = ephp_ns:parse(RawClassName),
-            NS = ephp_ns:normalize(ClassNS),
-            ephp_context:get_const(Context, NS, ClassName, ConstName, Line);
-        [RawConstName] ->
-            {ConstNS, ConstName} = ephp_ns:parse(RawConstName),
-            NS = ephp_ns:normalize(ConstNS),
-            ephp_context:get_const(Context, NS, ConstName, Line)
-    end.
+    {NS, ClassName, ConstName} = ephp_const:get_ns(ConstantName),
+    ephp_context:get_const(Context, NS, ClassName, ConstName, Line).
 
 
 -spec uniqid(context(), line(), var_value(), var_value()) -> binary().
