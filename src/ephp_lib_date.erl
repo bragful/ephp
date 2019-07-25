@@ -86,8 +86,10 @@ microtime(Context, Line) ->
 -spec date(context(), line(), Format :: {variable(),binary()}) -> binary().
 
 date(Context, Line, {_,Format}) ->
-    {MS,S,US} = ephp_datetime:timestamp(),
-    date(Context, Line, {"", Format}, {"", (MS * 1000000) + S + (US / 1000000)}).
+    {MS, S, US} = ephp_datetime:timestamp(),
+    date(Context, Line,
+         {undefined, Format},
+         {undefined, (MS * 1000000) + S + (US / 1000000)}).
 
 -spec date(
     context(), line(),
@@ -100,21 +102,22 @@ date(Context, Line, {_,Format}, {_,Timestamp}) ->
     Date = ephp_datetime:to_zone({M,S,U}, TZ),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
--spec gmdate(context(), line(), Format :: {variable(),binary()}) -> binary().
+-spec gmdate(context(), line(), Format :: var_value()) -> binary().
 
-gmdate(Context, Line, {_,Format}) ->
+gmdate(Context, Line, {_, Format}) ->
     {MS,S,US} = ephp_datetime:timestamp(),
-    gmdate(Context, Line, Format, (MS * 1000000) + S + (US / 1000000)).
+    gmdate(Context, Line,
+           {undefined, Format},
+           {undefined, (MS * 1000000) + S + (US / 1000000)}).
 
--spec gmdate(
-    context(), line(),
-    Format :: {variable(),binary()},
-    Timestamp :: integer() | float()) -> binary().
+-spec gmdate(context(), line(),
+             Format :: var_value(),
+             Timestamp :: var_value()) -> binary().
 
-gmdate(_Context, _Line, Format, Timestamp) ->
-    {M,S,U} = ephp_datetime:get_timestamp(Timestamp),
+gmdate(_Context, _Line, {_, Format}, {_, Timestamp}) ->
+    {M, S, U} = ephp_datetime:get_timestamp(Timestamp),
     TZ = <<"GMT">>,
-    Date = calendar:now_to_universal_time({M,S,U}),
+    Date = calendar:now_to_universal_time({M, S, U}),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
 -spec date_default_timezone_get(context(), line()) -> binary().
@@ -122,11 +125,10 @@ gmdate(_Context, _Line, Format, Timestamp) ->
 date_default_timezone_get(Context, Line) ->
     ephp_datetime:get_tz(Context, Line).
 
--spec date_default_timezone_set(
-    context(), line(),
-    TZ :: {variable(),binary()}) -> binary().
+-spec date_default_timezone_set(context(), line(),
+                                TZ :: var_value()) -> undefined.
 
-date_default_timezone_set(Context, Line, {_,TZ}) ->
+date_default_timezone_set(Context, Line, {_, TZ}) ->
     case ephp_datetime:set_tz(TZ) of
         true ->
             undefined;

@@ -76,6 +76,8 @@
 -define(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1).
 -define(DEBUG_BACKTRACE_IGNORE_ARGS, 2).
 
+-type errorlevel() :: pos_integer().
+
 -define(PHP_DEFAULT_TIMEZONE, <<"UTC">>).
 
 -define(SORT_REGULAR, 0).
@@ -99,11 +101,13 @@
 
 -type ephp_array() :: #ephp_array{}.
 
+-type php_float() :: float() | nan | infinity.
+
 -type mixed() ::
-    integer() | float() | binary() | boolean() | ephp_array() |
+    integer() | php_float() | binary() | boolean() | ephp_array() |
     obj_ref() | mem_ref() | var_ref() | undefined.
 
--type var_value() :: {variable(), mixed()}.
+-type var_value() :: {variable() | constant() | text() | text_to_process() | mixed(), mixed()}.
 
 -type context() :: reference().
 
@@ -146,7 +150,7 @@
 }).
 
 -record(for, {
-    init :: expression(),
+    init :: [expression()],
     conditions :: condition(),
     update :: expression(),
     loop_block :: statements(),
@@ -161,7 +165,7 @@
 }).
 
 -record(foreach, {
-    kiter :: variable(),
+    kiter :: variable() | undefined,
     iter :: variable(),
     elements :: variable(),
     loop_block :: statements(),
@@ -191,7 +195,7 @@
 
 -record(operation, {
     type :: binary() | atom(),
-    expression_left :: variable(),
+    expression_left :: expression(),
     expression_right :: expression(),
     line :: line()
 }).
@@ -256,10 +260,14 @@
     line :: line()
 }).
 
+-type text() :: #text{}.
+
 -record(text_to_process, {
     text :: [expression() | variable() | binary()],
     line :: line()
 }).
+
+-type text_to_process() :: #text_to_process{}.
 
 -record(command, {
     text :: [expression() | variable() | binary()],
@@ -316,7 +324,7 @@
 % statements
 
 -record(assign, {
-    variable :: variable(),
+    variable :: variable() | constant(),
     expression :: expression(),
     line :: line()
 }).
@@ -454,19 +462,19 @@
 -type class_type() :: normal | static | abstract | interface.
 
 -record(class, {
-    name :: class_name(),
+    name :: class_name() | undefined,
     namespace = [] :: namespace(),
     type = normal :: class_type(),
     final = false :: boolean(),
     parents = [] :: [class_name()],
-    extends :: undefined | class_name(),
+    extends :: class_name() | undefined,
     extends_ns = [] :: namespace(),
     implements = [] :: [class_name()],
     constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     file :: binary() | undefined,
-    line :: line(),
+    line :: line() | undefined,
     static_context :: context() | undefined
 }).
 

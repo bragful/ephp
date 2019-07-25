@@ -38,4 +38,4 @@ handle_error(_Error, _Level, _Data) ->
 
 shell_exec(_Context, _Line, {_, Command}) ->
     %% TODO: give more security to this and ensure it's not disabled
-    ephp_data:to_bin(os:cmd(binary_to_list(ephp_data:to_bin(Command)))).
+    iolist_to_binary(os:cmd(binary_to_list(ephp_data:to_bin(Command)))).

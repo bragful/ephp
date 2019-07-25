@@ -162,7 +162,7 @@ php_abs(_Context, _Line, {_, String}) when is_binary(String) ->
 php_abs(_Context, _Line, _NotANumber) ->
     false.
 
--spec php_acos(context(), line(), number()) -> float().
+-spec php_acos(context(), line(), {any(), number()}) -> php_float().
 
 php_acos(_Context, _Line, {_, Number}) ->
     case catch math:acos(Number) of
@@ -170,37 +170,39 @@ php_acos(_Context, _Line, {_, Number}) ->
         Res when is_float(Res) -> Res
     end.
 
--spec php_acosh(context(), line(), number()) -> float().
+-spec php_acosh(context(), line(), {any(), number()}) -> float().
 
 php_acosh(_Context, _Line, {_Var, Number}) ->
     math:acosh(Number).
 
--spec php_asin(context(), line(), number()) -> float().
+-spec php_asin(context(), line(), {any(), number()}) -> float().
 
 php_asin(_Context, _Line, {_, Number}) ->
     math:asin(Number).
 
--spec php_asinh(context(), line(), number()) -> float().
+-spec php_asinh(context(), line(), {any(), number()}) -> float().
 
 php_asinh(_Context, _Line, {_, Number}) ->
     math:asinh(Number).
 
--spec php_atan(context(), line(), number()) -> float().
+-spec php_atan(context(), line(), {any(), number()}) -> float().
 
 php_atan(_Context, _Line, {_, Number}) ->
     math:atan(Number).
 
--spec php_atanh(context(), line(), number()) -> float().
+-spec php_atanh(context(), line(), {any(), number()}) -> float().
 
 php_atanh(_Context, _Line, {_, Number}) ->
     % math:atanh(Number); % FIXME: the implementation is not reliable
     1 / 2 * math:log((1 + Number) / (1 - Number)).
 
--spec php_atan2(context(), line(), number(), number()) -> float().
+-spec php_atan2(context(), line(), {any(), number()}, {any(), number()}) -> float().
 
 php_atan2(_Context, _Line, {_, Number1}, {_, Number2}) ->
     math:atan2(Number1, Number2).
 
+-spec filter_bin(binary(), binary()) -> binary().
+%@hidden
 filter_bin(<<>>, B) ->
     B;
 filter_bin(<<A:8,Rest/binary>>, B) when A =:= $0 orelse A =:= $1 ->
@@ -208,7 +210,7 @@ filter_bin(<<A:8,Rest/binary>>, B) when A =:= $0 orelse A =:= $1 ->
 filter_bin(<<_/utf8,Rest/binary>>, B) ->
     filter_bin(Rest, B).
 
--spec bindec(context(), line(), var_value()) -> float().
+-spec bindec(context(), line(), var_value()) -> integer().
 
 bindec(_Context, _Line, {_, String}) when is_binary(String) ->
     Filtered = filter_bin(String, <<"0">>),
@@ -230,37 +232,37 @@ bindec(_Context, Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
 bindec(Context, Line, {Var, Other}) ->
     bindec(Context, Line, {Var, ephp_data:to_bin(Other)}).
 
--spec php_cos(context(), line(), number()) -> float().
+-spec php_cos(context(), line(), {any(), number()}) -> float().
 
 php_cos(_Context, _Line, {_, Number}) ->
     math:cos(Number).
 
--spec php_cosh(context(), line(), number()) -> float().
+-spec php_cosh(context(), line(), {any(), number()}) -> float().
 
 php_cosh(_Context, _Line, {_Var, Number}) ->
     math:cosh(Number).
 
--spec php_sin(context(), line(), number()) -> float().
+-spec php_sin(context(), line(), {any(), number()}) -> float().
 
 php_sin(_Context, _Line, {_, Number}) ->
     math:sin(Number).
 
--spec php_sinh(context(), line(), number()) -> float().
+-spec php_sinh(context(), line(), {any(), number()}) -> float().
 
 php_sinh(_Context, _Line, {_, Number}) ->
     math:sinh(Number).
 
--spec php_tan(context(), line(), number()) -> float().
+-spec php_tan(context(), line(), {any(), number()}) -> float().
 
 php_tan(_Context, _Line, {_, Number}) ->
     math:tan(Number).
 
--spec php_tanh(context(), line(), number()) -> float().
+-spec php_tanh(context(), line(), {any(), number()}) -> float().
 
 php_tanh(_Context, _Line, {_, Number}) ->
     math:tanh(Number).
 
--spec get_pow_value(context(), line(), ephp_object()) -> integer().
+-spec get_pow_value(context(), line(), mixed()) -> number().
 
 get_pow_value(Context, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),

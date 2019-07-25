@@ -92,7 +92,7 @@ remove_exception_handler_func(Context) ->
     erlang:put(ErrorsId, State#state{exception_handler = undefined}),
     ok.
 
--spec set_error_handler_func(context(), callable(), non_neg_integer()) -> ok.
+-spec set_error_handler_func(context(), callable(), errorlevel()) -> ok.
 
 set_error_handler_func(Context, Callable, ErrorLevel) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -101,7 +101,7 @@ set_error_handler_func(Context, Callable, ErrorLevel) ->
     erlang:put(ErrorsId, State#state{error_handler = ErrorHandlers}),
     ok.
 
--spec get_error_handler_func(context()) -> callable() | undefined.
+-spec get_error_handler_func(context()) -> {callable(), errorlevel()} | undefined.
 
 get_error_handler_func(Context) ->
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),

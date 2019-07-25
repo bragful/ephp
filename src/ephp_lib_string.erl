@@ -136,13 +136,13 @@ chr(_Context, _Line, _Var) ->
 -spec implode(context(), line(),
     Glue :: var_value(), Pieces :: var_value()) -> binary().
 %% @doc join the array with the glue passed as a param.
-implode(Context, Line, {_,Glue}=VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
+implode(Context, Line, {_, Glue} = VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
     File = ephp_context:get_active_file(Context),
     Error = {error, earrayconv, Line, File, ?E_NOTICE, {<<"string">>}},
     ephp_error:handle_error(Context, Error),
     implode(Context, Line, {undefined, <<"Array">>}, VarGlue);
 
-implode(Context, Line, {_,RawGlue}, {_,Pieces}) ->
+implode(Context, Line, {_, RawGlue}, {_, Pieces}) when ?IS_ARRAY(Pieces) ->
     Glue = ephp_data:to_bin(Context, Line, RawGlue),
     ListOfPieces = ephp_array:fold(fun(_Key, Piece, SetOfPieces) ->
         SetOfPieces ++ [ephp_data:to_bin(Context, Line, Piece)]

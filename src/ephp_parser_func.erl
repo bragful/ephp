@@ -100,6 +100,7 @@ st_use_or_block(<<U:8,S:8,E:8,SP:8,Rest/binary>>, Parser, Function) when
     {Rest0, Parser0, Use} = st_use(Rest, Parser, []),
     st_use_or_block(Rest0, Parser0, Function#function{use=Use}).
 
+-spec st_function(binary(), parser(), []) -> {binary(), parser(), [#function{}]}.
 st_function(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_function(Rest, inc_pos(Parser), Parsed);
 st_function(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->

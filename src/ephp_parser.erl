@@ -433,10 +433,12 @@ code(<<P:8,R:8,I:8,N:8,T:8,SP:8,Rest/binary>>, Parser, Parsed)
 code(<<C:8,O:8,N:8,S:8,T:8,SP:8,Rest/binary>>, Parser, Parsed)
         when ?OR(C,$c,$C) andalso ?OR(O,$o,$O) andalso ?OR(N,$n,$N)
         andalso ?OR(S,$s,$S) andalso ?OR(T,$t,$T) andalso ?IS_SPACE(SP) ->
-    {Rest0, Parser0, #assign{variable = #constant{} = Const, expression = Value}} =
-        expression(Rest, add_pos(Parser, 6), []),
-    Constant = Const#constant{type = define, value = Value},
-    code(Rest0, copy_rowcol(Parser0, Parser), [Constant|Parsed]);
+    case expression(Rest, add_pos(Parser, 6), []) of 
+        {Rest0, Parser0, #assign{variable = #constant{} = Const, expression = Value}} ->
+            Constant = Const#constant{type = define, value = Value},
+            code(Rest0, copy_rowcol(Parser0, Parser), [Constant|Parsed]);
+        {_, _, _} -> throw_error(eparse, Parser, Rest)
+    end;
 code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
@@ -448,7 +450,7 @@ code(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>, Parser, Parsed) when
         ?OR(F,$F,$f) andalso ?OR(U,$U,$u) andalso ?OR(N,$N,$n) andalso
         ?OR(C,$C,$c) andalso ?OR(T,$T,$t) andalso ?OR(I,$I,$i) andalso
         ?OR(O,$O,$o) andalso ?IS_NEWLINE(SP) ->
-    {Rest0, Parser0, #function{} = Function} =
+    {Rest0, Parser0, [#function{} = Function]} =
         ephp_parser_func:st_function(Rest, new_line(Parser), []),
     code(Rest0, copy_rowcol(Parser0, Parser), Parsed ++ [Function]);
 code(<<"?>\n",Rest/binary>>, #parser{level = code_value} = Parser, [Parsed]) ->
@@ -611,7 +613,7 @@ use_const(Rest, #parser{use_const_list = ConstList,
     BaseNS = ephp_ns:join(UseNS, NS),
     case remove_spaces(Rest0, Parser0) of
         {<<"{", Rest1/binary>>, #parser{use_ns = []} = Parser1} ->
-            RealBaseNS = ephp_ns:join(BaseNS, BaseName),
+            RealBaseNS = ephp_ns:join(BaseNS, [BaseName]),
             use_const(Rest1, inc_pos(Parser1#parser{use_ns = RealBaseNS}), Parsed);
         {<<"}", Rest1/binary>>, #parser{use_ns = UseNS} = Parser1}
                 when UseNS =/= [] ->
@@ -637,7 +639,7 @@ use_function(Rest, #parser{use_func_list = FuncList,
     BaseNS = ephp_ns:join(UseNS, NS),
     case remove_spaces(Rest0, Parser0) of
         {<<"{", Rest1/binary>>, #parser{use_ns = []} = Parser1} ->
-            RealBaseNS = ephp_ns:join(BaseNS, BaseName),
+            RealBaseNS = ephp_ns:join(BaseNS, [BaseName]),
             use_function(Rest1, inc_pos(Parser1#parser{use_ns = RealBaseNS}), Parsed);
         {<<"}", Rest1/binary>>, #parser{use_ns = UseNS} = Parser1}
                 when UseNS =/= [] ->
@@ -964,6 +966,8 @@ st_do_while(Rest, Parser, Parsed) ->
                                    loop_block = CodeBlock}, Parser),
     {Rest2, copy_rowcol(Parser2, Parser), [DoWhile|Parsed]}.
 
+-spec st_if(binary(), parser(), [if_block()]) -> {binary(), parser(), [if_block()]}.
+
 st_if(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_if(Rest, inc_pos(Parser), Parsed);
 st_if(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
@@ -1046,7 +1050,7 @@ st_foreach(<<"(",Rest/binary>>, Parser, Parsed) ->
             RawFor;
         #variable{} ->
             RawFor;
-        [KIter,Iter] ->
+        [KIter, Iter] ->
             RawFor#foreach{kiter = KIter, iter = Iter}
     end,
     {Rest3, copy_rowcol(Parser3, Parser), [For|Parsed]}.
@@ -1258,6 +1262,8 @@ get_print(Value, Parser) when is_atom(Value) ->
     add_line(#print_text{text = ephp_data:to_bin(Value)}, Parser);
 get_print(Expr, Parser) ->
     add_line(#print{expression = Expr}, Parser).
+
+-spec throw_error(atom(), parser(), errorlevel(), any()) -> no_return().
 
 throw_error(Error, #parser{row = Row, col = Col}, ErrorLevel, Data) ->
     Index = {{line, Row}, {column, Col}},

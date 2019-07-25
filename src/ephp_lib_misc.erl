@@ -100,15 +100,16 @@ uniqid(_Context, _Line, {_, Prefix}, {_, Extended}) ->
     <<Prefix/binary, Str/binary, Rand/binary>>.
 
 
--spec define(context(), line(), Constant :: var_value(),
-    Content :: var_value()) -> boolean().
+-spec define(context(), line(),
+             Constant :: var_value(),
+             Content :: var_value()) -> true.
 
-define(Context, _Line, {#text{},Constant}, {_,Content}) ->
+define(Context, _Line, {#text{}, Constant}, {_,Content}) ->
     ephp_context:register_const(Context, Constant, Content),
     true;
 
-define(Context, _Line, {#constant{name=Constant},_},
-        {_UnParsedContent,Content}) ->
+define(Context, _Line, {#constant{name = Constant}, _},
+       {_UnParsedContent, Content}) ->
     ephp_context:register_const(Context, Constant, Content),
     true.
 

@@ -65,7 +65,7 @@ init_const() ->
                    Replacement :: var_value(),
                    Subject :: var_value(),
                    Limit :: var_value(),
-                   Count :: var_value()) -> binary() | ephp_array() | undefined.
+                   Count :: var_value()) -> binary().
 
 %% TODO: check when Pattern, Replacement and Subject are arrays
 preg_replace(_Context, _Line, {_, Pattern}, {_, Replacement}, {_, Subject},
@@ -76,7 +76,8 @@ preg_replace(_Context, _Line, {_, Pattern}, {_, Replacement}, {_, Subject},
         _ -> [{match_limit, Limit}|Flags]
     end,
     Replace = parse_replace(Replacement),
-    re:replace(Subject, RegExp, Replace, [{return, binary}|PMFlags]).
+    S = re:replace(Subject, RegExp, Replace, [{return, binary}|PMFlags]),
+    iolist_to_binary(S).
 
 -spec preg_match(
     context(), line(),

@@ -5,7 +5,7 @@
 -include("ephp.hrl").
 
 % init_conf
--type php_config_results() :: [{config_section(), [config_param()]}].
+-type php_config_results() :: [{config_section(), config_param()}].
 -type config_section() :: binary().
 -type config_param() :: mixed().
 
@@ -56,6 +56,8 @@
     php_function_results/0,
     php_function_opts/0,
     php_function_opt/0,
+
+    php_const_results/0,
 
     config_section/0,
     config_param/0,

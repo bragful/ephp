@@ -122,7 +122,7 @@
                          abstract.
 
 -record(parser, {
-    level = root :: parser_levels(),
+    level = root :: parser_levels() | pos_integer(),
     row = 1 :: pos_integer(),
     col = 1 :: pos_integer(),
     array_type = old :: old | php54,
@@ -142,3 +142,5 @@
     use_func_list = [] :: [{function_name(), namespace()}],
     use_const_list = [] :: [{binary(), namespace()}]
 }).
+
+-type parser() :: #parser{}.

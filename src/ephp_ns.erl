@@ -67,7 +67,7 @@ find(NS, NSList) ->
                    (_, Acc) -> Acc
                 end, false, NSList).
 
--spec translate(Source :: namespace(), Match :: namespace, Target :: namespace()) -> namespace().
+-spec translate(Source :: namespace(), Match :: namespace(), Target :: namespace()) -> namespace().
 %% @doc translate a namespace into another based on match one.
 translate(Source, Match, Target) ->
     MatchSize = length(Match),

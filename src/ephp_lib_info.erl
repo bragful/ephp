@@ -163,7 +163,7 @@ extension_loaded(_Context, _Line, {_, ModuleName}) ->
             <<"ephp_lib_", Module/binary>> -> Module;
             Module -> Module
         end
-    end, ephp_config:get(modules)),
+    end, ephp_config:get(modules, [])),
     lists:member(ModuleName, Modules).
 
 -spec memory_get_usage(context(), line(), RealUsage :: var_value()) ->
@@ -205,8 +205,8 @@ get_os() ->
         {unix, darwin} -> <<"Darwin">>;
         {unix, linux} -> <<"Linux">>;
         {unix, freebsd} -> <<"FreeBSD">>;
-        {win, nt} -> <<"WINNT">>;
-        {win, _} -> <<"Windows">>
+        {win32, nt} -> <<"WINNT">>;
+        {win32, _} -> <<"Windows">>
     end.
 
 -spec get_os_family() -> binary().
@@ -219,7 +219,7 @@ get_os_family() ->
         %% TODO Add more BSD
         {unix, freebsd} -> <<"BSD">>;
         %% TODO Add Solaris
-        {win, _} -> <<"WIN">>;
+        {win32, _} -> <<"WIN">>;
         {_, _} -> <<"unknown">>
     end.
 

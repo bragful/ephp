@@ -46,7 +46,7 @@ parse_uri(URL) ->
     end.
 
 
--spec get_mod_and_url(uri()) -> {stream(), uri()}.
+-spec get_mod_and_url(uri()) -> {module(), uri()}.
 %% @hidden
 get_mod_and_url(URL) ->
     {Schema, URI} = parse_uri(URL),

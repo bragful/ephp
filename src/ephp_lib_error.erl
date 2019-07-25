@@ -101,7 +101,7 @@ debug_print_backtrace(Context, _Line, {_, IncludeArgs}, {_, Limit}) ->
             ephp_context:set_output(Context, Str);
         (_, _, _) ->
             ok
-    end, [], Backtrace),
+    end, undefined, Backtrace),
     undefined.
 
 -spec trace_to_str(pos_integer(), ephp_array(), context(), pos_integer()) ->

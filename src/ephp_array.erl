@@ -122,7 +122,7 @@ map(Fun, #ephp_array{values = Values} = Array) ->
     Array#ephp_array{values = NewValues}.
 
 
--spec fold(function(), mixed(), ephp_array()) -> mixed().
+-spec fold(function(), any(), ephp_array()) -> any().
 %% @doc performs a fold on all of the elements in the array given an initial
 %%      value and changing that value in each element.
 %% @end
