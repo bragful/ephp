@@ -967,11 +967,17 @@ resolve(#instance{name = ClassName, namespace = ClassNS, args = RawArgs, line = 
     case ephp_class:get_constructor(Classes, Class) of
         undefined ->
             {Object, State};
-        #class_method{name = ConstructorName} ->
+        #class_method{name = ConstructorName} = ClassMethod ->
             Call = #call{type = object,
                          name = ConstructorName,
                          args = RawArgs,
                          line = Line},
+            #class_method{name = MethodName,
+                          class_name = MCName,
+                          access = Access} = ClassMethod,
+            IsChild = ephp_class:instance_of(LocalCtx, Instance, MCName),
+            ActiveClass = State#state.active_class,
+            maybe_ecallprivate_log(ActiveClass, MCName, Access, IsChild, MethodName, Line),
             {_, NState} = run_method(Object, Call, State),
             {Object, NState}
     end;
@@ -1512,19 +1518,18 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
     NS = Call#call.namespace,
     {Object, Class} = get_class_from(MethodVars, RegInstance, NS, AName, Line, State),
     #class{name = ClassName} = Class,
-    #class_method{args = RawMethodArgs} = ClassMethod = case Call#call.name of
+    ClassMethod = case Call#call.name of
         <<"__construct">> ->
-            #class_method{name = MethodName} =
-                ephp_class:get_constructor(Classes, Class);
+            ephp_class:get_constructor(Classes, Class);
         _ ->
-            CallName = Call#call.name,
-            #class_method{class_name = MCName,
-                          access = Access, name = MethodName} = CM =
-                ephp_class:get_method(Class, Line, CallName),
-            IsChild = ephp_class:instance_of(Ref, RegInstance, MCName),
-            maybe_ecallprivate_log(ClassName, MCName, Access, IsChild, MethodName, Line),
-            CM
-        end,
+            ephp_class:get_method(Class, Line, Call#call.name)
+    end,
+    #class_method{args = RawMethodArgs,
+                  name = MethodName,
+                  class_name = MCName,
+                  access = Access} = ClassMethod,
+    IsChild = ephp_class:instance_of(Ref, RegInstance, MCName),
+    maybe_ecallprivate_log(ClassName, MCName, Access, IsChild, MethodName, Line),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     maybe_enostatic_log(Class, Object, MethodName, ClassMethod, Line, NState),
     run_method(ClassMethod, Class, Object, Call, Args,

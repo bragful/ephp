@@ -1,0 +1,7 @@
+creating OnlyOne
+object(OnlyOne)#1 (0) {
+}
+object(OnlyOne)#1 (0) {
+}
+
+Fatal error: Call to private method OnlyOne::__construct() from invalid context in {{CWD}}/test/code/test_class_static_singleton.php on line 21

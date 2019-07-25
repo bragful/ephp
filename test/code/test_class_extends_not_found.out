@@ -1,0 +1,2 @@
+
+Fatal error: Class 'Expert' not found in {{CWD}}/test/code/test_class_extends_not_found.php on line 7

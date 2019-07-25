@@ -583,7 +583,7 @@ initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
     end, [], Attrs),
     ephp_context:set_bulk(Ctx, lists:reverse(Bulk)).
 
-initialize(Ctx, _ClassName, #class{attrs=Attrs}) ->
+initialize(Ctx, _ClassName, #class{attrs = Attrs}) ->
     Bulk = lists:foldl(fun
         (#class_attr{type = normal, access = private, class_name = CName,
                      name = Name, init_value = RawVal}, Acc) ->
