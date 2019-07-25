@@ -598,8 +598,8 @@ get_ns([FirstName|RestNames] = NS,
             ephp_ns:join(BaseNS, RestNames);
         _ ->
             FullNS = ephp_ns:join(BaseNS, NS),
-            case lists:keyfind(FullNS, 1, UseList) of
-                {NS, RealNS} -> RealNS;
+            case ephp_ns:find(NS, UseList) of
+                {MatchNS, RealNS} -> ephp_ns:translate(NS, MatchNS, RealNS);
                 false -> FullNS
         end
     end.
@@ -685,7 +685,13 @@ use_list(Rest, #parser{use_ns = UseNS, use_list = UseList} = Parser, Parsed) ->
             {Rest2, Parser2, AliasNS} = namespace(<<SP:8, Rest1/binary>>,
                                                   add_pos(Parser1, 2), []),
             NewUseList = [{AliasNS, BaseNS}|UseList],
-            code(Rest2, Parser2#parser{use_list = NewUseList}, Parsed)
+            Parser3 = Parser2#parser{use_list = NewUseList},
+            case remove_spaces(Rest2, Parser3) of
+                {<<";", _/binary>> = Rest4, Parser4} ->
+                    code(Rest4, Parser4, Parsed);
+                {<<",", Rest4/binary>>, Parser4} ->
+                    use_list(Rest4, inc_pos(Parser4), Parsed)
+            end
     end.
 
 namespace(<<SP:8, Rest/binary>>, Parser, []) when ?IS_SPACE(SP) ->

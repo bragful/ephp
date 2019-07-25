@@ -273,7 +273,7 @@ expression(<<N:8,E:8,W:8,SP:8,Rest/binary>>, Parser, Parsed) when
             {RestEx, ParserEx, {Parser#parser.namespace, Exp}};
         {<<A:8, _/binary>> = Rest0, Parser0} when
                 ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
-            ephp_parser_func:funct_name(Rest0, Parser0, [])
+            ephp_parser_class:class_name(Rest0, Parser0, [])
     end,
     Instance = case remove_spaces(Rest1, Parser1) of
         {<<"(",Rest2/binary>>, Parser2} ->

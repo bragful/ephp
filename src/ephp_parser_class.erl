@@ -2,7 +2,7 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
--export([st_class/3, st_interface/3]).
+-export([st_class/3, st_interface/3, class_name/3]).
 
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
@@ -18,7 +18,7 @@ st_interface(<<SP:8, Rest/binary>>, Parser, Interface) when ?IS_NEWLINE(SP) ->
 st_interface(<<A:8, Rest/binary>>, Parser, #class{name =  undefined} = I)
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Parser0, {NS, Name}} =
-        ephp_parser_func:funct_name(<<A:8, Rest/binary>>, Parser, []),
+        class_name(<<A:8, Rest/binary>>, Parser, []),
     st_interface(Rest0, Parser0, I#class{name = Name, namespace = NS});
 st_interface(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Parser,
              Interface) when ?OR(E,$E,$e) andalso ?OR(X,$X,$x) andalso
@@ -26,7 +26,7 @@ st_interface(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8,Rest/binary>>, Parser,
                              ?OR(D,$D,$d) andalso ?OR(S,$S,$s) andalso
                              (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0} = remove_spaces(<<SP:8, Rest/binary>>, add_pos(Parser, 5)),
-    {Rest1, Parser1, {NS, Extends}} = ephp_parser_func:funct_name(Rest0, Parser0, []),
+    {Rest1, Parser1, {NS, Extends}} = class_name(Rest0, Parser0, []),
     st_interface(Rest1, Parser1, Interface#class{extends = Extends, extends_ns = NS});
 st_interface(<<"{", Rest/binary>>, Parser, Interface) ->
     st_interface_content(Rest, normal_public_level(inc_pos(Parser)), Interface).
@@ -38,7 +38,7 @@ st_class(<<SP:8,Rest/binary>>, Parser, Class) when ?IS_NEWLINE(SP) ->
 st_class(<<A:8,Rest/binary>>, Parser, #class{name = undefined} = C)
         when ?IS_ALPHA(A) orelse A =:= $_ ->
     {Rest0, Parser0, {NS, Name}} =
-        ephp_parser_func:funct_name(<<A:8, Rest/binary>>, Parser, []),
+        class_name(<<A:8, Rest/binary>>, Parser, []),
     st_class(Rest0, Parser0, C#class{name = Name, namespace = NS});
 st_class(<<$\\, _/binary>>, Parser, _Class) ->
     ephp_parser:throw_error(eparse, Parser, {<<"\\">>, <<"T_NS_SEPARATOR">>, <<"{">>});
@@ -47,7 +47,7 @@ st_class(<<E:8,X:8,T:8,E:8,N:8,D:8,S:8,SP:8, Rest/binary>>, Parser, Class) when
         ?OR(N,$N,$n) andalso ?OR(D,$D,$d) andalso ?OR(S,$S,$s) andalso
         (?IS_SPACE(SP) orelse ?IS_NEWLINE(SP)) ->
     {Rest0, Parser0} = remove_spaces(<<SP:8, Rest/binary>>, add_pos(Parser, 5)),
-    {Rest1, Parser1, {NS, Extends}} = ephp_parser_func:funct_name(Rest0, Parser0, []),
+    {Rest1, Parser1, {NS, Extends}} = class_name(Rest0, Parser0, []),
     st_class(Rest1, Parser1, Class#class{extends = Extends, extends_ns = NS});
 st_class(<<I:8,M:8,P:8,L:8,E:8,M:8,E:8,N:8,T:8,S:8, SP:8, Rest/binary>>,
          Parser, Class) when
@@ -247,6 +247,20 @@ st_class_content(<<A:8,B:8,S:8,T:8,R:8,A:8,C:8,T:8, SP:8, Rest/binary>>,
 access(undefined) -> public;
 access(Other) -> Other.
 
+get_ns({[<<>>], Name}, _Parser) -> {[], Name};
+get_ns({NS, Name}, Parser) ->
+    RawNS = ephp_parser:get_ns(NS ++ [Name], Parser),
+    ephp_ns:split(RawNS).
+
+class_name(<<A:8,Rest/binary>>, Parser, []) when ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
+    class_name(Rest, inc_pos(Parser), [<<A:8>>]);
+class_name(<<A:8,Rest/binary>>, Parser, [N])
+        when ?IS_ALPHA(A) orelse ?IS_NUMBER(A) orelse A =:= $_ orelse A =:= $\\ ->
+    class_name(Rest, inc_pos(Parser), [<<N/binary, A:8>>]);
+class_name(Rest, Parser, [Parsed]) ->
+    ProcessedParsed = get_ns(ephp_ns:parse(Parsed), Parser),
+    {Rest, Parser, ProcessedParsed}.
+
 st_implements(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_implements(Rest, inc_pos(Parser), Parsed);
 st_implements(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
@@ -254,7 +268,7 @@ st_implements(<<SP:8, Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
 st_implements(<<",", Rest/binary>>, Parser, Parsed) ->
     st_implements(Rest, inc_pos(Parser), Parsed);
 st_implements(<<A:8, _/binary>> = Rest, Parser, Parsed) when ?IS_ALPHA(A) ->
-    {Rest0, Parser0, {NS, Name}} = ephp_parser_func:funct_name(Rest, Parser, []),
+    {Rest0, Parser0, {NS, Name}} = class_name(Rest, Parser, []),
     st_implements(Rest0, Parser0, [{NS, Name}|Parsed]);
 st_implements(<<"{", _/binary>> = Rest, Parser, Parsed) ->
     {Rest, Parser, Parsed}.

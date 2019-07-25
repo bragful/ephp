@@ -1,0 +1,5 @@
+Running from: Code
+Namespace => My\Full
+Class => My\Full\Classname
+Method => My\Full\Classname::__construct
+running function My\Full\NSname\subns\func from My\Full\NSname\subns

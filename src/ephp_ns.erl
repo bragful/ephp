@@ -14,7 +14,9 @@
     split/1,
     to_bin/1,
     to_bin/2,
-    parse/1
+    parse/1,
+    find/2,
+    translate/3
 ]).
 
 -spec normalize(namespace()) -> namespace().
@@ -53,3 +55,21 @@ parse(Str) ->
         [ClassName] -> {[], ClassName};
         Parts -> {lists:droplast(Parts), lists:last(Parts)}
     end.
+
+-spec find(namespace(), [{namespace(), namespace()}]) -> {namespace(), namespace()} | false.
+%% @doc find a matching namespace based on the initial match.
+find(NS, NSList) ->
+    lists:foldl(fun({MatchNS, RealNS}, false) ->
+                    case lists:prefix(MatchNS, NS) of
+                        true -> {MatchNS, RealNS};
+                        false -> false
+                    end;
+                   (_, Acc) -> Acc
+                end, false, NSList).
+
+-spec translate(Source :: namespace(), Match :: namespace, Target :: namespace()) -> namespace().
+%% @doc translate a namespace into another based on match one.
+translate(Source, Match, Target) ->
+    MatchSize = length(Match),
+    Suffix = lists:sublist(Source, MatchSize + 1, length(Source) - MatchSize),
+    Target ++ Suffix.

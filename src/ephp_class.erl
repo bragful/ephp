@@ -248,7 +248,8 @@ register_class(Ref, File, GlobalCtx,
         static_context = Ctx,
         parents = Parents,
         file = File,
-        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ] ++
+        methods = [ CM#class_method{class_name = Name,
+                                    namespace = NS} || CM <- ClassMethods ] ++
                   get_methods(Ref, PHPClass#class.extends_ns, PHPClass#class.extends),
         attrs = get_attrs(Ref, PHPClass)
     },
@@ -824,13 +825,14 @@ register_unsafe_class(Classes, Consts, GlobalCtx,
     ok = check_final_methods(Classes, PHPClass#class.methods,
                              PHPClass#class.extends_ns,
                              PHPClass#class.extends),
-    ephp_const:set_bulk(Consts, Name, ConstDef),
+    ephp_const:set_bulk(Consts, NS, Name, ConstDef),
     {ok, Ctx} = ephp_context:generate_subcontext(GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         parents = Parents,
         file = <<"built-in">>,
-        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ] ++
+        methods = [ CM#class_method{class_name = Name,
+                                    namespace = NS} || CM <- ClassMethods ] ++
                   get_methods(Classes, PHPClass#class.extends_ns, PHPClass#class.extends),
         attrs = get_attrs(Classes, PHPClass)
     },
