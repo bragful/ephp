@@ -16,7 +16,7 @@
 
 
 <pre><code>
-break() = break | {break, pos_integer()}
+break() = break | {break, non_neg_integer()}
 </code></pre>
 
 
@@ -26,7 +26,17 @@ break() = break | {break, pos_integer()}
 
 
 <pre><code>
-continue() = continue | {continue, pos_integer()}
+continue() = continue | {continue, non_neg_integer()}
+</code></pre>
+
+
+
+
+### <a name="type-flow_return">flow_return()</a> ###
+
+
+<pre><code>
+flow_return() = {return, <a href="#type-mixed">mixed()</a>}
 </code></pre>
 
 
@@ -36,7 +46,7 @@ continue() = continue | {continue, pos_integer()}
 
 
 <pre><code>
-flow_status() = <a href="#type-break">break()</a> | <a href="#type-continue">continue()</a> | <a href="#type-return">return()</a> | false
+flow_status() = <a href="#type-break">break()</a> | <a href="#type-continue">continue()</a> | <a href="#type-flow_return">flow_return()</a> | false
 </code></pre>
 
 <a name="index"></a>

@@ -151,7 +151,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### key/3 ###
 
 <pre><code>
-key(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+key(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; undefined | <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -185,7 +185,7 @@ list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### next/3 ###
 
 <pre><code>
-next(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+next(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 

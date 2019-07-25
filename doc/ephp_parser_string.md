@@ -20,5 +20,5 @@
 
 ### string/3 ###
 
-`string(X1, Pos, X3) -> any()`
+`string(X1, Parser, X3) -> any()`
 

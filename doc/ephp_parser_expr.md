@@ -41,7 +41,7 @@ associativity() = no_assoc | left | right
 
 ### expression/3 ###
 
-`expression(Rest, Pos, Parsed) -> any()`
+`expression(Rest, Parser, Parsed) -> any()`
 
 <a name="precedence-1"></a>
 

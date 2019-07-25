@@ -113,7 +113,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### microtime/2 ###
 
 <pre><code>
-microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; float() | binary()
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### microtime/3 ###
 
 <pre><code>
-microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, GetAsFloat::{<a href="#type-variable">variable()</a>, boolean()}) -&gt; float() | binary()
+microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, GetAsFloat::{<a href="#type-variable">variable()</a> | undefined, boolean()}) -&gt; float() | binary()
 </code></pre>
 <br />
 

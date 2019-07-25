@@ -35,7 +35,9 @@ to run from console.
 ### <a name="type-classes_id">classes_id()</a> ###
 
 
-__abstract datatype__: `classes_id()`
+<pre><code>
+classes_id() = reference()
+</code></pre>
 
 
 
@@ -43,7 +45,9 @@ __abstract datatype__: `classes_id()`
 ### <a name="type-consts_id">consts_id()</a> ###
 
 
-__abstract datatype__: `consts_id()`
+<pre><code>
+consts_id() = reference()
+</code></pre>
 
 
 
@@ -51,7 +55,9 @@ __abstract datatype__: `consts_id()`
 ### <a name="type-context_id">context_id()</a> ###
 
 
-__abstract datatype__: `context_id()`
+<pre><code>
+context_id() = reference()
+</code></pre>
 
 
 
@@ -59,7 +65,9 @@ __abstract datatype__: `context_id()`
 ### <a name="type-errors_id">errors_id()</a> ###
 
 
-__abstract datatype__: `errors_id()`
+<pre><code>
+errors_id() = reference()
+</code></pre>
 
 
 
@@ -67,7 +75,9 @@ __abstract datatype__: `errors_id()`
 ### <a name="type-funcs_id">funcs_id()</a> ###
 
 
-__abstract datatype__: `funcs_id()`
+<pre><code>
+funcs_id() = reference()
+</code></pre>
 
 
 
@@ -75,7 +85,9 @@ __abstract datatype__: `funcs_id()`
 ### <a name="type-includes_id">includes_id()</a> ###
 
 
-__abstract datatype__: `includes_id()`
+<pre><code>
+includes_id() = reference()
+</code></pre>
 
 
 
@@ -83,7 +95,9 @@ __abstract datatype__: `includes_id()`
 ### <a name="type-objects_id">objects_id()</a> ###
 
 
-__abstract datatype__: `objects_id()`
+<pre><code>
+objects_id() = reference()
+</code></pre>
 
 
 
@@ -91,7 +105,9 @@ __abstract datatype__: `objects_id()`
 ### <a name="type-output_id">output_id()</a> ###
 
 
-__abstract datatype__: `output_id()`
+<pre><code>
+output_id() = reference()
+</code></pre>
 
 
 
@@ -99,7 +115,9 @@ __abstract datatype__: `output_id()`
 ### <a name="type-shutdown_id">shutdown_id()</a> ###
 
 
-__abstract datatype__: `shutdown_id()`
+<pre><code>
+shutdown_id() = reference()
+</code></pre>
 
 
 
@@ -117,7 +135,9 @@ values() = integer() | binary() | float() | <a href="#type-ephp_array">ephp_arra
 ### <a name="type-vars_id">vars_id()</a> ###
 
 
-__abstract datatype__: `vars_id()`
+<pre><code>
+vars_id() = reference()
+</code></pre>
 
 <a name="index"></a>
 
@@ -126,7 +146,7 @@ __abstract datatype__: `vars_id()`
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td>creates a new context using <code>-</code> as script name.</td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td>creates a new context passing <code>Filename</code> as param.</td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td>eval PHP code in a context passed as params.</td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td>adds the <code>Filename</code> to configure properly the <code>__FILE__</code> and <code>__DIR__</code>
 constants and evaluates the code for the third parameter.</td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td>called from script passing the name of the filename to be run or
-nothing to show the help message.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
+nothing to show the help message.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
 is set properly before use ephp.</td></tr><tr><td valign="top"><a href="#stop_cover-0">stop_cover/0</a></td><td>stops the cover system.</td></tr></table>
 
 
@@ -200,6 +220,22 @@ nothing to show the help message.
 
 <pre><code>
 register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean(), Args::<a href="ephp_func.md#type-validation_args">ephp_func:validation_args()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+</code></pre>
+<br />
+
+register function in a context passed as a param. The params to be
+sent are the PHP function name, the module, function name and args
+in the Erlang side.
+
+Other param is about if the params should be packed or not. That means
+the args could be sent one by one or as only one in an array.
+
+<a name="register_func-7"></a>
+
+### register_func/7 ###
+
+<pre><code>
+register_func(Ctx::<a href="#type-context">context()</a>, NS::<a href="#type-namespace">namespace()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean(), Args::<a href="ephp_func.md#type-validation_args">ephp_func:validation_args()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 
