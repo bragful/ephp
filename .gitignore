@@ -8,3 +8,5 @@ request_ets
 .build_date
 tmp
 php.ini
+erl_crash.dump
+rebar3.crashdump

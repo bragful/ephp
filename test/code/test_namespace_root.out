@@ -1,0 +1,19 @@
+int(2)
+int(7)
+object(Exception)#1 (7) {
+  ["message":protected]=>
+  string(5) "error"
+  ["string":"Exception":private]=>
+  string(0) ""
+  ["code":protected]=>
+  int(0)
+  ["file":protected]=>
+  string({{CWDLEN+34}}) "{{CWD}}/test/code/test_namespace_root.php"
+  ["line":protected]=>
+  int(10)
+  ["trace":"Exception":private]=>
+  array(0) {
+  }
+  ["previous":"Exception":private]=>
+  NULL
+}

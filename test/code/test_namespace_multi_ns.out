@@ -1,0 +1,10 @@
+
+MyProject namespace:
+CONECTAR_OK: 1
+new => C1: MyProject
+connect => F1: MyProject
+
+AnotherProject namespace:
+CONECTAR_OK: 100
+new => C2: AnotherProject
+connect => F2: AnotherProject

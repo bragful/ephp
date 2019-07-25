@@ -15,7 +15,7 @@ Features
     - [x] Booleans
     - [x] Strings
     - [x] References
-    - [ ] Resources
+    - [x] Resources
     - [x] Objects
     - [x] Casting/Conversion
 - Strings
@@ -30,7 +30,7 @@ Features
 - Special variables
     - [x] $GLOBALS
 - Arithmetic and Logic
-    - [x] Sum, Substract, Multiply, Div and Module.
+    - [x] Sum, Subtract, Multiply, Div and Module.
     - [x] `and` and `or` as operations.
     - [x] Operators for binary logic: `~`, `|`, `^`, `&`
 - Loops
@@ -45,7 +45,7 @@ Features
     - [x] Greater than, Greater or equals than...
     - [x] Less than, Less or equals than...
     - [x] Equals `==`, Strong equals `===`
-- Spaguetti code
+- Spaghetti code
     - [ ] Labels
     - [ ] `goto` statement
 - Modular code
@@ -74,10 +74,17 @@ Features
     - [x] define constants
     - [x] inheritance
     - [x] implementations (or interfaces)
-    - [ ] namespaces
     - [ ] traits
+- Namespaces
+    - [x] Defining namespaces
+    - [x] Declaring sub-namespaces
+    - [x] Define multiple namespaces in the same file
+    - [x] Namespaces and dynamic features
+    - [x] Constant `__NAMESPACE__`
+    - [x] Aliasing/Importing (`use`)
+    - [x] Fallback to global space
 - Functional
-    - [x] closures
+    - [x] Closures
 
 Main issues / TODO
 ------------------

@@ -82,8 +82,9 @@ handle_error(_Type, _Level, _Data) ->
 
 -spec constant(context(), line(), Name :: var_value()) -> mixed().
 
-constant(Context, _Line, {_, ConstantName}) ->
-    ephp_context:get_const(Context, ConstantName, true).
+constant(Context, Line, {_, ConstantName}) ->
+    {NS, ClassName, ConstName} = ephp_const:get_ns(ConstantName),
+    ephp_context:get_const(Context, NS, ClassName, ConstName, Line).
 
 
 -spec uniqid(context(), line(), var_value(), var_value()) -> binary().

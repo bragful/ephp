@@ -232,7 +232,7 @@ run_depth(Context, #print{expression=Expr, line=Line}, false, Cover) ->
     ephp_context:set_output(Context, ResText),
     false;
 
-run_depth(Context, #call{line=Line}=Call, false, Cover) ->
+run_depth(Context, #call{line = Line} = Call, false, Cover) ->
     ok = ephp_cover:store(Cover, {call, Call#call.name}, Context, Line),
     ephp_func:run(Context, Call);
 
@@ -261,10 +261,11 @@ run_depth(Context, #class{line = Line} = Class, Return, Cover) ->
     ephp_context:register_class(Context, Class),
     Return;
 
-run_depth(Context, #function{name=Name, args=Args, code=Code, line=Line},
+run_depth(Context, #function{name = Name, args = Args, code = Code,
+                             namespace = NS, line = Line},
           Return, Cover) ->
     ok = ephp_cover:store(Cover, function, Context, Line),
-    ephp_context:register_func(Context, Name, Args, Code, undefined),
+    ephp_context:register_func(Context, NS, Name, Args, Code, false, undefined),
     Return;
 
 run_depth(Context, {global, GlobalVar, Line}, Return, Cover) ->
@@ -312,33 +313,34 @@ run_depth(_Context, {continue, N}, false, _Cover) ->
 run_depth(_Context, Boolean, false, _Cover) when is_boolean(Boolean) ->
     false;
 
-run_depth(Context, #int{line=Line}, false, Cover) ->
+run_depth(Context, #int{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, int, Context, Line),
     false;
 
-run_depth(Context, #float{line=Line}, false, Cover) ->
+run_depth(Context, #float{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, float, Context, Line),
     false;
 
-run_depth(Context, #text{line=Line}, false, Cover) ->
+run_depth(Context, #text{line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, text, Context, Line),
     false;
 
-run_depth(Context, #text_to_process{line=Line}=TP, false, Cover) ->
+run_depth(Context, #text_to_process{line = Line} = TP, false, Cover) ->
     ok = ephp_cover:store(Cover, text, Context, Line),
     ephp_context:solve(Context, TP),
     false;
 
-run_depth(Context, #variable{idx=[{object,#call{},_}]}=Var, false, Cover) ->
+run_depth(Context, #variable{idx = [{object, #call{}, _}]} = Var, false, Cover) ->
     ok = ephp_cover:store(Cover, object, Context, Var#variable.line),
     ephp_context:solve(Context, Var),
     false;
 
-run_depth(Context, #constant{type=define,name=Name,value=Expr,line=Line},
+run_depth(Context, #constant{type = define, name = Name, value = Expr,
+                             namespace = NS, line = Line},
           false, Cover) ->
     ok = ephp_cover:store(Cover, define, Context, Line),
     Value = ephp_context:solve(Context, Expr),
-    ephp_context:register_const(Context, Name, Value),
+    ephp_context:register_const(Context, NS, Name, Value),
     false;
 
 run_depth(Context, #constant{line = Line}, false, Cover) ->
@@ -387,11 +389,13 @@ run_depth(Context, #variable{type = static, name = VarName} = Var,
     ActiveFun = ephp_context:get_active_function(Context),
     RealValue = case ephp_context:get_active_real_class(Context) of
         <<>> ->
+            NS = Var#variable.class_ns,
             Funcs = ephp_context:get_funcs(Context),
-            ephp_func:init_static_value(Funcs, ActiveFun, VarName, undefined);
+            ephp_func:init_static_value(Funcs, NS, ActiveFun, VarName, undefined);
         ClassName ->
+            NS = ephp_context:get_active_real_class_ns(Context),
             Classes = ephp_context:get_classes(Context),
-            ephp_class:init_static_value(Classes, ClassName, ActiveFun, VarName,
+            ephp_class:init_static_value(Classes, NS, ClassName, ActiveFun, VarName,
                                          undefined)
     end,
     ephp_context:set(Context, Var, RealValue),

@@ -217,4 +217,3 @@ trigger_error(Context, Line, {_, ErrStr}, {_, ErrLevel}) ->
     File = ephp_context:get_active_file(Context),
     ephp_error:handle_error(Context, {error, trigger, Line, File, ErrLevel,
                                       {ErrStr}}).
-

@@ -49,8 +49,11 @@ handle_error(eincompatctx, _Level, {Class, Method}) ->
                   "statically, assuming $this from incompatible context",
                   [Class, Method]);
 
-handle_error(eundefclass, _Level, {Class}) ->
-    io_lib:format("Class '~s' not found", [ephp_data:to_bin(Class)]);
+handle_error(eundefclass, _Level, {NS, ClassName}) when is_binary(ClassName) ->
+    io_lib:format("Class '~s' not found", [ephp_ns:to_bin(NS, ClassName)]);
+
+handle_error(eundefclass, _Level, {ClassName}) when is_binary(ClassName) ->
+    io_lib:format("Class '~s' not found", [ClassName]);
 
 handle_error(eundefmethod, _Level, {Class, MethodName}) ->
     io_lib:format("Call to undefined method ~s::~s()", [Class, MethodName]);
@@ -97,14 +100,11 @@ handle_error(efinalmethod, _Level, {Class, Method}) ->
 handle_error(enoclone, _Level, {}) ->
     "__clone method called on non-object";
 
-handle_error(enoconst, _Level, {ConstName}) ->
+handle_error(enoconst, _Level, {_NS, ConstName}) ->
     io_lib:format("Undefined class constant '~s'", [ConstName]);
 
 handle_error(enointerface, _Level, {InterfaceName}) ->
     io_lib:format("Interface '~s' not found", [InterfaceName]);
-
-handle_error(enoclass, _Level, {ClassName}) ->
-    io_lib:format("Class '~s' not found", [ClassName]);
 
 handle_error(enomethods, _Level, {ClassName, Methods, 1}) ->
     io_lib:format("Class ~s contains 1 abstract method and must therefore "
@@ -138,6 +138,15 @@ handle_error(enoobjthis, _Level, {}) ->
 handle_error(eobj4empty, _Level, undefined) ->
     "Creating default object from empty value";
 
+handle_error(enamespace, _Level, undefined) ->
+    "Namespace declaration statement has to be the very first statement or after any declare call in the script";
+
+handle_error(enamespaceblock, _Level, undefined) ->
+    "No code may exist outside of namespace {}";
+
+handle_error(enamespacemix, _Level, undefined) ->
+    "Cannot mix bracketed namespace declarations with unbracketed namespace declarations";
+
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
@@ -150,14 +159,24 @@ get_class(_Context, _Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
                   ClassName :: var_value(),
                   ClassAlias :: var_value()) -> boolean().
 
-class_alias(Context, Line, {_,Name}, {_,Alias}) ->
-    case ephp_context:set_class_alias(Context, Name, Alias) of
+class_alias(Context, Line, {_, Name}, {_, Alias}) ->
+    {ClassNS, ClassName} = if
+        is_binary(Name) -> ephp_ns:parse(Name);
+        true -> {[], ephp_data:to_bin(Name)}
+    end,
+    {AliasNS, AliasName} = if
+        is_binary(Alias) -> ephp_ns:parse(Alias);
+        true -> {[], ephp_data:to_bin(Alias)}
+    end,
+    case ephp_context:set_class_alias(Context,
+                                      ClassNS, ClassName,
+                                      AliasNS, AliasName) of
         ok ->
             true;
         {error, enoexist} ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefclass, Line, File, ?E_WARNING, {Name}}),
+                {error, eundefclass, Line, File, ?E_WARNING, {ClassNS, ClassName}}),
             false;
         {error, eredefined} ->
             File = ephp_context:get_active_file(Context),
@@ -170,7 +189,8 @@ class_alias(Context, Line, {_,Name}, {_,Alias}) ->
                    AutoLoad :: var_value()) -> boolean().
 
 class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
-    case ephp_class:get(Context, Class, AutoLoad) of
+    {ClassNS, ClassName} = ephp_ns:parse(Class),
+    case ephp_class:get(Context, ClassNS, ClassName, AutoLoad) of
         {ok, #class{type = Type}} ->
             Type =/= interface;
         {error, enoexist} ->
@@ -181,7 +201,8 @@ class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
                        AutoLoad :: var_value()) -> boolean().
 
 interface_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
-    case ephp_class:get(Context, Class, AutoLoad) of
+    {ClassNS, ClassName} = ephp_ns:parse(Class),
+    case ephp_class:get(Context, ClassNS, ClassName, AutoLoad) of
         {ok, #class{type = interface}} -> true;
         _ -> false
     end.

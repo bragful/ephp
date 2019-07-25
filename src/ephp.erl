@@ -22,6 +22,7 @@
     context_new/1,
     register_var/3,
     register_func/6,
+    register_func/7,
     register_module/2,
     eval/2,
     eval/3,
@@ -91,9 +92,24 @@ register_var(Ctx, Var, Value) when
 register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
+-spec register_func(context(), namespace(),
+                    PHPName :: binary(), module(), Fun :: atom(),
+                    PackArgs :: boolean(),
+                    ephp_func:validation_args()
+                   ) -> ok | {error, reason()}.
+%% @doc register function in a context passed as a param. The params to be
+%%      sent are the PHP function name, the module, function name and args
+%%      in the Erlang side.
+%%
+%%      Other param is about if the params should be packed or not. That means
+%%      the args could be sent one by one or as only one in an array.
+%% @end
+register_func(Ctx, NS, PHPName, Module, Fun, PackArgs, Args) ->
+    ephp_context:register_func(Ctx, NS, PHPName, Module, Fun, PackArgs, Args).
+
 -spec register_func(context(), PHPName :: binary(), module(), Fun :: atom(),
                     PackArgs :: boolean(),
-                    Args :: ephp_func:validation_args()
+                    ephp_func:validation_args()
                    ) -> ok | {error, reason()}.
 %% @doc register function in a context passed as a param. The params to be
 %%      sent are the PHP function name, the module, function name and args
@@ -103,7 +119,7 @@ register_var(_Ctx, _Var, _Value) ->
 %%      the args could be sent one by one or as only one in an array.
 %% @end
 register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
-    ephp_context:register_func(Ctx, PHPName, Module, Fun, PackArgs, Args).
+    ephp_context:register_func(Ctx, [], PHPName, Module, Fun, PackArgs, Args).
 
 -spec register_module(context(), module()) -> ok.
 %% @doc register a module.
@@ -127,7 +143,8 @@ register_module(Ctx, Module) ->
             PackArgs = proplists:get_value(pack_args, Opts, false),
             Name = proplists:get_value(alias, Opts, atom_to_binary(Func, utf8)),
             Args = proplists:get_value(args, Opts),
-            register_func(Ctx, Name, Module, Func, PackArgs, Args);
+            NS = proplists:get_value(namespace, Opts, []),
+            register_func(Ctx, NS, Name, Module, Func, PackArgs, Args);
         (Func) ->
             Name = atom_to_binary(Func, utf8),
             register_func(Ctx, Name, Module, Func, false, undefined)
@@ -244,6 +261,18 @@ main(["-p", File]) ->
             io:format("Could not open input file: ~s~n", [File]),
             quit(1)
     end;
+
+main(["-i"]) ->
+    start(),
+    Content = <<"<?php phpinfo();">>,
+    ephp_config:start_link(?PHP_INI_FILE),
+    {ok, Ctx} = context_new(<<"-">>),
+    register_superglobals(Ctx, ["-"]),
+    {ok, _} = eval(<<"-">>, Ctx, Content),
+    Result = ephp_context:get_output(Ctx),
+    io:format("~s", [Result]),
+    ephp_context:destroy_all(Ctx),
+    quit(0);
 
 main([Filename|_] = RawArgs) ->
     start(),

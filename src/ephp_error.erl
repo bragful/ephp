@@ -313,6 +313,9 @@ get_message(eparse, {unexpected, Value}) when is_binary(Value) ->
 get_message(eparse, {Value, Type}) when is_binary(Type) ->
     io_lib:format("syntax error, unexpected '~s' (~s)", [Value, Type]);
 
+get_message(eparse, {Value, Type, Expected}) when is_binary(Type) ->
+    io_lib:format("syntax error, unexpected '~s' (~s), expecting '~s'", [Value, Type, Expected]);
+
 get_message(eparse, {Type}) when is_binary(Type) ->
     io_lib:format("parse error, expecting ~s", [Type]);
 
@@ -330,8 +333,8 @@ get_message(enofile, {OpenFile, Func}) ->
         "~s(~s): failed to open stream: No such file or directory",
         [Func, OpenFile]);
 
-get_message(eundefun, {Fun}) ->
-    io_lib:format("Call to undefined function ~s()", [Fun]);
+get_message(eundefun, {NS, Fun}) ->
+    io_lib:format("Call to undefined function ~s()", [ephp_ns:to_bin(NS, Fun)]);
 
 get_message(eunsupportop, {}) ->
     "Unsupported operand types";
@@ -363,7 +366,7 @@ get_message(eundefvar, {Offset}) when is_integer(Offset) ->
 get_message(eundefvar, {Var}) ->
     io_lib:format("Undefined variable: ~s", [Var]);
 
-get_message(eundefconst, {Const}) ->
+get_message(eundefconst, {_NS, Const}) ->
     io_lib:format(
         "Use of undefined constant ~s - assumed '~s'",
         [Const, Const]);

@@ -27,23 +27,23 @@
     start_link/0,
     destroy/1,
 
-    get/2,
     get/3,
+    get/4,
     get_constructor/2,
     get_destructor/2,
     get_attribute/2,
     get_clone/2,
     get_method/2,
     get_method/3,
-    get_parent/2,
+    get_parent/3,
 
     class_attr/1,
     class_attr/2,
     class_attr/3,
     class_attr/4,
 
-    init_static_value/5,
-    set_static/5,
+    init_static_value/6,
+    set_static/6,
 
     instance_of/3,
 
@@ -51,8 +51,8 @@
     register_classes/2,
     register_classes/3,
     register_interface/3,
-    set_alias/3,
-    instance/5,
+    set_alias/5,
+    instance/6,
 
     get_stdclass/0,
     add_if_no_exists_attrib/2,
@@ -85,94 +85,101 @@ destroy(Classes) ->
 
 -type get_return() :: {ok, class()} | {error, enoexist}.
 
--spec get(context(), class_name(), AutoLoad::boolean() | spl) -> get_return().
+-spec get(context(), namespace(), class_name(), AutoLoad::boolean() | spl) -> get_return().
 %% @doc retrieves a class registered given the class name.
-get(Context, ClassName, false) ->
+get(Context, NS, ClassName, false) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
-    get(Classes, ClassName);
+    get(Classes, NS, ClassName);
 
-get(Context, ClassName, spl) ->
+get(Context, NS, ClassName, spl) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
     case erlang:get(Classes) of
         #class_state{loaders = []} ->
-            get(Classes, ClassName);
+            get(Classes, NS, ClassName);
         #class_state{loaders = Loaders} ->
-            get(Context, Classes, ClassName, Loaders)
+            get(Context, Classes, NS, ClassName, Loaders)
     end;
 
-get(Context, ClassName, true) ->
+get(Context, NS, ClassName, true) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
     Funcs = ephp_context:get_funcs(Context),
     case ephp_func:is_defined(Funcs, <<"__autoload">>) of
         true ->
             case erlang:get(Classes) of
                 #class_state{loaders = []} ->
-                    get(Context, Classes, ClassName, [<<"__autoload">>]);
+                    get(Context, Classes, NS, ClassName, [<<"__autoload">>]);
                 #class_state{loaders = Loaders} ->
-                    get(Context, Classes, ClassName, [<<"__autoload">>|Loaders])
+                    get(Context, Classes, NS, ClassName, [<<"__autoload">>|Loaders])
             end;
         false ->
-            get(Context, ClassName, spl)
+            get(Context, NS, ClassName, spl)
     end.
 
 
 -type loader() :: binary().
 -type loaders() :: [loader()].
 
--spec get(context(), ephp:classes_id(), class_name(), loaders()) ->
+-spec get(context(), ephp:classes_id(), namespace(), class_name(), loaders()) ->
       get_return().
 %% @hidden
-get(_Context, Classes, ClassName, []) ->
-    get(Classes, ClassName);
+get(_Context, Classes, NS, ClassName, []) ->
+    get(Classes, NS, ClassName);
 
-get(Context, Classes, ClassName, [Loader|Loaders]) ->
-    case get(Classes, ClassName) of
+get(Context, Classes, NS, ClassName, [Loader|Loaders]) ->
+    case get(Classes, NS, ClassName) of
         {ok, Class} ->
             {ok, Class};
         {error, enoexist} ->
             %% TODO check callable for Loader
-            Call = #call{name = Loader, args = [ClassName]},
+            FullClassName = ephp_ns:to_bin(NS, ClassName),
+            Call = #call{name = Loader, args = [FullClassName]},
             ephp_context:call_function(Context, Call),
-            get(Context, Classes, ClassName, Loaders)
+            get(Context, Classes, NS, ClassName, Loaders)
     end.
 
 
--spec get(ephp:classes_id(), class_name()) -> get_return().
+-spec get(ephp:classes_id(), namespace(), class_name()) -> get_return().
 %% @doc retrieves a class registered given the class name.
-get(Ref, ClassName) ->
+get(Ref, NS, ClassName) ->
     #class_state{classes = Classes} = erlang:get(Ref),
-    case dict:find(ClassName, Classes) of
-        {ok, {alias, NewClassName}} ->
-            get(Ref, NewClassName);
+    case dict:find({NS, ClassName}, Classes) of
+        {ok, {alias, NewNS, NewClassName}} ->
+            get(Ref, NewNS, NewClassName);
         {ok, Class} ->
             {ok, Class};
         error ->
             {error, enoexist}
     end.
 
+-type alias_class() :: {alias, namespace(), class_name()}.
 
--spec set(ephp:classes_id(), class_name(), class() | {alias, class_name()}) -> ok.
+-spec set(ephp:classes_id(), namespace(), class_name(), class() | alias_class()) -> ok.
 %% @doc adds a class using the class name inside of the handler.
-set(Ref, ClassName, Class) ->
+set(Ref, NS, ClassName, #class{namespace = NS} = Class) ->
     #class_state{classes = Classes} = State = erlang:get(Ref),
-    NC = dict:store(ClassName, Class, Classes),
+    NC = dict:store({NS, ClassName}, Class, Classes),
+    erlang:put(Ref, State#class_state{classes = NC}),
+    ok;
+
+set(Ref, NS, ClassName, {alias, _NSAlias, _ClassAlias} = Alias) ->
+    #class_state{classes = Classes} = State = erlang:get(Ref),
+    NC = dict:store({NS, ClassName}, Alias, Classes),
     erlang:put(Ref, State#class_state{classes = NC}),
     ok.
 
-
 -type alias_return() :: ok | {error, enoexist | eredefined}.
 
--spec set_alias(ephp:classes_id(), Class :: class_name(),
-                Alias :: class_name()) -> alias_return().
+-spec set_alias(ephp:classes_id(), namespace(), class_name(),
+                namespace(), Alias :: alias_class()) -> alias_return().
 %% @doc set a name as alias of a class name.
-set_alias(Ref, ClassName, AliasName) ->
-    case get(Ref, ClassName) of
+set_alias(Ref, NS, ClassName, NSAlias, AliasName) ->
+    case get(Ref, NS, ClassName) of
         {ok, _Class} ->
-            case get(Ref, AliasName) of
+            case get(Ref, NS, AliasName) of
                 {ok, _} ->
                     {error, eredefined};
                 {error, enoexist} ->
-                    set(Ref, AliasName, {alias, ClassName})
+                    set(Ref, NSAlias, AliasName, {alias, NS, ClassName})
             end;
         {error, enoexist} ->
             {error, enoexist}
@@ -192,10 +199,10 @@ register_loader(Ref, Loader) ->
 %% @doc register a class inside of the classes handler.
 register_class(Ref, File, GlobalCtx,
                #class{name = Name, constants = ConstDef0,
-                      methods = ClassMethods,
+                      methods = ClassMethods, namespace = NS,
                       line = Index} = PHPClass) ->
-    ConstDef = lists:flatmap(fun(I) ->
-        case get(GlobalCtx, I, true) of
+    ConstDef = lists:flatmap(fun({INS, I}) ->
+        case get(GlobalCtx, INS, I, true) of
             {ok, #class{type = interface} = Interface} ->
                 get_consts(Interface);
             _ ->
@@ -205,11 +212,12 @@ register_class(Ref, File, GlobalCtx,
          get_extends_consts(GlobalCtx, PHPClass) ++
          ConstDef0,
     Methods = extract_methods(Ref, Index, PHPClass#class.implements),
-    Parents = extract_parents(Ref, PHPClass),
+    Parents = extract_parents(Ref, NS, PHPClass),
     case check_dup(PHPClass#class.implements) of
         ok ->
             ok;
-        DupInterface ->
+        {DupInterfaceNS, DupInterfaceName} ->
+            DupInterface = ephp_ns:to_bin(DupInterfaceNS, DupInterfaceName),
             ephp_error:error({error, edupinterface, Index, ?E_ERROR,
                               {Name, DupInterface}})
     end,
@@ -222,7 +230,9 @@ register_class(Ref, File, GlobalCtx,
             ephp_error:error({error, enomethods, Index, ?E_ERROR,
                               {Name, Names, Params}})
     end,
-    case check_final_methods(Ref, PHPClass#class.methods, PHPClass#class.extends) of
+    case check_final_methods(Ref, PHPClass#class.methods,
+                             PHPClass#class.extends_ns,
+                             PHPClass#class.extends) of
         ok ->
             ok;
         {error, {Class, Method}} ->
@@ -230,14 +240,15 @@ register_class(Ref, File, GlobalCtx,
                               {Class, Method}})
     end,
     Consts = ephp_context:get_consts(GlobalCtx),
-    ephp_const:set_bulk(Consts, Name, tr_consts(ConstDef, GlobalCtx)),
+    ephp_const:set_bulk(Consts, NS, Name, tr_consts(ConstDef, GlobalCtx)),
     {ok, Ctx} = ephp_context:generate_subcontext(GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         parents = Parents,
         file = File,
-        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ] ++
-                  get_methods(Ref, PHPClass#class.extends),
+        methods = [ CM#class_method{class_name = Name,
+                                    namespace = NS} || CM <- ClassMethods ] ++
+                  get_methods(Ref, PHPClass#class.extends_ns, PHPClass#class.extends),
         attrs = get_attrs(Ref, PHPClass)
     },
     case check_access_level(ActivePHPClass#class.attrs) of
@@ -246,7 +257,7 @@ register_class(Ref, File, GlobalCtx,
             ephp_error:error({error, eaccesslevel, Index, ?E_ERROR, Data})
     end,
     initialize_class(ActivePHPClass),
-    set(Ref, Name, ActivePHPClass),
+    set(Ref, NS, Name, ActivePHPClass),
     ok.
 
 
@@ -270,15 +281,17 @@ check_access_level([#class_attr{access = Access, name = Name} = CA1|Rest]) ->
     end.
 
 
--spec get_methods(ephp:classes_id(), class_name() | undefined) ->
+-spec get_methods(ephp:classes_id(), namespace(), class_name() | undefined) ->
       [class_method()].
 %% @doc retrieve all of the methods given a class name.
-get_methods(_Classes, undefined) ->
+get_methods(_Classes, _NS, undefined) ->
     [];
 
-get_methods(Classes, ClassName) ->
-    {ok, #class{methods = Methods, extends = Parent}} = get(Classes, ClassName),
-    Methods ++ get_methods(Classes, Parent).
+get_methods(Classes, NS, ClassName) ->
+    {ok, #class{methods = Methods,
+                extends = Parent,
+                extends_ns = ParentNS}} = get(Classes, NS, ClassName),
+    Methods ++ get_methods(Classes, ParentNS, Parent).
 
 
 -spec get_attrs(ephp:classes_id(), class()) -> [class_attr()].
@@ -286,9 +299,10 @@ get_methods(Classes, ClassName) ->
 get_attrs(_Classes, #class{name = Name, extends = undefined, attrs = Attrs}) ->
     attrs_set_class_name(Name, Attrs);
 
-get_attrs(Classes, #class{name = Name, extends = Extends, attrs = Attrs}) ->
+get_attrs(Classes, #class{name = Name, extends = Extends, attrs = Attrs,
+                          extends_ns = ExtendsNS}) ->
     %% TODO check if the inherited class doesn't exist
-    {ok, Class} = get(Classes, Extends),
+    {ok, Class} = get(Classes, ExtendsNS, Extends),
     %% TODO check duplicated
     attrs_set_class_name(Name, Attrs) ++  get_attrs(Classes, Class).
 
@@ -309,35 +323,38 @@ tr_consts(Consts, Context) ->
     end, Consts).
 
 
--spec extract_parents(ephp:classes_id(), class() | class_name() | undefined) ->
+-spec extract_parents(ephp:classes_id(), namespace(), class() | class_name() | undefined) ->
       [class_name()].
 %% @doc retrieve a list with all of the parent class records.
-extract_parents(_Ref, undefined) ->
+extract_parents(_Ref, _NS, undefined) ->
     [];
 
-extract_parents(Ref, #class{extends = Extends, implements = Impl}) ->
-    ParentExt = extract_parents(Ref, Extends),
-    ParentImpl = lists:flatten([ extract_parents(Ref, I) || I <- Impl ]),
-    ParentExt ++ ParentImpl;
+extract_parents(Ref, _NS, #class{extends_ns = ExtendsNS,
+                                 extends = Extends,
+                                 implements = Impl}) ->
+    ParentExt = extract_parents(Ref, ExtendsNS, Extends),
+    ParentImpl = [ extract_parents(Ref, INS, I) || {INS, I} <- Impl ],
+    lists:flatten(ParentExt ++ ParentImpl);
 
-extract_parents(Ref, Name) when is_binary(Name) ->
-    {ok, Class} = get(Ref, Name),
-    [Name|extract_parents(Ref, Class)].
+extract_parents(Ref, NS, Name) when is_binary(Name) ->
+    {ok, Class} = get(Ref, NS, Name),
+    [Name|extract_parents(Ref, NS, Class)].
 
 
 -spec extract_methods(ephp:classes_id(), Index::line(), [class_name()]) ->
       [{class_name(), class_method()}].
 %% @doc extract all of the methods from interfaces.
 extract_methods(Ref, Index, Implements) when is_reference(Ref) ->
-    AllMethodsDict = lists:foldl(fun(I, D) ->
+    AllMethodsDict = lists:foldl(fun({NS, I}, D) ->
         {ok, #class{extends = Extends,
-                    methods = ClassMethods}} = get(Ref, I),
+                    extends_ns = ExtendsNS,
+                    methods = ClassMethods}} = get(Ref, NS, I),
         NewD = extract_methods(I, Index, ClassMethods, D),
         case Extends of
             undefined ->
                 NewD;
             Parent ->
-                {ok, #class{methods = ParentMethods}} = get(Ref, Parent),
+                {ok, #class{methods = ParentMethods}} = get(Ref, ExtendsNS, Parent),
                 extract_methods(Parent, Index, ParentMethods, NewD)
         end
     end, [], lists:reverse(Implements)),
@@ -418,20 +435,20 @@ check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
 -type check_final_methods_return() :: ok |
                                       {error, {class_name(), method_name()}}.
 
--spec check_final_methods(ephp:classes_id(), [class_method()], class_name()) ->
+-spec check_final_methods(ephp:classes_id(), [class_method()], namespace(), class_name()) ->
       check_final_methods_return().
 %% @doc hidden
-check_final_methods(_Ref, [], _Extends) ->
+check_final_methods(_Ref, [], _ExtendsNS, _Extends) ->
     ok;
 
-check_final_methods(_Ref, _Methods, undefined) ->
+check_final_methods(_Ref, _Methods, _ParentNS, undefined) ->
     ok;
 
-check_final_methods(Ref, Methods, ParentClass) ->
+check_final_methods(Ref, Methods, ParentNS, ParentClass) ->
     {ok, #class{methods = ParentMethods,
-                extends = Extends}} = get(Ref, ParentClass),
+                extends = Extends}} = get(Ref, ParentNS, ParentClass),
     case check_final_methods(Methods, ParentMethods) of
-        ok -> check_final_methods(Ref, Methods, Extends);
+        ok -> check_final_methods(Ref, Methods, ParentNS, Extends);
         {error, MethodError} -> {error, {ParentClass, MethodError}}
     end.
 
@@ -454,14 +471,15 @@ check_final_methods([#class_method{name = MethodName}|Methods], ParentMethods) -
 
 
 register_interface(Ref, File, #class{name = Name, line = Index,
+                                     namespace = NS,
                                      constants = Constants} = PHPInterface) ->
     Classes = ephp_context:get_classes(Ref),
     #class_state{classes = Interfaces} = State = erlang:get(Classes),
     ConstDef = get_extends_consts(Ref, PHPInterface) ++ Constants,
     ActivePHPInterface = PHPInterface#class{file = File, constants = ConstDef},
-    case dict:find(Name, Interfaces) of
+    case dict:find({NS, Name}, Interfaces) of
         error ->
-            NewClasses = dict:store(Name, ActivePHPInterface, Interfaces),
+            NewClasses = dict:store({NS, Name}, ActivePHPInterface, Interfaces),
             NewState = State#class_state{classes = NewClasses},
             erlang:put(Classes, NewState),
             ok;
@@ -472,8 +490,9 @@ register_interface(Ref, File, #class{name = Name, line = Index,
 get_extends_consts(_Ref, #class{extends = undefined}) ->
     [];
 get_extends_consts(Ref, #class{name = Name, extends = Extends,
+                               extends_ns = ExtendsNS,
                                type = interface, line = Index}) ->
-    case get(Ref, Extends, true) of
+    case get(Ref, ExtendsNS, Extends, true) of
         {ok, #class{type = interface} = Interface} ->
             get_consts(Interface) ++ get_extends_consts(Ref, Interface);
         {ok, #class{}} ->
@@ -482,9 +501,11 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
         _ ->
             ephp_error:error({error, enointerface, Index, ?E_ERROR, {Extends}})
     end;
-get_extends_consts(Ref, #class{name = Name, extends = Extends,
+get_extends_consts(Ref, #class{name = Name,
+                               extends = Extends,
+                               extends_ns = ExtendsNS,
                                line = Index}) ->
-    case get(Ref, Extends, true) of
+    case get(Ref, ExtendsNS, Extends, true) of
         {ok, #class{name = FName, final = true}} ->
             ephp_error:error({error, efinalclass, Index, ?E_ERROR,
                               {FName, Name}});
@@ -496,11 +517,11 @@ get_extends_consts(Ref, #class{name = Name, extends = Extends,
         _ ->
             %% TODO this error should appears in the same line as extends,
             %%      Index is not valid because is pointing to the end
-            ephp_error:error({error, enoclass, Index, ?E_ERROR, {Extends}})
+            ephp_error:error({error, eundefclass, Index, ?E_ERROR, {ExtendsNS, Extends}})
     end.
 
-instance(_Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
-    case get(LocalCtx, RawClassName, true) of
+instance(_Ref, LocalCtx, GlobalCtx, ClassNS, ClassName, Line) ->
+    case get(LocalCtx, ClassNS, ClassName, true) of
     {ok, #class{} = Class} ->
         {ok, Ctx} = ephp_context:generate_subcontext(LocalCtx, GlobalCtx),
         RegClass = #ephp_object{class = Class, context = Ctx},
@@ -510,7 +531,7 @@ instance(_Ref, LocalCtx, GlobalCtx, RawClassName, Line) ->
         #obj_ref{pid = Objects, ref = ObjectId};
     {error, enoexist} ->
         ephp_error:error({error, eundefclass, Line, ?E_ERROR,
-                          {RawClassName}})
+                          {ClassNS, ClassName}})
     end.
 
 -spec instance_of(context(), mixed(), DataType::binary()) -> boolean().
@@ -536,7 +557,7 @@ instance_of(Context, ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
     #ephp_object{class = Class} = ephp_object:get(ObjRef),
     #class{parents = Parents, name = InstanceName} = Class,
     Classes = ephp_context:get_classes(Context),
-    case get(Classes, Name) of
+    case get(Classes, Class#class.namespace, Name) of
         {ok, #class{name = ClassName}} ->
             lists:any(fun(F) -> F() end, [
                 fun() -> ClassName =:= InstanceName end,
@@ -577,7 +598,7 @@ initialize(Ctx, _ClassName, #class{attrs=Attrs}) ->
     ephp_context:set_bulk(Ctx, lists:reverse(Bulk)).
 
 get_constructor(Ref, #class{name = Name, methods = Methods,
-                            extends = Extends}) ->
+                            extends_ns = ExtendsNS, extends = Extends}) ->
     MethodName = <<"__construct">>,
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
@@ -587,17 +608,18 @@ get_constructor(Ref, #class{name = Name, methods = Methods,
                 undefined ->
                     undefined;
                 Extends ->
-                    {ok, Parent} = get(Ref, Extends),
+                    {ok, Parent} = get(Ref, ExtendsNS, Extends),
                     get_constructor(Ref, Parent)
             end;
-        #class_method{}=ClassMethod ->
+        #class_method{} = ClassMethod ->
             ClassMethod
         end;
-    #class_method{}=ClassMethod ->
+    #class_method{} = ClassMethod ->
         ClassMethod
     end.
 
-get_clone(Ref, #class{name = Name, methods = Methods, extends = Extends}) ->
+get_clone(Ref, #class{name = Name, methods = Methods,
+                      extends_ns = ExtendsNS, extends = Extends}) ->
     MethodName = <<"__clone">>,
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
@@ -607,7 +629,7 @@ get_clone(Ref, #class{name = Name, methods = Methods, extends = Extends}) ->
                 undefined ->
                     undefined;
                 Extends ->
-                    {ok, Parent} = get(Ref, Extends),
+                    {ok, Parent} = get(Ref, ExtendsNS, Extends),
                     get_clone(Ref, Parent)
             end;
         #class_method{}=ClassMethod ->
@@ -617,7 +639,7 @@ get_clone(Ref, #class{name = Name, methods = Methods, extends = Extends}) ->
         ClassMethod
     end.
 
-get_destructor(Ref, #class{methods = Methods, extends = Extends}) ->
+get_destructor(Ref, #class{methods = Methods, extends_ns = ExtendsNS, extends = Extends}) ->
     MethodName = <<"__destruct">>,
     case lists:keyfind(MethodName, #class_method.name, Methods) of
     false ->
@@ -625,19 +647,19 @@ get_destructor(Ref, #class{methods = Methods, extends = Extends}) ->
             undefined ->
                 undefined;
             Extends ->
-                {ok, Parent} = get(Ref, Extends),
+                {ok, Parent} = get(Ref, ExtendsNS, Extends),
                 get_destructor(Ref, Parent)
         end;
     #class_method{}=ClassMethod ->
         ClassMethod
     end.
 
-get_attribute(#class{attrs=Attrs}, AttributeName) ->
+get_attribute(#class{attrs = Attrs}, AttributeName) ->
     case lists:keyfind(AttributeName, #class_attr.name, Attrs) of
-    false ->
-        undefined;
-    #class_attr{}=ClassAttr ->
-        ClassAttr
+        false ->
+            undefined;
+        #class_attr{} = ClassAttr ->
+            ClassAttr
     end.
 
 get_method(#class{methods = Methods}, MethodName) ->
@@ -658,13 +680,13 @@ get_method(Class, Index, MethodName) ->
             ClassMethod
     end.
 
-get_parent(Context, Name) ->
+get_parent(Context, NS, Name) ->
     Classes = ephp_context:get_classes(Context),
-    {ok, #class{extends = Extends}} = get(Classes, Name),
-    Extends.
+    {ok, #class{extends_ns = ExtendsNS, extends = Extends}} = get(Classes, NS, Name),
+    {ExtendsNS, Extends}.
 
-init_static_value(Ref, ClassName, MethodName, VarName, Value) ->
-    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
+init_static_value(Ref, NS, ClassName, MethodName, VarName, Value) ->
+    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, NS, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
         #class_method{static = Static} = Method ->
             case orddict:find(VarName, Static) of
@@ -678,15 +700,15 @@ init_static_value(Ref, ClassName, MethodName, VarName, Value) ->
                                                   Methods,
                                                   NewMethod),
                     NewClass = Class#class{methods = NewMethods},
-                    set(Ref, ClassName, NewClass),
+                    set(Ref, NS, ClassName, NewClass),
                     Value
             end;
         false ->
             throw({error, enofunc})
     end.
 
-set_static(Ref, ClassName, MethodName, Vars, Context) ->
-    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, ClassName),
+set_static(Ref, NS, ClassName, MethodName, Vars, Context) ->
+    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, NS, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
         #class_method{static = Static} = Method ->
             NewStatic = lists:map(fun({Key, _}) ->
@@ -700,9 +722,9 @@ set_static(Ref, ClassName, MethodName, Vars, Context) ->
                                           Methods,
                                           NewMethod),
             NewClass = Class#class{methods = NewMethods},
-            set(Ref, ClassName, NewClass);
+            set(Ref, NS, ClassName, NewClass);
         false when Class#class.extends =/= undefined ->
-            set_static(Ref, Class#class.extends, MethodName, Vars, Context)
+            set_static(Ref, Class#class.extends_ns, Class#class.extends, MethodName, Vars, Context)
     end,
     ok.
 
@@ -773,52 +795,58 @@ register_classes(ClassesRef, Context) ->
 get_unsafe_extends_consts(_Classes, #class{extends = undefined}) ->
     [];
 get_unsafe_extends_consts(Classes, #class{extends = Extends,
+                                          extends_ns = ExtendsNS,
                                           type = interface}) ->
-    {ok, #class{type = interface} = Interface} = get(Classes, Extends),
+    {ok, #class{type = interface} = Interface} = get(Classes, ExtendsNS, Extends),
     get_consts(Interface) ++ get_unsafe_extends_consts(Classes, Interface);
-get_unsafe_extends_consts(Classes, #class{extends = Extends}) ->
-    {ok, #class{} = Class} = get(Classes, Extends),
+get_unsafe_extends_consts(Classes, #class{extends = Extends,
+                                          extends_ns = ExtendsNS}) ->
+    {ok, #class{} = Class} = get(Classes, ExtendsNS, Extends),
     get_consts(Class) ++ get_unsafe_extends_consts(Classes, Class).
 
 register_unsafe_class(Classes, Consts, GlobalCtx,
                       #class{name = Name, constants = ConstDef0,
                              methods = ClassMethods,
+                             namespace = NS,
                              line = Index} = PHPClass) ->
-    ConstDef = lists:flatmap(fun(I) ->
-        {ok, #class{type = interface} = Interface} = get(Classes, I),
+    ConstDef = lists:flatmap(fun({INS, I}) ->
+        {ok, #class{type = interface} = Interface} = get(Classes, INS, I),
         get_consts(Interface)
     end, PHPClass#class.implements) ++
          get_unsafe_extends_consts(Classes, PHPClass) ++
          ConstDef0,
     Methods = extract_methods(Classes, Index, PHPClass#class.implements),
-    Parents = extract_parents(Classes, PHPClass),
+    Parents = extract_parents(Classes, NS, PHPClass),
     ok = check_dup(PHPClass#class.implements),
     [] = check_methods(Methods, PHPClass#class.methods),
     ok = check_final_methods(Classes, PHPClass#class.methods,
+                             PHPClass#class.extends_ns,
                              PHPClass#class.extends),
-    ephp_const:set_bulk(Consts, Name, ConstDef),
+    ephp_const:set_bulk(Consts, NS, Name, ConstDef),
     {ok, Ctx} = ephp_context:generate_subcontext(GlobalCtx),
     ActivePHPClass = PHPClass#class{
         static_context = Ctx,
         parents = Parents,
         file = <<"built-in">>,
-        methods = [ CM#class_method{class_name = Name} || CM <- ClassMethods ] ++
-                  get_methods(Classes, PHPClass#class.extends),
+        methods = [ CM#class_method{class_name = Name,
+                                    namespace = NS} || CM <- ClassMethods ] ++
+                  get_methods(Classes, PHPClass#class.extends_ns, PHPClass#class.extends),
         attrs = get_attrs(Classes, PHPClass)
     },
     initialize_class(ActivePHPClass),
-    set(Classes, Name, ActivePHPClass),
+    set(Classes, NS, Name, ActivePHPClass),
     ok.
 
 register_unsafe_interface(Classes,
                           #class{name = Name,
+                                 namespace = NS,
                                  constants = Constants} = PHPInterface) ->
     #class_state{classes = Interfaces} = State = erlang:get(Classes),
     ConstDef = get_unsafe_extends_consts(Classes, PHPInterface) ++ Constants,
     ActivePHPInterface = PHPInterface#class{file = <<"built-in">>,
                                             constants = ConstDef},
-    error = dict:find(Name, Interfaces),
-    NewClasses = dict:store(Name, ActivePHPInterface, Interfaces),
+    error = dict:find({NS, Name}, Interfaces),
+    NewClasses = dict:store({NS, Name}, ActivePHPInterface, Interfaces),
     NewState = State#class_state{classes = NewClasses},
     erlang:put(Classes, NewState),
     ok.

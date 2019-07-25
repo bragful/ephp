@@ -270,6 +270,7 @@
 
 -record(constant, {
     name :: binary(),
+    namespace = [] :: namespace(),
     type = normal :: constant_types(),
     value :: expression(),
     class :: class_name() | undefined,
@@ -279,7 +280,7 @@
 -type constant() :: #constant{}.
 
 -type object_index() :: {object, binary(), line()}.
--type class_index() :: {class, binary(), line()}.
+-type class_index() :: {class, class_name(), line()}.
 
 -type variable_types() :: normal | array | object | class | static.
 -type data_type() :: binary() | undefined.
@@ -287,6 +288,7 @@
 -record(variable, {
     type = normal :: variable_types(),
     class :: class_name() | undefined,
+    class_ns = [] :: namespace(),
     name :: binary(),
     idx = [] :: [array_index() | object_index() | class_index()],
     default_value = undefined :: mixed(),
@@ -321,10 +323,12 @@
 
 -type call_types() :: normal | class | object.
 -type class_name() :: binary().
+-type namespace() :: [binary()].
 
 -record(call, {
     type = normal :: call_types(),
     class :: undefined | class_name(),
+    namespace = [] :: namespace(),
     name :: binary() | obj_ref() | ephp_array(),
     args = [] :: [expression()],
     line :: line()
@@ -334,6 +338,7 @@
 
 -record(function, {
     name :: function_name() | undefined,
+    namespace = [] :: namespace(),
     args = [] :: [variable()],
     use = [] :: [variable()],
     code :: statements(),
@@ -347,7 +352,7 @@
     function :: binary(),
     line :: integer() | undefined,
     file :: binary() | undefined,
-    class :: binary() | undefined,
+    class :: class_name() | undefined,
     object :: obj_ref() | undefined,
     type :: binary() | undefined, %% ::, -> or undefined
     args :: [mixed()]
@@ -441,6 +446,7 @@
     static = [] :: static(),
     final = false :: boolean(),
     class_name :: class_name(),
+    namespace = [] :: namespace(),
     line :: line()
 }).
 
@@ -449,10 +455,12 @@
 
 -record(class, {
     name :: class_name(),
+    namespace = [] :: namespace(),
     type = normal :: class_type(),
     final = false :: boolean(),
     parents = [] :: [class_name()],
     extends :: undefined | class_name(),
+    extends_ns = [] :: namespace(),
     implements = [] :: [class_name()],
     constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
@@ -466,6 +474,7 @@
 
 -record(instance, {
     name :: class_name(),
+    namespace = [] :: namespace(),
     args :: [variable()],
     line :: line()
 }).
@@ -521,4 +530,3 @@
 }).
 
 -type catch_block() :: #catch_block{}.
-
