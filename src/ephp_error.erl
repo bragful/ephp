@@ -42,7 +42,7 @@
     ref :: ephp:errors_id(),
     output_handler = ?MODULE :: module(),
     error_handler = [] :: [{callable(), non_neg_integer()}],
-    exception_handler :: callable(),
+    exception_handler :: callable() | undefined,
     silent = false :: boolean(),
     level = ?E_ALL band (bnot ?E_STRICT) :: non_neg_integer(),
     modules = [] :: [module()],
@@ -156,7 +156,7 @@ error({error, Type, Index, Level, Data}) ->
     throw({error, Type, Index, Level, Data}).
 
 -spec handle_error(context(), {error, error_type(), line(), binary(),
-                               error_level(), any()}) -> ok.
+                               error_level(), any()}) -> get_return_return().
 
 handle_error(Context, {error, euncaught, Index, File, Level,
                        {File, Line, Exception}}) ->
@@ -266,18 +266,18 @@ set_output_handler(Context, Module) ->
 
 run_quiet(Errors, Fun) ->
     case erlang:get(Errors) of
-        #state{silent=true} ->
+        #state{silent = true} ->
             Fun();
         State ->
-            erlang:put(Errors, State#state{silent=true}),
+            erlang:put(Errors, State#state{silent = true}),
             Result = Fun(),
-            erlang:put(Errors, State#state{silent=false}),
+            erlang:put(Errors, State#state{silent = false}),
             Result
     end.
 
 -spec get_message([module()], error_format(), error_type(),
-                  pos_integer() | undefined, binary(), binary(),
-                  term()) -> {string(), string()}.
+                  errorlevel() | undefined, binary(), binary(),
+                  term()) -> {string(), iolist()}.
 
 get_message(Modules, text, Type, Line, File, Level, Args) ->
     Message = get_message(Modules, Type, Level, Args),
@@ -478,7 +478,8 @@ trace_to_str(Ctx, I, Array) ->
                 "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args])
     end.
 
--spec get_return(error_type()) -> term().
+-type get_return_return() :: {ok, undefined} | {return, undefined}.
+-spec get_return(error_type()) -> get_return_return().
 
 get_return(eparse) -> {ok, undefined};
 get_return(_) -> {return, undefined}.

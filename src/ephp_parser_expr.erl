@@ -150,7 +150,7 @@ array_def(<<"]",Rest/binary>>, #parser{level = array_def, array_type = php54} = 
 array_def(Rest, Parser, Args) when Rest =/= <<>> ->
     case expression(Rest, Parser, []) of
         {<<")",Rest0/binary>>, #parser{level = array_def, array_type = old} = Parser0, [Idx,Arg]} ->
-            NewArg = add_line(#array_element{idx=Idx, element=Arg}, Parser),
+            NewArg = add_line(#array_element{idx = Idx, element = Arg}, Parser),
             {Rest0, inc_pos(Parser0), Args ++ [NewArg]};
         {<<")",Rest0/binary>>, #parser{level = array_def, array_type = old} = Parser0, undefined} ->
             {Rest0, inc_pos(Parser0), Args};
@@ -172,6 +172,10 @@ array_def(Rest, Parser, Args) when Rest =/= <<>> ->
             NewArg = add_line(#array_element{element = Arg}, Parser),
             array_def(Rest0, inc_pos(Parser0), Args ++ [NewArg])
     end.
+
+-spec expression(Text :: binary(),
+                 parser(),
+                 [expression()]) -> [expression()] | expression(). 
 
 % CONSTANT / FUNCTION when -> is used
 expression(<<A:8,_/binary>> = Rest, Parser,

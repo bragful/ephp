@@ -99,7 +99,7 @@ call_user_func(Context, Line, _Args) ->
     false.
 
 -spec create_function(context(), line(), Args :: var_value(),
-                      Code :: var_value()) -> #function{}.
+                      Code :: var_value()) -> obj_ref().
 
 create_function(Context, {{line, Line}, _}, {_, Args}, {_, Code}) ->
     Pos = #parser{level = code, row = Line},

@@ -116,12 +116,12 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line, Context) ->
         (#ref{var = #variable{data_type = DataType}} = Ref,
          {I, [{_, Value}|_] = Acc}) when DataType =/= undefined ->
             Check(I, DataType, Value,
-                  ephp_class:instance_of(Context, Value, DataType)),
+                  ephp_data:instance_of(Context, Value, DataType)),
             {I+1, Zip(Ref, Acc)};
         (#variable{data_type = DataType} = Var,
          {I, [{_, Value}|_] = Acc}) when DataType =/= undefined ->
             Check(I, DataType, Value,
-                  ephp_class:instance_of(Context, Value, DataType)),
+                  ephp_data:instance_of(Context, Value, DataType)),
             {I+1, Zip(Var, Acc)};
         (VarOrRef, {I, Acc}) ->
             {I+1, Zip(VarOrRef, Acc)}
@@ -227,8 +227,10 @@ exists(#variable{name = Root, idx=[NewRoot|Idx], line = Line}, Vars, Context)
             {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
             {object, ObjRoot, _} = NewRoot,
             NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
-                #class_attr{access = private} ->
-                    NewObjRoot = {private, ObjRoot, Class#class.name},
+                #class_attr{access = private,
+                            class_name = AttrClassName,
+                            namespace = AttrNS} ->
+                    NewObjRoot = {private, ObjRoot, AttrNS, AttrClassName},
                     #variable{type = object, name = NewObjRoot, idx = Idx,
                               line = Line};
                 _ ->
@@ -464,8 +466,10 @@ search(#variable{name = Root, idx = [NewRoot|Idx], line = Line, type = Type,
                     ActiveClassNS = ephp_context:get_active_class_ns(Context),
                     {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
                     case ephp_class:get_attribute(Class, ObjRoot) of
-                        #class_attr{access = private} ->
-                            NewObjRoot = {private, ObjRoot, Class#class.name},
+                        #class_attr{access = private,
+                                    class_name = AttrClassName,
+                                    namespace = AttrNS} ->
+                            NewObjRoot = {private, ObjRoot, AttrNS, AttrClassName},
                             NewObjVar = #variable{type = object, line = Line,
                                                   name = NewObjRoot, idx = Idx},
                             search(NewObjVar, ObjVars, Context, Base);
@@ -593,8 +597,10 @@ change(#variable{name = <<"this">>, idx = [{object, ObjRoot, _Line}|Idx]} = Var,
     Classes = ephp_context:get_classes(Context),
     {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
     NewObjVar = case ephp_class:get_attribute(Class, ObjRoot) of
-        #class_attr{access = private} ->
-            NewObjRoot = {private, ObjRoot, Class#class.name},
+        #class_attr{access = private,
+                    class_name = AttrClassName,
+                    namespace = AttrNS} ->
+            NewObjRoot = {private, ObjRoot, AttrNS, AttrClassName},
             Var#variable{name = NewObjRoot, idx = Idx};
         _ ->
             ObjClass = ephp_object:get_class(ObjRef),
@@ -659,8 +665,10 @@ change(#variable{name = Root, idx = [NewRoot|Idx]} = Var, Value, Vars, Ctx) ->
             {ok, Class} = ephp_class:get(Classes, ActiveClassNS, ActiveClass),
             {object, ObjRoot, _} = NewRoot,
             case ephp_class:get_attribute(Class, ObjRoot) of
-                #class_attr{access = private} ->
-                    NewObjRoot = {private, ObjRoot, Class#class.name},
+                #class_attr{access = private,
+                            class_name = AttrClassName,
+                            namespace = AttrNS} ->
+                    NewObjRoot = {private, ObjRoot, AttrNS, AttrClassName},
                     NewObjVar = Var#variable{name = NewObjRoot, idx = Idx},
                     ephp_context:set(ObjCtx, NewObjVar, Value),
                     Vars;

@@ -133,7 +133,7 @@ error_reporting(Context, _Line, {_, ErrorLevel}) when is_integer(ErrorLevel) ->
 
 -spec set_error_handler(context(), line(), var_value(), var_value()) -> mixed().
 
-set_error_handler(Context, _Line, {_, #function{}=ErrorHandler}, {_, ErrorLevel}) ->
+set_error_handler(Context, _Line, {_, #function{} = ErrorHandler}, {_, ErrorLevel}) ->
     case ephp_error:get_error_handler_func(Context) of
         {OldErrorHandler, _} ->
             OldErrorHandler;

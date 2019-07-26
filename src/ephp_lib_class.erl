@@ -58,7 +58,7 @@ handle_error(eundefclass, _Level, {ClassName}) when is_binary(ClassName) ->
 handle_error(eundefmethod, _Level, {Class, MethodName}) ->
     io_lib:format("Call to undefined method ~s::~s()", [Class, MethodName]);
 
-handle_error(eundefattr, _Level, {{private, Attr, _}, ClassName}) ->
+handle_error(eundefattr, _Level, {{private, Attr, _NS, _Class}, ClassName}) ->
     io_lib:format("Undefined property: ~s::$~s", [ClassName, Attr]);
 
 handle_error(eundefattr, _Level, {Attr, ClassName}) when is_binary(Attr) ->

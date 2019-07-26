@@ -292,7 +292,8 @@ key(_Context, _Line, {_, Array}) ->
 %%      sort types: SORT_REGULAR (default), SORT_NUMERIC, SORT_STRING,
 %%      SORT_LOCALE_STRING, SORT_NATURAL, SORT_FLAG_CASE.
 ksort(Context, _Line, {ArrayVar, Array}, {_, SortType}) ->
-    ephp_context:set(Context, ArrayVar, ephp_array:ksort(Array, SortType)).
+    ephp_context:set(Context, ArrayVar, ephp_array:ksort(Array, SortType)),
+    true.
 
 
 -spec array_keys(context(), line(), Array::var_value()) -> ephp_array().

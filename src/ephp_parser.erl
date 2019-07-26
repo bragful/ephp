@@ -1037,8 +1037,10 @@ st_foreach(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
 st_foreach(<<"(",Rest/binary>>, Parser, Parsed) ->
     {Rest0, Parser0, Exp} = expression(Rest, foreach_block_level(Parser), []),
     {<<AS:2/binary,Rest1/binary>>, Parser1} = remove_spaces(Rest0, Parser0),
+    %% TODO add case for match this and trigger an eparse otherwise
     <<"as">> = ephp_string:to_lower(AS),
     NewParser = array_def_level(add_pos(Parser1, 2)),
+    %% TODO add case for match this and trigger an eparse otherwise
     {<<")",Rest2/binary>>, Parser2, ExpIter} = expression(Rest1, NewParser, []),
     BlockParser = foreach_block_level(inc_pos(Parser2)),
     {Rest3, Parser3, CodeBlock} = code_block(Rest2, BlockParser, []),

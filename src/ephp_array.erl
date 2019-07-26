@@ -143,7 +143,7 @@ from_list(List) when is_list(List) ->
     end, #ephp_array{}, List).
 
 
--spec to_list(ephp_array()) -> [mixed()].
+-spec to_list(ephp_array()) -> [{mixed(), mixed()}].
 %% @doc transform a PHP Array to a property list.
 to_list(#ephp_array{values = Values}) ->
     Values.

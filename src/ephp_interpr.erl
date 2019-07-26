@@ -64,7 +64,8 @@ check_exception(Context, Exception) ->
     File = ephp_class_exception:exception_get_file(Context, Exception, Line),
     Data = {File, L, Exception},
     Error = {error, euncaught, Line, File, ?E_ERROR, Data},
-    ephp_error:handle_error(Context, Error).
+    ephp_error:handle_error(Context, Error),
+    ok.
 
 -type break() :: break | {break, non_neg_integer()}.
 -type continue() :: continue | {continue, non_neg_integer()}.
@@ -111,23 +112,26 @@ run_depth(Context, #assign{line=Line}=Assign, Return, Cover) ->
     ephp_context:solve(Context, Assign),
     Return;
 
-run_depth(Context, #if_block{conditions=Cond,line=Line}=IfBlock, false, Cover) ->
+run_depth(Context, #if_block{conditions = Cond, line = Line} = IfBlock,
+          false, Cover) ->
     ok = ephp_cover:store(Cover, if_block, Context, Line),
     #if_block{true_block = TrueBlock, false_block = FalseBlock} = IfBlock,
     case ephp_data:to_boolean(ephp_context:solve(Context, Cond)) of
         true when is_list(TrueBlock) ->
             run(Context, #eval{statements = TrueBlock}, Cover);
         true ->
-            run(Context, #eval{statements = [TrueBlock]}, Cover);
+            ephp_context:solve(Context, TrueBlock),
+            false;
         false when is_list(FalseBlock) ->
             run(Context, #eval{statements = FalseBlock}, Cover);
         false when FalseBlock =:= undefined ->
             false;
         false ->
-            run(Context, #eval{statements = [FalseBlock]}, Cover)
+            ephp_context:solve(Context, FalseBlock),
+            false
     end;
 
-run_depth(Context, #switch{condition=Cond, cases=Cases, line=Line},
+run_depth(Context, #switch{condition = Cond, cases = Cases, line = Line},
           false, Cover) ->
     ok = ephp_cover:store(Cover, switch, Context, Line),
     case run_switch(Context, Cond, Cases, Cover) of
@@ -152,13 +156,7 @@ run_depth(Context, #for{init = Init,
                         line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, for, Context, Line),
     run(Context, #eval{statements = Init}, Cover),
-    LoopBlock = if
-        is_tuple(LB) -> [LB];
-        is_list(LB) -> LB;
-        LB =:= undefined -> [];
-        is_atom(LB) -> [LB]
-    end,
-    run_loop(pre, Context, Cond, LoopBlock ++ Update, Cover);
+    run_loop(pre, Context, Cond, loop_block(LB) ++ Update, Cover);
 
 run_depth(Context, #foreach{kiter = Key,
                             iter = Var,
@@ -166,18 +164,13 @@ run_depth(Context, #foreach{kiter = Key,
                             loop_block = LB,
                             line = Line} = FE, false, Cover) ->
     ok = ephp_cover:store(Cover, foreach, Context, Line),
-    LoopBlock = if
-        is_tuple(LB) -> [LB];
-        is_list(LB) -> LB;
-        LB =:= undefined -> [];
-        is_atom(LB) -> [LB]
-    end,
     case ephp_context:solve(Context, RawElements) of
         ProcElements when ?IS_ARRAY(ProcElements) ->
             Elements = ephp_array:to_list(ProcElements),
-            run_foreach(Context, Key, Var, {RawElements, Elements}, LoopBlock, Cover);
+            run_foreach(Context, Key, Var, {RawElements, Elements},
+                        loop_block(LB), Cover);
         Object when ?IS_OBJECT(Object) ->
-            case ephp_class:instance_of(Context, Object, <<"Iterator">>) of
+            case ephp_data:instance_of(Context, Object, <<"Iterator">>) of
                 true ->
                     ClassName = ephp_object:get_class_name(Object),
                     CallGen = #call{type = object, class = ClassName},
@@ -188,7 +181,7 @@ run_depth(Context, #foreach{kiter = Key,
                     case ephp_context:call_method(Context, Object, CallValid) of
                         true ->
                             run_foreach(Context, Key, Var, Object,
-                                        LoopBlock, Cover);
+                                        loop_block(LB), Cover);
                         false ->
                             false
                     end;
@@ -209,16 +202,13 @@ run_depth(Context, #foreach{kiter = Key,
             false
     end;
 
-run_depth(Context, #while{type=Type,conditions=Cond,loop_block=LB,line=Line},
+run_depth(Context, #while{type = Type,
+                          conditions = Cond,
+                          loop_block = LB,
+                          line = Line},
           false, Cover) ->
     ok = ephp_cover:store(Cover, while, Context, Line),
-    LoopBlock = if
-        is_tuple(LB) -> [LB];
-        is_list(LB) -> LB;
-        LB =:= undefined -> [];
-        is_atom(LB) -> [LB]
-    end,
-    run_loop(Type, Context, Cond, LoopBlock, Cover);
+    run_loop(Type, Context, Cond, loop_block(LB), Cover);
 
 run_depth(Context, #print_text{text=Text, line=Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, print, Context, Line),
@@ -236,7 +226,7 @@ run_depth(Context, #call{line = Line} = Call, false, Cover) ->
     ok = ephp_cover:store(Cover, {call, Call#call.name}, Context, Line),
     ephp_func:run(Context, Call);
 
-run_depth(Context, {Op, _Var, Line}=MonoArith, false, Cover) when
+run_depth(Context, {Op, _Var, Line} = MonoArith, false, Cover) when
         Op =:= pre_incr orelse
         Op =:= pre_decr orelse
         Op =:= post_incr orelse
@@ -413,6 +403,10 @@ run_depth(_Context, Statement, false, _Cover) ->
 run_depth(_Context, _Statement, Break, _Cover) ->
     Break.
 
+loop_block(LB) when is_list(LB) -> LB;
+loop_block(undefined) -> [];
+loop_block(LB) -> [LB].
+
 -spec exit_cond(flow_status()) -> flow_status().
 
 exit_cond({return, Ret}) -> {return, Ret};
@@ -436,7 +430,7 @@ run_catch(Context,
           #catch_block{exception = #variable{data_type = Catch} = Var,
                        code_block = CatchCode},
           Exception, Finally, Cover) ->
-    case ephp_class:instance_of(Context, Exception, Catch) of
+    case ephp_data:instance_of(Context, Exception, Catch) of
         true ->
             ephp_context:set(Context, Var, Exception),
             try

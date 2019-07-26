@@ -24,7 +24,8 @@
     pad_to_bin/2,
     ceiling/1,
     flooring/1,
-    urand/0
+    urand/0,
+    instance_of/3
 ]).
 
 -spec gettype(mixed()) -> binary().
@@ -409,3 +410,42 @@ urand() -> rand:uniform().
 %% @private
 urand() -> 0.72643441.
 -endif.
+
+-spec instance_of(context(), mixed(), DataType::binary()) -> boolean().
+
+instance_of(_Context, #ephp_array{}, <<"array">>) ->
+    true;
+instance_of(_Context, Boolean, <<"bool">>) when is_boolean(Boolean) ->
+    true;
+instance_of(_Context, String, <<"string">>) when is_binary(String) ->
+    true;
+instance_of(_Context, Float, <<"float">>) when is_float(Float) ->
+    true;
+instance_of(_Context, Int, <<"int">>) when is_integer(Int) ->
+    true;
+% TODO:
+% instance_of(Callable, <<"callable">>) ->
+%     false;
+instance_of(Context, Self, <<"self">>) ->
+    %% TODO scope error if active_class is not defined
+    SelfClass = ephp_context:get_active_class(Context),
+    instance_of(Context, Self, SelfClass);
+instance_of(Context, ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
+    #ephp_object{class = Class} = ephp_object:get(ObjRef),
+    #class{parents = Parents, name = InstanceName} = Class,
+    Classes = ephp_context:get_classes(Context),
+    case ephp_class:get(Classes, Class#class.namespace, Name) of
+        {ok, #class{name = ClassName}} ->
+            lists:any(fun(F) -> F() end, [
+                fun() -> ClassName =:= InstanceName end,
+                fun() -> lists:member(ClassName, Parents) end
+            ]);
+        {error, _} ->
+            false
+    end;
+instance_of(_Context, #class{name = CName}, CName) ->
+    true;
+instance_of(_Context, #class{parents = Parents}, CName) ->
+    lists:member(CName, Parents);
+instance_of(_Context, _Data, _Type) ->
+    false.

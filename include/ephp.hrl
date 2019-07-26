@@ -111,10 +111,16 @@
 
 -type context() :: reference().
 
--type statement() :: tuple() | atom().
+-type statement() :: main_statement() | blocks().
 -type statements() :: [statement()].
 
--type expression() :: operation() | mixed().
+-type expression() :: operation() |
+                      mixed() |
+                      ref() |
+                      instance() |
+                      clone() |
+                      cast() |
+                      call().
 
 -type reason() :: atom() | string().
 
@@ -144,15 +150,15 @@
 
 -record(if_block, {
     conditions :: condition(),
-    true_block :: statements(),
-    false_block :: statements(),
+    true_block :: statements() | expression(),
+    false_block :: statements() | expression(),
     line :: line()
 }).
 
 -record(for, {
     init :: [expression()],
     conditions :: condition(),
-    update :: expression(),
+    update :: [expression()],
     loop_block :: statements(),
     line :: line()
 }).
@@ -188,6 +194,8 @@
 }).
 
 -type if_block() :: #if_block{}.
+
+-type blocks() :: #if_block{} | #for{} | #while{} | #foreach{} | #switch{}.
 
 % data types and operations
 
@@ -246,12 +254,14 @@
 -type global() :: #global{}.
 
 -record(int, {
-    int :: integer(),
+    %% we need binary during the parsing only
+    int :: integer() | binary(),
     line :: line()
 }).
 
 -record(float, {
-    float :: float(),
+    %% we need binary during the parsing only
+    float :: float() | nan | infinity | binary(),
     line :: line()
 }).
 
@@ -293,11 +303,13 @@
 -type variable_types() :: normal | array | object | class | static.
 -type data_type() :: binary() | undefined.
 
+-type private_var() :: {private, binary(), namespace(), class_name()}.
+
 -record(variable, {
     type = normal :: variable_types(),
     class :: class_name() | undefined,
     class_ns = [] :: namespace(),
-    name :: binary(),
+    name :: binary() | private_var(),
     idx = [] :: [array_index() | object_index() | class_index()],
     default_value = undefined :: mixed(),
     data_type :: data_type(), %% <<"Exception">> for example
@@ -324,10 +336,12 @@
 % statements
 
 -record(assign, {
-    variable :: variable() | constant(),
+    variable :: variable() | constant() | assign() | call(),
     expression :: expression(),
     line :: line()
 }).
+
+-type assign() :: #assign{}.
 
 -type call_types() :: normal | class | object.
 -type class_name() :: binary().
@@ -337,10 +351,12 @@
     type = normal :: call_types(),
     class :: undefined | class_name(),
     namespace = [] :: namespace(),
-    name :: binary() | obj_ref() | ephp_array(),
-    args = [] :: [expression()],
+    name :: obj_ref() | callable() | st_function(),
+    args = [] :: [expression()] | undefined,
     line :: line()
 }).
+
+-type call() :: #call{}.
 
 -type function_name() :: binary().
 
@@ -353,6 +369,8 @@
     return_ref = false :: boolean(),
     line :: line()
 }).
+
+-type st_function() :: #function{}.
 
 -type callable() :: function_name() | ephp_array().
 
@@ -372,6 +390,8 @@
     var :: variable(),
     line :: line()
 }).
+
+-type ref() :: #ref{}.
 
 -record(concat, {
     texts :: [any()],
@@ -436,6 +456,7 @@
     final = false :: boolean(),
     %% FIXME: maybe it should be forced to be always present:
     class_name :: class_name() | undefined,
+    namespace = [] :: namespace(),
     line :: line()
 }).
 
@@ -481,9 +502,9 @@
 -type class() :: #class{}.
 
 -record(instance, {
-    name :: class_name(),
+    name :: class_name() | undefined,
     namespace = [] :: namespace(),
-    args :: [variable()],
+    args :: [variable()] | undefined,
     line :: line()
 }).
 
@@ -494,22 +515,22 @@
 
 -record(reg_func, {
     name :: binary(),
-    args :: [variable()],
+    args :: [variable()] | undefined,
     type :: builtin | php,
     file :: binary(),
     code = [] :: [statement()],
-    builtin :: {Module :: atom(), Func :: atom()},
+    builtin :: {Module :: atom(), Func :: atom()} | undefined,
     pack_args = false :: boolean(),
     validation_args :: ephp_func:validation_args(),
     static = [] :: static()
 }).
 
 -record(ephp_object, {
-    id :: pos_integer(),
+    id :: pos_integer() | undefined,
     class :: class(),
-    instance :: instance(),
+    instance :: instance() | undefined,
     context :: context(),
-    objects :: ephp:objects_id(),   %% TODO: check if objects is really needed
+    objects :: ephp:objects_id() | undefined,   %% TODO: check if objects is really needed
     links = 1 :: pos_integer()
 }).
 

@@ -85,16 +85,13 @@ microtime(Context, Line) ->
 
 -spec date(context(), line(), Format :: var_value()) -> binary().
 
-date(Context, Line, {_, Format}) ->
+date(Context, Line, Format) ->
     {MS, S, US} = ephp_datetime:timestamp(),
-    date(Context, Line,
-         {undefined, Format},
-         {undefined, (MS * 1000000) + S + (US / 1000000)}).
+    date(Context, Line, Format,
+         {undefined, (MS * 1000000) + S + trunc(US / 1000000)}).
 
--spec date(
-    context(), line(),
-    Format :: {variable(),binary()},
-    Timestamp :: {variable(),(integer() | float())}) -> binary().
+-spec date(context(), line(), Format :: var_value(),
+           Timestamp :: var_value()) -> binary().
 
 date(Context, Line, {_,Format}, {_,Timestamp}) ->
     {M,S,U} = ephp_datetime:get_timestamp(Timestamp),

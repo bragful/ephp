@@ -286,11 +286,11 @@ str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
 str_split(_Context, _Line, {_, Text}, {_, Size}) ->
     split_chars(Text, ephp_array:new(), 0, Size).
 
--spec print(context(), line(), var_value()) -> 1.
+-spec print(context(), line(), [var_value()]) -> 1.
 
 print(_Context, _Line, []) ->
     1;
-print(Context, Line, [{_, #obj_ref{}=ObjRef}|Values]) ->
+print(Context, Line, [{_, #obj_ref{} = ObjRef}|Values]) ->
     ValueStr = ephp_data:to_bin(Context, Line, ObjRef),
     ephp_context:set_output(Context, ValueStr),
     print(Context, Line, Values);

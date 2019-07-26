@@ -192,20 +192,24 @@ st_class_content(<<"$",_/binary>> = Rest,
                  #class{attrs = Attrs} = Class) when Access =/= undefined orelse
                                                      Type =:= static ->
     Attr = case ephp_parser_expr:expression(Rest, Parser, []) of
-        {Rest0, Parser0, #assign{variable = #variable{name=VarName},
+        {Rest0, Parser0, #assign{variable = #variable{name = VarName},
                                  expression = Expr}} ->
             #class_attr{access = access(Access),
                         name = VarName,
                         type = Type,
                         init_value = Expr,
-                        final = Final};
+                        final = Final,
+                        class_name = Class#class.name,
+                        namespace = Class#class.namespace};
         {Rest0, Parser0, #variable{name = VarName}} ->
             #class_attr{access = access(Access),
                         name = VarName,
                         type = Type,
-                        final = Final}
+                        final = Final,
+                        class_name = Class#class.name,
+                        namespace = Class#class.namespace}
     end,
-    NewClass = Class#class{attrs=Attrs ++ [Attr]},
+    NewClass = Class#class{attrs = Attrs ++ [Attr]},
     st_class_content(Rest0, normal_public_level(Parser0), NewClass);
 st_class_content(<<"$", _/binary>> = _Rest, Parser, _Class) ->
     ephp_parser:throw_error(eparse, Parser, {<<"`\"function (T_FUNCTION)\"'">>});

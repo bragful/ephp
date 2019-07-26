@@ -178,7 +178,9 @@ dump() ->
     Classes = dump(Files, []),
     Percentage = total_percentage(Files),
     Packages = io_lib:format(?PACKAGE, ["base", Percentage, Classes]),
-    Sources = [ io_lib:format(?SOURCE, [dirname(File)]) || {File,_} <- Files ],
+    Sources = lists:map(fun({File, _}) ->
+                            io_lib:format(?SOURCE, [dirname(File)])
+                        end, Files),
     Epoch = ephp_datetime:posix_time_ms(),
     XML = io_lib:format(?XML_HEAD, [Epoch, Percentage, Sources, Packages]),
     Output = case ephp_config:get(<<"cover.output">>) of

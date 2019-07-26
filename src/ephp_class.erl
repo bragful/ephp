@@ -45,8 +45,6 @@
     init_static_value/6,
     set_static/6,
 
-    instance_of/3,
-
     register_class/4,
     register_classes/2,
     register_classes/3,
@@ -127,7 +125,7 @@ get(_Context, Classes, NS, ClassName, []) ->
 
 get(Context, Classes, NS, ClassName, [Loader|Loaders]) ->
     case get(Classes, NS, ClassName) of
-        {ok, Class} ->
+        {ok, #class{} = Class} ->
             {ok, Class};
         {error, enoexist} ->
             %% TODO check callable for Loader
@@ -145,7 +143,7 @@ get(Ref, NS, ClassName) ->
     case dict:find({NS, ClassName}, Classes) of
         {ok, {alias, NewNS, NewClassName}} ->
             get(Ref, NewNS, NewClassName);
-        {ok, Class} ->
+        {ok, #class{} = Class} ->
             {ok, Class};
         error ->
             {error, enoexist}
@@ -302,7 +300,7 @@ get_attrs(_Classes, #class{name = Name, extends = undefined, attrs = Attrs}) ->
 get_attrs(Classes, #class{name = Name, extends = Extends, attrs = Attrs,
                           extends_ns = ExtendsNS}) ->
     %% TODO check if the inherited class doesn't exist
-    {ok, Class} = get(Classes, ExtendsNS, Extends),
+    {ok, #class{} = Class} = get(Classes, ExtendsNS, Extends),
     %% TODO check duplicated
     attrs_set_class_name(Name, Attrs) ++  get_attrs(Classes, Class).
 
@@ -337,7 +335,7 @@ extract_parents(Ref, _NS, #class{extends_ns = ExtendsNS,
     lists:flatten(ParentExt ++ ParentImpl);
 
 extract_parents(Ref, NS, Name) when is_binary(Name) ->
-    {ok, Class} = get(Ref, NS, Name),
+    {ok, #class{} = Class} = get(Ref, NS, Name),
     [Name|extract_parents(Ref, NS, Class)].
 
 
@@ -534,45 +532,6 @@ instance(_Ref, LocalCtx, GlobalCtx, ClassNS, ClassName, Line) ->
                           {ClassNS, ClassName}})
     end.
 
--spec instance_of(context(), mixed(), DataType::binary()) -> boolean().
-
-instance_of(_Context, #ephp_array{}, <<"array">>) ->
-    true;
-instance_of(_Context, Boolean, <<"bool">>) when is_boolean(Boolean) ->
-    true;
-instance_of(_Context, String, <<"string">>) when is_binary(String) ->
-    true;
-instance_of(_Context, Float, <<"float">>) when is_float(Float) ->
-    true;
-instance_of(_Context, Int, <<"int">>) when is_integer(Int) ->
-    true;
-% TODO:
-% instance_of(Callable, <<"callable">>) ->
-%     false;
-instance_of(Context, Self, <<"self">>) ->
-    %% TODO scope error if active_class is not defined
-    SelfClass = ephp_context:get_active_class(Context),
-    instance_of(Context, Self, SelfClass);
-instance_of(Context, ObjRef, Name) when ?IS_OBJECT(ObjRef) ->
-    #ephp_object{class = Class} = ephp_object:get(ObjRef),
-    #class{parents = Parents, name = InstanceName} = Class,
-    Classes = ephp_context:get_classes(Context),
-    case get(Classes, Class#class.namespace, Name) of
-        {ok, #class{name = ClassName}} ->
-            lists:any(fun(F) -> F() end, [
-                fun() -> ClassName =:= InstanceName end,
-                fun() -> lists:member(ClassName, Parents) end
-            ]);
-        {error, _} ->
-            false
-    end;
-instance_of(_Context, #class{name = CName}, CName) ->
-    true;
-instance_of(_Context, #class{parents = Parents}, CName) ->
-    lists:member(CName, Parents);
-instance_of(_Context, _Data, _Type) ->
-    false.
-
 initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
     Bulk = lists:foldl(fun
         (#class_attr{type = static, name = Name, init_value = RawVal}, Acc) ->
@@ -585,13 +544,16 @@ initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
 
 initialize(Ctx, _ClassName, #class{attrs = Attrs}) ->
     Bulk = lists:foldl(fun
-        (#class_attr{type = normal, access = private, class_name = CName,
-                     name = Name, init_value = RawVal}, Acc) ->
+        (#class_attr{type = normal, access = private,
+                     class_name = CName,
+                     namespace = NS,
+                     name = Name,
+                     init_value = RawVal}, Acc) when CName =/= undefined ->
             Val = ephp_context:solve(Ctx, RawVal),
-            [{#variable{name = {private, Name, CName}}, Val}|Acc];
+            [{#variable{name = {private, Name, NS, CName}}, Val}|Acc];
         (#class_attr{type = normal, name = Name, init_value = RawVal}, Acc) ->
             Val = ephp_context:solve(Ctx, RawVal),
-            [{#variable{name=Name}, Val}|Acc];
+            [{#variable{name = Name}, Val}|Acc];
         (#class_attr{type = static}, Acc) ->
             Acc
     end, [], lists:reverse(Attrs)),
@@ -686,7 +648,7 @@ get_parent(Context, NS, Name) ->
     {ExtendsNS, Extends}.
 
 init_static_value(Ref, NS, ClassName, MethodName, VarName, Value) ->
-    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, NS, ClassName),
+    {ok, #class{methods = Methods} = Class} = get(Ref, NS, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
         #class_method{static = Static} = Method ->
             case orddict:find(VarName, Static) of
@@ -708,7 +670,7 @@ init_static_value(Ref, NS, ClassName, MethodName, VarName, Value) ->
     end.
 
 set_static(Ref, NS, ClassName, MethodName, Vars, Context) ->
-    {ok, #class{methods = Methods}} = {ok, Class} = get(Ref, NS, ClassName),
+    {ok, #class{methods = Methods} = Class} = get(Ref, NS, ClassName),
     case lists:keyfind(MethodName, #class_method.name, Methods) of
         #class_method{static = Static} = Method ->
             NewStatic = lists:map(fun({Key, _}) ->
@@ -739,7 +701,9 @@ add_if_no_exists_attrib(#class{attrs = Attrs} = Class, Name) ->
     case get_attribute(Class, Name) of
         undefined ->
             Class#class{
-                attrs = Attrs ++ [#class_attr{name = Name, class_name = Class#class.name}]
+                attrs = Attrs ++ [#class_attr{name = Name,
+                                              class_name = Class#class.name,
+                                              namespace = Class#class.namespace}]
             };
         _ ->
             Class

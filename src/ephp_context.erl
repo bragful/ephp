@@ -5,14 +5,14 @@
 -include("ephp.hrl").
 
 -record(state, {
-    ref :: ephp:context_id(),
+    ref :: ephp:context_id() | undefined,
     vars :: ephp:vars_id(),
     funcs :: ephp:funcs_id(),
     class :: ephp:classes_id(),
     object :: ephp:objects_id(),
     output :: ephp:output_id(),
     const :: ephp:consts_id(),
-    global :: ephp:context_id(),
+    global :: ephp:context_id() | undefined,
     include :: ephp:includes_id(),
     shutdown :: ephp:shutdown_id(),
     errors :: ephp:errors_id(),
@@ -492,15 +492,16 @@ resolve(undefined, State) ->
 resolve(#assign{variable = #variable{type = normal} = Var,
                 expression = #ref{var = RefVar}},
         #state{ref = Ref, vars = Vars} = State) ->
-    case catch get_var_path(Var, State) of
-        #variable{} = VarPath ->
-            %% TODO: review indexes like: $a = &$b->f();
-            {NewIdx, NState} = resolve_idx(RefVar#variable.idx, State),
-            ephp_vars:ref(Vars, VarPath,
-                          Vars, RefVar#variable{idx = NewIdx},
-                          Ref),
-            resolve(RefVar, NState);
-        {error, _Reason} ->
+    try
+        VarPath = get_var_path(Var, State),
+        %% TODO: review indexes like: $a = &$b->f();
+        {NewIdx, NState} = resolve_idx(RefVar#variable.idx, State),
+        ephp_vars:ref(Vars, VarPath,
+                        Vars, RefVar#variable{idx = NewIdx},
+                        Ref),
+        resolve(RefVar, NState)
+    catch
+        throw:{error, _Reason} ->
             {undefined, State}
     end;
 
@@ -513,19 +514,20 @@ resolve(#assign{variable = #variable{type = normal} = Var,
                 expression = Expr},
         #state{ref = Ref} = State) ->
     {Value, NState} = resolve(Expr, State),
-    case catch get_var_path(Var, NState) of
-        #variable{} = VarPath ->
-            ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
-            case Expr of
-                #instance{} -> ephp_object:remove(Ref, Value);
-                #clone{} -> ephp_object:remove(Ref, Value);
-                #cast{type = object} -> ephp_object:remove(Ref, Value);
-                #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
-                #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
-                _ -> ok
-            end,
-            {Value, NState};
-        {error, _Reason} ->
+    try
+        VarPath = get_var_path(Var, NState),
+        ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
+        case Expr of
+            #instance{} -> ephp_object:remove(Ref, Value);
+            #clone{} -> ephp_object:remove(Ref, Value);
+            #cast{type = object} -> ephp_object:remove(Ref, Value);
+            #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
+            #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
+            _ -> ok
+        end,
+        {Value, NState}
+    catch
+        throw:{error, _Reason} ->
             {undefined, NState}
     end;
 
@@ -556,29 +558,30 @@ resolve(#assign{variable = #variable{type = class,
                                      line = Index} = Var,
                 expression = Expr},
         #state{ref = Ref, class = Classes} = State) ->
-    case catch get_var_path(Var, State) of
-        #variable{} = VarPath ->
-            {Value, NState} = resolve(Expr, State),
-            case ephp_class:get(Classes, NS, ClassName) of
-                {ok, #class{static_context = ClassCtx}} ->
-                    Result = set(ClassCtx, VarPath, Value),
-                    case Expr of
-                        #instance{} -> ephp_object:remove(Ref, Value);
-                        #clone{} -> ephp_object:remove(Ref, Value);
-                        #cast{type = object} -> ephp_object:remove(Ref, Value);
-                        #call{} when ?IS_OBJECT(Value) ->
-                            ephp_object:remove(Ref, Value);
-                        #call{} when ?IS_MEM(Value) ->
-                            ephp_mem:remove(Value);
-                        _ -> ok
-                    end,
-                    Result;
-                {error, enoexist} ->
-                    ephp_error:error({error, eundefclass, Index,
-                                      ?E_ERROR, {NS, ClassName}})
-            end,
-            {Value, NState};
-        {error, _Reason} ->
+    try
+        VarPath = get_var_path(Var, State),
+        {Value, NState} = resolve(Expr, State),
+        case ephp_class:get(Classes, NS, ClassName) of
+            {ok, #class{static_context = ClassCtx}} ->
+                Result = set(ClassCtx, VarPath, Value),
+                case Expr of
+                    #instance{} -> ephp_object:remove(Ref, Value);
+                    #clone{} -> ephp_object:remove(Ref, Value);
+                    #cast{type = object} -> ephp_object:remove(Ref, Value);
+                    #call{} when ?IS_OBJECT(Value) ->
+                        ephp_object:remove(Ref, Value);
+                    #call{} when ?IS_MEM(Value) ->
+                        ephp_mem:remove(Value);
+                    _ -> ok
+                end,
+                Result;
+            {error, enoexist} ->
+                ephp_error:error({error, eundefclass, Index,
+                                    ?E_ERROR, {NS, ClassName}})
+        end,
+        {Value, NState}
+    catch
+        throw:{error, _Reason} ->
             {undefined, State}
     end;
 
@@ -592,19 +595,20 @@ resolve(#assign{variable = #variable{type = static, idx = []} = Var,
         #state{active_real_class = <<>>, active_fun = <<>>, ref = Ref} = State) ->
     %% TODO check if with include the normal behaviour changes
     {Value, NState} = resolve(Expr, State),
-    case catch get_var_path(Var, NState) of
-        #variable{}=VarPath ->
-            ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
-            case Expr of
-                #instance{} -> ephp_object:remove(Ref, Value);
-                #clone{} -> ephp_object:remove(Ref, Value);
-                #cast{type = object} -> ephp_object:remove(Ref, Value);
-                #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
-                #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
-                _ -> ok
-            end,
-            {Value, NState};
-        {error, _Reason} ->
+    try
+        VarPath = get_var_path(Var, NState),
+        ephp_vars:set(NState#state.vars, VarPath, Value, Ref),
+        case Expr of
+            #instance{} -> ephp_object:remove(Ref, Value);
+            #clone{} -> ephp_object:remove(Ref, Value);
+            #cast{type = object} -> ephp_object:remove(Ref, Value);
+            #call{} when ?IS_OBJECT(Value) -> ephp_object:remove(Ref, Value);
+            #call{} when ?IS_MEM(Value) -> ephp_mem:remove(Value);
+            _ -> ok
+        end,
+        {Value, NState}
+    catch
+        throw:{error, _Reason} ->
             {undefined, NState}
     end;
 
@@ -651,10 +655,10 @@ resolve(#assign{variable = #call{name = <<"list">>, args = Args}=List,
     {Value, NState} = resolve(Expr, State),
     resolve(List#call{args = [Value|Args]}, NState);
 
-resolve(#operation{}=Op, State) ->
+resolve(#operation{} = Op, State) ->
     resolve_op(Op, State);
 
-resolve(#int{int=Int}, State) ->
+resolve(#int{int = Int}, State) ->
     {Int, State};
 
 resolve(N, State) when is_number(N) ->
@@ -679,16 +683,17 @@ resolve(Object, State) when ?IS_OBJECT(Object) ->
     {Object, State};
 
 resolve({pre_incr, Var, _Line}, #state{ref = Ref} = State) ->
-    case get_var_path(Var, State) of
-        #variable{} = VarPath ->
-            Value = ephp_vars:get(State#state.vars, VarPath, Ref),
-            NewValue = rich_increment(Value),
-            if
-                ?IS_MEM(Value) -> ephp_mem:set(Value, NewValue);
-                true -> ephp_vars:set(State#state.vars, VarPath, NewValue, Ref)
-            end,
-            {NewValue, State};
-        {error, _Reason} ->
+    try
+        VarPath = get_var_path(Var, State),
+        Value = ephp_vars:get(State#state.vars, VarPath, Ref),
+        NewValue = rich_increment(Value),
+        if
+            ?IS_MEM(Value) -> ephp_mem:set(Value, NewValue);
+            true -> ephp_vars:set(State#state.vars, VarPath, NewValue, Ref)
+        end,
+        {NewValue, State}
+    catch
+        throw:{error, _Reason} ->
             {undefined, State}
     end;
 
@@ -771,15 +776,15 @@ resolve({operation_bnot, Expr, Line}, State) ->
             ephp_error:error({error, eunsupportop, Line, ?E_ERROR, {}})
     end;
 
-resolve(#if_block{conditions=Cond}=IfBlock, State) ->
+resolve(#if_block{conditions = Cond} = IfBlock, State) ->
     case resolve_op(Cond, State) of
-    {true,NewState} ->
-        resolve(IfBlock#if_block.true_block, NewState);
-    {false,NewState} ->
-        resolve(IfBlock#if_block.false_block, NewState)
+        {true, NewState} ->
+            resolve(IfBlock#if_block.true_block, NewState);
+        {false, NewState} ->
+            resolve(IfBlock#if_block.false_block, NewState)
     end;
 
-resolve(#variable{}=Var, State) ->
+resolve(#variable{} = Var, State) ->
     resolve_var(Var, State);
 
 resolve(#array{elements = ArrayElements}, State) ->
@@ -920,7 +925,7 @@ resolve(#call{type = class, class = CurrentClassName} = Call,
 resolve(#call{type = class, class = Name, namespace = NS, line = Index} = Call,
         #state{class = Classes, active_class = <<>>} = State) ->
     case ephp_class:get(Classes, NS, Name) of
-        {ok, Class} ->
+        {ok, #class{} = Class} ->
             run_method(Class, Call, State);
         {error, enoexist} ->
             ephp_error:error({error, eundefclass, Index, ?E_ERROR, {NS, Name}})
@@ -931,8 +936,8 @@ resolve(#call{type = class, class = Name, line = Index} = Call,
                active_class = CurrentClassName,
                active_class_ns = NS,
                ref = Ref} = State) ->
-    {ok, CurrentClass} = ephp_class:get(Classes, NS, CurrentClassName),
-    case ephp_class:instance_of(Ref, CurrentClass, Name) of
+    {ok, #class{} = CurrentClass} = ephp_class:get(Classes, NS, CurrentClassName),
+    case ephp_data:instance_of(Ref, CurrentClass, Name) of
         true ->
             Object = ephp_vars:get(State#state.vars,
                                    #variable{name = <<"this">>}, Ref),
@@ -975,7 +980,7 @@ resolve(#instance{name = ClassName, namespace = ClassNS, args = RawArgs, line = 
             #class_method{name = MethodName,
                           class_name = MCName,
                           access = Access} = ClassMethod,
-            IsChild = ephp_class:instance_of(LocalCtx, Instance, MCName),
+            IsChild = ephp_data:instance_of(LocalCtx, Instance, MCName),
             ActiveClass = State#state.active_class,
             maybe_ecallprivate_log(ActiveClass, MCName, Access, IsChild, MethodName, Line),
             {_, NState} = run_method(Object, Call, State),
@@ -1272,8 +1277,6 @@ resolve_func_args(RawFuncArgs, State) ->
             {Vars ++ [Var], NewState}
     end, {[], State}, RawFuncArgs).
 
-resolve_idx(undefined, State) ->
-    {[], State};
 resolve_idx(RawIdx, State) ->
     lists:foldl(fun(I, {Indexes, S}) ->
         case resolve(I, S) of
@@ -1528,7 +1531,7 @@ run_method(RegInstance, #call{args = RawArgs, line = Line, class = AName} = Call
                   name = MethodName,
                   class_name = MCName,
                   access = Access} = ClassMethod,
-    IsChild = ephp_class:instance_of(Ref, RegInstance, MCName),
+    IsChild = ephp_data:instance_of(Ref, RegInstance, MCName),
     maybe_ecallprivate_log(ClassName, MCName, Access, IsChild, MethodName, Line),
     {MethodArgs, NState} = resolve_func_args(RawMethodArgs, NStatePrev),
     maybe_enostatic_log(Class, Object, MethodName, ClassMethod, Line, NState),
@@ -1702,9 +1705,9 @@ resolve_var(#variable{idx = [{object, #variable{} = SubVar, Line}|Idx]} = Var,
             Data = {Class#class.name, SubVal, <<"private">>},
             ephp_error:error({error, eprivateaccess, SubVar#variable.line,
                               ?E_ERROR, Data});
-        #class_attr{access = private, class_name = CName}
+        #class_attr{access = private, class_name = CName, namespace = NS}
                 when CName =:= RunningClass ->
-            NewName = {private, NewVar#variable.name, RunningClass},
+            NewName = {private, NewVar#variable.name, NS, RunningClass},
             {ephp_context:get(Context, NewVar#variable{class = Class#class.name,
                                                        name = NewName,
                                                        type = object}),
@@ -1732,10 +1735,11 @@ resolve_var(#variable{name = <<"this">>, idx = [{object, VarName, Line}|Idx]} = 
         resolve_indexes(#variable{name = VarName, idx = Idx,
                                   type = object, class = Class#class.name,
                                   line = Line}, State),
-    ClassAttr = ephp_class:get_attribute(Class, NewVar#variable.name),
+    NewVarName = NewVar#variable.name,
+    ClassAttr = ephp_class:get_attribute(Class, NewVarName),
     case ClassAttr of
         #class_attr{access = private} ->
-            NewName = {private, NewVar#variable.name, RunningClass},
+            NewName = {private, NewVarName, RunningClassNS, RunningClass},
             {ephp_context:get(Context, NewVar#variable{class = RunningClass,
                                                        name = NewName,
                                                        type = object}),
@@ -1829,19 +1833,19 @@ resolve_cast(_State, _Line, object, #obj_ref{} = Object) ->
     Object.
 
 resolve_indexes(#variable{idx = Indexes} = Var, State) ->
-    {NewIndexes, NewState} = lists:foldl(fun(Idx,{I,NS}) ->
+    {NewIndexes, NewState} = lists:foldl(fun(Idx, {I, NS}) ->
         {Value, NState} = resolve(Idx, NS),
         {I ++ [Value], NState}
-    end, {[],State}, Indexes),
-    {Var#variable{idx=NewIndexes}, NewState}.
+    end, {[], State}, Indexes),
+    {Var#variable{idx = NewIndexes}, NewState}.
 
-get_var_path(#variable{idx=[]}=Var, _State) ->
+get_var_path(#variable{idx = []} = Var, _State) ->
     Var;
 
-get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
+get_var_path(#variable{idx = Indexes} = Var, #state{vars = Vars} = State) ->
     NewIndexes = lists:foldl(fun
         (auto, LIdx) ->
-            NewEntry = Var#variable{idx=LIdx},
+            NewEntry = Var#variable{idx = LIdx},
             Value = case get_var_path_data(Vars, NewEntry, State#state.ref) of
                 undefined ->
                     auto;
@@ -1857,7 +1861,7 @@ get_var_path(#variable{idx=Indexes}=Var, #state{vars=Vars}=State) ->
             {Value, _Vars} = resolve(Idx, State),
             LIdx ++ [Value]
     end, [], Indexes),
-    Var#variable{idx=NewIndexes}.
+    Var#variable{idx = NewIndexes}.
 
 get_var_path_data(Vars, Entry, Ref) ->
     case ephp_vars:get(Vars, Entry, Ref) of
@@ -1885,8 +1889,9 @@ resolve_txt(Texts, Line, State) ->
     end, {<<>>, State}, Texts).
 
 
-resolve_op(#operation{
-    type=Type, expression_left=Op1, expression_right=Op2}, State)
+resolve_op(#operation{type = Type,
+                      expression_left = Op1,
+                      expression_right = Op2}, State)
         when Type =:= 'and' orelse Type =:= 'or'->
     {RawOpRes1, State1} = resolve(Op1, State),
     OpRes1 = ephp_data:to_bool(RawOpRes1),
@@ -1907,10 +1912,11 @@ resolve_op(#operation{type = instanceof, expression_left = Op1,
                       expression_right = #constant{name = ClassName}},
            #state{ref = Ref} = State) ->
     {OpRes1, State1} = resolve(Op1, State),
-    {ephp_class:instance_of(Ref, OpRes1, ClassName), State1};
+    {ephp_data:instance_of(Ref, OpRes1, ClassName), State1};
 
-resolve_op(#operation{type=Type, expression_left=Op1, expression_right=Op2,
-                      line=Index}, State) ->
+resolve_op(#operation{type = Type, expression_left = Op1,
+                      expression_right = Op2,
+                      line = Index}, State) ->
     {OpRes1, State1} = resolve(Op1, State),
     {OpRes2, State2} = resolve(Op2, State1),
     {resolve_op(Type, OpRes1, OpRes2, Index, State2), State2};

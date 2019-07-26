@@ -120,7 +120,7 @@ var_dump(Context, Line, {_, Value}) ->
     ephp_context:set_output(Context, Result),
     undefined.
 
--spec print_r(context(), line(), var_value(), Output :: boolean()) ->
+-spec print_r(context(), line(), var_value(), Output :: var_value()) ->
       true | binary().
 
 print_r(Context, Line, {_, ObjRef}, {_, true}) when ?IS_OBJECT(ObjRef) ->
@@ -174,7 +174,7 @@ print_r(Context, Line, {_,Value}, {_,false}) ->
     ephp_context:set_output(Context, ephp_data:to_bin(Context, Line, Value)),
     true.
 
--spec isset(context(), line(), var_value()) -> boolean().
+-spec isset(context(), line(), {variable(), variable()}) -> boolean().
 
 isset(Context, _Line, {_, Var}) ->
     ephp_context:isset(Context, Var).
@@ -192,7 +192,7 @@ gettype(_Context, _Line, {_,Value}) ->
         Other -> Other
     end.
 
--spec unset(context(), line(), var_value()) -> undefined.
+-spec unset(context(), line(), {variable(), variable()}) -> undefined.
 
 unset(Context, _Line, {#variable{}, #variable{} = Var}) ->
     ephp_context:del(Context, Var),
@@ -305,8 +305,9 @@ var_dump_fmt(Context, Line, ObjRef, Spaces, RecCtl) when ?IS_OBJECT(ObjRef) ->
         lists:foldl(fun(#class_attr{name = RawName, access = Access} = CA, Output) ->
             Variable = case Access of
                 private ->
-                    AttrClassName = CA#class_attr.class_name,
-                    #variable{name = {private, RawName, AttrClassName}};
+                    #class_attr{class_name = AttrClassName,
+                                namespace = AttrNS} = CA,
+                    #variable{name = {private, RawName, AttrNS, AttrClassName}};
                 _ ->
                     #variable{name = RawName}
             end,
