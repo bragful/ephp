@@ -142,11 +142,11 @@ normalize_tz("GMT") ->
 normalize_tz(Zone) ->
     Zone.
 
--spec is_dst(calendar:date(), string() | binary()) -> boolean().
+-spec is_dst(calendar:datetime(), string() | binary()) -> boolean().
 
-is_dst(Date, RawTZ) ->
+is_dst(Datetime, RawTZ) ->
     TZ = normalize_tz(RawTZ),
-    ezic:has_dst_local(Date, TZ).
+    ezic:has_dst_local(Datetime, TZ).
 
 -spec to_zone(calendar:date(), string() | binary()) -> calendar:datetime().
 

@@ -309,8 +309,8 @@ date_format(<<"e", R/binary>>, Result, {_, _, TZ} = Date) ->
     TimeZone = ephp_data:to_bin(TZ),
     date_format(R, <<Result/binary,TimeZone/binary>>, Date);
 
-date_format(<<"I", R/binary>>, Result, {_, {D, _}, TZ} = Date) ->
-    Daylight = case ephp_datetime:is_dst(D, TZ) of
+date_format(<<"I", R/binary>>, Result, {_, DT, TZ} = Date) ->
+    Daylight = case ephp_datetime:is_dst(DT, TZ) of
         true -> <<"1">>;
         false -> <<"0">>
     end,
@@ -324,8 +324,8 @@ date_format(<<"P", R/binary>>, Result, {_, DT, TZ} = Date) ->
     Timezone = ephp_datetime:get_tz_time(DT, TZ, <<":">>),
     date_format(R, <<Result/binary, Timezone/binary>>, Date);
 
-date_format(<<"T", R/binary>>, Result, {_, {D, _}, TZ} = Date) ->
-    IsDst = ephp_datetime:is_dst(D, TZ),
+date_format(<<"T", R/binary>>, Result, {_, DT, TZ} = Date) ->
+    IsDst = ephp_datetime:is_dst(DT, TZ),
     Timezone = ephp_timezone:timezone_to_abbreviation(IsDst, ephp_data:to_bin(TZ)),
     date_format(R, <<Result/binary, Timezone/binary>>, Date);
 
