@@ -598,6 +598,8 @@ expression(<<":",Rest/binary>>, Parser, Parsed) ->
 expression(Rest, #parser{level = unclosed} = Parser, [Exp]) ->
     {Rest, Parser, add_op('end', [Exp])};
 % PARSE ERROR
+expression(<<"{", _/binary>>, Parser, _Parsed) ->
+    throw_error(eparse, Parser, {unexpected, <<"{">>});
 expression(<<>>, Parser, _Parsed) ->
     throw_error(eparse, Parser, <<>>).
 
