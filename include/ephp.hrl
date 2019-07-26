@@ -88,7 +88,7 @@
 
 -type error_level() :: pos_integer().
 
--type date() :: {Year :: integer(), Month :: integer(), Day :: integer()}.
+-type date() :: calendar:date().
 
 -type file_name() :: binary().
 
@@ -105,7 +105,7 @@
 
 -type mixed() ::
     integer() | php_float() | binary() | boolean() | ephp_array() |
-    obj_ref() | mem_ref() | var_ref() | undefined.
+    obj_ref() | mem_ref() | var_ref() | undefined | resource().
 
 -type var_value() :: {variable() | constant() | text() | text_to_process() | mixed(), mixed()}.
 
@@ -448,12 +448,12 @@
     access = public :: access_types(),
     type = normal :: normal | static | abstract,
     code :: [statement()] | {module(), Func :: atom()} | undefined,
-    builtin :: {Module :: atom(), Func :: atom()},
+    builtin :: {Module :: atom(), Func :: atom()} | undefined,
     pack_args = false :: boolean(),
     validation_args :: ephp_func:validation_args(),
     static = [] :: static(),
     final = false :: boolean(),
-    class_name :: class_name(),
+    class_name :: class_name() | undefined,
     namespace = [] :: namespace(),
     line :: line()
 }).
@@ -469,7 +469,7 @@
     parents = [] :: [class_name()],
     extends :: class_name() | undefined,
     extends_ns = [] :: namespace(),
-    implements = [] :: [class_name()],
+    implements = [] :: [{namespace(), class_name()}],
     constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],

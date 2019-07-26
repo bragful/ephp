@@ -83,9 +83,9 @@ microtime(Context, Line, {Var, Val}) ->
 microtime(Context, Line) ->
     microtime(Context, Line, {undefined, false}).
 
--spec date(context(), line(), Format :: {variable(),binary()}) -> binary().
+-spec date(context(), line(), Format :: var_value()) -> binary().
 
-date(Context, Line, {_,Format}) ->
+date(Context, Line, {_, Format}) ->
     {MS, S, US} = ephp_datetime:timestamp(),
     date(Context, Line,
          {undefined, Format},
@@ -108,7 +108,7 @@ gmdate(Context, Line, {_, Format}) ->
     {MS,S,US} = ephp_datetime:timestamp(),
     gmdate(Context, Line,
            {undefined, Format},
-           {undefined, (MS * 1000000) + S + (US / 1000000)}).
+           {undefined, (MS * 1000000) + S + trunc(US / 1000000)}).
 
 -spec gmdate(context(), line(),
              Format :: var_value(),
@@ -140,7 +140,7 @@ date_default_timezone_set(Context, Line, {_, TZ}) ->
             undefined
     end.
 
--spec timezone_abbreviations_list(context(), line()) -> [ephp_array()].
+-spec timezone_abbreviations_list(context(), line()) -> ephp_array().
 
 timezone_abbreviations_list(_Context, _Line) ->
     lists:foldl(fun(Abbr, Array) ->
@@ -158,8 +158,11 @@ timezone_abbreviations_list(_Context, _Line) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
--spec date_format(ToAnalyze :: binary(), Result :: binary(),
-    {Timestamp :: integer(), Date :: date(), TZ :: binary()}) -> binary().
+-spec date_format(ToAnalyze :: binary(),
+                  Result :: binary(),
+                  {Timestamp :: integer(),
+                   Date :: calendar:datetime(),
+                   TZ :: binary()}) -> binary().
 
 date_format(<<>>, Result, _Date) ->
     Result;
@@ -302,32 +305,32 @@ date_format(<<"u",R/binary>>, Result, {Timestamp,_,_}=Date) ->
     MSecond = ephp_data:pad_to_bin(US, 6),
     date_format(R, <<Result/binary,MSecond/binary>>, Date);
 
-date_format(<<"e",R/binary>>, Result, {_,_,TZ}=Date) ->
+date_format(<<"e", R/binary>>, Result, {_, _, TZ} = Date) ->
     TimeZone = ephp_data:to_bin(TZ),
     date_format(R, <<Result/binary,TimeZone/binary>>, Date);
 
-date_format(<<"I",R/binary>>, Result, {_,D,TZ}=Date) ->
+date_format(<<"I", R/binary>>, Result, {_, {D, _}, TZ} = Date) ->
     Daylight = case ephp_datetime:is_dst(D, TZ) of
         true -> <<"1">>;
         false -> <<"0">>
     end,
-    date_format(R, <<Result/binary,Daylight/binary>>, Date);
+    date_format(R, <<Result/binary, Daylight/binary>>, Date);
 
-date_format(<<"O",R/binary>>, Result, {_,DT,TZ}=Date) ->
+date_format(<<"O", R/binary>>, Result, {_, DT, TZ} = Date) ->
     Timezone = ephp_datetime:get_tz_time(DT, TZ, <<>>),
-    date_format(R, <<Result/binary,Timezone/binary>>, Date);
+    date_format(R, <<Result/binary, Timezone/binary>>, Date);
 
-date_format(<<"P",R/binary>>, Result, {_,DT,TZ}=Date) ->
+date_format(<<"P", R/binary>>, Result, {_, DT, TZ} = Date) ->
     Timezone = ephp_datetime:get_tz_time(DT, TZ, <<":">>),
-    date_format(R, <<Result/binary,Timezone/binary>>, Date);
+    date_format(R, <<Result/binary, Timezone/binary>>, Date);
 
-date_format(<<"T",R/binary>>, Result, {_,D,TZ}=Date) ->
+date_format(<<"T", R/binary>>, Result, {_, {D, _}, TZ} = Date) ->
     IsDst = ephp_datetime:is_dst(D, TZ),
     Timezone = ephp_timezone:timezone_to_abbreviation(IsDst, ephp_data:to_bin(TZ)),
-    date_format(R, <<Result/binary,Timezone/binary>>, Date);
+    date_format(R, <<Result/binary, Timezone/binary>>, Date);
 
-date_format(<<"Z",R/binary>>, Result, {_,DT,TZ}=Date) ->
-    <<S:1/binary,H:2/binary,M:2/binary>> = ephp_datetime:get_tz_time(DT,TZ,<<>>),
+date_format(<<"Z", R/binary>>, Result, {_, DT, TZ} = Date) ->
+    <<S:1/binary, H:2/binary, M:2/binary>> = ephp_datetime:get_tz_time(DT, TZ, <<>>),
     Secs = integer_to_binary((binary_to_integer(H) * 60 + binary_to_integer(M)) * 60),
     Timezone = case S of
         <<"+">> -> Secs;
@@ -335,7 +338,7 @@ date_format(<<"Z",R/binary>>, Result, {_,DT,TZ}=Date) ->
     end,
     date_format(R, <<Result/binary,Timezone/binary>>, Date);
 
-date_format(<<"c",R/binary>>, Result, {_,{{Y,M,D},{H,I,S}}=DT,TZ}=Date) ->
+date_format(<<"c", R/binary>>, Result, {_, {{Y, M, D}, {H, I, S}} = DT, TZ} = Date) ->
     YB = ephp_data:to_bin(Y),
     MB = ephp_data:pad_to_bin(M, 2),
     DB = ephp_data:pad_to_bin(D, 2),
@@ -343,9 +346,9 @@ date_format(<<"c",R/binary>>, Result, {_,{{Y,M,D},{H,I,S}}=DT,TZ}=Date) ->
     IB = ephp_data:pad_to_bin(I, 2),
     SB = ephp_data:pad_to_bin(S, 2),
     TZtime = ephp_datetime:get_tz_time(DT, TZ, <<":">>),
-    DateTime = <<YB/binary,"-",MB/binary,"-",DB/binary,"T",
-        HB/binary,":",IB/binary,":",SB/binary,TZtime/binary>>,
-    date_format(R, <<Result/binary,DateTime/binary>>, Date);
+    DateTime = <<YB/binary, "-", MB/binary, "-", DB/binary, "T",
+                 HB/binary, ":", IB/binary, ":", SB/binary, TZtime/binary>>,
+    date_format(R, <<Result/binary, DateTime/binary>>, Date);
 
 date_format(<<"r",R/binary>>, Result, {_,{{Y,M,D}=Dt,{H,I,S}}=DT,TZ}=Date) ->
     WB = ephp_datetime:get_abbr_weekday(calendar:day_of_the_week(Dt)),

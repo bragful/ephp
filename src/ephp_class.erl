@@ -170,7 +170,7 @@ set(Ref, NS, ClassName, {alias, _NSAlias, _ClassAlias} = Alias) ->
 -type alias_return() :: ok | {error, enoexist | eredefined}.
 
 -spec set_alias(ephp:classes_id(), namespace(), class_name(),
-                namespace(), Alias :: alias_class()) -> alias_return().
+                NSAlias :: namespace(), Alias :: class_name()) -> alias_return().
 %% @doc set a name as alias of a class name.
 set_alias(Ref, NS, ClassName, NSAlias, AliasName) ->
     case get(Ref, NS, ClassName) of
@@ -393,7 +393,7 @@ extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
 arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>.
 
 
--spec check_dup([class()]) -> ok | class_name().
+-spec check_dup([class()]) -> ok | {namespace(), class_name()}.
 %% @hidden
 check_dup([]) -> ok;
 check_dup([_Interface]) -> ok;

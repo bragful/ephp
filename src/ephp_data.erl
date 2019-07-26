@@ -262,7 +262,7 @@ to_bin(Context, Line, MemRef) when ?IS_MEM(MemRef) ->
 to_bin(_Context, _Line, Val) ->
     to_bin(Val).
 
--spec to_boolean(mixed()) -> binary().
+-spec to_boolean(mixed()) -> boolean().
 
 to_boolean(0) -> false;
 

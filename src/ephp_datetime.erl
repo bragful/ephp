@@ -148,7 +148,7 @@ is_dst(Date, RawTZ) ->
     TZ = normalize_tz(RawTZ),
     ezic:has_dst_local(Date, TZ).
 
--spec to_zone(calendar:datetime(), string() | binary()) -> calendar:datetime().
+-spec to_zone(calendar:date(), string() | binary()) -> calendar:datetime().
 
 to_zone(Date, RawTZ) ->
     TZ = normalize_tz(RawTZ),

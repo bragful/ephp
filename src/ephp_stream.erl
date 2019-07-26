@@ -97,7 +97,7 @@ close(#resource{module = Module, pid = PID}) ->
     Module:close(PID).
 
 
--spec read(resource(), options()) -> {ok, binary()} | {error, reason()}.
+-spec read(resource(), options()) -> {ok, binary()} | eof | {error, reason()}.
 %% @doc request a read to the stream implementation.
 read(#resource{module = Module, pid = PID}, Options) ->
     Module:read(PID, Options).

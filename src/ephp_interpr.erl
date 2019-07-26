@@ -12,7 +12,7 @@
 -include("ephp.hrl").
 
 -spec process(context(), Statements :: [main_statement()]) ->
-      {ok, binary() | return() | false}.
+      {ok, binary() | flow_return() | false}.
 
 process(Context, Statements) ->
     Cover = ephp_cover:get_config(),
@@ -20,7 +20,7 @@ process(Context, Statements) ->
 
 
 -spec process(context(), Statements :: [main_statement()], Cover :: boolean()) ->
-      {ok, binary() | return() | false}.
+      {ok, binary() | flow_return() | false}.
 
 process(_Context, [], _Cover) ->
     {ok, <<>>};
