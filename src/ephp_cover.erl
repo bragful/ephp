@@ -6,6 +6,8 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
+-include("ephp_parser.hrl").
+
 -include("ephp.hrl").
 
 -define(XML_HEAD, "<?xml version=\"1.0\"?>"
@@ -141,13 +143,13 @@ store(false = _Cover, _Type, _FileOrContext, _Line) ->
             FileOrContext :: binary() | context(),
             line() | undefined) -> ok.
 %% @doc store the information about the statement passed as a param.
-store(Type, File, {_,L,C}) ->
-    store(Type, File, {{line,L},{column,C}});
+store(Type, File, #parser{row = Line, col = Col}) ->
+    store(Type, File, {{line, Line},{column, Col}});
 
 store(_Type, _File, undefined) ->
     ok;
 
-store(_Type, File, {{line,Line},_}) when is_binary(File) ->
+store(_Type, File, {{line, Line}, _}) when is_binary(File) ->
     Files = erlang:get(cover),
     NewFiles = orddict:update(File, fun(Dict) ->
         orddict:update_counter(Line, 1, Dict)
