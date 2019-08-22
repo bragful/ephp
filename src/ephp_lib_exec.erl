@@ -36,6 +36,8 @@ handle_error(_Error, _Level, _Data) ->
 
 -spec shell_exec(context(), line(), var_value()) -> binary().
 
-shell_exec(_Context, _Line, {_, Command}) ->
+shell_exec(_Context, _Line, {_, BaseCommand}) ->
     %% TODO: give more security to this and ensure it's not disabled
-    iolist_to_binary(os:cmd(binary_to_list(ephp_data:to_bin(Command)))).
+    EscapedCommand = ephp_string:escape(ephp_data:to_bin(BaseCommand), $"),
+    Command = binary_to_list(<<"sh -c ", EscapedCommand/binary>>),
+    iolist_to_binary(os:cmd(Command)).
