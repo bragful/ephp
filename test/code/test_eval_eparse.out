@@ -1,0 +1,2 @@
+
+Parse error: syntax error, unexpected 'wrong' (T_STRING) in {{CWD}}/test/code/test_eval_eparse.php(2) : eval()'d code on line 1

@@ -9,6 +9,7 @@
     init_config/0,
     init_const/0,
     handle_error/3,
+    eval/3,
     constant/3,
     uniqid/4,
     define/4,
@@ -25,6 +26,7 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
+    {eval, [string]},
     {constant, [string]},
     {uniqid, [
         {args, {0, 2, undefined, [{string, <<>>}, {boolean, false}]}}
@@ -79,6 +81,19 @@ handle_error(enoenoughin, _Level, {Function, Cmd, Size1, Size2}) ->
 handle_error(_Type, _Level, _Data) ->
     ignore.
 
+
+-spec eval(context(), line(), Code :: var_value()) -> mixed().
+
+eval(Context, _Line, {_, Code}) ->
+    {ok, SubCtx} = ephp_context:generate_subcontext(Context),
+    ActiveFile = ephp_context:get_active_file(Context),
+    %% FIXME: maybe the number should be changed according to whatever it means :-P
+    File = <<ActiveFile/binary, "(2) : eval()'d code">>,
+    case ephp:eval(File, SubCtx, <<"<?php ", Code/binary>>) of
+        {ok, false} -> undefined;
+        {ok, {return, Value}} -> Value;
+        {error, eparse, _ErrorLine, _File, _ErrorLevel, _Data} -> undefined
+    end.
 
 -spec constant(context(), line(), Name :: var_value()) -> mixed().
 
