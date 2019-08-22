@@ -98,7 +98,7 @@ string_parsed(<<>>, Parser, _Text) ->
     throw_error(eparse, Parser, <<>>);
 string_parsed(<<"\\\\",Rest/binary>>, Parser, #text_to_process{text=[C|R]}=S)
         when is_binary(C) ->
-    NewText = S#text_to_process{text = [<<C/binary, "\\\\">>|R]},
+    NewText = S#text_to_process{text = [<<C/binary, "\\">>|R]},
     string_parsed(Rest, inc_pos(Parser), NewText);
 string_parsed(<<"\\\"",Rest/binary>>, Parser, #text_to_process{text=[C|R]}=S)
         when is_binary(C) ->
