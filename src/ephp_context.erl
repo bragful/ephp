@@ -148,14 +148,16 @@ start_link(#state{ref = undefined} = State) ->
 start_link(#state{ref = Ref, global = Ref}) when is_reference(Ref) ->
     throw({error, ecyclerefs});
 
-start_link(#state{ref = Ref, global = Global} = State) when is_reference(Ref) ->
+start_link(#state{ref = Ref, global = undefined} = State)
+        when is_reference(Ref) ->
     {ok, Vars} = ephp_vars:start_link(),
-    if
-        Global =:= undefined ->
-            ephp_vars:set(Vars, #variable{name = <<"GLOBALS">>},
-                          #var_ref{pid = Vars, ref = global}, Ref);
-        true -> ok
-    end,
+    ephp_vars:set(Vars, #variable{name = <<"GLOBALS">>},
+                  #var_ref{pid = Vars, ref = global}, Ref),
+    save_state(State#state{vars = Vars}),
+    {ok, Ref};
+
+start_link(#state{ref = Ref} = State) when is_reference(Ref) ->
+    {ok, Vars} = ephp_vars:start_link(),
     save_state(State#state{vars = Vars}),
     {ok, Ref}.
 
