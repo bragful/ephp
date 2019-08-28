@@ -269,9 +269,7 @@ main(["-i"]) ->
     {ok, Ctx} = context_new(<<"-">>),
     register_superglobals(Ctx, ["-"]),
     {ok, _} = eval(<<"-">>, Ctx, Content),
-    Result = ephp_context:get_output(Ctx),
-    io:format("~s", [Result]),
-    ephp_context:destroy_all(Ctx),
+    output_and_close(Ctx),
     quit(0);
 
 main([Filename|_] = RawArgs) ->
@@ -286,9 +284,7 @@ main([Filename|_] = RawArgs) ->
         register_superglobals(Ctx, RawArgs),
         case eval(AbsFilename, Ctx, Content) of
             {ok, _Return} ->
-                Result = ephp_context:get_output(Ctx),
-                io:format("~s", [Result]),
-                ephp_context:destroy_all(Ctx),
+                output_and_close(Ctx),
                 stop_profiling(),
                 stop_cover(),
                 quit(0);
@@ -307,6 +303,14 @@ main([Filename|_] = RawArgs) ->
 main(_) ->
     io:format("Usage: ephp <file.php>~n", []),
     quit(1).
+
+-spec output_and_close(context()) -> ok.
+
+output_and_close(Ctx) ->
+    Result = ephp_context:get_output(Ctx),
+    io:format("~s", [Result]),
+    ephp_context:destroy_all(Ctx),
+    ok.
 
 -ifndef(TEST).
 -spec quit(integer()) -> no_return().

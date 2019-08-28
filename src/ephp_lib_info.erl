@@ -2,14 +2,16 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
+-include_lib("stdlib/include/zip.hrl").
 -include("ephp.hrl").
 
 -export([
     init_func/0,
     init_config/0,
     init_const/0,
-    phpinfo/2,
+    phpinfo/3,
     phpversion/2,
+    php_sapi_name/2,
     ini_get/3,
     ini_set/4,
     set_include_path/3,
@@ -19,10 +21,22 @@
     memory_get_peak_usage/3
 ]).
 
+-define(INFO_GENERAL,       2#0000001).
+-define(INFO_CREDITS,       2#0000010).
+-define(INFO_CONFIGURATION, 2#0000100).
+-define(INFO_MODULES,       2#0001000).
+-define(INFO_ENVIRONMENT,   2#0010000).
+-define(INFO_VARIABLES,     2#0100000).
+-define(INFO_LICENSE,       2#1000000).
+-define(INFO_ALL,           2#1111111).
+
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    phpinfo,
+    {phpinfo, [
+        {args, {0, 1, undefined, [{integer, ?INFO_ALL}]}}
+    ]},
+    {php_sapi_name, [{args, []}]},
     phpversion,
     ini_get,
     ini_set,
@@ -72,43 +86,23 @@ init_const() -> [
     {<<"INI_ALL">>, 7}
 ].
 
--spec phpinfo(context(), line()) -> undefined.
+-spec phpinfo(context(), line(), var_value()) -> undefined.
 
-phpinfo(Context, _Line) ->
-    Version = ?PHP_VERSION,
-    Vsn = get_vsn(),
-    BuildDate = get_build_date(),
-    Release = list_to_binary(erlang:system_info(otp_release)),
-    PathPHPini = filename:dirname(?PHP_INI_FILE),
-    Directives = lists:foldl(fun
-        ({_K,<<>>},R) -> R;
-        ({K,V},R) when is_binary(K) ->
-            <<R/binary, K/binary, " => ", (ephp_data:to_bin(V))/binary, "\n">>;
-        (_,R) -> R
-    end, <<>>, application:get_all_env(ephp)),
-    Output = <<
-    "phpinfo()\n"
-    "PHP Version => ", Version/binary, "\n"
-    "\n"
-    "System => Erlang/OTP ", Release/binary, " ephp ", Vsn/binary, "\n"
-    "Build Date => ", BuildDate/binary, "\n"
-    "Configuration File (php.ini) Path => ", PathPHPini/binary, "\n"
-    "\n"
-    "Core\n"
-    "\n"
-    "PHP Version => ", Version/binary, "\n"
-    "\n"
-    "Directive => Value\n",
-    Directives/binary,
-    "\n"
-    >>,
-    ephp_context:set_output(Context, Output),
-    undefined.
+phpinfo(Context, Line, {_, Flags}) ->
+    case php_sapi_name(Context, Line) of
+        <<"cli", _/binary>> -> process_phpinfo("text", Context, Flags);
+        __ -> process_phpinfo("html", Context, Flags)
+    end.
 
 -spec phpversion(context(), line()) -> binary().
 
 phpversion(_Context, _Line) ->
     ?PHP_VERSION.
+
+-spec php_sapi_name(context(), line()) -> binary().
+
+php_sapi_name(_Context, _Line) ->
+    ephp_config:get(sapi_type, <<"cli">>).
 
 -spec ini_get(context(), line(), var_value()) -> mixed().
 
@@ -186,6 +180,44 @@ memory_get_peak_usage(_Context, _Line, {_, true}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+phpinfo_metadata() ->
+    OtpRelease = list_to_binary(erlang:system_info(otp_release)),
+    IniFile = filename:dirname(?PHP_INI_FILE),
+    Directives = [ Cfg || {K, _} = Cfg <- application:get_all_env(ephp),
+                   is_binary(K) ],
+    ArrDirectives = ephp_array:from_list(Directives),
+    ephp_array:from_list([{<<"version">>, ?PHP_VERSION},
+                          {<<"vsn">>, get_vsn()},
+                          {<<"build_date">>, get_build_date()},
+                          {<<"release">>, OtpRelease},
+                          {<<"path_php_ini">>, IniFile},
+                          {<<"directives">>, ArrDirectives}]).
+
+process_phpinfo(Format, Context, Flags) ->
+    Metadata = phpinfo_metadata(),
+    PHPInfo = get_file(code:priv_dir(ephp) ++ "/phpinfo." ++ Format ++ ".php"),
+    ephp:register_var(Context, <<"_METADATA">>, Metadata),
+    ephp:register_var(Context, <<"_FLAGS">>, Flags),
+    {ok, false} = ephp:eval(Context, PHPInfo),
+    undefined.
+
+get_file(Filename) ->
+    try
+        Name = escript:script_name(),
+        {ok, Sections} = escript:extract(Name, []),
+        Zip = proplists:get_value(archive, Sections),
+        Filter = fun(#zip_file{name = "ephp/priv/" ++ _}) -> true;
+                    (_) -> false
+                 end,
+        {ok, Files} = zip:extract(Zip, [{file_filter, Filter}, memory]),
+        NewFilename = "ephp/priv/" ++ filename:basename(Filename),
+        proplists:get_value(NewFilename, Files)
+    catch
+        error:{badmatch, []} ->
+            {ok, Content} = file:read_file(Filename),
+            Content
+    end.
+
 -spec get_vsn() -> binary().
 
 get_vsn() ->
@@ -193,6 +225,11 @@ get_vsn() ->
     list_to_binary(Vsn).
 
 -spec get_build_date() -> binary().
+
+-ifndef(BUILD_DATE).
+%% keep it only for some editors (like VSCode)
+-define(BUILD_DATE, "Aug 26 2019 13:57:10").
+-endif.
 
 get_build_date() ->
     list_to_binary(?BUILD_DATE).
