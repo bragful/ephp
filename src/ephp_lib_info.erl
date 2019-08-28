@@ -83,7 +83,16 @@ init_const() -> [
     {<<"INI_USER">>, 1},
     {<<"INI_PERDIR">>, 2},
     {<<"INI_SYSTEM">>, 4},
-    {<<"INI_ALL">>, 7}
+    {<<"INI_ALL">>, 7},
+    % phpinfo constants:
+    {<<"INFO_GENERAL">>, ?INFO_GENERAL},
+    {<<"INFO_CREDITS">>, ?INFO_CREDITS},
+    {<<"INFO_CONFIGURATION">>, ?INFO_CONFIGURATION},
+    {<<"INFO_MODULES">>, ?INFO_MODULES},
+    {<<"INFO_ENVIRONMENT">>, ?INFO_ENVIRONMENT},
+    {<<"INFO_VARIABLES">>, ?INFO_VARIABLES},
+    {<<"INFO_LICENSE">>, ?INFO_LICENSE},
+    {<<"INFO_ALL">>, ?INFO_ALL}
 ].
 
 -spec phpinfo(context(), line(), var_value()) -> undefined.
