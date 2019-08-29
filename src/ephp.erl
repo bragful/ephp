@@ -304,7 +304,7 @@ main([info|_], _RawArgs) ->
 main([help|_], _) ->
     usage(0);
 
-main([Filename|_], RawArgs) ->
+main([{file, Filename}|_], RawArgs) ->
     start(),
     case file:read_file(Filename) of
     {ok, Content} ->
