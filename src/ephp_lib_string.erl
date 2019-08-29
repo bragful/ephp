@@ -27,6 +27,8 @@
     str_replace/6,
     strtolower/3,
     strtoupper/3,
+    ucfirst/3,
+    ucwords/4,
     str_split/3,
     str_split/4,
     strpos/4,
@@ -64,6 +66,10 @@ init_func() -> [
     str_replace,
     strtolower,
     strtoupper,
+    ucfirst,
+    {ucwords, [
+        {args, {1, 2, undefined, [string, {string, <<32,9,10,13,11>>}]}}
+    ]},
     str_split,
     strpos,
     {strrev, [
@@ -266,6 +272,17 @@ strtolower(Context, Line, {_, Text}) ->
 
 strtoupper(Context, Line, {_, Text}) ->
     ephp_string:to_upper(ephp_data:to_bin(Context, Line, Text)).
+
+-spec ucfirst(context(), line(), Text :: var_value()) -> binary().
+
+ucfirst(Context, Line, {_, Text}) ->
+    ephp_string:capitalize_first(ephp_data:to_bin(Context, Line, Text)).
+
+-spec ucwords(context(), line(), var_value(), var_value()) -> binary().
+
+ucwords(Context, Line, {_, Text}, {_, Sep}) ->
+    SepList = binary_to_list(Sep),
+    ephp_string:capitalize(ephp_data:to_bin(Context, Line, Text), SepList).
 
 -spec str_split(context(), line(), Text :: var_value()) -> ephp_array().
 

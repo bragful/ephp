@@ -7,6 +7,8 @@
 -export([
     to_lower/1,
     to_upper/1,
+    capitalize/2,
+    capitalize_first/1,
     escape/2,
     trim/1,
     trim/2,
@@ -39,6 +41,39 @@ to_upper(undefined) ->
 
 to_upper(Text) ->
     unistring:to_upper(Text).
+
+-spec capitalize_first(binary()) -> binary();
+                      (undefined) -> undefined.
+
+capitalize_first(undefined) -> undefined;
+
+capitalize_first(<<A/utf8, Rest/binary>>) ->
+    << (unistring:to_upper(<<A/utf8>>))/binary, Rest/binary >>.
+
+-spec capitalize(binary(), [byte()]) -> binary().
+
+capitalize(<<>>, _Sep) -> <<>>;
+capitalize(<<A/utf8, Rest/binary>>, Sep) ->
+    Text = <<(unistring:to_upper(<<A/utf8>>))/binary, Rest/binary>>,
+    capitalize(Text, <<>>, Sep).
+
+capitalize(<<>>, Result, _Sep) ->
+    Result;
+capitalize(<<A/utf8, Rest/binary>>, Result, Sep) ->
+    case lists:member(A, Sep) of
+        true when Rest =/= <<>> ->
+            <<B/utf8, NewRest/binary>> = Rest,
+            case lists:member(B, Sep) of
+                true ->
+                    capitalize(Rest, <<Result/binary, A/utf8>>, Sep);
+                false ->
+                    Cap = unistring:to_upper(<<B/utf8>>),
+                    NewResult = <<Result/binary, A/utf8, Cap/binary>>,
+                    capitalize(NewRest, NewResult, Sep)
+            end;
+        _ ->
+            capitalize(Rest, <<Result/binary, A/utf8>>, Sep)
+    end.
 
 -spec escape(mixed(), non_neg_integer()) -> binary().
 
