@@ -5,6 +5,7 @@
     {applications, [
         kernel,
         stdlib,
+        getopt,
         ezic,
         zucchini,
         unistring

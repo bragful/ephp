@@ -206,6 +206,17 @@ eval(Filename, Context, Compiled) ->
             Error
     end.
 
+-spec opt_spec_list() -> getopt:option_spec().
+
+opt_spec_list() -> [
+    {help, $h, "help", undefined, "This help information."},
+    {dir, $d, "dir", string, "Check directory for missing implemented PHP functions."},
+    {check, $l, undefined, string, "Check PHP code syntax for specific PHP file."},
+    {parse, $p, undefined, string, "Show parsing PHP code for specific PHP file."},
+    {info, $i, "info", undefined, "Show PHP info."},
+    {file, undefined, undefined, string, "PHP code to be run."}
+].
+
 -spec start() -> ok.
 %% @doc function to ensure all of the applications and the base configuration
 %%      is set properly before use ephp.
@@ -214,14 +225,32 @@ start() ->
     application:start(ezic),
     application:start(zucchini),
     application:start(ephp),
+    application:start(getopt),
     application:set_env(ephp, modules, ?MODULES),
     ok.
+
+usage(ErrorLevel) ->
+    ScriptName = try
+        escript:script_name()
+    catch error:{badarg, []} ->
+        "ephp"
+    end,
+    getopt:usage(opt_spec_list(), ScriptName),
+    quit(ErrorLevel).
 
 -spec main(Args :: [string()]) -> integer().
 %% @doc called from script passing the name of the filename to be run or
 %%      nothing to show the help message.
 %% @end
-main(["-d", Dir]) ->
+main(Args) ->
+    case getopt:parse(opt_spec_list(), Args) of
+        {ok, {Opts, []}} when Opts =/= [] ->
+            main(Opts, Args);
+        _Else ->
+            usage(1)
+    end.
+
+main([{dir, Dir}|_], _RawArgs) ->
     start(),
     {Funcs, TotalOk, Total} = parse_subdirs(Dir),
     {ok, Context} = context_new(),
@@ -241,7 +270,7 @@ main(["-d", Dir]) ->
                TotalOk, Total, ephp_data:ceiling(TotalOk * 100 / Total)]),
     quit(0);
 
-main(["-l", File]) ->
+main([{check, File}|_], _RawArgs) ->
     try
         ephp_parser:file(File),
         io:format("No syntax errors detected in: ~s~n", [File]),
@@ -252,7 +281,7 @@ main(["-l", File]) ->
             quit(1)
     end;
 
-main(["-p", File]) ->
+main([{parse, File}|_], _RawArgs) ->
     try
         io:format("parsing =>~n~p~n---~n", [ephp_parser:file(File)]),
         quit(0)
@@ -262,7 +291,7 @@ main(["-p", File]) ->
             quit(1)
     end;
 
-main(["-i"]) ->
+main([info|_], _RawArgs) ->
     start(),
     Content = <<"<?php phpinfo();">>,
     ephp_config:start_link(?PHP_INI_FILE),
@@ -272,7 +301,10 @@ main(["-i"]) ->
     output_and_close(Ctx),
     quit(0);
 
-main([Filename|_] = RawArgs) ->
+main([help|_], _) ->
+    usage(0);
+
+main([Filename|_], RawArgs) ->
     start(),
     case file:read_file(Filename) of
     {ok, Content} ->
@@ -300,9 +332,8 @@ main([Filename|_] = RawArgs) ->
         quit(3)
     end;
 
-main(_) ->
-    io:format("Usage: ephp <file.php>~n", []),
-    quit(1).
+main(_, _) ->
+    usage(1).
 
 -spec output_and_close(context()) -> ok.
 

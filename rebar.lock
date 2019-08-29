@@ -1,11 +1,13 @@
 {"1.1.0",
 [{<<"ezic">>,{pkg,<<"ezic">>,<<"0.2.1">>},0},
+ {<<"getopt">>,{pkg,<<"getopt">>,<<"1.0.1">>},0},
  {<<"recon">>,{pkg,<<"recon">>,<<"2.3.2">>},0},
  {<<"unistring">>,{pkg,<<"unistring">>,<<"0.1.0">>},0},
  {<<"zucchini">>,{pkg,<<"zucchini">>,<<"0.1.0">>},0}]}.
 [
 {pkg_hash,[
  {<<"ezic">>, <<"2BABBC0DA953AF1617807B7E1E9A5A4BAFC3F924A3BB4E0104C5D5C3B1F9D1F6">>},
+ {<<"getopt">>, <<"C73A9FA687B217F2FF79F68A3B637711BB1936E712B521D8CE466B29CBF7808A">>},
  {<<"recon">>, <<"4444C879BE323B1B133EEC5241CB84BD3821EA194C740D75617E106BE4744318">>},
  {<<"unistring">>, <<"F1D07520C0A92BDF9A1D46F4A45BA424F27FA2D081F7C0ABA1F665C16A26B6C8">>},
  {<<"zucchini">>, <<"93F8508FDEF86395BB071BD582E4D844BB012F2AF3E986C4E49804E90E2B2B9F">>}]}
