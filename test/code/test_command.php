@@ -2,4 +2,6 @@
 
 $filter = 'ephp';
 var_dump(trim(`cat src/ephp.app.src | grep $filter | head -1`));
-var_dump(trim(`echo \``));
+$result = trim(`echo \``);
+var_dump(strpos($result, "sh:") !== FALSE);
+var_dump(strpos($result, "yntax error") !== FALSE);
