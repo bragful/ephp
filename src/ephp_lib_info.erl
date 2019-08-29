@@ -12,6 +12,7 @@
     phpinfo/3,
     phpversion/2,
     php_sapi_name/2,
+    bragful_logo_uri/2,
     ini_get/3,
     ini_set/4,
     set_include_path/3,
@@ -36,7 +37,8 @@ init_func() -> [
     {phpinfo, [
         {args, {0, 1, undefined, [{integer, ?INFO_ALL}]}}
     ]},
-    {php_sapi_name, [{args, []}]},
+    php_sapi_name,
+    bragful_logo_uri,
     phpversion,
     ini_get,
     ini_set,
@@ -100,7 +102,7 @@ init_const() -> [
 phpinfo(Context, Line, {_, Flags}) ->
     case php_sapi_name(Context, Line) of
         <<"cli", _/binary>> -> process_phpinfo("text", Context, Flags);
-        __ -> process_phpinfo("html", Context, Flags)
+        _ -> process_phpinfo("html", Context, Flags)
     end.
 
 -spec phpversion(context(), line()) -> binary().
@@ -112,6 +114,13 @@ phpversion(_Context, _Line) ->
 
 php_sapi_name(_Context, _Line) ->
     ephp_config:get(sapi_type, <<"cli">>).
+
+-spec bragful_logo_uri(context(), line()) -> binary().
+
+bragful_logo_uri(_Context, _Line) ->
+    Content = get_file("bragful_logo.png"),
+    Base64Content = base64:encode(Content),
+    <<"data:image/png;base64,", Base64Content/binary>>.
 
 -spec ini_get(context(), line(), var_value()) -> mixed().
 
@@ -189,22 +198,42 @@ memory_get_peak_usage(_Context, _Line, {_, true}) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
+process_directives(Values) ->
+    process_directives(Values, orddict:new()).
+
+process_directives([], Dict) ->
+    ephp_array:from_list([ {K, ephp_array:from_list(V)} || {K, V} <- Dict ]);
+process_directives([{K, V}|Others], Dict) ->
+    NewDict = case binary:split(K, <<".">>) of
+        [K] -> safe_append(<<"core">>, {K, V}, Dict);
+        [Section, _] -> safe_append(Section, {K, V}, Dict)
+    end,
+    process_directives(Others, NewDict).
+
+safe_append(K, V, Dict) ->
+    case orddict:is_key(K, Dict) of
+        true -> orddict:append(K, V, Dict);
+        false -> orddict:store(K, [V], Dict)
+    end.
+
 phpinfo_metadata() ->
     OtpRelease = list_to_binary(erlang:system_info(otp_release)),
     IniFile = filename:dirname(?PHP_INI_FILE),
     Directives = [ Cfg || {K, _} = Cfg <- application:get_all_env(ephp),
                    is_binary(K) ],
-    ArrDirectives = ephp_array:from_list(Directives),
+    ArrDirectives = process_directives(Directives),
+    Streams = ephp_array:from_list(ephp_stream:list_streams()),
     ephp_array:from_list([{<<"version">>, ?PHP_VERSION},
                           {<<"vsn">>, get_vsn()},
                           {<<"build_date">>, get_build_date()},
                           {<<"release">>, OtpRelease},
                           {<<"path_php_ini">>, IniFile},
-                          {<<"directives">>, ArrDirectives}]).
+                          {<<"directives">>, ArrDirectives},
+                          {<<"streams">>, Streams}]).
 
 process_phpinfo(Format, Context, Flags) ->
     Metadata = phpinfo_metadata(),
-    PHPInfo = get_file(code:priv_dir(ephp) ++ "/phpinfo." ++ Format ++ ".php"),
+    PHPInfo = get_file("phpinfo." ++ Format ++ ".php"),
     ephp:register_var(Context, <<"_METADATA">>, Metadata),
     ephp:register_var(Context, <<"_FLAGS">>, Flags),
     {ok, false} = ephp:eval(Context, PHPInfo),
@@ -219,11 +248,12 @@ get_file(Filename) ->
                     (_) -> false
                  end,
         {ok, Files} = zip:extract(Zip, [{file_filter, Filter}, memory]),
-        NewFilename = "ephp/priv/" ++ filename:basename(Filename),
+        NewFilename = "ephp/priv/" ++ Filename,
         proplists:get_value(NewFilename, Files)
     catch
         error:{badmatch, []} ->
-            {ok, Content} = file:read_file(Filename),
+            FullFilename = filename:join(code:priv_dir(ephp), Filename),
+            {ok, Content} = file:read_file(FullFilename),
             Content
     end.
 

@@ -7,6 +7,7 @@
 
 -export([
     start_link/0,
+    list_streams/0,
     parse_uri/1,
     get_res_id/1,
     open/2,
@@ -35,6 +36,21 @@
 -callback position(stream_resource(), file:location()) -> ok | {error, reason()}.
 -callback is_eof(stream_resource()) -> boolean() | {error, reason()}.
 -callback read_file(stream_resource()) -> {ok, binary()} | {error, reason()}.
+
+-spec list_streams() -> [binary()].
+%% @doc get a list of streams loaded in binary format.
+list_streams() ->
+    AllApps = [ App || {App, _, _} <- application:loaded_applications() ],
+    lists:flatmap(fun(App) ->
+        {ok, Modules} = application:get_key(App, modules),
+        lists:filtermap(fun(Module) ->
+            case atom_to_binary(Module, utf8) of
+                <<"ephp_stream_", Stream/binary>> -> {true, Stream};
+                _ -> false
+            end
+        end, Modules)
+    end, AllApps).
+
 
 -spec parse_uri(binary()) -> {stream(), uri()}.
 %% @doc parse the URI to separate in stream and the rest of the URI.
