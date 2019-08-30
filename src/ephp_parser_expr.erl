@@ -865,14 +865,19 @@ gen_op([{<<"(unset)">>, {_, _}, _Parser}|Rest], [_|Stack]) ->
 gen_op([{<<"clone">>, {_, _}, Parser}|Rest], [A|Stack]) ->
     gen_op(Rest, [add_line(#clone{var = A}, Parser)|Stack]);
 % TODO add the rest of casting operators
+gen_op([{<<"??">>, {_, _}, Parser}|Rest], [B, A|Stack]) ->
+    Isset = add_line(#call{name = <<"isset">>, args = [A]}, Parser),
+    IfBlock = add_line(#if_block{conditions = Isset,
+                                 true_block = A,
+                                 false_block = B}, Parser),
+    gen_op(Rest, [IfBlock|Stack]);
 gen_op([{<<"?">>, {_, _}, Parser}|Rest],
        [#operation{type = <<":">>} = OpElse, Cond|Stack]) ->
     #operation{expression_left = TrueBlock,
                expression_right = FalseBlock} = OpElse,
-    IfBlock = #if_block{conditions = Cond,
-                        true_block = TrueBlock,
-                        false_block = FalseBlock,
-                        line = Parser},
+    IfBlock = add_line(#if_block{conditions = Cond,
+                                 true_block = TrueBlock,
+                                 false_block = FalseBlock}, Parser),
     gen_op(Rest, [IfBlock|Stack]);
 gen_op([{<<"?">>, {_, _}, Parser}|_Rest], _Stack) ->
     throw_error(eparse, Parser, <<>>);
