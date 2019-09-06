@@ -181,18 +181,10 @@ eval(Filename, Context, Compiled) ->
     ok = ephp_cover:init_file(Cover, Filename, Compiled),
     case catch ephp_interpr:process(Context, Compiled, Cover) of
         {ok, Return} ->
-            try
-                ephp_shutdown:shutdown(Context)
-            catch
-                throw:{ok, die} -> ok
-            end,
+            shutdown_context(Context),
             {ok, Return};
         die ->
-            try
-                ephp_shutdown:shutdown(Context)
-            catch
-                throw:{ok, die} -> ok
-            end,
+            shutdown_context(Context),
             {ok, undefined};
         {error, Reason, Index, Level, Data} ->
             File = ephp_context:get_active_file(Context),
@@ -202,8 +194,15 @@ eval(Filename, Context, Compiled) ->
             catch
                 throw:{ok, die} -> ok
             end,
-            ephp_shutdown:shutdown(Context),
+            shutdown_context(Context),
             Error
+    end.
+
+shutdown_context(Context) ->
+    try
+        ephp_shutdown:shutdown(Context)
+    catch
+        throw:{ok, die} -> ok
     end.
 
 -spec opt_spec_list() -> [getopt:option_spec()].
