@@ -165,9 +165,10 @@ php_abs(_Context, _Line, _NotANumber) ->
 -spec php_acos(context(), line(), {any(), number()}) -> php_float().
 
 php_acos(_Context, _Line, {_, Number}) ->
-    case catch math:acos(Number) of
-        {'EXIT', {badarith, _}} -> nan;
-        Res when is_float(Res) -> Res
+    try
+        math:acos(Number)
+    catch
+        error:badarith -> nan
     end.
 
 -spec php_acosh(context(), line(), {any(), number()}) -> float().
