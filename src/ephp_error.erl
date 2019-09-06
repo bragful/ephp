@@ -38,6 +38,10 @@
 
 -type error_type() :: atom().
 
+-type get_return_return() :: {ok, undefined} | {return, undefined}.
+
+-export_type([get_return_return/0]).
+
 -record(state, {
     ref :: ephp:errors_id(),
     output_handler = ?MODULE :: module(),
@@ -276,7 +280,7 @@ run_quiet(Errors, Fun) ->
     end.
 
 -spec get_message([module()], error_format(), error_type(),
-                  errorlevel() | undefined, binary(), binary(),
+                  line(), binary(), errorlevel(),
                   term()) -> {string(), iolist()}.
 
 get_message(Modules, text, Type, Line, File, Level, Args) ->
@@ -478,7 +482,6 @@ trace_to_str(Ctx, I, Array) ->
                 "#~p ~s(~p): ~s(~s)~n", [I, File, Line, FuncName, Args])
     end.
 
--type get_return_return() :: {ok, undefined} | {return, undefined}.
 -spec get_return(error_type()) -> get_return_return().
 
 get_return(eparse) -> {ok, undefined};

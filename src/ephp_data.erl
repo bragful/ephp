@@ -345,7 +345,8 @@ to_bool(_Other) -> true.
 
 
 -spec zero_if_undef(Value :: undefined |
-    ephp_array() | integer() | float() | string() | binary()) -> integer().
+                    ephp_array() | integer() | float() | string() |
+                    binary()) -> integer() | infinity | nan | float().
 
 zero_if_undef(undefined) -> 0;
 
@@ -411,7 +412,7 @@ urand() -> rand:uniform().
 urand() -> 0.72643441.
 -endif.
 
--spec instance_of(context(), mixed(), DataType::binary()) -> boolean().
+-spec instance_of(context(), mixed() | class(), DataType::binary()) -> boolean().
 
 instance_of(_Context, #ephp_array{}, <<"array">>) ->
     true;

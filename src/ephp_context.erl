@@ -6,7 +6,7 @@
 
 -record(state, {
     ref :: ephp:context_id() | undefined,
-    vars :: ephp:vars_id(),
+    vars :: ephp:vars_id() | undefined,
     funcs :: ephp:funcs_id(),
     class :: ephp:classes_id(),
     object :: ephp:objects_id(),
@@ -928,6 +928,7 @@ resolve(#call{type = class, class = Name, namespace = NS, line = Index} = Call,
         #state{class = Classes, active_class = <<>>} = State) ->
     case ephp_class:get(Classes, NS, Name) of
         {ok, #class{} = Class} ->
+            %% FIXME: check when this call to ensure is working correctly.
             run_method(Class, Call, State);
         {error, enoexist} ->
             ephp_error:error({error, eundefclass, Index, ?E_ERROR, {NS, Name}})
@@ -982,7 +983,7 @@ resolve(#instance{name = ClassName, namespace = ClassNS, args = RawArgs, line = 
             #class_method{name = MethodName,
                           class_name = MCName,
                           access = Access} = ClassMethod,
-            IsChild = ephp_data:instance_of(LocalCtx, Instance, MCName),
+            IsChild = ephp_data:instance_of(LocalCtx, Class, MCName),
             ActiveClass = State#state.active_class,
             maybe_ecallprivate_log(ActiveClass, MCName, Access, IsChild, MethodName, Line),
             {_, NState} = run_method(Object, Call, State),
@@ -1951,6 +1952,8 @@ resolve_op(<<"/">>, OpRes1, OpRes2, Index, State) ->
             #state{active_file = File} = State,
             Error = {error, edivzero, Index, File, ?E_WARNING, {}},
             ephp_error:handle_error(State#state.ref, Error);
+        B == nan ->
+            nan;
         B == infinity ->
             0;
         true ->

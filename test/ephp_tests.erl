@@ -52,5 +52,5 @@ register_var_test() ->
 
 run_empty_php_test() ->
     {ok, Ctx} = ephp:context_new(),
-    ?assertEqual({ok, <<>>}, ephp:eval(Ctx, <<>>)),
+    ?assertEqual({ok, false}, ephp:eval(Ctx, <<>>)),
     ok.

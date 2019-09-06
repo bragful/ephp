@@ -9,6 +9,8 @@
     run/3
 ]).
 
+-export_type([flow_status/0]).
+
 -include("ephp.hrl").
 
 -spec process(context(), Statements :: [main_statement()]) ->
@@ -20,10 +22,10 @@ process(Context, Statements) ->
 
 
 -spec process(context(), Statements :: [main_statement()], Cover :: boolean()) ->
-      {ok, binary() | flow_return() | false}.
+      {ok, flow_return()}.
 
 process(_Context, [], _Cover) ->
-    {ok, <<>>};
+    {ok, false};
 
 process(Context, Statements, false) ->
     Value = try
@@ -56,7 +58,7 @@ process(Context, Statements, true) ->
     end,
     {ok, Value}.
 
--spec check_exception(context(), ephp_object()) -> ok.
+-spec check_exception(context(), obj_ref()) -> ok.
 
 check_exception(Context, Exception) ->
     L = ephp_class_exception:exception_get_line(Context, Exception, undefined),
@@ -156,7 +158,7 @@ run_depth(Context, #for{init = Init,
                         line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, for, Context, Line),
     run(Context, #eval{statements = Init}, Cover),
-    run_loop(pre, Context, Cond, loop_block(LB) ++ Update, Cover);
+    run_loop(pre, Context, Cond, LB ++ Update, Cover);
 
 run_depth(Context, #foreach{kiter = Key,
                             iter = Var,
@@ -167,21 +169,21 @@ run_depth(Context, #foreach{kiter = Key,
     case ephp_context:solve(Context, RawElements) of
         ProcElements when ?IS_ARRAY(ProcElements) ->
             Elements = ephp_array:to_list(ProcElements),
-            run_foreach(Context, Key, Var, {RawElements, Elements},
-                        loop_block(LB), Cover);
+            run_foreach(Context, Key, Var, {RawElements, Elements}, LB, Cover);
         Object when ?IS_OBJECT(Object) ->
             case ephp_data:instance_of(Context, Object, <<"Iterator">>) of
                 true ->
                     ClassName = ephp_object:get_class_name(Object),
-                    CallGen = #call{type = object, class = ClassName},
+                    CallGen = #call{type = object,
+                                    class = ClassName,
+                                    line = Line},
                     CallRewind = CallGen#call{name = <<"rewind">>},
                     CallValid = CallGen#call{name = <<"valid">>},
                     %% TODO check die or other breaks with these method calls
                     ephp_context:call_method(Context, Object, CallRewind),
                     case ephp_context:call_method(Context, Object, CallValid) of
                         true ->
-                            run_foreach(Context, Key, Var, Object,
-                                        loop_block(LB), Cover);
+                            run_foreach(Context, Key, Var, Object, LB, Cover);
                         false ->
                             false
                     end;
@@ -208,7 +210,7 @@ run_depth(Context, #while{type = Type,
                           line = Line},
           false, Cover) ->
     ok = ephp_cover:store(Cover, while, Context, Line),
-    run_loop(Type, Context, Cond, loop_block(LB), Cover);
+    run_loop(Type, Context, Cond, LB, Cover);
 
 run_depth(Context, #print_text{text=Text, line=Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, print, Context, Line),
@@ -403,10 +405,6 @@ run_depth(_Context, Statement, false, _Cover) ->
 run_depth(_Context, _Statement, Break, _Cover) ->
     Break.
 
-loop_block(LB) when is_list(LB) -> LB;
-loop_block(undefined) -> [];
-loop_block(LB) -> [LB].
-
 -spec exit_cond(flow_status()) -> flow_status().
 
 exit_cond({return, Ret}) -> {return, Ret};
@@ -422,7 +420,7 @@ run_finally(_Context, [], _Cover) ->
 run_finally(Context, Finally, Cover) ->
     run(Context, #eval{statements = Finally}, Cover).
 
--spec run_catch(context(), catch_block(), Exception :: binary(),
+-spec run_catch(context(), catch_block(), Exception :: obj_ref(),
                 Finally :: statements(), Cover :: boolean()) -> throw |
                                                                 flow_status().
 
@@ -477,13 +475,12 @@ run_loop(post, Context, Cond, Statements, Cover) ->
             exit_cond(Return)
     end.
 
--spec run_foreach(
-    Context :: context(),
-    Key :: variable(),
-    Var :: variable(),
-    Elements :: mixed(),
-    Statements :: [statement()],
-    Cover :: boolean()) -> break() | return() | false.
+-spec run_foreach(Context :: context(),
+                  Key :: variable() | ref(),
+                  Var :: variable(),
+                  Elements :: [mixed()] | {[mixed()], [{mixed(), mixed()}]} | obj_ref(),
+                  Statements :: [statement()],
+                  Cover :: boolean()) -> break() | return() | false.
 
 run_foreach(_Context, _Key, _Var, [], _Statements, _Cover) ->
     false;

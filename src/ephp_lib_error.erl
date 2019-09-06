@@ -206,7 +206,7 @@ error_clear_last(Context, _Line) ->
     undefined.
 
 -spec trigger_error(context(), line(), ErrStr :: var_value(),
-                    ErrLevel :: var_value()) -> boolean().
+                    ErrLevel :: var_value()) -> ephp_error:get_return_return().
 
 trigger_error(Context, Line, _ErrStr, {_, ErrLevel})
         when ErrLevel band (bnot ?E_USER) =/= 0 ->

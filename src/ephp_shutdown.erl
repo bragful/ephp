@@ -59,7 +59,8 @@ shutdown(Context) ->
     Result = lists:foldl(fun
         ({NS, FuncName}, false) ->
             Shutdown = #call{name = FuncName, namespace = NS, line = Line},
-            ephp_interpr:run(Context, #eval{statements = [Shutdown]});
+            Eval = #eval{statements = [Shutdown], line = Line},
+            ephp_interpr:run(Context, Eval);
         (_, Break) ->
             Break
     end, false, ephp_context:get_shutdown_funcs(Context)),

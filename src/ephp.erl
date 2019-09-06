@@ -150,17 +150,17 @@ register_module(Ctx, Module) ->
             register_func(Ctx, Name, Module, Func, false, undefined)
     end, Module:init_func()).
 
--spec eval(context(), PHP :: string() | binary()) ->
-    {ok, Result :: binary()} | {error, Reason :: reason()} |
-    {error,{Code::binary(), Line::integer(), Col::integer()}}.
+-type eval_return() ::
+      {ok, Result :: ephp_interpr:flow_status()} |
+      {error, reason(), line(), File::binary(), error_level(), Data::any()}.
+
+-spec eval(context(), PHP :: string() | binary()) -> eval_return().
 %% @doc eval PHP code in a context passed as params.
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
 -spec eval(Filename :: binary(), context(),
-           PHP :: string() | binary() | [term()]) ->
-    {ok, Result :: binary()} |
-    {error, reason(), line(), File::binary(), error_level(), Data::any()}.
+           PHP :: string() | binary() | [term()]) -> eval_return().
 %% @equiv eval/2
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
 %%      constants and evaluates the code for the third parameter. This parameter
@@ -206,7 +206,7 @@ eval(Filename, Context, Compiled) ->
             Error
     end.
 
--spec opt_spec_list() -> getopt:option_spec().
+-spec opt_spec_list() -> [getopt:option_spec()].
 
 opt_spec_list() -> [
     {help, $h, "help", undefined, "This help information."},

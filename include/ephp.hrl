@@ -28,8 +28,9 @@
 -define(IS_CLASS(C), is_record(C, class)).
 -define(IS_RESOURCE(R), is_record(R, resource)).
 -define(IS_CALLABLE(C),
-    erlang:'or'(?IS_ARRAY(A),
-        erlang:'or'(is_binary(A), ?IS_OBJECT(A)))).
+    erlang:'or'(?IS_FUNCTION(A),
+        erlang:'or'(?IS_ARRAY(A),
+            erlang:'or'(is_binary(A), ?IS_OBJECT(A))))).
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).
@@ -116,6 +117,9 @@
 
 -type expression() :: operation() |
                       mixed() |
+                      text_to_process() |
+                      text() |
+                      constant() |
                       ref() |
                       instance() |
                       clone() |
@@ -173,7 +177,7 @@
 -record(foreach, {
     kiter :: variable() | undefined,
     iter :: variable(),
-    elements :: variable(),
+    elements :: variable() | expression(),
     loop_block :: statements(),
     line :: line()
 }).
@@ -291,7 +295,7 @@
     namespace = [] :: namespace(),
     type = normal :: constant_types(),
     value :: expression(),
-    class :: class_name() | undefined,
+    class :: class_name() | undefined | variable(),
     line :: line()
 }).
 
@@ -372,7 +376,7 @@
 
 -type st_function() :: #function{}.
 
--type callable() :: function_name() | ephp_array().
+-type callable() :: function_name() | ephp_array() | function().
 
 -record(stack_trace, {
     function :: binary(),

@@ -256,8 +256,7 @@ search(#variable{idx = []}, undefined, undefined, _Base) ->
     undefined;
 
 search(#variable{name = Name, idx = [NewName|Idx]} = Var, _Vars, Context, Base)
-        when not (is_binary(Name) orelse is_number(Name) orelse
-                  element(1, Name) =:= private) ->
+        when is_tuple(Name) andalso element(1, Name) =/= private ->
     case ephp_context:solve(Context, Name) of
         Name ->
             throw({error, {eloop, Name}});

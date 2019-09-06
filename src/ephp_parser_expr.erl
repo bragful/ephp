@@ -175,7 +175,7 @@ array_def(Rest, Parser, Args) when Rest =/= <<>> ->
 
 -spec expression(Text :: binary(),
                  parser(),
-                 [expression()]) -> [expression()] | expression(). 
+                 [expression()]) -> {binary(), parser(), [expression()] | expression()}.
 
 % CONSTANT / FUNCTION when -> is used
 expression(<<A:8,_/binary>> = Rest, Parser,
