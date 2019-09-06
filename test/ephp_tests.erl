@@ -28,7 +28,20 @@ main_lint_test() ->
     ok.
 
 main_dir_test() ->
-    ?assertEqual(0, ephp:main(["-d", "test/code"])).
+    ?assertEqual(0, ephp:main(["-d", "test/code"])),
+    ok.
+
+main_run_test() ->
+    ?assertEqual(0, ephp:main(["-r", "echo 'Hello world';"])),
+    ok.
+
+main_phpinfo_test() ->
+    ephp:start(),
+    application:set_env(ephp, sapi, <<"cgi">>),
+    ?assertMatch(0, ephp:main(["-i"])),
+    application:set_env(ephp, sapi, <<"cli">>),
+    ?assertMatch(0, ephp:main(["-i"])),
+    ok.
 
 register_var_test() ->
     {ok, Ctx} = ephp:context_new(),

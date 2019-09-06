@@ -28,6 +28,9 @@
   h2 {
     font-size: 14pt;
   }
+  h3 {
+    font-size: 12pt;
+  }
   .container {
     margin: 5px auto 5px auto;
     padding: 5px;
@@ -79,6 +82,7 @@
     </a>
   </div>
 
+  <? if ($_FLAGS & INFO_GENERAL) { ?>
   <div class="container">
     <table>
       <tr>
@@ -105,9 +109,18 @@
       </a>
     </div>
   </div>
+  <? } ?>
 
+  <? if ($_FLAGS & INFO_CONFIGURATION) { ?>
   <div class="header">
-    <h2>Core</h2>
+    <h2>Configuration</h2>
+  </div>
+
+  <? foreach ($_METADATA["directives"] as $section => $directives) { ?>
+  <? switch ($section) { ?>
+<? case "core": ?>
+  <div class="header">
+    <h3>Core</h3>
   </div>
 
   <div class="container">
@@ -117,44 +130,151 @@
         <td><?=$_METADATA["version"]?></td>
       </tr>
     </table>
+
+  <?   break; ?>
+  <? case "date": ?>
+  <div class="header">
+    <h3>date</h3>
+  </div>
+
+  <div class="container">
+    <table>
+      <tr>
+        <th>date/time support</th>
+        <td>enabled</td>
+      </tr>
+      <tr>
+        <th>timelib version</th>
+        <td><?=$_METADATA["tz_version"]?></th>
+      </tr>
+      <tr>
+        <th>"Olson" Timezone Database Version</th>
+        <td><?=$_METADATA["tz_version"]?></td>
+      </tr>
+      <tr>
+        <th>Timezone Database</th>
+        <td>ezic</td>
+      </tr>
+      <tr>
+        <th>Default timezone</th>
+        <td>UTC</td>
+      </tr>
+    </table>
+
+  <?   break; ?>
+  <? case "pcre": ?>
+  <div class="header">
+    <h3>pcre</h3>
+  </div>
+
+  <div class="container">
+    <table>
+      <tr>
+        <th>PCRE (Perl Compatible Regular Expressions) Support</th>
+        <td>enabled</td>
+      </tr>
+      <tr>
+        <th>PCRE Library Version</th>
+        <td><?=PCRE_VERSION?></td>
+      </tr>
+      <tr>
+        <th>PCRE JIT Support</th>
+        <td>not compiled in</td>
+      </tr>
+    </table>
+
+  <?   break; ?>
+  <? default: ?>
+  <div class="header">
+    <h3><?=ucfirst($section)?></h3>
+  </div>
+
+  <div class="container">
+
+  <? } ?>
     <table>
       <thead>
         <th>Directive</th>
         <th>Value</th>
       </thead>
       <tbody>
-        <? foreach ($_METADATA["directives"]["core"] as $key => $value) { ?>
+      <? foreach ($directives as $key => $value) { ?>
         <tr>
           <td><?=$key?></td>
-          <td><?=$value?></td>
+          <td><?=$value ?? "no value"?></td>
         </tr>
-        <? } ?>
+      <? } ?>
       </tbody>
     </table>
   </div>
+  <? } ?>
+<? } ?>
 
-  <? foreach ($_METADATA["directives"] as $section => $directives) { ?>
-  <? if ($section == "core") continue; ?>
+<? if ($_FLAGS & INFO_ENVIRONMENT) { ?>
   <div class="header">
-    <h2><?=ucfirst($section)?></h2>
+    <h2>Environment</h2>
   </div>
 
   <div class="container">
     <table>
       <thead>
-        <th>Directive</th>
+        <th>Variable</th>
         <th>Value</th>
       </thead>
       <tbody>
-        <? foreach ($directives as $key => $value) { ?>
+      <? foreach ($_ENV as $key => $value) { ?>
         <tr>
           <td><?=$key?></td>
           <td><?=$value?></td>
         </tr>
-        <? } ?>
+      <? } ?>
       </tbody>
     </table>
   </div>
-  <? } ?>
+<? } ?>
+<? if ($_FLAGS & INFO_VARIABLES) { ?>
+  <div class="header">
+    <h2>PHP Variables</h2>
+  </div>
+
+  <div class="container">
+    <table>
+      <thead>
+        <th>Variable</th>
+        <th>Value</th>
+      </thead>
+      <tbody>
+      <? foreach ($_SERVER as $key => $value) { ?>
+        <tr>
+          <td>$_SERVER['<?=$key?>']</td>
+          <td><?=print_r($value, true)?></td>
+        </tr>
+      <? } ?>
+      <? foreach ($_ENV as $key => $value) { ?>
+        <tr>
+          <td>$_ENV['<?=$key?>']</td>
+          <td><?=print_r($value, true)?></td>
+        </tr>
+      <? } ?>
+      </tbody>
+    </table>
+  </div>
+
+<? } ?>
+<? if ($_FLAGS & INFO_LICENSE) { ?>
+  <div class="header">
+    <h2>License</h2>
+  </div>
+
+  <div class="container">
+    <div class="info">
+      <p><?=$LICENSE?></p>
+      <a id="bragful-logo" href="https://bragful.com">
+        <img src="<?= bragful_logo_uri() ?>" alt="Bragful"/>
+      </a>
+    </div>
+  </div>
+
+<? } ?>
 </body>
 </html>

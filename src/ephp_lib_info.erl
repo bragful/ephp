@@ -229,32 +229,39 @@ phpinfo_metadata() ->
                           {<<"release">>, OtpRelease},
                           {<<"path_php_ini">>, IniFile},
                           {<<"directives">>, ArrDirectives},
-                          {<<"streams">>, Streams}]).
+                          {<<"streams">>, Streams},
+                          {<<"tz_version">>, ephp_datetime:get_tz_version()}]).
 
 process_phpinfo(Format, Context, Flags) ->
     Metadata = phpinfo_metadata(),
     PHPInfo = get_file("phpinfo." ++ Format ++ ".php"),
     ephp:register_var(Context, <<"_METADATA">>, Metadata),
     ephp:register_var(Context, <<"_FLAGS">>, Flags),
+    ephp:register_var(Context, <<"LICENSE">>, get_file("license")),
     {ok, false} = ephp:eval(Context, PHPInfo),
     undefined.
 
+get_file(Name, Filename) when Name =:= "rebar3" orelse Name =:= undefined ->
+    FullFilename = filename:join(code:priv_dir(ephp), Filename),
+    {ok, Content} = file:read_file(FullFilename),
+    Content;
+
+get_file(Name, Filename) ->
+    {ok, Sections} = escript:extract(Name, []),
+    Zip = proplists:get_value(archive, Sections),
+    Filter = fun(#zip_file{name = "ephp/priv/" ++ _}) -> true;
+                (_) -> false
+                end,
+    {ok, Files} = zip:extract(Zip, [{file_filter, Filter}, memory]),
+    NewFilename = "ephp/priv/" ++ Filename,
+    proplists:get_value(NewFilename, Files).
+
 get_file(Filename) ->
     try
-        Name = escript:script_name(),
-        {ok, Sections} = escript:extract(Name, []),
-        Zip = proplists:get_value(archive, Sections),
-        Filter = fun(#zip_file{name = "ephp/priv/" ++ _}) -> true;
-                    (_) -> false
-                 end,
-        {ok, Files} = zip:extract(Zip, [{file_filter, Filter}, memory]),
-        NewFilename = "ephp/priv/" ++ Filename,
-        proplists:get_value(NewFilename, Files)
+        Name = filename:basename(escript:script_name()),
+        get_file(Name, Filename)
     catch
-        error:{badmatch, []} ->
-            FullFilename = filename:join(code:priv_dir(ephp), Filename),
-            {ok, Content} = file:read_file(FullFilename),
-            Content
+        error:{badmatch, []} -> get_file(undefined, Filename)
     end.
 
 -spec get_vsn() -> binary().

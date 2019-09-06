@@ -5,6 +5,7 @@
 -include("ephp.hrl").
 
 -export([
+    get_tz_version/0,
     get_tz/2,
     set_tz/1,
     get_abbr_weekday/1,
@@ -21,6 +22,29 @@
     to_bmt/1,
     get_tz_time/3
 ]).
+
+get_tz_version(Name) when Name =:= "rebar3" orelse Name =:= undefined ->
+    Filename = "tzdata/version",
+    FullFilename = filename:join(code:priv_dir(ezic), Filename),
+    {ok, Content} = file:read_file(FullFilename),
+    Content;
+
+get_tz_version(Name) ->
+    {ok, Sections} = escript:extract(Name, []),
+    Zip = proplists:get_value(archive, Sections),
+    Opts = [{file_list, ["ezic/priv/tzdata/version"]}, memory],
+    {ok, [{_, ZipContent}]} = zip:extract(Zip, Opts),
+    ZipContent.
+
+-spec get_tz_version() -> binary().
+
+get_tz_version() ->
+    try
+        Name = filename:basename(escript:script_name()),
+        get_tz_version(Name)
+    catch
+        error:{badmatch, []} -> get_tz_version(undefined)
+    end.
 
 -spec get_tz(context(), line()) -> binary().
 

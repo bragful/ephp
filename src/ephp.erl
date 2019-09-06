@@ -214,6 +214,7 @@ opt_spec_list() -> [
     {check, $l, undefined, string, "Check PHP code syntax for specific PHP file."},
     {parse, $p, undefined, string, "Show parsing PHP code for specific PHP file."},
     {info, $i, "info", undefined, "Show PHP info."},
+    {run, $r, undefined, string, "Run PHP code."},
     {file, undefined, undefined, string, "PHP code to be run."}
 ].
 
@@ -300,6 +301,20 @@ main([info|_], _RawArgs) ->
     {ok, _} = eval(<<"-">>, Ctx, Content),
     output_and_close(Ctx),
     quit(0);
+
+main([{run, Code}|_], _RawArgs) ->
+    start(),
+    Content = list_to_binary("<?php " ++ Code),
+    ephp_config:start_link(?PHP_INI_FILE),
+    {ok, Ctx} = context_new(<<"-">>),
+    register_superglobals(Ctx, ["-"]),
+    case eval(<<"-">>, Ctx, Content) of
+        {ok, _Return} ->
+            output_and_close(Ctx),
+            quit(0);
+        {error, _Reason, _Index, _File, _Level, _Data} ->
+            quit(1)
+    end;
 
 main([help|_], _) ->
     usage(0);

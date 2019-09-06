@@ -39,7 +39,10 @@ init_func() -> [
 
 -spec init_config() -> ephp_func:php_config_results().
 
-init_config() -> [].
+init_config() -> [
+    {<<"pcre.backtrack_limit">>, 1000000},
+    {<<"pcre.recurssion_limit">>, 100000}
+].
 
 -spec init_const() -> ephp_func:php_const_results().
 
