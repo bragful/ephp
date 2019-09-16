@@ -89,6 +89,12 @@ escape(MemRef, Escape) when ?IS_MEM(MemRef) ->
 escape(Mixed, _Escape) ->
     ephp_data:to_bin(Mixed).
 
+-ifdef(NATIVE_STR_REPLACE).
+replace(M, Subject, Seq) -> string:replace(M, Subject, Seq).
+-else.
+replace(M, Subject, Seq) -> binary:replace(M, Subject, Seq).
+-endif.
+
 -spec expand_mask(binary()) -> binary().
 
 expand_mask(Mask) ->
@@ -97,7 +103,7 @@ expand_mask(Mask) ->
         {match, Matches} ->
             lists:foldl(fun([Subject, <<Init:8>>, <<End:8>>], M) ->
                 Seq = list_to_binary(lists:seq(Init, End)),
-                iolist_to_binary(string:replace(M, Subject, Seq))
+                iolist_to_binary(replace(M, Subject, Seq))
             end, Mask, Matches);
         nomatch ->
             Mask

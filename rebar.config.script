@@ -6,6 +6,10 @@ NATIVE_CEIL = case erlang:function_exported(erlang, ceil, 1) of
     true -> [{d, 'NATIVE_CEIL', "1"}];
     false -> []
 end,
+STRING_REPLACE = case erlang:function_exported(string, replace, 3) of
+    true -> [{d, 'NATIVE_STR_REPLACE', "1"}];
+    false -> []
+end,
 PCRE_VERSION = case erlang:function_exported(re, version, 0) of
     false -> {d, 'PCRE_VERSION', "8.02 2010-03-19"};
     true -> {d, 'PCRE_VERSION', binary_to_list(re:version())}
@@ -23,5 +27,5 @@ OldErlOpts = [{erl_opts, ErlOpts}],
 NewErlOpts = [{erl_opts, [
     {d, 'BUILD_DATE', BuildDate},
     PCRE_VERSION
-|ErlOpts] ++ NATIVE_FLOOR ++ NATIVE_CEIL}],
+|ErlOpts] ++ NATIVE_FLOOR ++ NATIVE_CEIL ++ STRING_REPLACE}],
 (CONFIG -- OldErlOpts) ++ NewErlOpts.
