@@ -1082,10 +1082,10 @@ st_for(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_SPACE(SP) ->
     st_for(Rest, inc_pos(Parser), Parsed);
 st_for(<<SP:8,Rest/binary>>, Parser, Parsed) when ?IS_NEWLINE(SP) ->
     st_for(Rest, new_line(Parser), Parsed);
-st_for(<<"(",Rest/binary>>, Parser, Parsed) ->
-    {<<";",Rest0/binary>>, Parser0, Init} = args(Rest, inc_pos(Parser), []),
-    {<<";",Rest1/binary>>, Parser1, [Cond]} = args(Rest0, inc_pos(Parser0), []),
-    {<<")",Rest2/binary>>, Parser2, Upda} = args(Rest1, inc_pos(Parser1), []),
+st_for(<<"(", Rest/binary>>, Parser, Parsed) ->
+    {<<";", Rest0/binary>>, Parser0, Init} = args(Rest, inc_pos(Parser), []),
+    {<<";", Rest1/binary>>, Parser1, [Cond]} = args(Rest0, inc_pos(Parser0), []),
+    {<<")", Rest2/binary>>, Parser2, Upda} = args(Rest1, inc_pos(Parser1), []),
     {Rest3, Parser3, CodeBlock} = code_block(Rest2,
                                              for_block_level(inc_pos(Parser2)), []),
     ForCodeBlock = CodeBlock ++ Upda,

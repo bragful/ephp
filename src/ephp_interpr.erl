@@ -106,10 +106,10 @@ run(Context, #eval{statements=Statements, line=Line}, Cover) ->
 -spec run_depth(context(), statement(), flow_status(),
                 Cover :: boolean()) -> flow_status().
 
-run_depth(Context, #eval{}=Eval, false, Cover) ->
+run_depth(Context, #eval{} = Eval, false, Cover) ->
     run(Context, Eval, Cover);
 
-run_depth(Context, #assign{line=Line}=Assign, Return, Cover) ->
+run_depth(Context, #assign{line = Line} = Assign, Return, Cover) ->
     ok = ephp_cover:store(Cover, assign, Context, Line),
     ephp_context:solve(Context, Assign),
     Return;
