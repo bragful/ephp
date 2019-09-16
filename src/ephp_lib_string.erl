@@ -38,7 +38,8 @@
     ltrim/4,
     trim/4,
     substr/5,
-    str_repeat/4
+    str_repeat/4,
+    count_chars/4
 ]).
 
 -include("ephp.hrl").
@@ -99,6 +100,9 @@ init_func() -> [
     ]},
     {str_repeat, [
         {args, [string, integer]}
+    ]},
+    {count_chars, [
+        {args, {1, 2, undefined, [string, {integer, 0}]}}
     ]}
 ].
 
@@ -444,6 +448,32 @@ str_repeat(Context, Line, {_, _String}, {_, Multiplier}) when Multiplier < 0 ->
 
 str_repeat(_Context, _Line, {_, String}, {_, Multiplier}) ->
     str_repeat(String, Multiplier, <<>>).
+
+-spec count_chars(context(), line(), var_value(), var_value()) -> ephp_array() | binary().
+
+count_chars(_Context, _Line, {_, String}, {_, 1}) ->
+    % same as 0 but only byte-values with a frequency greater than zero are listed.
+    lists:foldl(fun(I, Array) ->
+        ephp_array:update_counter(I, 1, Array)
+    end, ephp_array:new(), lists:sort(binary_to_list(String)));
+count_chars(_Context, _Line, {_, String}, {_, 2}) ->
+    % same as 0 but only byte-values with a frequency equal to zero are listed.
+    FullArray = ephp_array:from_list([ {I, 0} || I <- lists:seq(0, 255) ]),
+    lists:foldl(fun(I, Array) ->
+        ephp_array:erase(I, Array)
+    end, FullArray, lists:usort(binary_to_list(String)));
+count_chars(_Context, _Line, {_, String}, {_, 3}) ->
+    % string containing all unique characters is returned.
+    << <<I:8>> || I <- lists:usort(binary_to_list(String)) >>;
+count_chars(_Context, _Line, {_, String}, {_, 4}) ->
+    % string containing all not used characters is returned.
+    iolist_to_binary(lists:seq(0, 255) -- lists:usort(binary_to_list(String)));
+count_chars(_Context, _Line, {_, String}, {_, _}) ->
+    % an array with the byte-value as key and the frequency of every byte as value.
+    FullArray = ephp_array:from_list([ {I, 0} || I <- lists:seq(0, 255) ]),
+    lists:foldl(fun(I, Array) ->
+        ephp_array:update_counter(I, 1, Array)
+    end, FullArray, binary_to_list(String)).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

@@ -37,7 +37,8 @@
     ksort/2,
     keys/1,
     values/1,
-    pop/1
+    pop/1,
+    update_counter/3
 ]).
 
 
@@ -85,11 +86,10 @@ store(auto, Value,
     };
 
 store(Key, Value, #ephp_array{last_num_index = Last, values = Values} = Array)
-        when is_integer(Key) andalso Key >= 0
-        andalso Last =< Key ->
+        when is_integer(Key) andalso Key >= 0 andalso Last =< Key ->
     Array#ephp_array{
         last_num_index = Key + 1,
-        values = Values ++ [{Key, Value}],
+        values = ordsets:add_element({Key, Value}, Values),
         size = Array#ephp_array.size + 1
     };
 
@@ -134,9 +134,15 @@ fold(Fun, Initial, #ephp_array{values = Values}) ->
 %% @doc transform the list passed as param in a PHP Array.
 from_list(List) when is_list(List) ->
     lists:foldl(fun
-        ({K,_}=E, #ephp_array{values = V, size = S} = A) when is_binary(K)
-                                                       orelse is_number(K) ->
+        ({K,_} = E, #ephp_array{values = V, size = S} = A) when is_binary(K) ->
             A#ephp_array{size = S + 1, values = V ++ [E]};
+        ({K,_} = E, #ephp_array{values = V, size = S} = A) when is_number(K) ->
+            LastIndex = if
+                is_integer(K) >= 0 andalso K >= A#ephp_array.last_num_index -> K + 1;
+                true -> A#ephp_array.last_num_index
+            end,
+            A#ephp_array{size = S + 1, values = V ++ [E],
+                         last_num_index = LastIndex};
         (E, #ephp_array{values = V, last_num_index = K, size = S} = A) ->
             A#ephp_array{size = S + 1, values = V ++ [{K,E}],
                          last_num_index = K + 1}
@@ -255,3 +261,10 @@ pop(#ephp_array{values = Values, size = Size} = Array) ->
     {_, Value} = lists:last(Values),
     HeadValues = lists:droplast(Values),
     {Value, Array#ephp_array{values = HeadValues, size = Size - 1}}.
+
+-spec update_counter(mixed(), integer(), ephp_array()) -> ephp_array().
+%% @doc creates or updates an element increasing the number passed as second
+%%      parameter and return the modified array.
+update_counter(Key, Increase, Array) ->
+    Value = ephp_data:to_int(ephp_array:find(Key, Array, 0)),
+    ephp_array:store(Key, Value + Increase, Array).
