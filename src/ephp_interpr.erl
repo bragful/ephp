@@ -151,15 +151,6 @@ run_depth(Context, #switch{condition = Cond, cases = Cases, line = Line},
         {break, N} -> {break, N-1}
     end;
 
-run_depth(Context, #for{init = Init,
-                        conditions = Cond,
-                        update = Update,
-                        loop_block = LB,
-                        line = Line}, false, Cover) ->
-    ok = ephp_cover:store(Cover, for, Context, Line),
-    run(Context, #eval{statements = Init}, Cover),
-    run_loop(pre, Context, Cond, LB ++ Update, Cover);
-
 run_depth(Context, #foreach{kiter = Key,
                             iter = Var,
                             elements = RawElements,

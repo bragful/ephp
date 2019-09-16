@@ -297,31 +297,41 @@ do_while_statement_literalblock_test_() -> [
 
 for_statement_test_() -> [
     ?_assertMatch(
-        [#eval{statements=[#for{
-            init=[#assign{variable=#variable{name = <<"i">>}, expression=#int{int=0}}],
-            conditions=#operation{type = <<"<">>,
-                expression_left = #variable{name = <<"i">>},
-                expression_right = #int{int=5}},
-            update=[#assign{variable=#variable{name = <<"i">>}, expression=
-                #operation{type = <<"+">>,
-                    expression_left = #variable{name = <<"i">>},
-                    expression_right = #int{int=1}}}],
-            loop_block=[#assign{variable=#variable{name = <<"b">>},
-                expression = #operation{type = <<"+">>,
-                    expression_left = #variable{name = <<"b">>},
-                    expression_right = #variable{name = <<"i">>}}}]}]}],
+        [#eval{statements = [
+            #assign{variable=#variable{name = <<"i">>}, expression=#int{int=0}},
+            #while{
+                conditions = #operation{type = <<"<">>,
+                                        expression_left = #variable{name = <<"i">>},
+                                        expression_right = #int{int = 5}},
+                loop_block = [
+                    #assign{variable = #variable{name = <<"b">>},
+                            expression = #operation{type = <<"+">>,
+                                                    expression_left = #variable{name = <<"b">>},
+                                                    expression_right = #variable{name = <<"i">>}}},
+                    #assign{variable = #variable{name = <<"i">>},
+                            expression = #operation{type = <<"+">>,
+                                                    expression_left = #variable{name = <<"i">>},
+                                                    expression_right = #int{int = 1}}}
+                ]
+            }
+        ]}],
         ?PARSE("<?php for ($i=0;$i<5;$i=$i+1) $b = $b + $i; ?>")),
-    ?_assertMatch([#eval{statements = [#for{
-        init = [#assign{variable=#variable{name = <<"i">>}, expression=#int{int=0}}],
-        conditions = #operation{
-            type = <<"<">>,
-            expression_left = #variable{name = <<"i">>},
-            expression_right = #int{int=5}},
-        update = [{post_incr, #variable{name = <<"i">>}, _}],
-        loop_block = [#assign{variable = #variable{name = <<"b">>}, expression =
-            #operation{type = <<"+">>,
-                expression_left = #variable{name = <<"b">>},
-                expression_right = #variable{name = <<"i">>}}}]}]}],
+    ?_assertMatch(
+        [#eval{statements = [
+            #assign{variable = #variable{name = <<"i">>}, expression = #int{int = 0}},
+            #while{
+                conditions = #operation{type = <<"<">>,
+                                        expression_left = #variable{name = <<"i">>},
+                                        expression_right = #int{int = 5}},
+                loop_block = [
+                    #assign{variable = #variable{name = <<"b">>},
+                            expression = #operation{type = <<"+">>,
+                                                    expression_left = #variable{name = <<"b">>},
+                                                    expression_right = #variable{name = <<"i">>}}},
+                    {post_incr, #variable{name = <<"i">>}, _}
+                ]
+            }
+        ]}],
         ?PARSE("<?php for ($i=0;$i<5;$i++) $b = $b + $i;"))
 ].
 

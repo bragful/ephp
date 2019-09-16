@@ -199,7 +199,7 @@
 
 -type if_block() :: #if_block{}.
 
--type blocks() :: #if_block{} | #for{} | #while{} | #foreach{} | #switch{}.
+-type blocks() :: #if_block{} | #while{} | #foreach{} | #switch{}.
 
 % data types and operations
 

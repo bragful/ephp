@@ -1088,11 +1088,11 @@ st_for(<<"(",Rest/binary>>, Parser, Parsed) ->
     {<<")",Rest2/binary>>, Parser2, Upda} = args(Rest1, inc_pos(Parser1), []),
     {Rest3, Parser3, CodeBlock} = code_block(Rest2,
                                              for_block_level(inc_pos(Parser2)), []),
-    For = add_line(#for{init = Init,
-                        conditions = Cond,
-                        update = Upda,
-                        loop_block = CodeBlock}, Parser),
-    {Rest3, copy_rowcol(Parser3, Parser), [For|Parsed]}.
+    ForCodeBlock = CodeBlock ++ Upda,
+    For = add_line(#while{type = post,
+                          conditions = Cond,
+                          loop_block = ForCodeBlock}, Parser),
+    {Rest3, copy_rowcol(Parser3, Parser), [For|Init] ++ Parsed}.
 
 comment_line(<<>>, Parser, Parsed) ->
     {<<>>, Parser, Parsed};
@@ -1179,7 +1179,6 @@ get_line(#text{line = Line}) -> Line;
 get_line(#if_block{line = Line}) -> Line;
 get_line(#assign{line = Line}) -> Line;
 get_line(#array_element{line = Line}) -> Line;
-get_line(#for{line = Line}) -> Line;
 get_line(#foreach{line = Line}) -> Line;
 get_line(#operation{line = Line}) -> Line;
 get_line(#concat{line = Line}) -> Line;
@@ -1221,7 +1220,6 @@ add_line(#if_block{}=I, Parser) -> I#if_block{line = get_line(Parser)};
 add_line(#assign{}=A, Parser) -> A#assign{line = get_line(Parser)};
 add_line(#array_element{}=A, Parser) ->
     A#array_element{line = get_line(Parser)};
-add_line(#for{}=F, Parser) -> F#for{line = get_line(Parser)};
 add_line(#foreach{}=F, Parser) -> F#foreach{line = get_line(Parser)};
 add_line(#operation{}=O, Parser) -> O#operation{line = get_line(Parser)};
 add_line(#concat{}=O, Parser) -> O#concat{line = get_line(Parser)};
