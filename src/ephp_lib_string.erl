@@ -39,7 +39,8 @@
     trim/4,
     substr/5,
     str_repeat/4,
-    count_chars/4
+    count_chars/4,
+    nl2br/4
 ]).
 
 -include("ephp.hrl").
@@ -103,6 +104,9 @@ init_func() -> [
     ]},
     {count_chars, [
         {args, {1, 2, undefined, [string, {integer, 0}]}}
+    ]},
+    {nl2br, [
+        {args, {1, 2, undefined, [string, {boolean, true}]}}
     ]}
 ].
 
@@ -474,6 +478,16 @@ count_chars(_Context, _Line, {_, String}, {_, _}) ->
     lists:foldl(fun(I, Array) ->
         ephp_array:update_counter(I, 1, Array)
     end, FullArray, binary_to_list(String)).
+
+-spec nl2br(context(), line(), var_value(), var_value()) -> binary().
+
+nl2br(_Context, _Line, {_, String}, {_, Xhtml}) ->
+    BR = case ephp_data:to_boolean(Xhtml) of
+        true -> <<"<br />&">>;
+        false -> <<"<br>&">>
+    end,
+    Opts = [global],
+    re:replace(String, <<"(\\r\\n|\\n\\r|\\r|\\n)">>, BR, Opts).
 
 %% ----------------------------------------------------------------------------
 %% Internal functions
