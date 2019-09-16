@@ -10,6 +10,7 @@
     capitalize/2,
     capitalize_first/1,
     escape/2,
+    expand_mask/1,
     trim/1,
     trim/2,
     rtrim/2,
@@ -88,6 +89,20 @@ escape(MemRef, Escape) when ?IS_MEM(MemRef) ->
 escape(Mixed, _Escape) ->
     ephp_data:to_bin(Mixed).
 
+-spec expand_mask(binary()) -> binary().
+
+expand_mask(Mask) ->
+    Opts = [{capture, all, binary}, global],
+    case re:run(Mask, "(.)\\.\\.(.)", Opts) of
+        {match, Matches} ->
+            lists:foldl(fun([Subject, <<Init:8>>, <<End:8>>], M) ->
+                Seq = list_to_binary(lists:seq(Init, End)),
+                iolist_to_binary(string:replace(M, Subject, Seq))
+            end, Mask, Matches);
+        nomatch ->
+            Mask
+    end.
+
 -spec trim(binary()) -> binary();
           (undefined) -> undefined.
 
@@ -115,7 +130,7 @@ rtrim(<<A:8>>, Chars) ->
     end;
 rtrim(Text, Chars) ->
     Size = byte_size(Text) - 1,
-    <<Rest:Size/binary,A:8>> = Text,
+    <<Rest:Size/binary, A:8>> = Text,
     case lists:member(A, Chars) of
         true -> rtrim(Rest, Chars);
         false -> Text

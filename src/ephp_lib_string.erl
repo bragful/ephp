@@ -81,6 +81,10 @@ init_func() -> [
     {rtrim, [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
     ]},
+    {rtrim, [
+        {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}},
+        {alias, <<"chop">>}
+    ]},
     {trim, [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
     ]},
@@ -390,14 +394,14 @@ strrev(_Context, _Line, {_, Str}) ->
       binary() | undefined.
 
 rtrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
-    Chars = binary_to_list(CharMask),
+    Chars = binary_to_list(ephp_string:expand_mask(CharMask)),
     ephp_string:rtrim(Str, Chars).
 
 -spec ltrim(context(), line(), Str::var_value(), CharMask::var_value()) ->
       binary() | undefined.
 
 ltrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
-    Chars = binary_to_list(CharMask),
+    Chars = binary_to_list(ephp_string:expand_mask(CharMask)),
     ephp_string:ltrim(Str, Chars).
 
 -spec trim(context(), line(), Str::var_value(), CharMask::var_value()) ->
