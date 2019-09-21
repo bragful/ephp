@@ -78,7 +78,7 @@
   <div class="header">
     <h1>PHP Version <?=$_METADATA["version"]?></h1>
     <a id="bragful-logo" href="https://bragful.com">
-      <img src="<?= bragful_logo_uri() ?>" alt="Bragful"/>
+      <img src="<?= php_logo_guid() ?>" alt="Bragful"/>
     </a>
   </div>
 
@@ -105,7 +105,7 @@
     <div class="info">
       <p>This program makes use of the <strong>Bragful ePHP</strong> Engine: <a href="https://github.com/bragful/ephp">ephp</a>; Erlang is a trademark of Ericsson and PHP is a trademark of Zend Technologies.</p>
       <a id="bragful-logo" href="https://bragful.com">
-        <img src="<?= bragful_logo_uri() ?>" alt="Bragful"/>
+        <img src="<?= php_logo_guid() ?>" alt="Bragful"/>
       </a>
     </div>
   </div>
@@ -270,7 +270,7 @@
     <div class="info">
       <p><?=$LICENSE?></p>
       <a id="bragful-logo" href="https://bragful.com">
-        <img src="<?= bragful_logo_uri() ?>" alt="Bragful"/>
+        <img src="<?= php_logo_guid() ?>" alt="Bragful"/>
       </a>
     </div>
   </div>

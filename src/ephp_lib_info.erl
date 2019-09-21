@@ -12,7 +12,7 @@
     phpinfo/3,
     phpversion/2,
     php_sapi_name/2,
-    bragful_logo_uri/2,
+    php_logo_guid/2,
     ini_get/3,
     ini_set/4,
     set_include_path/3,
@@ -38,7 +38,7 @@ init_func() -> [
         {args, {0, 1, undefined, [{integer, ?INFO_ALL}]}}
     ]},
     php_sapi_name,
-    bragful_logo_uri,
+    php_logo_guid,
     phpversion,
     ini_get,
     ini_set,
@@ -115,9 +115,9 @@ phpversion(_Context, _Line) ->
 php_sapi_name(_Context, _Line) ->
     ephp_config:get(sapi_type, <<"cli">>).
 
--spec bragful_logo_uri(context(), line()) -> binary().
+-spec php_logo_guid(context(), line()) -> binary().
 
-bragful_logo_uri(_Context, _Line) ->
+php_logo_guid(_Context, _Line) ->
     Content = get_file("bragful_logo.png"),
     Base64Content = base64:encode(Content),
     <<"data:image/png;base64,", Base64Content/binary>>.
