@@ -28,7 +28,9 @@
     strtolower/3,
     strtoupper/3,
     ucfirst/3,
+    lcfirst/3,
     ucwords/4,
+    str_shuffle/3,
     str_split/3,
     str_split/4,
     strpos/4,
@@ -69,6 +71,8 @@ init_func() -> [
     strtolower,
     strtoupper,
     ucfirst,
+    lcfirst,
+    str_shuffle,
     {ucwords, [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,11>>}]}}
     ]},
@@ -288,7 +292,33 @@ strtoupper(Context, Line, {_, Text}) ->
 -spec ucfirst(context(), line(), Text :: var_value()) -> binary().
 
 ucfirst(Context, Line, {_, Text}) ->
-    ephp_string:capitalize_first(ephp_data:to_bin(Context, Line, Text)).
+    case ephp_data:to_bin(Context, Line, Text) of
+        undefined -> undefined;
+        <<>> -> <<>>;
+        <<First/utf8, Tail/binary>> ->
+            <<(ephp_string:to_upper(First))/utf8, Tail/binary>>
+    end.
+
+-spec lcfirst(context(), line(), Text :: var_value()) -> binary().
+
+lcfirst(Context, Line, {_, Text}) ->
+    case ephp_data:to_bin(Context, Line, Text) of
+        undefined -> undefined;
+        <<>> -> <<>>;
+        <<First/utf8, Tail/binary>> ->
+            <<(ephp_string:to_lower(First))/utf8, Tail/binary>>
+    end.
+
+-spec str_shuffle(context(), line(), var_value()) -> binary().
+
+str_shuffle(Context, Line, {_, Text}) ->
+    case ephp_data:to_bin(Context, Line, Text) of
+        <<>> -> <<>>;
+        String ->
+            Random = [ {ephp_data:urand(), A} || <<A/utf8>> <= String ],
+            Sorted = lists:sort(Random),
+            << <<A/utf8>> || {_, A} <- Sorted >>
+    end.
 
 -spec ucwords(context(), line(), var_value(), var_value()) -> binary().
 
