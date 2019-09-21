@@ -22,7 +22,7 @@ process(Context, Statements) ->
 
 
 -spec process(context(), Statements :: [main_statement()], Cover :: boolean()) ->
-      {ok, flow_return()}.
+      {ok, binary() | flow_return() | false}.
 
 process(_Context, [], _Cover) ->
     {ok, false};
@@ -166,6 +166,7 @@ run_depth(Context, #foreach{kiter = Key,
                 true ->
                     ClassName = ephp_object:get_class_name(Object),
                     CallGen = #call{type = object,
+                                    name = <<>>,
                                     class = ClassName,
                                     line = Line},
                     CallRewind = CallGen#call{name = <<"rewind">>},
@@ -401,8 +402,7 @@ run_depth(_Context, _Statement, Break, _Cover) ->
 exit_cond({return, Ret}) -> {return, Ret};
 exit_cond({break, 0}) -> false;
 exit_cond({break, N}) -> {break, N-1};
-exit_cond(break) -> false;
-exit_cond(false) -> false.
+exit_cond(break) -> false.
 
 -spec run_finally(context(), statements(), Cover :: boolean()) -> flow_status().
 
@@ -437,8 +437,7 @@ run_catch(Context,
     Context :: context(),
     Cond :: condition(),
     Statements :: [statement()],
-    Cover :: boolean()) ->
-        break() | continue() | return() | false.
+    Cover :: boolean()) -> flow_return().
 
 run_loop(pre, Context, Cond, Statements, Cover) ->
     case ephp_data:to_bool(ephp_context:solve(Context, Cond)) of
@@ -469,19 +468,18 @@ run_loop(post, Context, Cond, Statements, Cover) ->
 -spec run_foreach(Context :: context(),
                   Key :: variable() | ref(),
                   Var :: variable(),
-                  Elements :: [mixed()] | {[mixed()], [{mixed(), mixed()}]} | obj_ref(),
+                  Elements :: variable() |
+                              expression() |
+                              {variable() | expression(), [{mixed(), mixed()}]},
                   Statements :: [statement()],
                   Cover :: boolean()) -> break() | return() | false.
-
-run_foreach(_Context, _Key, _Var, [], _Statements, _Cover) ->
-    false;
 
 run_foreach(_Context, _Key, _Var, {_SupVar, []}, _Statements, _Cover) ->
     false;
 
 run_foreach(Context, Key, Var, Object, Statements, Cover) when ?IS_OBJECT(Object) ->
     ClassName = ephp_object:get_class_name(Object),
-    CallGen = #call{type = object, class = ClassName},
+    CallGen = #call{name = <<>>, type = object, class = ClassName},
     CallValid = CallGen#call{name = <<"valid">>},
     CallNext = CallGen#call{name = <<"next">>},
     CallKey = CallGen#call{name = <<"key">>},

@@ -159,14 +159,6 @@
     line :: line()
 }).
 
--record(for, {
-    init :: [expression()],
-    conditions :: condition(),
-    update :: [expression()],
-    loop_block :: statements(),
-    line :: line()
-}).
-
 -record(while, {
     type :: (pre | post),
     conditions :: condition(),
@@ -313,7 +305,7 @@
     type = normal :: variable_types(),
     class :: class_name() | undefined,
     class_ns = [] :: namespace(),
-    name :: binary() | private_var(),
+    name :: binary() | private_var() | expression(),
     idx = [] :: [array_index() | object_index() | class_index()],
     default_value = undefined :: mixed(),
     data_type :: data_type(), %% <<"Exception">> for example
@@ -376,7 +368,7 @@
 
 -type st_function() :: #function{}.
 
--type callable() :: function_name() | ephp_array() | function().
+-type callable() :: function_name() | ephp_array() | st_function().
 
 -record(stack_trace, {
     function :: binary(),

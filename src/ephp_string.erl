@@ -25,7 +25,7 @@
     ibin2hex/1
 ]).
 
--spec to_lower(binary() | undefined) -> binary() | undefined.
+-spec to_lower(integer() | binary() | undefined) -> binary() | undefined.
 
 to_lower(undefined) ->
     undefined;
@@ -33,7 +33,7 @@ to_lower(undefined) ->
 to_lower(Text) ->
     unistring:to_lower(Text).
 
--spec to_upper(binary()) -> binary();
+-spec to_upper(integer() | binary()) -> binary();
               (undefined) -> undefined.
 
 to_upper(undefined) ->

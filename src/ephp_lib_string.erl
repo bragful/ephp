@@ -306,7 +306,6 @@ strtoupper(Context, Line, {_, Text}) ->
 
 ucfirst(Context, Line, {_, Text}) ->
     case ephp_data:to_bin(Context, Line, Text) of
-        undefined -> undefined;
         <<>> -> <<>>;
         <<First/utf8, Tail/binary>> ->
             <<(ephp_string:to_upper(First))/utf8, Tail/binary>>
@@ -316,7 +315,6 @@ ucfirst(Context, Line, {_, Text}) ->
 
 lcfirst(Context, Line, {_, Text}) ->
     case ephp_data:to_bin(Context, Line, Text) of
-        undefined -> undefined;
         <<>> -> <<>>;
         <<First/utf8, Tail/binary>> ->
             <<(ephp_string:to_lower(First))/utf8, Tail/binary>>
