@@ -400,7 +400,7 @@ get_message(eargsupplied, {Function}) ->
 get_message(eargtype, {Function, ArgNum}) ->
     io_lib:format("~s(): Argument #~p is not an array", [Function, ArgNum]);
 
-get_message(eisnot, {Function, VarName, Type}) ->
+get_message(eisnot, {Function, [VarName, Type]}) ->
     io_lib:format("~s(): ~s is not ~s", [Function, VarName, Type]);
 
 get_message(eshouldbe, {Function, Key, Type}) ->

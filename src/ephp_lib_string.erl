@@ -33,8 +33,8 @@
     str_shuffle/3,
     str_split/3,
     str_split/4,
-    strpos/4,
     strpos/5,
+    strrpos/5,
     strrev/3,
     rtrim/4,
     ltrim/4,
@@ -77,7 +77,20 @@ init_func() -> [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,11>>}]}}
     ]},
     str_split,
-    strpos,
+    {strpos, [
+        {args, {2, 3, undefined, [string,
+                                  {str_or_int, undefined,
+                                   {eisnot, [<<"needle">>,
+                                             <<"a string or an integer">>]}},
+                                  {integer, 0}]}}
+    ]},
+    {strrpos, [
+        {args, {2, 3, undefined, [string,
+                                  {str_or_int, undefined,
+                                   {eisnot, [<<"needle">>,
+                                             <<"a string or an integer">>]}},
+                                  {integer, 0}]}}
+    ]},
     {strrev, [
         {args, {1, 1, undefined, [string]}}
     ]},
@@ -360,54 +373,9 @@ print(Context, Line, [{_, Value}|Values]) ->
 
 -spec strpos(context(), line(),
              HayStack :: var_value(),
-             Needle :: var_value()) -> false | pos_integer() | undefined.
-
-strpos(Context, Line, {_, HayStack}, _) when not is_binary(HayStack) ->
-    WrongType = ephp_data:gettype(HayStack),
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, 1, <<"string">>, WrongType},
-    Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
-    ephp_error:handle_error(Context, Error),
-    undefined;
-strpos(Context, Line, _, {_, Needle}) when not is_binary(Needle) andalso
-                                           not is_integer(Needle) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, <<"needle">>, <<"a string or an integer">>},
-    Error = {error, eisnot, Line, File, ?E_WARNING, Data},
-    ephp_error:handle_error(Context, Error),
-    undefined;
-strpos(_Context, _Line, {_, HayStack}, {_, Needle}) ->
-    case binary:match(HayStack, Needle) of
-        nomatch -> false;
-        {Pos,_Len} -> Pos
-    end.
-
--spec strpos(context(), line(),
-             HayStack :: var_value(),
              Needle :: var_value(),
              Offset :: var_value()) -> false | pos_integer() | undefined.
 
-strpos(Context, Line, {_, HayStack}, _, _) when not is_binary(HayStack) ->
-    WrongType = ephp_data:gettype(HayStack),
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, 1, <<"string">>, WrongType},
-    Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
-    ephp_error:handle_error(Context, Error),
-    undefined;
-strpos(Context, Line, _, {_, Needle}, _) when not is_binary(Needle) andalso
-                                              not is_integer(Needle) ->
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, <<"needle">>, <<"a string or an integer">>},
-    Error = {error, eisnot, Line, File, ?E_WARNING, Data},
-    ephp_error:handle_error(Context, Error),
-    undefined;
-strpos(Context, Line, _, _, {_, Offset}) when not is_integer(Offset) ->
-    WrongType = ephp_data:gettype(Offset),
-    File = ephp_context:get_active_file(Context),
-    Data = {<<"strpos">>, 3, <<"long">>, WrongType},
-    Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
-    ephp_error:handle_error(Context, Error),
-    undefined;
 strpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
     Length = byte_size(HayStack) - Offset,
     if
@@ -419,7 +387,49 @@ strpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
         true ->
             case binary:match(HayStack, Needle, [{scope, {Offset, Length}}]) of
                 nomatch -> false;
-                {Pos,_Len} -> Pos
+                {Pos, _Len} -> Pos
+            end
+    end.
+
+-spec strrpos(context(), line(),
+              HayStack :: var_value(),
+              Needle :: var_value(),
+              Offset :: var_value()) -> false | pos_integer() | undefined.
+
+strrpos(Context, Line, {_, HayStack}, {_, Needle},
+        {_, Offset}) when Offset < 0 ->
+    Length = byte_size(HayStack) + Offset + 1,
+    if
+        Length =< 0 ->
+            File = ephp_context:get_active_file(Context),
+            Error = {error, eoffset, Line, File, ?E_WARNING, {<<"strrpos">>}},
+            ephp_error:handle_error(Context, Error),
+            undefined;
+        true ->
+            RealLength = Length + byte_size(Needle) - 1,
+            <<NewHayStack:RealLength/binary, _/binary>> = HayStack,
+            RevHayStack = ephp_string:reverse(NewHayStack),
+            RevNeedle = ephp_string:reverse(Needle),
+            case binary:match(RevHayStack, RevNeedle) of
+                nomatch -> false;
+                {Pos, _Len} -> Length - Pos - 1
+            end
+    end;
+strrpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
+    Length = byte_size(HayStack) - Offset,
+    if
+        Length =< 0 ->
+            File = ephp_context:get_active_file(Context),
+            Error = {error, eoffset, Line, File, ?E_WARNING, {<<"strrpos">>}},
+            ephp_error:handle_error(Context, Error),
+            undefined;
+        true ->
+            <<_:Offset/binary, NewHayStack/binary>> = HayStack,
+            RevHayStack = ephp_string:reverse(NewHayStack),
+            RevNeedle = ephp_string:reverse(Needle),
+            case binary:match(RevHayStack, RevNeedle) of
+                nomatch -> false;
+                {Pos, _Len} -> Length - Pos - 1 + Offset
             end
     end.
 

@@ -1338,6 +1338,13 @@ resolve_args({_MinArgs, MaxArgs, ReturnError, VArgs} = Validation, RawArgs, Stat
 validate_arg(_Validation, {_, Default}, {[], I, Args, S}) ->
     {[], I+1, Args ++ [{undefined, Default}], S};
 
+validate_arg({{_, _, ReturnError, _}, Line},
+             {_, undefined, Error}, {[], I, _Args, S}) ->
+    throw_warning(S, Line, I, Error, undefined, ReturnError);
+
+validate_arg(_Validation, {_, Default, _Err}, {[], I, Args, S}) ->
+    {[], I+1, Args ++ [{undefined, Default}], S};
+
 validate_arg({{MinArgs, _MaxArgs, ReturnError, _VArgs}, Line},
              _Type, {[], I, _Args, S}) ->
     File = S#state.active_file,
@@ -1357,17 +1364,6 @@ validate_arg(_Validation, raw, {[#variable{} = RArg|RArgs], I, Args, S}) ->
 validate_arg(_Validation, raw, {[RArg|RArgs], I, Args, S}) ->
     {RRArg, NewState} = resolve(RArg, S),
     {RArgs, I+1, Args ++ [{RArg, RRArg}], NewState};
-
-validate_arg({{_MinArgs, _MaxArgs, ReturnError, _VArgs}, Line},
-             {VArg, _Default}, {[RArg|RArgs], I, Args, S}) ->
-    {A, NewState} = case resolve(RArg,S) of
-        {MemRef, NS} when ?IS_MEM(MemRef) ->
-            resolve(ephp_mem:get(MemRef), NS);
-        {A0, NS} ->
-            {A0, NS}
-    end,
-    check_arg(S, Line, I, VArg, A, ReturnError),
-    {RArgs, I+1, Args ++ [{RArg,A}], NewState};
 
 validate_arg({{_MinArgs, _MaxArgs, ReturnError, _VArgs}, Line},
              VArg, {[RArg|RArgs], I, Args, S}) ->
@@ -1398,10 +1394,15 @@ check_arg(State, Line, I, {integer, _}, A, ReturnError)
         when not is_number(A) ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, str_or_int, A, ReturnError)
-        when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
+        when not is_binary(A) andalso not is_integer(A) andalso A =/= undefined ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
-check_arg(State, Line, I, {str_or_int, _}, A, ReturnError)
-        when not is_binary(A) andalso not is_number(A) andalso A =/= undefined ->
+check_arg(State, Line, I, {str_or_int, _D, {Error, ErrArgs}}, A, ReturnError)
+        when not is_binary(A) andalso not is_integer(A) andalso A =/= undefined
+        andalso is_atom(Error) ->
+    throw_warning(State, Line, I, {Error, ErrArgs}, A, ReturnError);
+check_arg(State, Line, I, {str_or_int, D}, A, ReturnError)
+        when not is_binary(A) andalso not is_integer(A) andalso A =/= undefined
+        andalso not is_tuple(D) ->
     throw_warning(State, Line, I, <<"long">>, A, ReturnError);
 check_arg(State, Line, I, double, A, ReturnError) when not is_number(A) ->
     throw_warning(State, Line, I, <<"double">>, A, ReturnError);
@@ -1440,13 +1441,20 @@ check_arg(State, Line, I, callable, A, ReturnError) when not ?IS_CALLABLE(A) ->
 check_arg(_State, _Line, _I, _Check, _Var, _ReturnError) ->
     ok.
 
+throw_warning(State, Line, _I, {ErrId, ErrArgs}, _Var, ErrorRet) ->
+    File = State#state.active_file,
+    Function = State#state.active_fun,
+    Data = {Function, ErrArgs},
+    Error = {error, ErrId, Line, File, ?E_WARNING, Data},
+    ephp_error:handle_error(State#state.ref, Error),
+    throw({return, ErrorRet});
 throw_warning(State, Line, I, Type, Var, ErrorRet) ->
     File = State#state.active_file,
     Function = State#state.active_fun,
     Data = {Function, I, Type, ephp_data:gettype(Var)},
     Error = {error, ewrongarg, Line, File, ?E_WARNING, Data},
     ephp_error:handle_error(State#state.ref, Error),
-    throw({return,ErrorRet}).
+    throw({return, ErrorRet}).
 
 zip_args(ValArgs, FuncArgs) ->
     {Result, _} = lists:foldl(fun
