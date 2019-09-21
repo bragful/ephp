@@ -8,7 +8,6 @@
     to_lower/1,
     to_upper/1,
     capitalize/2,
-    capitalize_first/1,
     escape/2,
     expand_mask/1,
     trim/1,
@@ -42,14 +41,6 @@ to_upper(undefined) ->
 
 to_upper(Text) ->
     unistring:to_upper(Text).
-
--spec capitalize_first(binary()) -> binary();
-                      (undefined) -> undefined.
-
-capitalize_first(undefined) -> undefined;
-
-capitalize_first(<<A/utf8, Rest/binary>>) ->
-    << (unistring:to_upper(<<A/utf8>>))/binary, Rest/binary >>.
 
 -spec capitalize(binary(), [byte()]) -> binary().
 
