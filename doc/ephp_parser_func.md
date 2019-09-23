@@ -56,7 +56,10 @@
 
 ### st_function/3 ###
 
-`st_function(Rest, Parser, Parsed) -> any()`
+<pre><code>
+st_function(Rest::binary(), Parser::<a href="#type-parser">parser()</a>, Parsed::[]) -&gt; {binary(), <a href="#type-parser">parser()</a>, [#function{}]}
+</code></pre>
+<br />
 
 <a name="st_use_or_block-3"></a>
 

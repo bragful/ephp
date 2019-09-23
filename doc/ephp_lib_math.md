@@ -32,7 +32,7 @@ base_convert(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### bindec/3 ###
 
 <pre><code>
-bindec(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; float()
+bindec(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ php_abs(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_acos/3 ###
 
 <pre><code>
-php_acos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_acos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; <a href="#type-php_float">php_float()</a>
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ php_acos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_acosh/3 ###
 
 <pre><code>
-php_acosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_acosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ php_acosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_asin/3 ###
 
 <pre><code>
-php_asin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_asin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ php_asin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_asinh/3 ###
 
 <pre><code>
-php_asinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_asinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ php_asinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_atan/3 ###
 
 <pre><code>
-php_atan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_atan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ php_atan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_atan2/4 ###
 
 <pre><code>
-php_atan2(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number(), X4::number()) -&gt; float()
+php_atan2(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}, X4::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -131,7 +131,7 @@ php_atan2(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_atanh/3 ###
 
 <pre><code>
-php_atanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_atanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -149,7 +149,7 @@ php_ceil(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_cos/3 ###
 
 <pre><code>
-php_cos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_cos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -158,7 +158,7 @@ php_cos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_cosh/3 ###
 
 <pre><code>
-php_cosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_cosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -230,7 +230,7 @@ php_round(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_sin/3 ###
 
 <pre><code>
-php_sin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_sin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -239,7 +239,7 @@ php_sin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_sinh/3 ###
 
 <pre><code>
-php_sinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_sinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -257,7 +257,7 @@ php_sqrt(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_tan/3 ###
 
 <pre><code>
-php_tan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_tan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -266,7 +266,7 @@ php_tan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_tanh/3 ###
 
 <pre><code>
-php_tanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::number()) -&gt; float()
+php_tanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 

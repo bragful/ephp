@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin2hex-1">bin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#escape-2">escape/2</a></td><td></td></tr><tr><td valign="top"><a href="#hex2bin-1">hex2bin/1</a></td><td>transform a hexadecimal string in (little-endian).</td></tr><tr><td valign="top"><a href="#ibin2hex-1">ibin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#ihex2bin-1">ihex2bin/1</a></td><td>transform a hexadecimal string in (big-endian).</td></tr><tr><td valign="top"><a href="#join-2">join/2</a></td><td></td></tr><tr><td valign="top"><a href="#ltrim-2">ltrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#repeat-2">repeat/2</a></td><td>repeat the byte passed as param as many times as the number passed as param.</td></tr><tr><td valign="top"><a href="#reverse-1">reverse/1</a></td><td>get the reverse of a string passed as param.</td></tr><tr><td valign="top"><a href="#rtrim-2">rtrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#spaces-1">spaces/1</a></td><td>generate as many spaces as the number passed as param.</td></tr><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_upper-1">to_upper/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-1">trim/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-2">trim/2</a></td><td></td></tr><tr><td valign="top"><a href="#vsn_cmp-2">vsn_cmp/2</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin2hex-1">bin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#capitalize-2">capitalize/2</a></td><td></td></tr><tr><td valign="top"><a href="#escape-2">escape/2</a></td><td></td></tr><tr><td valign="top"><a href="#expand_mask-1">expand_mask/1</a></td><td></td></tr><tr><td valign="top"><a href="#hex2bin-1">hex2bin/1</a></td><td>transform a hexadecimal string in (little-endian).</td></tr><tr><td valign="top"><a href="#ibin2hex-1">ibin2hex/1</a></td><td>transform a binary string in its hexadecimal representation.</td></tr><tr><td valign="top"><a href="#ihex2bin-1">ihex2bin/1</a></td><td>transform a hexadecimal string in (big-endian).</td></tr><tr><td valign="top"><a href="#join-2">join/2</a></td><td></td></tr><tr><td valign="top"><a href="#ltrim-2">ltrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#repeat-2">repeat/2</a></td><td>repeat the byte passed as param as many times as the number passed as param.</td></tr><tr><td valign="top"><a href="#reverse-1">reverse/1</a></td><td>get the reverse of a string passed as param.</td></tr><tr><td valign="top"><a href="#rtrim-2">rtrim/2</a></td><td></td></tr><tr><td valign="top"><a href="#spaces-1">spaces/1</a></td><td>generate as many spaces as the number passed as param.</td></tr><tr><td valign="top"><a href="#to_lower-1">to_lower/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_upper-1">to_upper/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-1">trim/1</a></td><td></td></tr><tr><td valign="top"><a href="#trim-2">trim/2</a></td><td></td></tr><tr><td valign="top"><a href="#vsn_cmp-2">vsn_cmp/2</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -27,12 +27,30 @@ bin2hex(Bin::binary()) -&gt; binary()
 
 transform a binary string in its hexadecimal representation.
 
+<a name="capitalize-2"></a>
+
+### capitalize/2 ###
+
+<pre><code>
+capitalize(X1::binary(), Sep::[byte()]) -&gt; binary()
+</code></pre>
+<br />
+
 <a name="escape-2"></a>
 
 ### escape/2 ###
 
 <pre><code>
 escape(Bin::<a href="#type-mixed">mixed()</a>, Escape::non_neg_integer()) -&gt; binary()
+</code></pre>
+<br />
+
+<a name="expand_mask-1"></a>
+
+### expand_mask/1 ###
+
+<pre><code>
+expand_mask(Mask::binary()) -&gt; binary()
 </code></pre>
 <br />
 
@@ -135,7 +153,7 @@ generate as many spaces as the number passed as param.
 ### to_lower/1 ###
 
 <pre><code>
-to_lower(Text::binary() | undefined) -&gt; binary() | undefined
+to_lower(Text::integer() | binary() | undefined) -&gt; binary() | undefined
 </code></pre>
 <br />
 
@@ -144,7 +162,7 @@ to_lower(Text::binary() | undefined) -&gt; binary() | undefined
 ### to_upper/1 ###
 
 <pre><code>
-to_upper(Text::binary()) -&gt; binary()
+to_upper(Text::integer() | binary()) -&gt; binary()
 </code></pre>
 <br />
 

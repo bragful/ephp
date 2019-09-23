@@ -72,6 +72,16 @@ errors_id() = reference()
 
 
 
+### <a name="type-eval_return">eval_return()</a> ###
+
+
+<pre><code>
+eval_return() = {ok, Result::<a href="ephp_interpr.md#type-flow_status">ephp_interpr:flow_status()</a>} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
+</code></pre>
+
+
+
+
 ### <a name="type-funcs_id">funcs_id()</a> ###
 
 
@@ -181,7 +191,7 @@ creates a new context passing `Filename` as param.
 ### eval/2 ###
 
 <pre><code>
-eval(Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; {ok, Result::binary()} | {error, Reason::<a href="#type-reason">reason()</a>} | {error, {Code::binary(), Line::integer(), Col::integer()}}
+eval(Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; <a href="#type-eval_return">eval_return()</a>
 </code></pre>
 <br />
 
@@ -192,7 +202,7 @@ eval PHP code in a context passed as params.
 ### eval/3 ###
 
 <pre><code>
-eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary() | [term()]) -&gt; {ok, Result::binary()} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
+eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary() | [term()]) -&gt; <a href="#type-eval_return">eval_return()</a>
 </code></pre>
 <br />
 

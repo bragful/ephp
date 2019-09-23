@@ -41,7 +41,7 @@ call_user_func_array(Context::<a href="#type-context">context()</a>, Line::<a hr
 ### create_function/4 ###
 
 <pre><code>
-create_function(Context::<a href="#type-context">context()</a>, X2::<a href="#type-line">line()</a>, Args::<a href="#type-var_value">var_value()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; #function{}
+create_function(Context::<a href="#type-context">context()</a>, X2::<a href="#type-line">line()</a>, Args::<a href="#type-var_value">var_value()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-obj_ref">obj_ref()</a>
 </code></pre>
 <br />
 

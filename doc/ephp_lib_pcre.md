@@ -68,7 +68,7 @@ preg_quote(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### preg_replace/7 ###
 
 <pre><code>
-preg_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pattern::<a href="#type-var_value">var_value()</a>, Replacement::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary() | <a href="#type-ephp_array">ephp_array()</a> | undefined
+preg_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pattern::<a href="#type-var_value">var_value()</a>, Replacement::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 

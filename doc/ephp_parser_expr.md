@@ -41,7 +41,10 @@ associativity() = no_assoc | left | right
 
 ### expression/3 ###
 
-`expression(Rest, Parser, Parsed) -> any()`
+<pre><code>
+expression(Text::binary(), Parser::<a href="#type-parser">parser()</a>, Parsed::[<a href="#type-expression">expression()</a>]) -&gt; {binary(), <a href="#type-parser">parser()</a>, [<a href="#type-expression">expression()</a>] | <a href="#type-expression">expression()</a>}
+</code></pre>
+<br />
 
 <a name="precedence-1"></a>
 

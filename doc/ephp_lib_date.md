@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### date/3 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}) -&gt; binary()
+date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### date/4 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::{<a href="#type-variable">variable()</a>, integer() | float()}) -&gt; binary()
+date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Timestamp::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ date_default_timezone_get(Context::<a href="#type-context">context()</a>, Line::
 ### date_default_timezone_set/3 ###
 
 <pre><code>
-date_default_timezone_set(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, TZ::{<a href="#type-variable">variable()</a>, binary()}) -&gt; binary()
+date_default_timezone_set(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, TZ::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ date_default_timezone_set(Context::<a href="#type-context">context()</a>, Line::
 ### gmdate/3 ###
 
 <pre><code>
-gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}) -&gt; binary()
+gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### gmdate/4 ###
 
 <pre><code>
-gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::{<a href="#type-variable">variable()</a>, binary()}, Timestamp::integer() | float()) -&gt; binary()
+gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Timestamp::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -140,7 +140,7 @@ time(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### timezone_abbreviations_list/2 ###
 
 <pre><code>
-timezone_abbreviations_list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; [<a href="#type-ephp_array">ephp_array()</a>]
+timezone_abbreviations_list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 <br />
 

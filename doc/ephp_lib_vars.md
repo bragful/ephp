@@ -68,7 +68,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### isset/3 ###
 
 <pre><code>
-isset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+isset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{<a href="#type-variable">variable()</a>, <a href="#type-variable">variable()</a>}) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -167,7 +167,7 @@ print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### print_r/4 ###
 
 <pre><code>
-print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, Output::boolean()) -&gt; true | binary()
+print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, Output::<a href="#type-var_value">var_value()</a>) -&gt; true | binary()
 </code></pre>
 <br />
 
@@ -176,7 +176,7 @@ print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### unset/3 ###
 
 <pre><code>
-unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{<a href="#type-variable">variable()</a>, <a href="#type-variable">variable()</a>}) -&gt; undefined
 </code></pre>
 <br />
 

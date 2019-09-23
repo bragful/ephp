@@ -32,6 +32,16 @@ config_section() = binary()
 
 
 
+### <a name="type-const_name">const_name()</a> ###
+
+
+<pre><code>
+const_name() = binary()
+</code></pre>
+
+
+
+
 ### <a name="type-default_value">default_value()</a> ###
 
 
@@ -76,7 +86,17 @@ min_args() = non_neg_integer()
 
 
 <pre><code>
-php_config_results() = [{<a href="#type-config_section">config_section()</a>, [<a href="#type-config_param">config_param()</a>]}]
+php_config_results() = [{<a href="#type-config_section">config_section()</a>, <a href="#type-config_param">config_param()</a>}]
+</code></pre>
+
+
+
+
+### <a name="type-php_const_results">php_const_results()</a> ###
+
+
+<pre><code>
+php_const_results() = [{<a href="#type-const_name">const_name()</a>, number() | binary()}]
 </code></pre>
 
 

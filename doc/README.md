@@ -26,6 +26,25 @@ If you want to support the project to advance faster with the development you ca
 [![paypal](https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBYJ5V2ZWWZ8G)
 
 
+### <a name="Why_PHP_over_Erlang?">Why PHP over Erlang?</a> ###
+
+When I was leading a team of developers in Spain, in Telco companies the most in use language was PHP. Even for handling concurrency, they were using some techniques with POSIX mutexes, shared memory and nohup background processes. That was a nightmare.
+
+We discover Erlang these days (back in 2009) and started to use it to solve all of those issues and create a more reliable software. But the rest of the companies and even our clients continued using and requesting to make changes using PHP. This way I discover that we could gave them the flexibility of PHP as logic language to develop their code and the reliability of Erlang virtual machine (BEAM).
+
+We tried, however, to use previously other solutions like SpiderMonkey or V8 to use JavaScript like other projects do (Riak and CouchDB), but we realize those solutions create the dependency of an external library which isn't working as a breeze most of the times. And the requirement was about to use PHP and not other different languages.
+
+The motivation was: have a 100% Erlang code PHP interpreter. No C extensions and trying to minimize as much as possible the dependencies to have as little as possible the interpreter. That's because JSON, MySQL and other extensions are in different repositories letting you to include them in your code or not, depending on your needs.
+
+In 2016, after fight again and again against the same issue (heredoc), I decided to rewrite the parser in 100% Erlang code. This let me to get rid of neotoma and speed up a bit the parsing of the code. Indeed, this let me to solve the heredoc issue and continue implementing the rest of the PHP syntax easily.
+
+In 2019, ePHP was published finally as a hex package. In addition, I developed a new library for Elixir which shows how to use ephp for Elixir projects and add the ability to use PHP templates for [Phoenix Framework](https://phoenixframework.org/) projects: [ephp_template](https://github.com/bragful/ephp_template).
+
+You can see even an example of ephp in use for the running on-the-fly of PHP code to play the [Leprechaun game](https://leprechaun.altenwald.com) ([source code here](https://github.com/altenwald/leprechaun)).
+
+And a post to know how to write a stand-alone server with Erlang, without write a single line of Erlang code and using PHP for the logic of a XMPP component [here](https://medium.com/@bosqueviejo/developing-a-bot-using-tdd-on-erlang-without-write-a-single-line-of-code-in-erlang-5278e28b0356).
+
+
 ### <a name="Requirements">Requirements</a> ###
 
 ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are full compatible or recommended. See the list:

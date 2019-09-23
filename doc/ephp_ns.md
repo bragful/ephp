@@ -106,7 +106,7 @@ converts a namespace and class or function name to the string representation.
 ### translate/3 ###
 
 <pre><code>
-translate(Source::<a href="#type-namespace">namespace()</a>, Match::namespace, Target::<a href="#type-namespace">namespace()</a>) -&gt; <a href="#type-namespace">namespace()</a>
+translate(Source::<a href="#type-namespace">namespace()</a>, Match::<a href="#type-namespace">namespace()</a>, Target::<a href="#type-namespace">namespace()</a>) -&gt; <a href="#type-namespace">namespace()</a>
 </code></pre>
 <br />
 

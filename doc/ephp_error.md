@@ -22,6 +22,16 @@ error_type() = atom()
 
 
 
+### <a name="type-get_return_return">get_return_return()</a> ###
+
+
+<pre><code>
+get_return_return() = {ok, undefined} | {return, undefined}
+</code></pre>
+
+
+
+
 ### <a name="type-throw_error">throw_error()</a> ###
 
 
@@ -91,7 +101,7 @@ error_reporting(Context::<a href="#type-context">context()</a>, Level::integer()
 ### get_error_handler_func/1 ###
 
 <pre><code>
-get_error_handler_func(Context::<a href="#type-context">context()</a>) -&gt; <a href="#type-callable">callable()</a> | undefined
+get_error_handler_func(Context::<a href="#type-context">context()</a>) -&gt; {<a href="#type-callable">callable()</a>, <a href="#type-errorlevel">errorlevel()</a>} | undefined
 </code></pre>
 <br />
 
@@ -136,7 +146,7 @@ get_line(X1::<a href="#type-line">line()</a> | undefined) -&gt; non_neg_integer(
 ### handle_error/2 ###
 
 <pre><code>
-handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, binary(), <a href="#type-error_level">error_level()</a>, any()}) -&gt; ok
+handle_error(Context::<a href="#type-context">context()</a>, X2::{error, <a href="#type-error_type">error_type()</a>, <a href="#type-line">line()</a>, binary(), <a href="#type-error_level">error_level()</a>, any()}) -&gt; <a href="#type-get_return_return">get_return_return()</a>
 </code></pre>
 <br />
 
@@ -172,7 +182,7 @@ run_quiet(Errors::<a href="ephp.md#type-errors_id">ephp:errors_id()</a>, Fun::fu
 ### set_error_handler_func/3 ###
 
 <pre><code>
-set_error_handler_func(Context::<a href="#type-context">context()</a>, Callable::<a href="#type-callable">callable()</a>, ErrorLevel::non_neg_integer()) -&gt; ok
+set_error_handler_func(Context::<a href="#type-context">context()</a>, Callable::<a href="#type-callable">callable()</a>, ErrorLevel::<a href="#type-errorlevel">errorlevel()</a>) -&gt; ok
 </code></pre>
 <br />
 

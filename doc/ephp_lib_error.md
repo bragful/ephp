@@ -140,7 +140,7 @@ set_exception_handler(Context::<a href="#type-context">context()</a>, Line::<a h
 ### trigger_error/4 ###
 
 <pre><code>
-trigger_error(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, ErrStr::<a href="#type-var_value">var_value()</a>, ErrLevel::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+trigger_error(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, ErrStr::<a href="#type-var_value">var_value()</a>, ErrLevel::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_error.md#type-get_return_return">ephp_error:get_return_return()</a>
 </code></pre>
 <br />
 
