@@ -72,6 +72,8 @@ context_new() ->
 context_new(Filename) ->
     Modules = application:get_env(ephp, modules, []),
     {ok, Ctx} = ephp_context:start_link(),
+    {ok, PathStr} = file:get_cwd(),
+    ephp_stream:set_initial_path(list_to_binary(PathStr)),
     [ register_module(Ctx, Module) || Module <- Modules ],
     ephp_context:set_active_file(Ctx, Filename),
     {ok, Ctx}.

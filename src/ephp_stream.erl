@@ -7,6 +7,8 @@
 
 -export([
     start_link/0,
+    set_initial_path/1,
+    get_initial_path/0,
     list_streams/0,
     parse_uri/1,
     get_res_id/1,
@@ -16,10 +18,15 @@
     read_file/1,
     write/3,
     position/2,
-    is_eof/1
+    is_eof/1,
+    file_exists/1,
+    is_dir/1,
+    is_readable/1,
+    wildcard/1
 ]).
 
 -type uri() :: binary().
+-type pattern() :: binary().
 -type option() :: atom() | {atom(), boolean() | integer() | binary()}.
 -type options() :: [option()].
 
@@ -36,6 +43,13 @@
 -callback position(stream_resource(), file:location()) -> ok | {error, reason()}.
 -callback is_eof(stream_resource()) -> boolean() | {error, reason()}.
 -callback read_file(stream_resource()) -> {ok, binary()} | {error, reason()}.
+
+-callback file_exists(uri()) -> boolean().
+-callback is_dir(uri()) -> boolean().
+-callback is_readable(uri()) -> boolean().
+-callback wildcard(pattern()) -> [uri()].
+
+-optional_callbacks([file_exists/1, is_dir/1, is_readable/1, wildcard/1]).
 
 -spec list_streams() -> [binary()].
 %% @doc get a list of streams loaded in binary format.
@@ -69,6 +83,7 @@ get_mod_and_url(URL) ->
     Prefix = ephp_config:get(<<"context.prefix_module">>, <<"ephp_stream_">>),
     try
         Module = binary_to_existing_atom(<<Prefix/binary, Schema/binary>>, utf8),
+        Module:module_info(),
         case erlang:function_exported(Module, open, 2) of
             true ->
                 {Module, URI};
@@ -76,6 +91,8 @@ get_mod_and_url(URL) ->
                 {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL}
         end
     catch
+        error:undef ->
+            {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL};
         error:badarg ->
             {binary_to_existing_atom(<<Prefix/binary, "file">>, utf8), URL}
     end.
@@ -86,6 +103,18 @@ get_mod_and_url(URL) ->
 start_link() ->
     erlang:put(resource_next_id, 1),
     ok.
+
+
+-spec set_initial_path(Path :: uri()) -> ok.
+%% @doc set the initial PATH for this process.
+set_initial_path(Path) ->
+    erlang:put(initial_path, Path).
+
+
+-spec get_initial_path() -> ok.
+%% @doc get the initial PATH for this process.
+get_initial_path() ->
+    erlang:get(initial_path).
 
 
 -spec get_res_id(resource()) -> integer().
@@ -150,3 +179,44 @@ is_eof(#resource{module = Module, pid = PID}) ->
 read_file(URL) ->
     {StreamMod, URIorURL} = get_mod_and_url(URL),
     StreamMod:read_file(URIorURL).
+
+
+-spec file_exists(uri()) -> boolean().
+%% @doc returns true if the URI exists, otherwise false.
+file_exists(URL) ->
+    {StreamMod, URIorURL} = get_mod_and_url(URL),
+    case erlang:function_exported(StreamMod, file_exists, 1) of
+        true -> StreamMod:file_exists(URIorURL);
+        false -> false
+    end.
+
+
+-spec is_dir(uri()) -> boolean().
+%% @doc returns true if the URL is a directory, otherwise false.
+is_dir(URL) ->
+    {StreamMod, URIorURL} = get_mod_and_url(URL),
+    case erlang:function_exported(StreamMod, is_dir, 1) of
+        true -> StreamMod:is_dir(URIorURL);
+        false -> false
+    end.
+
+
+-spec is_readable(uri()) -> boolean().
+%% @doc returns true if the URL is readable/accesible, otherwise false.
+is_readable(URL) ->
+    {StreamMod, URIorURL} = get_mod_and_url(URL),
+    case erlang:function_exported(StreamMod, is_readable, 1) of
+        true -> StreamMod:is_readable(URIorURL);
+        false -> false
+    end.
+
+
+-spec wildcard(pattern()) -> [uri()].
+%% @doc returns the list of URIs for a given pattern or an empty list.
+wildcard(Pattern) ->
+    {StreamMod, URIorURL} = get_mod_and_url(Pattern),
+    case erlang:function_exported(StreamMod, wildcard, 1) of
+        true ->
+            StreamMod:wildcard(URIorURL);
+        false -> []
+    end.

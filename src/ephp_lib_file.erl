@@ -126,23 +126,17 @@ dirname(_Context, _Line, {_Var, PathFile}) ->
 -spec file_exists(context(), line(), var_value()) -> boolean().
 
 file_exists(_Context, _Line, {_, Filename}) ->
-    filelib:is_regular(Filename).
+    ephp_stream:file_exists(ephp_data:to_bin(Filename)).
 
 -spec is_dir(context(), line(), var_value()) -> boolean().
 
 is_dir(_Context, _Line, {_, Dirname}) ->
-    filelib:is_dir(ephp_data:to_bin(Dirname)).
+    ephp_stream:is_dir(ephp_data:to_bin(Dirname)).
 
 -spec is_readable(context(), line(), var_value()) -> boolean().
 
 is_readable(_Context, _Line, {_, Filename}) ->
-    case file:read_file_info(Filename) of
-        {ok, #file_info{access = Access}} when Access =:= read
-                                          orelse Access =:= read_write ->
-            true;
-        _ ->
-            false
-    end.
+    ephp_stream:is_readable(ephp_data:to_bin(Filename)).
 
 -spec fopen(context(), line(), var_value(), var_value()) -> resource() | false.
 
@@ -273,14 +267,14 @@ feof(_Context, _Line, {_, Resource}) ->
       ephp_array().
 
 glob(_Context, _Line, {_, Pattern}, {_, Flags}) ->
-    Files = filelib:wildcard(binary_to_list(Pattern)),
-    PrFiles = glob_flags(Pattern, lists:map(fun list_to_binary/1, Files), Flags),
+    Files = ephp_stream:wildcard(ephp_data:to_bin(Pattern)),
+    PrFiles = glob_flags(Pattern, Files, Flags),
     ephp_array:from_list(PrFiles).
 
 
 glob_flags(Pattern, Files, Flags) when Flags band ?GLOB_MARK > 0 ->
     NewFiles = lists:map(fun(File) ->
-        case filelib:is_dir(File) of
+        case ephp_stream:is_dir(File) of
             true -> <<File/binary, "/">>;
             false -> File
         end
