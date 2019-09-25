@@ -54,7 +54,8 @@
 
     get_stdclass/0,
     add_if_no_exists_attrib/2,
-    register_loader/2
+    register_loader/2,
+    register_loader/3
 ]).
 
 -record(class_state, {
@@ -106,8 +107,12 @@ get(Context, NS, ClassName, true) when is_list(NS) ->
             case erlang:get(Classes) of
                 #class_state{loaders = []} ->
                     get(Context, Classes, NS, ClassName, [<<"__autoload">>]);
-                #class_state{loaders = Loaders} ->
-                    get(Context, Classes, NS, ClassName, [<<"__autoload">>|Loaders])
+                #class_state{loaders = RLoaders} ->
+                    Loaders = case lists:member(<<"__autoload">>, RLoaders) of
+                        true -> RLoaders;
+                        false -> RLoaders ++ [<<"__autoload">>]
+                    end,
+                    get(Context, Classes, NS, ClassName, Loaders)
             end;
         false ->
             get(Context, NS, ClassName, spl)
@@ -187,8 +192,20 @@ set_alias(Ref, NS, ClassName, NSAlias, AliasName) ->
 -spec register_loader(ephp:classes_id(), loader()) -> ok.
 %% @doc register loader for the classes handler.
 register_loader(Ref, Loader) ->
+    register_loader(Ref, Loader, false).
+
+-type prepend() :: boolean().
+
+-spec register_loader(ephp:classes_id(), loader(), prepend()) -> ok.
+%% @doc register a loader for the classes handler. If prepend is true
+%%      the function is prepended instead of appended to the queue.
+register_loader(Ref, Loader, Prepend) ->
     #class_state{loaders = Loaders} = State = erlang:get(Ref),
-    erlang:put(Ref, State#class_state{loaders = [Loader|Loaders]}),
+    Queue = if
+        Prepend -> [Loader|Loaders];
+        true -> Loaders ++ [Loader]
+    end,
+    erlang:put(Ref, State#class_state{loaders = Queue}),
     ok.
 
 

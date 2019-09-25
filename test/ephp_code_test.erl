@@ -78,7 +78,12 @@ run_test_code(File) ->
 
 code_to_test_() ->
     ephp:start(),
-    {ok, Files} = file:list_dir(?CODE_PATH),
-    Codes = [ filename:rootname(File) || File <- Files,
-        filename:extension(File) =:= ".out" ],
-    lists:map(fun(X) -> test_code(X) end, Codes).
+    Codes = case os:getenv("CODE_TEST") of
+        false ->
+            {ok, Files} = file:list_dir(?CODE_PATH),
+            [ filename:rootname(File) || File <- Files,
+              filename:extension(File) =:= ".out" ];
+        Filename ->
+            [Filename]
+    end,
+    [ test_code(X) || X <- Codes ].

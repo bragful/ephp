@@ -8,7 +8,8 @@
     init_func/0,
     init_config/0,
     init_const/0,
-    spl_autoload_call/3
+    spl_autoload_call/3,
+    spl_autoload_register/5
 ]).
 
 -include("ephp.hrl").
@@ -16,7 +17,10 @@
 -spec init_func() -> ephp_func:php_function_results().
 
 init_func() -> [
-    {spl_autoload_call, [{args, [string]}]}
+    {spl_autoload_call, [{args, [string]}]},
+    {spl_autoload_register, [
+        {args, [callable, {boolean, false}, {boolean, false}]}
+    ]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -54,3 +58,13 @@ spl_autoload_call(Context, Line, {_, RawClassName}) ->
             Data = {File, ephp_error:get_line(Line), Exception},
             ephp_error:error({error, euncaught, Line, ?E_ERROR, Data})
     end.
+
+-spec spl_autoload_register(context(), line(), var_value(), var_value(),
+                            var_value()) -> boolean().
+
+spl_autoload_register(Context, _Line,
+                      {_, Function}, {_, _Thrown}, {_, RawPrepend}) ->
+    Prepend = ephp_data:to_boolean(RawPrepend),
+    Classes = ephp_context:get_classes(Context),
+    ephp_class:register_loader(Classes, Function, Prepend),
+    true.

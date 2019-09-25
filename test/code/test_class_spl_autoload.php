@@ -5,7 +5,12 @@ function __autoload($classname) {
     require_once(__DIR__ . "/test_$classname.php");
 }
 
-#spl_autoload_register("__autoload");
+function my_autoload($classname) {
+    print "not found in __autoload: $classname\n";
+}
+
+spl_autoload_register("__autoload");
+spl_autoload_register("my_autoload", false, true);
 print "BEGIN\n";
 spl_autoload_call("myclass");
 print "LOADED\n";

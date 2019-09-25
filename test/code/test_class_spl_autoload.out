@@ -1,0 +1,4 @@
+BEGIN
+not found in __autoload: myclass
+including... myclass
+LOADED
