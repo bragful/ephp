@@ -125,6 +125,7 @@
     level = root :: parser_levels() | pos_integer(),
     row = 1 :: pos_integer(),
     col = 1 :: pos_integer(),
+    filename = <<"-">> :: binary(),
     array_type = old :: old | php54,
     access :: undefined | access_types(),
     final = false :: boolean(),

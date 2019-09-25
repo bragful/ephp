@@ -1,6 +1,8 @@
-array(2) {
+array(3) {
   [0]=>
-  string(10) "test/code/"
+  string(13) "test/classes/"
   [1]=>
+  string(10) "test/code/"
+  [2]=>
   string(14) "test/requests/"
 }

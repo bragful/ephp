@@ -2,7 +2,7 @@
 
 function __autoload($classname) {
     print "including... $classname\n";
-    require_once(__DIR__ . "/test_$classname.php");
+    require_once(__DIR__ . "/../classes/test_$classname.php");
 }
 
 #spl_autoload_register("__autoload");

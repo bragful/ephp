@@ -2,7 +2,7 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
--export([parse/1, file/1]).
+-export([parse/1, parse/2, file/1]).
 
 -export([
     add_pos/2, new_line/1, copy_rowcol/2, add_line/2, remove_spaces/2,
@@ -25,12 +25,17 @@
 
 file(File) ->
     {ok, Content} = file:read_file(File),
-    parse(Content).
+    parse(File, Content).
 
-parse(Document) when is_list(Document) ->
-    parse(list_to_binary(Document));
 parse(Document) ->
-    {_Rest, _Parser, Parsed} = document(Document, #parser{}, []),
+    parse(<<"-">>, Document).
+
+parse(File, Document) when is_list(Document) ->
+    parse(File, list_to_binary(Document));
+parse(File, Document) ->
+    AbsFilename = filename:absname(File),
+    Parser = #parser{filename = AbsFilename},
+    {_Rest, _Parser, Parsed} = document(Document, Parser, []),
     lists:reverse(Parsed).
 
 document(<<>>, Parser, Parsed) ->
@@ -909,6 +914,12 @@ constant_wait(<<SP:8,Rest/binary>>, Parser, [#constant{}] = Parsed)
 constant_wait(Rest, Parser, Parsed) ->
     {Rest, Parser, constant_known(Parsed, Parser)}.
 
+constant_known([#constant{name = <<"__DIR__">>}|Parsed],
+               #parser{filename = Filename} = Parser) ->
+    [add_line(#text{text = filename:dirname(Filename)}, Parser)|Parsed];
+constant_known([#constant{name = <<"__FILE__">>}|Parsed],
+               #parser{filename =  Filename} = Parser) ->
+    [add_line(#text{text = Filename}, Parser)|Parsed];
 constant_known([#constant{name = <<"__LINE__">>}|Parsed],
                #parser{row = R} = Parser) ->
     [add_line(#int{int = R}, Parser)|Parsed];

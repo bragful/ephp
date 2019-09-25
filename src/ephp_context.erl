@@ -358,22 +358,13 @@ get_active_real_class_ns(Context) ->
 
 set_active_file(Context, undefined) ->
     Filename = <<"php shell code">>,
-    {ok, Cwd} = file:get_cwd(),
-    #state{const=Const} = State = load_state(Context),
-    save_state(State#state{active_file=Filename}),
-    ephp_const:set_bulk(Const, [
-        {<<"__FILE__">>, Filename},
-        {<<"__DIR__">>, list_to_binary(Cwd)}
-    ]),
+    State = load_state(Context),
+    save_state(State#state{active_file = Filename}),
     ok;
 
 set_active_file(Context, Filename) ->
-    #state{const = Const} = State = load_state(Context),
-    save_state(State#state{active_file=Filename}),
-    ephp_const:set_bulk(Const, [
-        {<<"__FILE__">>, Filename},
-        {<<"__DIR__">>, filename:dirname(Filename)}
-    ]),
+    State = load_state(Context),
+    save_state(State#state{active_file = Filename}),
     ok.
 
 set_active_class(Context, NS, ClassName) ->
@@ -880,9 +871,15 @@ resolve(#call{name = Fun} = Call, State) when ?IS_ARRAY(Fun) ->
         [{_, ObjRef}, {_, Name}] when ?IS_OBJECT(ObjRef) andalso is_binary(Name) ->
             RealCall = Call#call{name = Name, type = object},
             run_method(ObjRef, RealCall, State);
-        _ ->
+        [{_, ClassName}, {_, Name}] when is_binary(ClassName) andalso is_binary(Name) ->
+            {NS, CName} = ephp_ns:parse(ClassName),
+            {ok, Class} = ephp_class:get(State#state.ref, NS, CName, true),
+            RealCall = Call#call{name = Name, type = class, namespace = NS,
+                                 class = CName},
+            run_method(Class, RealCall, State);
+        _Other ->
             %% FIXME: something more here?
-            throw({error, implementation})
+            throw({error, implementation, Call#call.line, ?E_ERROR, {_Other}})
     end;
 
 resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
@@ -890,7 +887,7 @@ resolve(#call{name = Fun} = Call, State) when not is_binary(Fun) ->
     if
         RawName =:= Fun ->
             %% FIXME: only to avoid infinite-loop
-            throw({error, implementation});
+            throw({error, implementation, Call#call.line, ?E_ERROR, {RawName}});
         is_binary(RawName) ->
             {FunNS, RealName} = ephp_ns:parse(RawName),
             %% Note that dynamic is always using absolute (even if it's not starting with '\'.
