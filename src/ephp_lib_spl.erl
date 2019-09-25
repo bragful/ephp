@@ -9,7 +9,8 @@
     init_config/0,
     init_const/0,
     spl_autoload_call/3,
-    spl_autoload_register/5
+    spl_autoload_register/5,
+    spl_autoload_unregister/3
 ]).
 
 -include("ephp.hrl").
@@ -20,7 +21,8 @@ init_func() -> [
     {spl_autoload_call, [{args, [string]}]},
     {spl_autoload_register, [
         {args, [callable, {boolean, false}, {boolean, false}]}
-    ]}
+    ]},
+    {spl_autoload_unregister, [{args, [callable]}]}
 ].
 
 -spec init_config() -> ephp_func:php_config_results().
@@ -68,3 +70,9 @@ spl_autoload_register(Context, _Line,
     Classes = ephp_context:get_classes(Context),
     ephp_class:register_loader(Classes, Function, Prepend),
     true.
+
+-spec spl_autoload_unregister(context(), line(), var_value()) -> boolean().
+
+spl_autoload_unregister(Context, _Line, {_, Function}) ->
+    Classes = ephp_context:get_classes(Context),
+    ephp_class:unregister_loader(Classes, Function).

@@ -33,8 +33,9 @@ load_once(Ref, Name) ->
         case find_file(Name) of
         {error, enoent} ->
             {error, enoent};
-        {ok, Filename, Content} ->
-            Value = ephp_parser:parse(Filename, Content),
+        {ok, File, Content} ->
+            FullPath = filename:join([ephp_stream:get_initial_path(), File]),
+            Value = ephp_parser:parse(FullPath, Content),
             erlang:put(Ref, dict:store(Name, Value, Inc)),
             Value
         end
@@ -49,8 +50,9 @@ load(Ref, Name) ->
         case find_file(Name) of
         {error, enoent} ->
             {error, enoent};
-        {ok, Filename, Content} ->
-            Value = ephp_parser:parse(Filename, Content),
+        {ok, File, Content} ->
+            FullPath = filename:join([ephp_stream:get_initial_path(), File]),
+            Value = ephp_parser:parse(FullPath, Content),
             erlang:put(Ref, dict:store(Name, Value, Inc)),
             Value
         end

@@ -16,6 +16,7 @@
     ini_get/3,
     ini_set/4,
     set_include_path/3,
+    get_include_path/2,
     version_compare/5,
     extension_loaded/3,
     memory_get_usage/3,
@@ -43,6 +44,7 @@ init_func() -> [
     ini_get,
     ini_set,
     set_include_path,
+    get_include_path,
     {version_compare, [
         {args, {2, 2, undefined, [string, string, {string, undefined}]}}
     ]},
@@ -139,6 +141,11 @@ ini_set(_Context, _Line, {_,Key}, {_,Value}) ->
 set_include_path(_Context, _Line, {_,NewPath}) ->
     ephp_config:set(<<"include_path">>, NewPath),
     NewPath.
+
+-spec get_include_path(context(), line()) -> binary().
+
+get_include_path(_Context, _Line) ->
+    ephp_config:get(<<"include_path">>).
 
 -spec version_compare(context(), line(),
                       Vsn1::var_value(),

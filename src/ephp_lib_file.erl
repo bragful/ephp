@@ -92,7 +92,8 @@ init_const() -> [
     {<<"GLOB_BRACE">>, ?GLOB_BRACE},
     {<<"GLOB_ONLYDIR">>, ?GLOB_ONLYDIR},
     {<<"GLOB_ERR">>, ?GLOB_ERR},
-    {<<"DIRECTORY_SEPARATOR">>, ?DIRECTORY_SEPARATOR}
+    {<<"DIRECTORY_SEPARATOR">>, ?DIRECTORY_SEPARATOR},
+    {<<"PATH_SEPARATOR">>, ?DIRECTORY_SEPARATOR}
 ].
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),

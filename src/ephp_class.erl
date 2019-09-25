@@ -55,7 +55,8 @@
     get_stdclass/0,
     add_if_no_exists_attrib/2,
     register_loader/2,
-    register_loader/3
+    register_loader/3,
+    unregister_loader/2
 ]).
 
 -record(class_state, {
@@ -207,6 +208,20 @@ register_loader(Ref, Loader, Prepend) ->
     end,
     erlang:put(Ref, State#class_state{loaders = Queue}),
     ok.
+
+
+-spec unregister_loader(ephp:classes_id(), loader()) -> boolean().
+%% @doc unregister a class loader.
+unregister_loader(Ref, Loader) ->
+    #class_state{loaders = Loaders} = State = erlang:get(Ref),
+    case lists:member(Loader, Loaders) of
+        true ->
+            NewState = State#class_state{loaders = Loaders -- [Loader]},
+            erlang:put(Ref, NewState),
+            true;
+        false ->
+            false
+    end.
 
 
 -spec register_class(ephp:classes_id(), File :: binary(), context(),
