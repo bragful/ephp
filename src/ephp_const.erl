@@ -10,6 +10,7 @@
 
 -export([
     start_link/0,
+    is_defined/4,
     get/4,
     get/5,
     get/6,
@@ -45,6 +46,10 @@ start_link() ->
     Modules = ephp_config:get(modules, []),
     [ set_bulk(Ref, Module:init_const()) || Module <- Modules ],
     {ok, Ref}.
+
+is_defined(Ref, NS, ClassName, Name) ->
+    Const = erlang:get(Ref),
+    dict:is_key({NS, ClassName, Name}, Const).
 
 get(Ref, Name, Line, Context) ->
     get(Ref, undefined, Name, Line, Context).

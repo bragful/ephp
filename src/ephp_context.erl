@@ -80,6 +80,7 @@
     set_errors_id/2,
     get_errors_id/1,
 
+    is_const_defined/4,
     get_const/3,
     get_const/4,
     get_const/5,
@@ -308,6 +309,10 @@ set_errors_id(Context, Errors) ->
     State = load_state(Context),
     save_state(State#state{errors = Errors}),
     ok.
+
+is_const_defined(Context, NS, ClassName, Name) ->
+    #state{const = Const} = load_state(Context),
+    ephp_const:is_defined(Const, NS, ClassName, Name).
 
 get_const(Context, Name, Index) ->
     #state{const = Const} = load_state(Context),

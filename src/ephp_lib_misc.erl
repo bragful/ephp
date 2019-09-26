@@ -78,6 +78,9 @@ handle_error(enoenoughin, _Level, {Function, Cmd, Size1, Size2}) ->
     io_lib:format("~s(): Type ~s: not enough input, need ~p, have ~p",
                   [Function, Cmd, Size1, Size2]);
 
+handle_error(enofindconst, _Level, {Const}) ->
+    io_lib:format("constant(): Couldn't find constant ~s", [Const]);
+
 handle_error(_Type, _Level, _Data) ->
     ignore.
 
@@ -99,7 +102,15 @@ eval(Context, _Line, {_, Code}) ->
 
 constant(Context, Line, {_, ConstantName}) ->
     {NS, ClassName, ConstName} = ephp_const:get_ns(ConstantName),
-    ephp_context:get_const(Context, NS, ClassName, ConstName, Line).
+    case ephp_context:is_const_defined(Context, NS, ClassName, ConstName) of
+        true ->
+            ephp_context:get_const(Context, NS, ClassName, ConstName, Line);
+        false ->
+            File = ephp_context:get_active_file(Context),
+            Error = {error, enofindconst, Line, File, ?E_WARNING, {ConstantName}},
+            ephp_error:handle_error(Context, Error),
+            undefined
+    end.
 
 
 -spec uniqid(context(), line(), var_value(), var_value()) -> binary().
