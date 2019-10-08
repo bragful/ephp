@@ -6,8 +6,9 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors]).
 
--include("ephp_parser.hrl").
+-behaviour(gen_server).
 
+-include("ephp_parser.hrl").
 -include("ephp.hrl").
 
 -define(XML_HEAD, "<?xml version=\"1.0\"?>"
@@ -41,18 +42,38 @@
     get_config/0
 ]).
 
+%% gen_server callbacks
+-export([
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    handle_info/2
+]).
+
+-type is_cover() :: boolean().
+-type hits() :: non_neg_integer().
+-type file_line() :: pos_integer().
+-type cover_dict() :: [{file_line(), hits()}].
+-type statement_type() :: print | eval | assign | if_block | switch |
+                          switch_case | for | foreach | while |
+                          {call, binary()} | pre_incr | post_incr |
+                          pre_decr | post_decr | {op, Type :: atom()} |
+                          class | function | global | return | int | float |
+                          text | object | define | constant | switch_default.
+
 -spec start_link() -> ok.
 %% @doc ensure the cover information is in the process.
 start_link() ->
     case erlang:get(cover) of
         undefined ->
-            erlang:put(cover, []),
+            %% FIXME: generate this information under a supervisor with
+            %%        the context.
+            {ok, PID} = gen_server:start_link(?MODULE, [self()], []),
+            erlang:put(cover, PID),
             ok;
         _ ->
             ok
     end.
-
--type is_cover() :: boolean().
 
 -spec init_file(is_cover(),
                 Filename :: binary(),
@@ -63,57 +84,9 @@ init_file(false, _Filename, _Compiled) ->
 
 init_file(true, Filename, Compiled) ->
     case erlang:get(cover) of
-        undefined ->
-            init_file0(Filename, Compiled, []);
-        Files ->
-            case lists:keyfind(Filename, 1, Files) of
-                {Filename, _} ->
-                    ok;
-                false ->
-                    init_file0(Filename, Compiled, Files)
-            end
-    end,
-    ok.
-
--spec init_file0(Filename :: binary(),
-                 Compiled :: [main_statement()],
-                 Files :: [{File :: binary(), cover_dict()}]) -> ok.
-%% @hidden
-init_file0(Filename, Compiled, Files) ->
-    Lines = process(Compiled, []),
-    FileDict = lists:foldl(fun(N, D) ->
-        orddict:store(N, 0, D)
-    end, orddict:new(), Lines),
-    erlang:put(cover, [{Filename, FileDict}|Files]),
-    ok.
-
-
--type hits() :: non_neg_integer().
--type file_line() :: pos_integer().
--type cover_dict() :: [{file_line(), hits()}].
-
--spec process(Compiled :: [main_statement()],
-              Lines :: cover_dict()) -> cover_dict().
-%% @doc get the line information from commands and return the dictionary with
-%%      lines.
-%% @end
-process([{{line,L},_}|Data], N) ->
-    process(Data, [L|N]);
-
-process([], N) ->
-    lists:usort(N);
-
-process([Data|Rest], N) when is_tuple(Data) ->
-    NewN = process(erlang:tuple_to_list(Data), N),
-    process(Rest, NewN);
-
-process([Data|Rest], N) when is_list(Data) ->
-    NewN = process(Data, N),
-    process(Rest, NewN);
-
-process([_|Data], N) ->
-    process(Data, N).
-
+        undefined -> ok;
+        PID -> gen_server:cast(PID, {init_file, Filename, Compiled})
+    end.
 
 -spec store(is_cover(),
             statement_type(),
@@ -122,35 +95,67 @@ process([_|Data], N) ->
 %% @doc store the information about the statement passed as a param. Calls to
 %%      store/3 only if is_cover() (first param) is true.
 %% @end
-store(_Cover, _Type, _FileOrContext, undefined) ->
-    ok;
-
+store(_Cover, _Type, _FileOrContext, undefined) -> ok;
+store(false = _Cover, _Type, _FileOrContext, _Line) -> ok;
 store(true = _Cover, Type, FileOrContext, Line) ->
-    store(Type, FileOrContext, Line);
-
-store(false = _Cover, _Type, _FileOrContext, _Line) ->
-    ok.
-
-
--type statement_type() :: print | eval | assign | if_block | switch |
-                          switch_case | for | foreach | while |
-                          {call, binary()} | pre_incr | post_incr |
-                          pre_decr | post_decr | {op, Type :: atom()} |
-                          class | function | global | return | int | float |
-                          text | object | define | constant | switch_default.
+    store(Type, FileOrContext, Line).
 
 -spec store(statement_type(),
             FileOrContext :: binary() | context(),
             line() | undefined) -> ok.
 %% @doc store the information about the statement passed as a param.
-store(Type, File, #parser{row = Line, col = Col}) ->
-    store(Type, File, {{line, Line},{column, Col}});
+store(_Type, _File, undefined) -> ok;
+store(Type, Context, Line) when is_reference(Context) ->
+    File = ephp_context:get_active_file(Context),
+    store(Type, File, Line);
+store(_Type, File, Pos) ->
+    case erlang:get(cover) of
+        undefined -> ok;
+        PID -> gen_server:cast(PID, {store, File, Pos})
+    end.
 
-store(_Type, _File, undefined) ->
-    ok;
 
-store(_Type, File, {{line, Line}, _}) when is_binary(File) ->
-    Files = erlang:get(cover),
+-spec dump() -> ok.
+%% @doc dump the coverage information to the output file defined by
+%%      cover.output or cobertura.xml by default.
+%% @end
+dump() ->
+    case erlang:get(cover) of
+        undefined -> ok;
+        PID -> gen_server:call(PID, dump)
+    end.
+
+
+-spec get_config() -> boolean().
+%% @doc get information about whether cover is enabled.
+get_config() ->
+    case ephp_data:to_bool(ephp_config:get(<<"cover.enable">>)) of
+        true -> true;
+        _ -> false
+    end.
+
+%% gen_server callbacks
+
+init([Parent]) ->
+    monitor(process, Parent),
+    {ok, []}.
+
+handle_cast({init_file, Filename, Compiled}, Files) ->
+    case lists:keyfind(Filename, 1, Files) of
+        {Filename, _} ->
+            {noreply, Files};
+        false ->
+            Lines = process(Compiled, []),
+            FileDict = lists:foldl(fun(N, D) ->
+                orddict:store(N, 0, D)
+            end, orddict:new(), Lines),
+            {noreply, [{Filename, FileDict}|Files]}
+    end;
+handle_cast({store, File, Pos}, Files) ->
+    Line = case Pos of
+        #parser{row = L} -> L;
+        {{line, L}, _} -> L
+    end,
     NewFiles = orddict:update(File, fun(Dict) ->
         orddict:update_counter(Line, 1, Dict)
     end, [], Files),
@@ -163,20 +168,9 @@ store(_Type, File, {{line, Line}, _}) when is_binary(File) ->
         false ->
             ok
     end,
-    erlang:put(cover, NewFiles),
-    ok;
+    {noreply, NewFiles}.
 
-store(Type, Context, Line) when is_reference(Context) ->
-    File = ephp_context:get_active_file(Context),
-    store(Type, File, Line).
-
-
--spec dump() -> ok.
-%% @doc dump the coverage information to the output file defined by
-%%      cover.output or cobertura.xml by default.
-%% @end
-dump() ->
-    Files = erlang:get(cover),
+handle_call(dump, _From, Files) ->
     Classes = dump(Files, []),
     Percentage = total_percentage(Files),
     Packages = io_lib:format(?PACKAGE, ["base", Percentage, Classes]),
@@ -190,7 +184,32 @@ dump() ->
         Filename -> Filename
     end,
     file:write_file(Output, XML),
-    ok.
+    {reply, ok, Files}.
+
+handle_info({'DOWN', _Ref, process, _Pid, _Reason}, State) ->
+    {stop, normal, State}.
+
+%% internal functions
+
+-spec process(Compiled :: [main_statement()],
+              Lines :: cover_dict()) -> cover_dict().
+%% @doc get the line information from commands and return the dictionary with
+%%      lines.
+%% @end
+process([{{line, L}, _}|Data], N) ->
+    process(Data, [L|N]);
+
+process([], N) ->
+    lists:usort(N);
+
+process([Data|Rest], N) when is_tuple(Data) ->
+    process(Rest, process(erlang:tuple_to_list(Data), N));
+
+process([Data|Rest], N) when is_list(Data) ->
+    process(Rest, process(Data, N));
+
+process([_|Data], N) ->
+    process(Data, N).
 
 
 -spec dump(Files :: [binary()], Output :: iolist()) -> iolist().
@@ -205,15 +224,6 @@ dump([{File, Dict} | Cover], Classes) ->
     end, Dict),
     Class = io_lib:format(?CLASS, [name(File), basename(File), Percentage, Lines]),
     dump(Cover, [Class|Classes]).
-
-
--spec get_config() -> boolean().
-%% @doc get information about whether cover is enabled.
-get_config() ->
-    case ephp_data:to_bool(ephp_config:get(<<"cover.enable">>)) of
-        true -> true;
-        _ -> false
-    end.
 
 
 -spec get_active_lines(cover_dict()) -> non_neg_integer().
