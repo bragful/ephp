@@ -25,6 +25,7 @@
     ceiling/1,
     flooring/1,
     urand/0,
+    pow/2,
     instance_of/3
 ]).
 
@@ -411,6 +412,15 @@ urand() -> rand:uniform().
 %% @private
 urand() -> 0.72643441.
 -endif.
+
+-spec pow(number(), number()) -> number().
+%% @doc calculates the power of a number letting to be that number in integer format
+%%      if that's a positive number or it's powered by 0.
+pow(_, 0) -> 1;
+pow(N, M) when M > 0 ->
+    lists:foldl(fun(_, Acc) -> N * Acc end, 1, lists:seq(1, M));
+pow(N, M) when M < 0 ->
+    1 / pow(N, -M).
 
 -spec instance_of(context(), mixed() | class(), DataType::binary()) -> boolean().
 

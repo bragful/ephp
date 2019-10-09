@@ -1969,6 +1969,9 @@ resolve_op(<<"/">>, OpRes1, OpRes2, Index, State) ->
         true ->
             A / B
     end;
+resolve_op(<<"**">>, OpRes1, OpRes2, _Index, _State) ->
+    ephp_data:pow(ephp_data:zero_if_undef(OpRes1),
+                  ephp_data:zero_if_undef(OpRes2));
 resolve_op(<<"%">>, OpRes1, OpRes2, _Index, _State) ->
     trunc(ephp_data:zero_if_undef(OpRes1)) rem
     trunc(ephp_data:zero_if_undef(OpRes2));

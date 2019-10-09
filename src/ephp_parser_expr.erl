@@ -728,6 +728,7 @@ operator(Op, R1, R2) when (is_record(R1, int) orelse is_record(R1, float))
         <<"+">> -> N1 + N2;
         <<"-">> -> N1 - N2;
         <<"*">> -> N1 * N2;
+        <<"**">> -> ephp_data:pow(N1, N2);
         <<"%">> -> N1 rem N2;
         <<">">> -> N1 > N2;
         <<"<">> -> N1 < N2;
