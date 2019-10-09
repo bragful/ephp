@@ -569,8 +569,12 @@ expression(<<A:8,_/binary>> = Rest, Parser, [{op,Ops}|_]=Parsed) when
     end;
 expression(<<A:8, _/binary>> = Rest, Parser, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
-    {Rest0, Parser0, [Constant]} = constant(Rest, Parser, []),
-    expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed));
+    case constant(Rest, Parser, []) of
+        {Rest0, Parser0, [Constant]} ->
+            expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Constant, Parsed));
+        {<<>>, _Parser0, []} ->
+            {<<>>, Parser, []}
+    end;
 % FINAL -switch-
 expression(<<":", _/binary>> = Rest, #parser{level = switch_label} = Parser, [Exp]) ->
     {Rest, Parser, add_op('end', [Exp])};

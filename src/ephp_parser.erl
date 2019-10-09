@@ -542,8 +542,12 @@ code(<<A:8,_/binary>> = Rest, Parser, [#constant{}|_])
     throw_error(eparse, Parser, Rest);
 code(<<A:8,_/binary>> = Rest, Parser, Parsed) when
         ?IS_ALPHA(A) orelse A =:= $_ orelse A =:= $\\ ->
-    {Rest0, Parser0, Parsed0} = expression(Rest, Parser, []),
-    code(Rest0, copy_rowcol(Parser0, Parser), [Parsed0] ++ Parsed);
+    case expression(Rest, Parser, []) of
+        {<<>>, _Parser0, []} ->
+            {<<>>, Parser, Parsed};
+        {Rest0, Parser0, Parsed0} ->
+            code(Rest0, copy_rowcol(Parser0, Parser), [Parsed0] ++ Parsed)
+    end;
 code(<<A:8,_/binary>> = Rest, Parser, Parsed) when ?IS_NUMBER(A)
                                            orelse A =:= $- orelse A =:= $(
                                            orelse A =:= $" orelse A =:= $'
@@ -878,8 +882,13 @@ constant(Rest, Parser, Parsed) ->
 %% but if not, it should returns
 constant_wait(<<"(", Rest/binary>>, Parser, [#constant{} = C]) ->
     {NS, Name} = ephp_parser_func:get_ns(ephp_ns:parse(C#constant.name), Parser),
-    Call = #call{name = Name, line = C#constant.line, namespace = NS},
-    ephp_parser_func:function(Rest, inc_pos(Parser), [Call]);
+    case ephp_string:to_lower(Name) of
+        <<"__halt_compiler">> ->
+            {<<>>, Parser, []};
+        _ ->
+            Call = #call{name = Name, line = C#constant.line, namespace = NS},
+            ephp_parser_func:function(Rest, inc_pos(Parser), [Call])
+    end;
 constant_wait(<<"::$", Rest/binary>>, Parser, [#constant{} = C]) ->
     NewParser = arg_level(add_pos(Parser, 2)),
     {Rest1, Parser1, [Var]} = variable(<<"$", Rest/binary>>, NewParser, []),
