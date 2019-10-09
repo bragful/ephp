@@ -18,7 +18,9 @@
     init/1,
     handle_call/3,
     handle_cast/2,
-    handle_info/2
+    handle_info/2,
+    code_change/3,
+    terminate/2
 ]).
 
 start_link() ->
@@ -75,6 +77,12 @@ handle_call(_Msg, _From, State) ->
 
 handle_info(_Info, State) ->
     {noreply, State}.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+terminate(_Reason, _State) ->
+    ok.
 
 key_name(#stack_trace{type = undefined, function = Fun}) ->
     ephp_data:to_bin(Fun);

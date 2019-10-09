@@ -47,7 +47,9 @@
     init/1,
     handle_call/3,
     handle_cast/2,
-    handle_info/2
+    handle_info/2,
+    code_change/3,
+    terminate/2
 ]).
 
 -type is_cover() :: boolean().
@@ -185,6 +187,12 @@ handle_call(dump, _From, Files) ->
 
 handle_info({'DOWN', _Ref, process, _Pid, _Reason}, State) ->
     {stop, normal, State}.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+terminate(_Reason, _State) ->
+    ok.
 
 %% internal functions
 

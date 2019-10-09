@@ -21,6 +21,7 @@
     handle_cast/2,
     handle_call/3,
     handle_info/2,
+    code_change/3,
     terminate/2
 ]).
 
@@ -82,6 +83,9 @@ pop() ->
 init([Parent]) ->
     monitor(process, Parent),
     {ok, []}.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
 
 terminate(_Reason, _State) ->
     erlang:erase(stack),
