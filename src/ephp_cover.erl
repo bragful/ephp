@@ -129,10 +129,7 @@ dump() ->
 -spec get_config() -> boolean().
 %% @doc get information about whether cover is enabled.
 get_config() ->
-    case ephp_data:to_bool(ephp_config:get(<<"cover.enable">>)) of
-        true -> true;
-        _ -> false
-    end.
+    ephp_config:get_bool(<<"cover.enable">>).
 
 %% gen_server callbacks
 

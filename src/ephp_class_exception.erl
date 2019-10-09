@@ -130,7 +130,7 @@ exception_construct(Ctx, ObjRef, {{line,Line},_},
                     [{_, Message}, {_, Code}, {_, Previous}]) ->
     ClassCtx = ephp_object:get_context(ObjRef),
     File = ephp_context:get_active_file(Ctx),
-    Traces = ephp_stack:get_array(Ctx),
+    Traces = ephp_stack:get_array(),
     %% TODO: get content for string
     ephp_context:set_bulk(ClassCtx, [{#variable{name = <<"message">>}, Message},
                                      {#variable{name = <<"string">>}, <<>>},

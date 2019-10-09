@@ -2,34 +2,92 @@
 -author('manuel@altenwald.com').
 -compile([warnings_as_errors, {no_auto_import, [get/1]}]).
 
+-behaviour(gen_server).
+
 -include("ephp.hrl").
 
 -export([
-    start_link/1,
-    destroy/1,
-    get/1,
+    start_link/0,
+    destroy/0,
+    get/0,
+    get_array/0,
     get_array/1,
-    get_array/2,
-    push/7,
-    pop/1
+    push/6,
+    pop/0
 ]).
 
-start_link(Ref) ->
-    case get(Ref) of
-        Stack when is_list(Stack) ->
-            ok;
+-export([
+    init/1,
+    handle_cast/2,
+    handle_call/3,
+    handle_info/2,
+    terminate/2
+]).
+
+
+start_link() ->
+    case erlang:get(stack) of
         undefined ->
-            erlang:put(get_id(Ref), [])
-    end,
-    {ok, get_id(Ref)}.
+            %% FIXME: generate this information under a supervisor with
+            %%        the context.
+            {ok, PID} = gen_server:start_link(?MODULE, [self()], []),
+            erlang:put(stack, PID),
+            {ok, PID};
+        PID ->
+            case is_process_alive(PID) of
+                true ->
+                    {ok, PID};
+                false ->
+                    erlang:erase(stack),
+                    start_link()
+            end
+    end.
 
-destroy(Ref) ->
-    erlang:erase(get_id(Ref)).
 
-push(_Ref, _File, undefined, _Fun, _Args, _Class, _Object) ->
+destroy() ->
+    case erlang:get(stack) of
+        undefined -> ok;
+        PID -> gen_server:stop(PID)
+    end.
+
+
+get() ->
+    PID = erlang:get(stack),
+    gen_server:call(PID, get).
+
+
+get_array() ->
+    get_array(0).
+
+get_array(PopElements) ->
+    PID = erlang:get(stack),
+    gen_server:call(PID, {get_array, PopElements}).
+
+
+push(_File, undefined, _Fun, _Args, _Class, _Object) ->
     ok;
-push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
-    Stack = get(Ref),
+
+push(File, {{line, Line}, _}, Fun, Args, Class, Object) ->
+    PID = erlang:get(stack),
+    Data = {push, File, Line, Fun, Args, Class, Object},
+    gen_server:cast(PID, Data).
+
+
+pop() ->
+    PID = erlang:get(stack),
+    gen_server:call(PID, pop).
+
+%% gen_server callbacks
+
+init([Parent]) ->
+    monitor(process, Parent),
+    {ok, []}.
+
+terminate(_Reason, _State) ->
+    erlang:erase(stack),
+    ok.
+
+handle_cast({push, File, Line, Fun, Args, Class, Object}, Stack) ->
     Type = if
         Class =:= undefined -> undefined;
         Object =:= undefined -> <<"::">>;
@@ -44,30 +102,20 @@ push(Ref, File, {{line,Line},_}, Fun, Args, Class, Object) ->
         class = Class,
         type = Type
     },
-    case add_function(Fun) of
-        [] when File =:= undefined -> ok;
-        _ -> erlang:put(get_id(Ref), [New|Stack])
+    NewStack = case add_function(Fun) of
+        [] when File =:= undefined -> Stack;
+        _ -> [New|Stack]
     end,
-    ok.
+    %% TODO: use filtering tables for tracing, implement ephp_tracer.
+    case ephp_config:get_bool(<<"tracer.enable">>) of
+        true -> gen_server:cast(ephp_tracer, New);
+        false -> ok
+    end,
+    {noreply, NewStack}.
 
-pop(Ref) ->
-    case get(Ref) of
-        [Head|Stack] ->
-            erlang:put(get_id(Ref), Stack),
-            Head;
-        [] ->
-            undefined
-    end.
-
-get(Ref) ->
-    erlang:get(get_id(Ref)).
-
-get_array(Ref) ->
-    get_array(Ref, 0).
-
-get_array(Ref, PopElements) ->
-    {_, Stack} = lists:foldl(fun
-        (Stack, {0, Array}) ->
+handle_call({get_array, PopElements}, _From, Stack) ->
+    {_, GetStack} = lists:foldl(fun
+        (StackEl, {0, Array}) ->
             #stack_trace{
                 function = Fun,
                 file = File,
@@ -76,7 +124,7 @@ get_array(Ref, PopElements) ->
                 object = Object,
                 type = Type,
                 args = Args
-            } = Stack,
+            } = StackEl,
             Element = ephp_array:from_list(
             [
                 {<<"file">>, File},
@@ -89,8 +137,19 @@ get_array(Ref, PopElements) ->
             {0, ephp_array:store(auto, Element, Array)};
         (_Stack, {N, Array}) ->
             {N-1, Array}
-    end, {PopElements, ephp_array:new()}, get(Ref)),
-    Stack.
+    end, {PopElements, ephp_array:new()}, Stack),
+    {reply, GetStack, Stack};
+handle_call(get, _From, Stack) ->
+    {reply, Stack, Stack};
+handle_call(pop, _From, [] = Stack) ->
+    {reply, undefined, Stack};
+handle_call(pop, _From, [Head|Stack]) ->
+    {reply, Head, Stack}.
+
+handle_info({'DOWN', _Ref, process, _Pid, _Reason}, State) ->
+    {stop, normal, State}.
+
+%% internal functions
 
 add_function(Fun) ->
     Incs = [<<"include">>, <<"include_once">>,
@@ -115,9 +174,3 @@ add_args(Fun, Args) ->
         [] -> [{<<"function">>, Fun}];
         _ -> []
     end.
-
-get_id(_Ref) ->
-    % FIXME: at this moment it's very complicated to get only the global
-    %        reference. Anyway, it's better to work only with one context
-    %        per process.
-    stack.

@@ -126,7 +126,7 @@ start_link() ->
     {ok, Errors} = ephp_error:start_link(),
     {ok, Class} = ephp_class:start_link(),
     {ok, Shutdown} = ephp_shutdown:start_link(),
-    {ok, _} = ephp_stack:start_link(Ref),
+    {ok, _} = ephp_stack:start_link(),
     {ok, _} = ephp_mem:start_link(),
     {ok, Ref} = start_link(#state{
         ref = Ref,
@@ -236,7 +236,7 @@ destroy_all(Context) ->
     ephp_error:destroy(State#state.errors),
     ephp_vars:destroy(Context, State#state.vars),
     ephp_shutdown:destroy(State#state.shutdown),
-    ephp_stack:destroy(Context),
+    ephp_stack:destroy(),
     ephp_mem:stop(),
     destroy(Context).
 
@@ -850,7 +850,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
         (#var_ref{} = VarRef) ->
             VarRef
     end, FuncArgs),
-    ephp_stack:push(Ref, File, Line, ?FUNC_ANON_NAME, Refs, Class, undefined),
+    ephp_stack:push(File, Line, ?FUNC_ANON_NAME, Refs, Class, undefined),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
         _ -> undefined
@@ -858,7 +858,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
     destroy(SubContext),
     ephp_vars:destroy(Ref, FuncVars),
     ephp_const:set(Const, <<"__FUNCTION__">>, State#state.active_fun),
-    ephp_stack:pop(Ref),
+    ephp_stack:pop(),
     {Value, NState};
 
 resolve(#call{name = Object} = Call, State) when ?IS_OBJECT(Object) ->
@@ -1175,14 +1175,14 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index,
     try resolve_args(VArgs, RawArgs, FState, Index) of
         {Args, NState} ->
             ResArgs = [ Val || {_Var, Val} <- Args ],
-            ephp_stack:push(Ref, File, Index, Fun, ResArgs,
+            ephp_stack:push(File, Index, Fun, ResArgs,
                             undefined, undefined),
             save_state(NState),
             Value = if
                 PackArgs -> erlang:apply(M,F,[Ref,Index,Args]);
                 true -> erlang:apply(M,F,[Ref,Index|Args])
             end,
-            ephp_stack:pop(Ref),
+            ephp_stack:pop(),
             destroy_args(NState, Args),
             {Value, (load_state(Ref))#state{ref = Ref}}
     catch
@@ -1222,7 +1222,7 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
                         (#var_ref{} = VarRef) ->
                             VarRef
                       end, FuncArgs),
-    ephp_stack:push(Ref, File, Index, Fun, Refs, undefined, undefined),
+    ephp_stack:push(File, Index, Fun, Refs, undefined, undefined),
     Value = case ephp_interpr:run(SubContext, #eval{statements = Code}) of
         {return, V} -> V;
         _ -> undefined
@@ -1232,7 +1232,7 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
     ephp_vars:destroy(Ref, NewVars),
     OldFullFunName = ephp_ns:to_bin(State#state.active_fun_ns, State#state.active_fun),
     ephp_const:set(Const, <<"__FUNCTION__">>, OldFullFunName),
-    ephp_stack:pop(Ref),
+    ephp_stack:pop(),
     {Value, NState};
 
 resolve_function(#call{name = Fun, line = Index, namespace = []}, error, _State) ->
@@ -1590,7 +1590,7 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
                         (#ref{} = VarRef) ->
                             VarRef
                      end, MethodArgs),
-    ephp_stack:push(Ref, State#state.active_file, Call#call.line,
+    ephp_stack:push(State#state.active_file, Call#call.line,
                     MethodName, Refs, Class#class.name, RealObject),
     Code = ClassMethod#class_method.code,
     Value = case ephp_interpr:run(SubContext, #eval{statements = Code}) of
@@ -1607,7 +1607,7 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
     ]),
     set_active_class(Ref, State#state.active_class_ns, State#state.active_class),
     set_active_real_class(Ref, State#state.active_real_class_ns, State#state.active_real_class),
-    ephp_stack:pop(Ref),
+    ephp_stack:pop(),
     {Value, State};
 
 run_method(#class_method{code_type = builtin} = ClassMethod, _Class, _Object,

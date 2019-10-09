@@ -24,7 +24,7 @@ cover_test() ->
     {ok, Ctx} = ephp:context_new(),
     ok = ephp_config:set(<<"cover.enable">>, true),
     ok = ephp_config:set(<<"cover.output">>, <<"cobertura_test.xml">>),
-    ?assertEqual(true, ephp_cover:get_config()),
+    ?assert(ephp_cover:get_config()),
     ok = ephp:register_module(Ctx, ephp_lib_string),
     ?assertEqual({ok, false}, ephp:eval(Ctx, ?CODE)),
     ok = ephp:stop_cover(),

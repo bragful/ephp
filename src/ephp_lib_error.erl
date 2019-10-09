@@ -87,14 +87,14 @@ get_classes() ->
 -spec debug_backtrace(context(), line(), var_value(), var_value()) ->
       ephp_array().
 
-debug_backtrace(Context, _Line, {_, _Flags}, {_, _Limit}) ->
-    ephp_stack:get_array(Context, 1).
+debug_backtrace(_Context, _Line, {_, _Flags}, {_, _Limit}) ->
+    ephp_stack:get_array(1).
 
 -spec debug_print_backtrace(context(), line(),
                             var_value(), var_value()) -> undefined.
 
 debug_print_backtrace(Context, _Line, {_, IncludeArgs}, {_, Limit}) ->
-    Backtrace = ephp_stack:get_array(Context, 1),
+    Backtrace = ephp_stack:get_array(1),
     ephp_array:fold(fun
         (I, Data, _) when Limit =:= 0 orelse I < Limit ->
             Str = iolist_to_binary(trace_to_str(I, Data, Context, IncludeArgs)),
