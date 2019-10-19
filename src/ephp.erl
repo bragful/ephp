@@ -246,7 +246,7 @@ usage(ErrorLevel) ->
 %% @end
 main(Args) ->
     case getopt:parse(opt_spec_list(), Args) of
-        {ok, {Opts, []}} when Opts =/= [] ->
+        {ok, {Opts, _OtherArgs}} when Opts =/= [] ->
             main(Opts, Args);
         _Else ->
             usage(1)
@@ -431,6 +431,9 @@ register_superglobals(Ctx, [Filename|_] = RawArgs) when is_list(Filename) ->
     ],
     ephp_context:set(Ctx, #variable{name = <<"_SERVER">>},
                      ephp_array:from_list(Server)),
+    ephp_context:set(Ctx, #variable{name = <<"argc">>},
+                     ephp_array:size(ArrayArgs)),
+    ephp_context:set(Ctx, #variable{name = <<"argv">>}, ArrayArgs),
     SuperGlobals = [
         <<"_GET">>,
         <<"_POST">>,
