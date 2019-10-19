@@ -9,7 +9,7 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#extension_loaded-3">extension_loaded/3</a></td><td></td></tr><tr><td valign="top"><a href="#ini_get-3">ini_get/3</a></td><td></td></tr><tr><td valign="top"><a href="#ini_set-4">ini_set/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#memory_get_peak_usage-3">memory_get_peak_usage/3</a></td><td></td></tr><tr><td valign="top"><a href="#memory_get_usage-3">memory_get_usage/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_logo_guid-2">php_logo_guid/2</a></td><td></td></tr><tr><td valign="top"><a href="#php_sapi_name-2">php_sapi_name/2</a></td><td></td></tr><tr><td valign="top"><a href="#phpinfo-3">phpinfo/3</a></td><td></td></tr><tr><td valign="top"><a href="#phpversion-2">phpversion/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_include_path-3">set_include_path/3</a></td><td></td></tr><tr><td valign="top"><a href="#version_compare-5">version_compare/5</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#extension_loaded-3">extension_loaded/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_include_path-2">get_include_path/2</a></td><td></td></tr><tr><td valign="top"><a href="#ini_get-3">ini_get/3</a></td><td></td></tr><tr><td valign="top"><a href="#ini_set-4">ini_set/4</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#memory_get_peak_usage-3">memory_get_peak_usage/3</a></td><td></td></tr><tr><td valign="top"><a href="#memory_get_usage-3">memory_get_usage/3</a></td><td></td></tr><tr><td valign="top"><a href="#php_logo_guid-2">php_logo_guid/2</a></td><td></td></tr><tr><td valign="top"><a href="#php_sapi_name-2">php_sapi_name/2</a></td><td></td></tr><tr><td valign="top"><a href="#phpinfo-3">phpinfo/3</a></td><td></td></tr><tr><td valign="top"><a href="#phpversion-2">phpversion/2</a></td><td></td></tr><tr><td valign="top"><a href="#set_include_path-3">set_include_path/3</a></td><td></td></tr><tr><td valign="top"><a href="#version_compare-5">version_compare/5</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -22,6 +22,15 @@
 
 <pre><code>
 extension_loaded(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Name::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+</code></pre>
+<br />
+
+<a name="get_include_path-2"></a>
+
+### get_include_path/2 ###
+
+<pre><code>
+get_include_path(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 

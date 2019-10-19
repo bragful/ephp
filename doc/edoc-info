@@ -10,4 +10,4 @@
           ephp_object,ephp_output,ephp_parser,ephp_parser_class,
           ephp_parser_expr,ephp_parser_func,ephp_parser_string,ephp_shutdown,
           ephp_stack,ephp_stream,ephp_stream_file,ephp_string,ephp_timezone,
-          ephp_vars]}.
+          ephp_tracer,ephp_vars]}.

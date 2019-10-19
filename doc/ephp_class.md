@@ -58,12 +58,22 @@ get_return() = {ok, <a href="#type-class">class()</a>} | {error, enoexist}
 loader() = binary()
 </code></pre>
 
+
+
+
+### <a name="type-prepend">prepend()</a> ###
+
+
+<pre><code>
+prepend() = boolean()
+</code></pre>
+
 <a name="index"></a>
 
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_if_no_exists_attrib-2">add_if_no_exists_attrib/2</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-1">class_attr/1</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-2">class_attr/2</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-3">class_attr/3</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-4">class_attr/4</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td>destroy the classes handler.</td></tr><tr><td valign="top"><a href="#get-3">get/3</a></td><td>retrieves a class registered given the class name.</td></tr><tr><td valign="top"><a href="#get-4">get/4</a></td><td>retrieves a class registered given the class name.</td></tr><tr><td valign="top"><a href="#get_attribute-2">get_attribute/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_clone-2">get_clone/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_constructor-2">get_constructor/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_destructor-2">get_destructor/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-2">get_method/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-3">get_method/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_parent-3">get_parent/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_stdclass-0">get_stdclass/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_static_value-6">init_static_value/6</a></td><td></td></tr><tr><td valign="top"><a href="#instance-6">instance/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-4">register_class/4</a></td><td>register a class inside of the classes handler.</td></tr><tr><td valign="top"><a href="#register_classes-2">register_classes/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_classes-3">register_classes/3</a></td><td></td></tr><tr><td valign="top"><a href="#register_interface-3">register_interface/3</a></td><td></td></tr><tr><td valign="top"><a href="#register_loader-2">register_loader/2</a></td><td>register loader for the classes handler.</td></tr><tr><td valign="top"><a href="#set_alias-5">set_alias/5</a></td><td>set a name as alias of a class name.</td></tr><tr><td valign="top"><a href="#set_static-6">set_static/6</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>starts a classes handler.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add_if_no_exists_attrib-2">add_if_no_exists_attrib/2</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-1">class_attr/1</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-2">class_attr/2</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-3">class_attr/3</a></td><td></td></tr><tr><td valign="top"><a href="#class_attr-4">class_attr/4</a></td><td></td></tr><tr><td valign="top"><a href="#destroy-1">destroy/1</a></td><td>destroy the classes handler.</td></tr><tr><td valign="top"><a href="#get-3">get/3</a></td><td>retrieves a class registered given the class name.</td></tr><tr><td valign="top"><a href="#get-4">get/4</a></td><td>retrieves a class registered given the class name.</td></tr><tr><td valign="top"><a href="#get_attribute-2">get_attribute/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_clone-2">get_clone/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_constructor-2">get_constructor/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_destructor-2">get_destructor/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-2">get_method/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_method-3">get_method/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_parent-3">get_parent/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_stdclass-0">get_stdclass/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_static_value-6">init_static_value/6</a></td><td></td></tr><tr><td valign="top"><a href="#instance-6">instance/6</a></td><td></td></tr><tr><td valign="top"><a href="#register_class-4">register_class/4</a></td><td>register a class inside of the classes handler.</td></tr><tr><td valign="top"><a href="#register_classes-2">register_classes/2</a></td><td></td></tr><tr><td valign="top"><a href="#register_classes-3">register_classes/3</a></td><td></td></tr><tr><td valign="top"><a href="#register_interface-3">register_interface/3</a></td><td></td></tr><tr><td valign="top"><a href="#register_loader-2">register_loader/2</a></td><td>register loader for the classes handler.</td></tr><tr><td valign="top"><a href="#register_loader-3">register_loader/3</a></td><td>register a loader for the classes handler.</td></tr><tr><td valign="top"><a href="#set_alias-5">set_alias/5</a></td><td>set a name as alias of a class name.</td></tr><tr><td valign="top"><a href="#set_static-6">set_static/6</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>starts a classes handler.</td></tr><tr><td valign="top"><a href="#unregister_loader-2">unregister_loader/2</a></td><td>unregister a class loader.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -233,6 +243,18 @@ register_loader(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, Lo
 
 register loader for the classes handler.
 
+<a name="register_loader-3"></a>
+
+### register_loader/3 ###
+
+<pre><code>
+register_loader(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, Loader::<a href="#type-loader">loader()</a>, Prepend::<a href="#type-prepend">prepend()</a>) -&gt; ok
+</code></pre>
+<br />
+
+register a loader for the classes handler. If prepend is true
+the function is prepended instead of appended to the queue.
+
 <a name="set_alias-5"></a>
 
 ### set_alias/5 ###
@@ -260,4 +282,15 @@ start_link() -&gt; {ok, <a href="ephp.md#type-classes_id">ephp:classes_id()</a>}
 <br />
 
 starts a classes handler.
+
+<a name="unregister_loader-2"></a>
+
+### unregister_loader/2 ###
+
+<pre><code>
+unregister_loader(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, Loader::<a href="#type-loader">loader()</a>) -&gt; boolean()
+</code></pre>
+<br />
+
+unregister a class loader.
 

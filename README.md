@@ -156,5 +156,6 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_stream_file.md" class="module">ephp_stream_file</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_string.md" class="module">ephp_string</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_timezone.md" class="module">ephp_timezone</a></td></tr>
+<tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_tracer.md" class="module">ephp_tracer</a></td></tr>
 <tr><td><a href="http://github.com/bragful/ephp/blob/master/doc/ephp_vars.md" class="module">ephp_vars</a></td></tr></table>
 

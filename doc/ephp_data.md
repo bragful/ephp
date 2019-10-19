@@ -9,7 +9,8 @@
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin_to_number-1">bin_to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#bin_to_number-2">bin_to_number/2</a></td><td></td></tr><tr><td valign="top"><a href="#ceiling-1">ceiling/1</a></td><td></td></tr><tr><td valign="top"><a href="#ceiling-1">ceiling/1</a></td><td></td></tr><tr><td valign="top"><a href="#flooring-1">flooring/1</a></td><td></td></tr><tr><td valign="top"><a href="#flooring-1">flooring/1</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-1">gettype/1</a></td><td></td></tr><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#instance_of-3">instance_of/3</a></td><td></td></tr><tr><td valign="top"><a href="#is_equal-2">is_equal/2</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-3">to_bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_boolean-1">to_boolean/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_float-1">to_float/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_float-3">to_float/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_int-1">to_int/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_int-3">to_int/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_number-1">to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_number-3">to_number/3</a></td><td></td></tr><tr><td valign="top"><a href="#urand-0">urand/0</a></td><td>Show random decimal number.</td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#bin_to_number-1">bin_to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#bin_to_number-2">bin_to_number/2</a></td><td></td></tr><tr><td valign="top"><a href="#ceiling-1">ceiling/1</a></td><td></td></tr><tr><td valign="top"><a href="#ceiling-1">ceiling/1</a></td><td></td></tr><tr><td valign="top"><a href="#flooring-1">flooring/1</a></td><td></td></tr><tr><td valign="top"><a href="#flooring-1">flooring/1</a></td><td></td></tr><tr><td valign="top"><a href="#gettype-1">gettype/1</a></td><td></td></tr><tr><td valign="top"><a href="#increment_code-1">increment_code/1</a></td><td></td></tr><tr><td valign="top"><a href="#instance_of-3">instance_of/3</a></td><td></td></tr><tr><td valign="top"><a href="#is_equal-2">is_equal/2</a></td><td></td></tr><tr><td valign="top"><a href="#pad_to_bin-2">pad_to_bin/2</a></td><td></td></tr><tr><td valign="top"><a href="#pow-2">pow/2</a></td><td>calculates the power of a number letting to be that number in integer format
+if that's a positive number or it's powered by 0.</td></tr><tr><td valign="top"><a href="#to_bin-1">to_bin/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_bin-3">to_bin/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_bool-1">to_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_boolean-1">to_boolean/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_float-1">to_float/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_float-3">to_float/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_int-1">to_int/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_int-3">to_int/3</a></td><td></td></tr><tr><td valign="top"><a href="#to_number-1">to_number/1</a></td><td></td></tr><tr><td valign="top"><a href="#to_number-3">to_number/3</a></td><td></td></tr><tr><td valign="top"><a href="#urand-0">urand/0</a></td><td>Show random decimal number.</td></tr><tr><td valign="top"><a href="#zero_if_undef-1">zero_if_undef/1</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -108,6 +109,18 @@ is_equal(A::<a href="#type-mixed">mixed()</a>, B::<a href="#type-mixed">mixed()<
 pad_to_bin(Num::integer() | binary(), Pad::integer()) -&gt; binary()
 </code></pre>
 <br />
+
+<a name="pow-2"></a>
+
+### pow/2 ###
+
+<pre><code>
+pow(N::number(), M::number()) -&gt; number()
+</code></pre>
+<br />
+
+calculates the power of a number letting to be that number in integer format
+if that's a positive number or it's powered by 0.
 
 <a name="to_bin-1"></a>
 
