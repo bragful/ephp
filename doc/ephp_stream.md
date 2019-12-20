@@ -99,7 +99,7 @@ returns true if the URI exists, otherwise false.
 ### get_initial_path/0 ###
 
 <pre><code>
-get_initial_path() -&gt; ok
+get_initial_path() -&gt; binary()
 </code></pre>
 <br />
 

@@ -78,7 +78,7 @@ ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are ful
 A simple way to use, is include in your project `rebar.config` the following dependency line:
 
 ```erlang
-    {ephp, "0.2.6"}
+    {ephp, "0.2.7"}
 ```
 
 And use the following code in your project:

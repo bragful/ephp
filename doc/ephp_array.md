@@ -44,7 +44,7 @@ parameter and return the modified array.</td></tr><tr><td valign="top"><a href="
 ### current/1 ###
 
 <pre><code>
-current(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, <a href="#type-mixed">mixed()</a>} | {error, empty | enocursor}
+current(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, {<a href="#type-mixed">mixed()</a>, <a href="#type-mixed">mixed()</a>}} | {error, empty | enocursor}
 </code></pre>
 <br />
 
@@ -156,7 +156,7 @@ sort an array based on incoming flags (as a second param).
 ### last/1 ###
 
 <pre><code>
-last(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, <a href="#type-mixed">mixed()</a>, <a href="#type-ephp_array">ephp_array()</a>} | {error, empty}
+last(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, {<a href="#type-mixed">mixed()</a>, <a href="#type-mixed">mixed()</a>}, <a href="#type-ephp_array">ephp_array()</a>} | {error, empty}
 </code></pre>
 <br />
 
@@ -189,7 +189,7 @@ creates an empty PHP Array structure.
 ### next/1 ###
 
 <pre><code>
-next(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, <a href="#type-mixed">mixed()</a>, <a href="#type-ephp_array">ephp_array()</a>} | {error, eof | empty | enocursor}
+next(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, {<a href="#type-mixed">mixed()</a>, <a href="#type-mixed">mixed()</a>}, <a href="#type-ephp_array">ephp_array()</a>} | {error, eof | empty | enocursor}
 </code></pre>
 <br />
 
@@ -212,7 +212,7 @@ the rest of the array.
 ### prev/1 ###
 
 <pre><code>
-prev(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, <a href="#type-mixed">mixed()</a>, <a href="#type-ephp_array">ephp_array()</a>} | {error, bof | empty | enocursor}
+prev(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, {<a href="#type-mixed">mixed()</a>, <a href="#type-mixed">mixed()</a>}, <a href="#type-ephp_array">ephp_array()</a>} | {error, bof | empty | enocursor}
 </code></pre>
 <br />
 
