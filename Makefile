@@ -11,6 +11,7 @@ clean:
 	./rebar3 clean
 
 compile:
+	-rm -f ebin
 	./rebar3 compile
 
 test:
