@@ -714,10 +714,9 @@ operator(<<"/">>, R1, R2) when (is_record(R1, int) orelse is_record(R1, float))
                        expression_right = R2};
         false ->
             N1 = element(2, R1),
-            Res = N1 / N2,
             if
-                is_integer(Res) -> #int{int = Res};
-                is_float(Res) -> #float{float = Res}
+                N1 rem N2 =:= 0 -> #int{int = N1 div N2};
+                true -> #float{float = N1 / N2}
             end
     end;
 operator(Op, R1, R2) when (is_record(R1, int) orelse is_record(R1, float))
@@ -836,7 +835,7 @@ gen_op([{<<"(float)">>, {_, _}, _Parser}|Rest], [#float{} = F|Stack]) ->
     gen_op(Rest, [F|Stack]);
 gen_op([{<<"(float)">>, {_, _}, Parser}|Rest], [#text{text = T}|Stack]) ->
     Float = erlang:float(ephp_data:bin_to_number(T)),
-    gen_op(Rest, [add_line(#int{int = Float}, Parser)|Stack]);
+    gen_op(Rest, [add_line(#float{float = Float}, Parser)|Stack]);
 gen_op([{<<"(float)">>, {_, _}, Parser}|Rest], [A|Stack]) ->
     gen_op(Rest, [add_line(#cast{type = float, content = A}, Parser)|Stack]);
 gen_op([{<<"(string)">>, {_, _}, Parser}|Rest], [#int{int = I}|Stack]) ->

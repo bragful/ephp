@@ -112,10 +112,12 @@
 
 -type context() :: reference().
 
--type statement() :: main_statement() | blocks().
+-type statement() :: expression() | blocks().
 -type statements() :: [statement()].
 
 -type expression() :: operation() |
+                      assign() |
+                      variable() |
                       mixed() |
                       text_to_process() |
                       text() |
@@ -168,7 +170,7 @@
 
 -record(foreach, {
     kiter :: variable() | undefined,
-    iter :: variable(),
+    iter :: variable() | ref() | [variable()],
     elements :: variable() | expression(),
     loop_block :: statements(),
     line :: line()
@@ -305,7 +307,7 @@
     type = normal :: variable_types(),
     class :: class_name() | undefined,
     class_ns = [] :: namespace(),
-    name :: binary() | private_var() | expression(),
+    name :: auto | binary() | private_var() | expression(),
     idx = [] :: [array_index() | object_index() | class_index()],
     default_value = undefined :: mixed(),
     data_type :: data_type(), %% <<"Exception">> for example

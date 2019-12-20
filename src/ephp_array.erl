@@ -155,9 +155,8 @@ to_list(#ephp_array{values = Values}) ->
     Values.
 
 
--spec first(ephp_array()) ->
-    {ok, {mixed(), mixed()}, ephp_array()} |
-    {error, empty}.
+-spec first(ephp_array()) -> {ok, {mixed(), mixed()}, ephp_array()} |
+                             {error, empty}.
 %% @doc moves the cursor to the begin of the array and retrieves that element.
 first(#ephp_array{size = 0}) ->
     {error, empty};
@@ -166,7 +165,8 @@ first(#ephp_array{values = [Head|_]} = Array) ->
     {ok, Head, Array#ephp_array{cursor = 1}}.
 
 
--spec last(ephp_array()) -> {ok, mixed(), ephp_array()} | {error, empty}.
+-spec last(ephp_array()) -> {ok, {mixed(), mixed()}, ephp_array()} |
+                            {error, empty}.
 %% @doc moves the cursor to the end of the array and retrieves that element.
 last(#ephp_array{size = 0}) ->
     {error, empty};
@@ -175,7 +175,7 @@ last(#ephp_array{size = Size, values = Values} = Array) ->
     {ok, lists:last(Values), Array#ephp_array{cursor = Size}}.
 
 
--spec next(ephp_array()) -> {ok, mixed(), ephp_array()} |
+-spec next(ephp_array()) -> {ok, {mixed(), mixed()}, ephp_array()} |
                             {error, eof | empty | enocursor}.
 %% @doc moves the cursor the to next element and retrieves that element.
 next(#ephp_array{size = 0}) ->
@@ -191,7 +191,7 @@ next(#ephp_array{cursor = Cursor, values = Values} = Array) ->
     {ok, lists:nth(Cursor + 1, Values), Array#ephp_array{cursor = Cursor + 1}}.
 
 
--spec prev(ephp_array()) -> {ok, mixed(), ephp_array()} |
+-spec prev(ephp_array()) -> {ok, {mixed(), mixed()}, ephp_array()} |
                             {error, bof | empty | enocursor}.
 %% @doc moves the cursor to the previous element and retrieves that element.
 prev(#ephp_array{size = 0}) ->
@@ -207,7 +207,7 @@ prev(#ephp_array{cursor = Cursor, values = Values} = Array) ->
     {ok, lists:nth(Cursor - 1, Values), Array#ephp_array{cursor = Cursor - 1}}.
 
 
--spec current(ephp_array()) -> {ok, mixed()} | {error, empty | enocursor}.
+-spec current(ephp_array()) -> {ok, {mixed(), mixed()}} | {error, empty | enocursor}.
 %% @doc retrieves the element under the cursor.
 current(#ephp_array{size = 0}) ->
     {error, empty};

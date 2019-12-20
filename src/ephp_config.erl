@@ -62,7 +62,7 @@ get(Key) ->
 
 -spec get(binary(), undefined | mixed()) -> undefined | mixed();
          (atom(), undefined | binary()) -> undefined | binary();
-         (atom(), undefined | [atom()]) -> undefined | [atom()].
+         (atom(), [atom()]) -> [atom()].
 
 get(Key, Default) ->
     case erlang:get(ephp_config) of

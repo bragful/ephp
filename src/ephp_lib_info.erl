@@ -206,16 +206,14 @@ memory_get_peak_usage(_Context, _Line, {_, true}) ->
 %% ----------------------------------------------------------------------------
 
 process_directives(Values) ->
-    process_directives(Values, orddict:new()).
+    D = lists:foldl(fun process_directives/2, orddict:new(), Values),
+    ephp_array:from_list([ {K, ephp_array:from_list(V)} || {K, V} <- D ]).
 
-process_directives([], Dict) ->
-    ephp_array:from_list([ {K, ephp_array:from_list(V)} || {K, V} <- Dict ]);
-process_directives([{K, V}|Others], Dict) ->
-    NewDict = case binary:split(K, <<".">>) of
+process_directives({K, V}, Dict) ->
+    case binary:split(K, <<".">>) of
         [K] -> safe_append(<<"core">>, {K, V}, Dict);
         [Section, _] -> safe_append(Section, {K, V}, Dict)
-    end,
-    process_directives(Others, NewDict).
+    end.
 
 safe_append(K, V, Dict) ->
     case orddict:is_key(K, Dict) of

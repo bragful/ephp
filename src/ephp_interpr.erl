@@ -467,7 +467,7 @@ run_loop(post, Context, Cond, Statements, Cover) ->
 
 -spec run_foreach(Context :: context(),
                   Key :: variable() | ref(),
-                  Var :: variable(),
+                  Var :: variable() | ref(),
                   Elements :: variable() |
                               expression() |
                               {variable() | expression(), [{mixed(), mixed()}]},

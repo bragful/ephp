@@ -4,6 +4,7 @@ install: "sudo pip install codecov"
 after_success: "codecov"
 dist: trusty
 otp_release:
+- 22.2
 - 22.1
 - 22.0
 - 21.3

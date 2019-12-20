@@ -111,7 +111,7 @@ set_initial_path(Path) ->
     erlang:put(initial_path, Path).
 
 
--spec get_initial_path() -> ok.
+-spec get_initial_path() -> binary().
 %% @doc get the initial PATH for this process.
 get_initial_path() ->
     erlang:get(initial_path).

@@ -114,8 +114,7 @@ is_readable(URL) ->
 %% @doc returns the list of URIs for a given pattern or an empty list.
 wildcard(Pattern) ->
     BasePath = ephp_stream:get_initial_path(),
-    FullPattern = filename:join([BasePath, Pattern]),
-    io:format("pattern => ~p~n", [FullPattern]),
+    FullPattern = filename:join(BasePath, Pattern),
     Files = filelib:wildcard(binary_to_list(FullPattern)),
     Clean = case Pattern of
         "/" ++ _ ->
