@@ -291,7 +291,7 @@ register_class(Ref, File, GlobalCtx,
     ok.
 
 
--spec check_access_level([class_method()]) ->
+-spec check_access_level([class_attr()]) ->
       ok | {error, {class_name(), binary(), access_types(), class_name()}}.
 %% @doc check the access level for the overrided attributes.
 check_access_level([]) ->
@@ -423,7 +423,7 @@ extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
 arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>.
 
 
--spec check_dup([class()]) -> ok | {namespace(), class_name()}.
+-spec check_dup([{namespace(), class_name()}]) -> ok | {namespace(), class_name()}.
 %% @hidden
 check_dup([]) -> ok;
 check_dup([_Interface]) -> ok;

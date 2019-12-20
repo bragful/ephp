@@ -183,26 +183,24 @@ eval(Filename, Context, Compiled) ->
     ok = ephp_cover:init_file(Cover, Filename, Compiled),
     case catch ephp_interpr:process(Context, Compiled, Cover) of
         {ok, Return} ->
-            shutdown_context(Context),
+            maybe_die(fun() -> ephp_shutdown:shutdown(Context) end),
             {ok, Return};
         die ->
-            shutdown_context(Context),
+            maybe_die(fun() -> ephp_shutdown:shutdown(Context) end),
             {ok, undefined};
         {error, Reason, Index, Level, Data} ->
             File = ephp_context:get_active_file(Context),
             Error = {error, Reason, Index, File, Level, Data},
-            try
+            maybe_die(fun() ->
                 ephp_error:handle_error(Context, Error)
-            catch
-                throw:{ok, die} -> ok
-            end,
-            shutdown_context(Context),
+            end),
+            maybe_die(fun() -> ephp_shutdown:shutdown(Context) end),
             Error
     end.
 
-shutdown_context(Context) ->
+maybe_die(Fun) ->
     try
-        ephp_shutdown:shutdown(Context)
+        Fun()
     catch
         throw:{ok, die} -> ok
     end.
@@ -273,25 +271,17 @@ main([{dir, Dir}|_], _RawArgs) ->
     quit(0);
 
 main([{check, File}|_], _RawArgs) ->
-    try
+    maybe_badmatch(fun() ->
         ephp_parser:file(File),
         io:format("No syntax errors detected in: ~s~n", [File]),
         quit(0)
-    catch
-        error:{badmatch, {error, enoent}} ->
-            io:format("Could not open input file: ~s~n", [File]),
-            quit(1)
-    end;
+    end, File);
 
 main([{parse, File}|_], _RawArgs) ->
-    try
+    maybe_badmatch(fun() ->
         io:format("parsing =>~n~p~n---~n", [ephp_parser:file(File)]),
         quit(0)
-    catch
-        error:{badmatch, {error, enoent}} ->
-            io:format("Could not open input file: ~s~n", [File]),
-            quit(1)
-    end;
+    end, File);
 
 main([info|_], _RawArgs) ->
     start(),
@@ -351,6 +341,15 @@ main([{file, Filename}|_], RawArgs) ->
 main(_, _) ->
     usage(1).
 
+maybe_badmatch(Fun, File) ->
+    try
+        Fun()
+    catch
+        error:{badmatch, {error, enoent}} ->
+            io:format("Could not open input file: ~s~n", [File]),
+            quit(1)
+    end.
+
 -spec output_and_close(context()) -> ok.
 
 output_and_close(Ctx) ->
@@ -360,12 +359,12 @@ output_and_close(Ctx) ->
     ok.
 
 -ifndef(TEST).
--spec quit(integer()) -> no_return().
+-spec quit(non_neg_integer() | abort | [char()]) -> no_return().
 %% @hidden
 quit(Code) ->
     erlang:halt(Code).
 -else.
--spec quit(integer()) -> integer().
+-spec quit(non_neg_integer() | abort | [char()]) -> non_neg_integer() | abort | [char()].
 %% @hidden
 quit(Code) ->
     Code.

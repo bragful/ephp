@@ -100,7 +100,7 @@ default value passed as param is returned.
 ### first/1 ###
 
 <pre><code>
-first(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, <a href="#type-mixed">mixed()</a>, <a href="#type-ephp_array">ephp_array()</a>} | {error, empty}
+first(Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; {ok, {<a href="#type-mixed">mixed()</a>, <a href="#type-mixed">mixed()</a>}, <a href="#type-ephp_array">ephp_array()</a>} | {error, empty}
 </code></pre>
 <br />
 
@@ -234,7 +234,7 @@ retrieve the size of the array.
 ### store/3 ###
 
 <pre><code>
-store(Key::auto | <a href="#type-mixed">mixed()</a>, Value::<a href="#type-mixed">mixed()</a>, Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+store(Key::auto | non_neg_integer() | <a href="#type-mixed">mixed()</a>, Value::<a href="#type-mixed">mixed()</a>, Ephp_array::<a href="#type-ephp_array">ephp_array()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
 </code></pre>
 <br />
 

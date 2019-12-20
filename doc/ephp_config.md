@@ -45,7 +45,7 @@ get(Key::<a href="#type-config_key">config_key()</a>) -&gt; <a href="#type-mixed
 ### get/2 ###
 
 <pre><code>
-get(Key::binary(), Default::<a href="#type-mixed">mixed()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+get(Key::binary(), Default::undefined | <a href="#type-mixed">mixed()</a>) -&gt; undefined | <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 

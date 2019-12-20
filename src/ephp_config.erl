@@ -60,9 +60,9 @@ stop_local() ->
 get(Key) ->
     get(Key, undefined).
 
--spec get(binary(), mixed()) -> mixed();
-         (atom(), binary()) -> binary();
-         (atom(), [atom()]) -> [atom()].
+-spec get(binary(), undefined | mixed()) -> undefined | mixed();
+         (atom(), undefined | binary()) -> undefined | binary();
+         (atom(), undefined | [atom()]) -> undefined | [atom()].
 
 get(Key, Default) ->
     case erlang:get(ephp_config) of
