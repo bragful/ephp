@@ -18,7 +18,7 @@
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
 
--spec init_func() -> ephp_func:php_function_results().
+-spec init_func() -> ephp_lib:php_function_results().
 
 init_func() -> [
     {preg_match, [{args, {2, 5, false, [string,
@@ -36,14 +36,14 @@ init_func() -> [
     ]}
 ].
 
--spec init_config() -> ephp_func:php_config_results().
+-spec init_config() -> ephp_lib:php_config_results().
 
 init_config() -> [
     {<<"pcre.backtrack_limit">>, 1000000},
     {<<"pcre.recurssion_limit">>, 100000}
 ].
 
--spec init_const() -> ephp_func:php_const_results().
+-spec init_const() -> ephp_lib:php_const_results().
 
 init_const() ->
     [

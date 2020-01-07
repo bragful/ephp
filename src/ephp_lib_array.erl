@@ -34,7 +34,7 @@
 -define(CASE_LOWER, 0).
 -define(CASE_UPPER, 1).
 
--spec init_func() -> ephp_func:php_function_results().
+-spec init_func() -> ephp_lib:php_function_results().
 
 init_func() -> [
     {in_array, [{args, {2, 3, undefined, [mixed, array, {boolean, false}]}}]},
@@ -67,11 +67,11 @@ init_func() -> [
     {array_pop, [array]}
 ].
 
--spec init_config() -> ephp_func:php_config_results().
+-spec init_config() -> ephp_lib:php_config_results().
 
 init_config() -> [].
 
--spec init_const() -> ephp_func:php_const_results().
+-spec init_const() -> ephp_lib:php_const_results().
 %% @private
 init_const() -> [
     {<<"SORT_REGULAR">>, ?SORT_REGULAR},

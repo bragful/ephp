@@ -102,7 +102,7 @@ register_var(_Ctx, _Var, _Value) ->
 -spec register_func(context(), namespace(),
                     PHPName :: binary(), module(), Fun :: atom(),
                     PackArgs :: boolean(),
-                    ephp_func:validation_args()
+                    ephp_lib:validation_args()
                    ) -> ok | {error, reason()}.
 %% @doc register function in a context passed as a param. The params to be
 %%      sent are the PHP function name, the module, function name and args
@@ -116,7 +116,7 @@ register_func(Ctx, NS, PHPName, Module, Fun, PackArgs, Args) ->
 
 -spec register_func(context(), PHPName :: binary(), module(), Fun :: atom(),
                     PackArgs :: boolean(),
-                    ephp_func:validation_args()
+                    ephp_lib:validation_args()
                    ) -> ok | {error, reason()}.
 %% @doc register function in a context passed as a param. The params to be
 %%      sent are the PHP function name, the module, function name and args

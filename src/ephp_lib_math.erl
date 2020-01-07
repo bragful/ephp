@@ -56,7 +56,7 @@
 -define(M_LNPI, 1.14472988584940017414).
 -define(M_EULER, 0.57721566490153286061).
 
--spec init_func() -> ephp_func:php_function_results().
+-spec init_func() -> ephp_lib:php_function_results().
 
 init_func() -> [
     {php_ceil, [{alias, <<"ceil">>}]},
@@ -87,13 +87,13 @@ init_func() -> [
     pi
 ].
 
--spec init_config() -> ephp_func:php_config_results().
+-spec init_config() -> ephp_lib:php_config_results().
 
 init_config() -> [
     {<<"precision">>, 14}
 ].
 
--spec init_const() -> ephp_func:php_const_results().
+-spec init_const() -> ephp_lib:php_const_results().
 
 init_const() -> [
     {<<"M_PI">>, ?M_PI},

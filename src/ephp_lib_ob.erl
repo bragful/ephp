@@ -17,7 +17,7 @@
 
 -include("ephp.hrl").
 
--spec init_func() -> ephp_func:php_function_results().
+-spec init_func() -> ephp_lib:php_function_results().
 
 init_func() -> [
     ob_start,
@@ -31,7 +31,7 @@ init_func() -> [
     {ob_clean, [{alias, <<"ob_end_clean">>}]}
 ].
 
--spec init_config() -> ephp_func:php_config_results().
+-spec init_config() -> ephp_lib:php_config_results().
 
 init_config() -> [
     {<<"output_buffering">>, 4096},
@@ -39,7 +39,7 @@ init_config() -> [
     {<<"implicit_flush">>, <<"On">>}
 ].
 
--spec init_const() -> ephp_func:php_const_results().
+-spec init_const() -> ephp_lib:php_const_results().
 
 init_const() -> [].
 
