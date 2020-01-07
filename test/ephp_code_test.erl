@@ -14,7 +14,7 @@ eval(Filename) ->
         ephp_config:start_link(?PHP_INI_FILE),
         ephp_config:start_local(),
         {ok, Ctx} = ephp:context_new(AbsFilename),
-        ephp:register_superglobals(Ctx, [Filename]),
+        ephp:register_superglobals(Ctx, Filename, [Filename]),
         {ok, Output} = ephp_output:start_link(Ctx, false),
         ephp_context:set_output_handler(Ctx, Output),
         try
