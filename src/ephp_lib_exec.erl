@@ -39,5 +39,5 @@ handle_error(_Error, _Level, _Data) ->
 shell_exec(_Context, _Line, {_, BaseCommand}) ->
     %% TODO: give more security to this and ensure it's not disabled
     EscapedCommand = ephp_string:escape(ephp_data:to_bin(BaseCommand), $"),
-    Command = binary_to_list(<<"sh -c ", EscapedCommand/binary>>),
+    Command = binary_to_list(<<"LANG=POSIX sh -c ", EscapedCommand/binary>>),
     iolist_to_binary(os:cmd(Command)).
