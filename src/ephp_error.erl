@@ -1,6 +1,5 @@
 -module(ephp_error).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -export([
     start_link/0,

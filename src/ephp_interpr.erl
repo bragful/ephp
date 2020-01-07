@@ -1,6 +1,5 @@
 -module(ephp_interpr).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -export([
     process/2,

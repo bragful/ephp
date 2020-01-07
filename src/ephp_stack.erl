@@ -1,6 +1,6 @@
 -module(ephp_stack).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, {no_auto_import, [get/1]}]).
+-compile([{no_auto_import, [get/1]}]).
 
 -behaviour(gen_server).
 

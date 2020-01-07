@@ -1,8 +1,7 @@
 -module(ephp_lib_vars).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
--behaviour(ephp_func).
+-behaviour(ephp_lib).
 
 -export([
     init_func/0,

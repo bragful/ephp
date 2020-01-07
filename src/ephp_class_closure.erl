@@ -1,6 +1,5 @@
 -module(ephp_class_closure).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 

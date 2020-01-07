@@ -1,6 +1,5 @@
 -module(ephp_parser).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -export([parse/1, parse/2, file/1]).
 

@@ -1,4 +1,6 @@
 -module(ephp_timezone_tests).
+-author('manuel@altenwald.com').
+-compile([warnings_as_errors]).
 
 -include_lib("eunit/include/eunit.hrl").
 

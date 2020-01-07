@@ -15,7 +15,6 @@
 %% @end
 -module(ephp).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -export([
     context_new/0,
@@ -133,30 +132,7 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
 %% @doc register a module.
 %% @see ephp_func
 register_module(Ctx, Module) ->
-    ephp_config:module_init(Module),
-    case erlang:function_exported(Module, handle_error, 3) of
-        true -> ephp_error:add_message_handler(Ctx, Module);
-        false -> ok
-    end,
-    ClassRef = ephp_context:get_classes(Ctx),
-    case erlang:function_exported(Module, get_classes, 0) of
-        true ->
-            Classes = Module:get_classes(),
-            ephp_class:register_classes(ClassRef, Ctx, Classes);
-        false ->
-            ok
-    end,
-    lists:foreach(fun
-        ({Func, Opts}) ->
-            PackArgs = proplists:get_value(pack_args, Opts, false),
-            Name = proplists:get_value(alias, Opts, atom_to_binary(Func, utf8)),
-            Args = proplists:get_value(args, Opts),
-            NS = proplists:get_value(namespace, Opts, []),
-            register_func(Ctx, NS, Name, Module, Func, PackArgs, Args);
-        (Func) ->
-            Name = atom_to_binary(Func, utf8),
-            register_func(Ctx, Name, Module, Func, false, undefined)
-    end, Module:init_func()).
+    ephp_lib:register(Ctx, Module).
 
 -type eval_return() ::
       {ok, Result :: ephp_interpr:flow_status()} |

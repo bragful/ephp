@@ -1,6 +1,7 @@
 -module(ephp_lib_info).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
+
+-behaviour(ephp_lib).
 
 -include_lib("stdlib/include/zip.hrl").
 -include("ephp.hrl").

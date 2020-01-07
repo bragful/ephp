@@ -1,6 +1,5 @@
 -module(ephp_parser_func).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 -include("ephp_parser.hrl").

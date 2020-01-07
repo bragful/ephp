@@ -4,7 +4,7 @@
 
 -include("ephp.hrl").
 
--behaviour(ephp_func).
+-behaviour(ephp_lib).
 
 -export([
     init_func/0,

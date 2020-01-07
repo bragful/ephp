@@ -4,7 +4,6 @@
 %% @end
 -module(ephp_cover).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -behaviour(gen_server).
 

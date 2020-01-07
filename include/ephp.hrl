@@ -468,7 +468,7 @@
     code :: [statement()] | {module(), Func :: atom()} | undefined,
     builtin :: {Module :: atom(), Func :: atom()} | undefined,
     pack_args = false :: boolean(),
-    validation_args :: ephp_func:validation_args(),
+    validation_args :: ephp_lib:validation_args(),
     static = [] :: static(),
     final = false :: boolean(),
     class_name :: class_name() | undefined,
@@ -518,7 +518,7 @@
     code = [] :: [statement()],
     builtin :: {Module :: atom(), Func :: atom()} | undefined,
     pack_args = false :: boolean(),
-    validation_args :: ephp_func:validation_args(),
+    validation_args :: ephp_lib:validation_args(),
     static = [] :: static()
 }).
 

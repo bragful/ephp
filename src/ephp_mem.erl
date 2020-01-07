@@ -1,6 +1,6 @@
 -module(ephp_mem).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors, {no_auto_import, [get/1]}]).
+-compile([{no_auto_import, [get/1]}]).
 
 -include("ephp.hrl").
 

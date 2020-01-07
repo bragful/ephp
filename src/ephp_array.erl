@@ -13,7 +13,6 @@
 %% @end
 -module(ephp_array).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 

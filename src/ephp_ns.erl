@@ -4,7 +4,6 @@
 %% @end
 -module(ephp_ns).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -include("ephp.hrl").
 

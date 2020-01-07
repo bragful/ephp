@@ -1,6 +1,5 @@
 -module(ephp_stream).
 -author('manuel@altenwald.com').
--compile([warnings_as_errors]).
 
 -include_lib("kernel/include/file.hrl").
 -include("ephp.hrl").
