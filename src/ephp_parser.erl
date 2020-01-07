@@ -1233,6 +1233,7 @@ add_line(#variable{}=V, Parser) -> V#variable{line = get_line(Parser)};
 add_line(#constant{}=O, Parser) -> O#constant{line = get_line(Parser)};
 add_line(#int{}=I, Parser) -> I#int{line = get_line(Parser)};
 add_line(#float{}=F, Parser) -> F#float{line = get_line(Parser)};
+add_line(#php_n{}=N, Parser) -> N#php_n{line = get_line(Parser)};
 add_line(#text_to_process{}=T, Parser) ->
     T#text_to_process{line = get_line(Parser)};
 add_line(#text{}=T, Parser) -> T#text{line = get_line(Parser)};

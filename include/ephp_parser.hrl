@@ -145,3 +145,9 @@
 }).
 
 -type parser() :: #parser{}.
+
+-record(php_n, {
+    n :: binary(),
+    type = int :: int | float,
+    line :: line()
+}).

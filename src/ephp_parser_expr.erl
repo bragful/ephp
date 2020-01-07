@@ -110,33 +110,33 @@ number(<<"0", X:8, Rest/binary>>, Parser, []) when ?OR(X, $X, $x) ->
 number(<<"0", N:8, Rest/binary>>, Parser, []) when ?IS_OCT(N) ->
     octa(<<N:8, Rest/binary>>, add_pos(Parser, 2), []);
 number(<<A:8, Rest/binary>>, Parser, []) when ?IS_NUMBER(A) orelse A =:= $- ->
-    number(Rest, inc_pos(Parser), [add_line(#int{int = <<A:8>>}, Parser)]);
-number(<<A:8, Rest/binary>>, Parser, [#int{int = N} = I]) when ?IS_NUMBER(A) ->
-    number(Rest, inc_pos(Parser), [I#int{int = <<N/binary,A:8>>}]);
+    number(Rest, inc_pos(Parser), [add_line(#php_n{n = <<A:8>>}, Parser)]);
+number(<<A:8, Rest/binary>>, Parser, [#php_n{n = N} = I]) when ?IS_NUMBER(A) ->
+    number(Rest, inc_pos(Parser), [I#php_n{n = <<N/binary,A:8>>}]);
 number(<<".", Rest/binary>>, Parser, []) ->
-    number(Rest, inc_pos(Parser), [add_line(#float{float = <<"0.">>}, Parser)]);
-number(<<".", Rest/binary>>, Parser, [#int{int = N, line = Line}]) ->
-    number(Rest, inc_pos(Parser), [#float{float = <<N/binary,".">>, line = Line}]);
-number(<<A:8, Rest/binary>>, Parser, [#float{float = N} = F]) when ?IS_NUMBER(A) ->
-    number(Rest, inc_pos(Parser), [F#float{float = <<N/binary, A:8>>}]);
-number(Rest, Parser, [#int{int = N} = I]) ->
-    {Rest, Parser, [I#int{int = binary_to_integer(N)}]};
-number(Rest, Parser, [#float{float = N} = F]) ->
-    {Rest, Parser, [F#float{float = binary_to_float(N)}]}.
+    Exp = add_line(#php_n{n = <<"0.">>, type = float}, Parser),
+    number(Rest, inc_pos(Parser), [Exp]);
+number(<<".", Rest/binary>>, Parser, [#php_n{n = N} = Exp0]) ->
+    Exp = Exp0#php_n{n = <<N/binary, ".">>, type = float},
+    number(Rest, inc_pos(Parser), [Exp]);
+number(Rest, Parser, [#php_n{n = N, type = int, line = L}]) ->
+    {Rest, Parser, [#int{int = binary_to_integer(N), line = L}]};
+number(Rest, Parser, [#php_n{n = N, type = float, line = L}]) ->
+    {Rest, Parser, [#float{float = binary_to_float(N), line = L}]}.
 
-hexa(<<A:8,Rest/binary>>, Parser, []) when ?IS_HEX(A) ->
-    hexa(Rest, inc_pos(Parser), [add_line(#int{int = <<A:8>>}, Parser)]);
-hexa(<<A:8,Rest/binary>>, Parser, [#int{int=N}=I]) when ?IS_HEX(A) ->
-    hexa(Rest, inc_pos(Parser), [I#int{int = <<N/binary, A:8>>}]);
-hexa(Rest, Parser, [#int{int = N} = I]) ->
-    {Rest, Parser, [I#int{int = binary_to_integer(N, 16)}]}.
+hexa(<<A:8, Rest/binary>>, Parser, []) when ?IS_HEX(A) ->
+    hexa(Rest, inc_pos(Parser), [add_line(#php_n{n = <<A:8>>}, Parser)]);
+hexa(<<A:8, Rest/binary>>, Parser, [#php_n{n = N} = I]) when ?IS_HEX(A) ->
+    hexa(Rest, inc_pos(Parser), [I#php_n{n = <<N/binary, A:8>>}]);
+hexa(Rest, Parser, [#php_n{n = N, line = L}]) ->
+    {Rest, Parser, [#int{int = binary_to_integer(N, 16), line = L}]}.
 
-octa(<<A:8,Rest/binary>>, Parser, []) when ?IS_OCT(A) ->
-    octa(Rest, inc_pos(Parser), [add_line(#int{int = <<A:8>>}, Parser)]);
-octa(<<A:8,Rest/binary>>, Parser, [#int{int=N}=I]) when ?IS_OCT(A) ->
-    octa(Rest, inc_pos(Parser), [I#int{int = <<N/binary, A:8>>}]);
-octa(Rest, Parser, [#int{int = N} = I]) ->
-    {Rest, Parser, [I#int{int = binary_to_integer(N, 8)}]}.
+octa(<<A:8, Rest/binary>>, Parser, []) when ?IS_OCT(A) ->
+    octa(Rest, inc_pos(Parser), [add_line(#php_n{n = <<A:8>>}, Parser)]);
+octa(<<A:8, Rest/binary>>, Parser, [#php_n{n = N} = I]) when ?IS_OCT(A) ->
+    octa(Rest, inc_pos(Parser), [I#php_n{n = <<N/binary, A:8>>}]);
+octa(Rest, Parser, [#php_n{n = N, line = L}]) ->
+    {Rest, Parser, [#int{int = binary_to_integer(N, 8), line = L}]}.
 
 array_def(<<SP:8,Rest/binary>>, Parser, Args) when ?IS_SPACE(SP) ->
     array_def(Rest, inc_pos(Parser), Args);
