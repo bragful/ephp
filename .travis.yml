@@ -4,32 +4,33 @@ install: "sudo pip install codecov"
 after_success: "codecov"
 dist: trusty
 otp_release:
-- 22.2
-- 22.1
-- 22.0
-- 21.3
-- 21.2
-- 21.1
-- 21.0
+- 18.0
+- 18.1
+- 18.2
+- 18.2.1
+- 18.3
+- 19.0
+- 19.1
+- 19.2
+- 19.3
+- 20.0
+- 20.1
+- 20.2
 # fails in math and number conversion:
 #- 20.3
-- 20.2
-- 20.1
-- 20.0
-- 19.3
-- 19.2
-- 19.1
-- 19.0
-- 18.3
-- 18.2.1
-- 18.2
-- 18.1
-- 18.0
-notifications:
-  slack:
-    secure: R/DFvrTxdCqOtfQ9Fp9x21Dsd74nltDk98LR8Gq/hydJIR8IC6I62b8XLje74YFb0yjtXc6v3AIrZAu8WuLDn6fij+yGV0nRy4z3pZA2Sq9qN1QEZ2MYpRJWy36ZU4qf/ST3ZcUArIQr7hGslpSEJy7f6PhKajcU/5p97Ps3k2s=
+- 21.0
+- 21.1
+- 21.2
+- 21.3
+- 22.0
+- 22.1
+# using this last one with dialyzer (see below)
+#- 22.2
 jobs:
   include:
     - language: erlang
       otp_release: 22.2
       script: "make compile test check"
+notifications:
+  slack:
+    secure: R/DFvrTxdCqOtfQ9Fp9x21Dsd74nltDk98LR8Gq/hydJIR8IC6I62b8XLje74YFb0yjtXc6v3AIrZAu8WuLDn6fij+yGV0nRy4z3pZA2Sq9qN1QEZ2MYpRJWy36ZU4qf/ST3ZcUArIQr7hGslpSEJy7f6PhKajcU/5p97Ps3k2s=
