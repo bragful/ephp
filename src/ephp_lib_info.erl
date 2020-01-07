@@ -224,8 +224,7 @@ safe_append(K, V, Dict) ->
 phpinfo_metadata() ->
     OtpRelease = list_to_binary(erlang:system_info(otp_release)),
     IniFile = filename:dirname(?PHP_INI_FILE),
-    Directives = [ Cfg || {K, _} = Cfg <- application:get_all_env(ephp),
-                   is_binary(K) or is_integer(K) ],
+    Directives = ephp_config:get_all(),
     ArrDirectives = process_directives(Directives),
     Streams = ephp_array:from_list(ephp_stream:list_streams()),
     ephp_array:from_list([{<<"version">>, ?PHP_VERSION},

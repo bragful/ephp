@@ -9,6 +9,7 @@
     start_local/0,
     stop_local/0,
 
+    get_all/0,
     get/1,
     get/2,
     get_bool/1,
@@ -41,7 +42,7 @@ start_link(File) ->
 -spec start_local() -> ok.
 
 start_local() ->
-    Config = lists:foldl(fun({K,V}, Dict) ->
+    Config = lists:foldl(fun({K, V}, Dict) ->
         dict:store(K, V, Dict)
     end, dict:new(), application:get_all_env(ephp)),
     erlang:put(ephp_config, Config),
@@ -54,6 +55,17 @@ stop_local() ->
     ok.
 
 -type config_key() :: binary() | atom().
+
+-spec get_all() -> [{config_key(), mixed()}].
+
+get_all() ->
+    AllConfig = case erlang:get(ephp_config) of
+        undefined ->
+            application:get_all_env(ephp);
+        AllConfigDict ->
+            dict:to_list(AllConfigDict)
+    end,
+    [ Cfg || {K, _} = Cfg <- AllConfig, is_binary(K) or is_integer(K) ].
 
 -spec get(config_key()) -> mixed().
 
