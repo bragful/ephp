@@ -892,6 +892,9 @@ gen_op([{Op, {_, _}, Parser}|Rest], [B, A|Stack]) ->
 gen_op([A|Rest], Stack) ->
     gen_op(Rest, [A|Stack]).
 
+-spec add_to_array(php_array(), parser(),
+                   php_integer() | php_float() | text()) -> php_array().
+%% @hidden
 add_to_array(#array{elements = E} = Array, Parser, Element) ->
     Array#array{elements = E ++ [
         add_line(#array_element{element = Element}, Parser)

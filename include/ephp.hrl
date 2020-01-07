@@ -102,10 +102,21 @@
 
 -type ephp_array() :: #ephp_array{}.
 
--type php_float() :: float() | nan | infinity.
+-record(int, {
+    int :: integer(),
+    line :: line()
+}).
+
+-record(float, {
+    float :: float() | nan | infinity,
+    line :: line()
+}).
+
+-type php_float() :: float() | nan | infinity | #float{}.
+-type php_integer() :: integer() | #int{}.
 
 -type mixed() ::
-    integer() | php_float() | binary() | boolean() | ephp_array() |
+    php_integer() | php_float() | binary() | boolean() | ephp_array() |
     obj_ref() | mem_ref() | var_ref() | undefined | resource().
 
 -type var_value() :: {variable() | constant() | text() | text_to_process() | mixed(), mixed()}.
@@ -251,18 +262,6 @@
 
 -type global() :: #global{}.
 
--record(int, {
-    %% we need binary during the parsing only
-    int :: integer() | binary(),
-    line :: line()
-}).
-
--record(float, {
-    %% we need binary during the parsing only
-    float :: float() | nan | infinity | binary(),
-    line :: line()
-}).
-
 -record(text, {
     text :: binary(),
     line :: line()
@@ -349,7 +348,7 @@
     type = normal :: call_types(),
     class :: undefined | class_name(),
     namespace = [] :: namespace(),
-    name :: obj_ref() | callable() | st_function(),
+    name :: obj_ref() | callable() | st_function() | variable(),
     args = [] :: [expression()] | undefined,
     line :: line()
 }).
@@ -363,7 +362,7 @@
     namespace = [] :: namespace(),
     args = [] :: [variable()],
     use = [] :: [variable()],
-    code :: statements(),
+    code = [] :: statements(),
     return_ref = false :: boolean(),
     line :: line()
 }).

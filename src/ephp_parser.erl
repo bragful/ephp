@@ -1290,6 +1290,8 @@ throw_error(Error, #parser{row = Row, col = Col}, ErrorLevel, Data) ->
     Index = {{line, Row}, {column, Col}},
     ephp_error:error({error, Error, Index, ErrorLevel, Data}).
 
+-spec throw_error(atom(), parser(), any()) -> no_return().
+
 throw_error(Error, Parser, Data) when is_binary(Data) ->
     Output = iolist_to_binary(Data),
     Size = min(byte_size(Output), 20),

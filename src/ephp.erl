@@ -29,12 +29,18 @@
 
     start/0,
     main/1,   %% for escriptize
-    register_superglobals/2
+    register_superglobals/2,
+    register_superglobals/3
 ]).
 
 -ifdef(TEST).
 -export([stop_cover/0]).
 -endif.
+
+-define(ERRORLEVEL_OK, 0).
+-define(ERRORLEVEL_1, 1).
+-define(ERRORLEVEL_2, 2).
+-define(ERRORLEVEL_3, 3).
 
 -export_type([
     context_id/0,
@@ -206,7 +212,7 @@ maybe_die(Fun) ->
     end.
 
 -spec opt_spec_list() -> [getopt:option_spec()].
-
+%% @hidden
 opt_spec_list() -> [
     {help, $h, "help", undefined, "This help information."},
     {dir, $d, "dir", string, "Check directory for missing implemented PHP functions."},
@@ -229,27 +235,46 @@ start() ->
     application:set_env(ephp, modules, ?MODULES),
     ok.
 
-usage(ErrorLevel) ->
+-ifndef(TEST).
+-type quit_return() :: no_return().
+-spec quit(non_neg_integer() | abort | [char()]) -> no_return().
+%% @hidden
+quit(Code) ->
+    erlang:halt(Code).
+-else.
+-type quit_return() :: integer().
+-spec quit(non_neg_integer() | abort | [char()]) -> non_neg_integer() | abort | [char()].
+%% @hidden
+quit(Code) ->
+    Code.
+-endif.
+
+-spec usage() -> ok.
+%% @doc shows the help information.
+usage() ->
     ScriptName = try
         escript:script_name()
     catch error:{badarg, []} ->
         "ephp"
     end,
     getopt:usage(opt_spec_list(), ScriptName),
-    quit(ErrorLevel).
+    ok.
 
--spec main(Args :: [string()]) -> integer().
+-spec main(Args :: [string()]) -> quit_return().
 %% @doc called from script passing the name of the filename to be run or
 %%      nothing to show the help message.
 %% @end
 main(Args) ->
     case getopt:parse(opt_spec_list(), Args) of
         {ok, {Opts, _OtherArgs}} when Opts =/= [] ->
-            main(Opts, Args);
+            quit(main(Opts, Args));
         _Else ->
-            usage(1)
+            usage(),
+            quit(?ERRORLEVEL_1)
     end.
 
+-spec main(Opts :: [getopt:option()], Args :: [string()]) -> integer().
+%% @hidden
 main([{dir, Dir}|_], _RawArgs) ->
     start(),
     {Funcs, TotalOk, Total} = parse_subdirs(Dir),
@@ -268,19 +293,19 @@ main([{dir, Dir}|_], _RawArgs) ->
     io:format("~nFunctions FOUND=~p Total=~p (~p%) / Code OK=~p Total=~p (~p%)~n",
               [FTotalOk, FTotal, ephp_data:ceiling(FTotalOk * 100 / FTotal),
                TotalOk, Total, ephp_data:ceiling(TotalOk * 100 / Total)]),
-    quit(0);
+    ?ERRORLEVEL_OK;
 
 main([{check, File}|_], _RawArgs) ->
     maybe_badmatch(fun() ->
         ephp_parser:file(File),
         io:format("No syntax errors detected in: ~s~n", [File]),
-        quit(0)
+        ?ERRORLEVEL_OK
     end, File);
 
 main([{parse, File}|_], _RawArgs) ->
     maybe_badmatch(fun() ->
         io:format("parsing =>~n~p~n---~n", [ephp_parser:file(File)]),
-        quit(0)
+        ?ERRORLEVEL_OK
     end, File);
 
 main([info|_], _RawArgs) ->
@@ -288,27 +313,28 @@ main([info|_], _RawArgs) ->
     Content = <<"<?php phpinfo();">>,
     ephp_config:start_link(?PHP_INI_FILE),
     {ok, Ctx} = context_new(<<"-">>),
-    register_superglobals(Ctx, ["-"]),
+    register_superglobals(Ctx, []),
     {ok, _} = eval(<<"-">>, Ctx, Content),
     output_and_close(Ctx),
-    quit(0);
+    ?ERRORLEVEL_OK;
 
 main([{run, Code}|_], _RawArgs) ->
     start(),
     Content = list_to_binary("<?php " ++ Code),
     ephp_config:start_link(?PHP_INI_FILE),
     {ok, Ctx} = context_new(<<"-">>),
-    register_superglobals(Ctx, ["-"]),
+    register_superglobals(Ctx, []),
     case eval(<<"-">>, Ctx, Content) of
         {ok, _Return} ->
             output_and_close(Ctx),
-            quit(0);
+            ?ERRORLEVEL_OK;
         {error, _Reason, _Index, _File, _Level, _Data} ->
-            quit(1)
+            ?ERRORLEVEL_1
     end;
 
 main([help|_], _) ->
-    usage(0);
+    usage(),
+    ?ERRORLEVEL_OK;
 
 main([{file, Filename}|_], RawArgs) ->
     start(),
@@ -319,56 +345,47 @@ main([{file, Filename}|_], RawArgs) ->
         AbsFilename = list_to_binary(filename:absname(Filename)),
         ephp_config:start_link(?PHP_INI_FILE),
         {ok, Ctx} = context_new(AbsFilename),
-        register_superglobals(Ctx, RawArgs),
+        register_superglobals(Ctx, Filename, RawArgs),
         case eval(AbsFilename, Ctx, Content) of
             {ok, _Return} ->
                 output_and_close(Ctx),
                 stop_profiling(),
                 stop_cover(),
-                quit(0);
+                ?ERRORLEVEL_OK;
             {error, _Reason, _Index, _File, _Level, _Data} ->
                 stop_profiling(),
-                quit(1)
+                ?ERRORLEVEL_1
         end;
     {error, enoent} ->
         io:format("File not found: ~s~n", [Filename]),
-        quit(2);
+        ?ERRORLEVEL_2;
     {error, Reason} ->
         io:format("Error: ~p~n", [Reason]),
-        quit(3)
+        ?ERRORLEVEL_3
     end;
 
 main(_, _) ->
-    usage(1).
+    usage(),
+    ?ERRORLEVEL_1.
 
+-spec maybe_badmatch(fun(() -> integer()), string()) -> integer().
+%% @hidden
 maybe_badmatch(Fun, File) ->
     try
         Fun()
     catch
         error:{badmatch, {error, enoent}} ->
             io:format("Could not open input file: ~s~n", [File]),
-            quit(1)
+            ?ERRORLEVEL_1
     end.
 
 -spec output_and_close(context()) -> ok.
-
+%% @hidden
 output_and_close(Ctx) ->
     Result = ephp_context:get_output(Ctx),
     io:format("~s", [Result]),
     ephp_context:destroy_all(Ctx),
     ok.
-
--ifndef(TEST).
--spec quit(non_neg_integer() | abort | [char()]) -> no_return().
-%% @hidden
-quit(Code) ->
-    erlang:halt(Code).
--else.
--spec quit(non_neg_integer() | abort | [char()]) -> non_neg_integer() | abort | [char()].
-%% @hidden
-quit(Code) ->
-    Code.
--endif.
 
 -ifdef(PROFILING).
 
@@ -419,32 +436,36 @@ stop_cover() ->
 
 -spec register_superglobals(context(), [string()]) -> ok.
 %% @doc register the superglobals variables in the context passed as param.
-register_superglobals(Ctx, [Filename|_] = RawArgs) when is_list(Filename) ->
+%%      by default this function set the filename as "-".
+%% @end
+register_superglobals(Ctx, RawArgs) ->
+    register_superglobals(Ctx, "-", RawArgs).
+
+
+-spec register_superglobals(context(), string(), [string()]) -> ok.
+%% @doc register the superglobals variables in the context passed as param.
+register_superglobals(Ctx, Filename, RawArgs) ->
     Args = [ ephp_data:to_bin(RawArg) || RawArg <- RawArgs ],
     ArrayArgs = ephp_array:from_list(Args),
-    Server = [
+    ArrayServer = ephp_array:from_list([
         %% TODO: add the rest of _SERVER vars
         {<<"argc">>, ephp_array:size(ArrayArgs)},
         {<<"argv">>, ArrayArgs},
         {<<"PHP_SELF">>, list_to_binary(Filename)}
-    ],
-    ephp_context:set(Ctx, #variable{name = <<"_SERVER">>},
-                     ephp_array:from_list(Server)),
-    ephp_context:set(Ctx, #variable{name = <<"argc">>},
-                     ephp_array:size(ArrayArgs)),
-    ephp_context:set(Ctx, #variable{name = <<"argv">>}, ArrayArgs),
-    SuperGlobals = [
-        <<"_GET">>,
-        <<"_POST">>,
-        <<"_FILES">>,
-        <<"_COOKIE">>,
-        <<"_SESSION">>,
-        <<"_REQUEST">>,
-        <<"_ENV">>
-    ],
-    lists:foreach(fun(Global) ->
-        ephp_context:set(Ctx, #variable{name = Global}, ephp_array:new())
-    end, SuperGlobals),
+    ]),
+    ArrayNew = ephp_array:new(),
+    ephp_context:set_bulk(Ctx, [
+        {<<"_SERVER">>, ArrayServer},
+        {<<"argc">>, ephp_array:size(ArrayArgs)},
+        {<<"argv">>, ArrayArgs},
+        {<<"_GET">>, ArrayNew},
+        {<<"_POST">>, ArrayNew},
+        {<<"_FILES">>, ArrayNew},
+        {<<"_COOKIE">>, ArrayNew},
+        {<<"_SESSION">>, ArrayNew},
+        {<<"_REQUEST">>, ArrayNew},
+        {<<"_ENV">>, ArrayNew}
+    ]),
     ok.
 
 -spec get_use_funcs([tuple()], [binary()]) -> [binary()].
