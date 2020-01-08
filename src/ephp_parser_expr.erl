@@ -210,7 +210,7 @@ expression(<<"[", Rest/binary>>, Parser, [{op, []}|_] = Parsed) ->
     {Rest1, Parser1, Content} = array_def(Rest, NewParser, []),
     NewParsed = add_op(add_line(#array{elements = Content}, Parser), Parsed),
     expression(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
-expression(<<"[", Rest/binary>>, Parser, [{op, Op}|_] = Parsed) ->
+expression(<<"[", Rest/binary>>, Parser, [{op, Op}|LastParsed] = Parsed) ->
     case lists:last(Op) of
         {_, {RightOrLeft, _}, _} when RightOrLeft =:= right orelse
                                       RightOrLeft =:= left ->
@@ -221,10 +221,20 @@ expression(<<"[", Rest/binary>>, Parser, [{op, Op}|_] = Parsed) ->
             expression(Rest1, copy_rowcol(Parser1, Parser), NewParsed);
         _ ->
             % ARRAY INDEX
-            NewParsed = [#variable{name = add_op('end', Parsed)}],
-            {Rest0, Parser0, [Parsed0]} =
-                variable(<<"[",Rest/binary>>, Parser, NewParsed),
-            expression(Rest0, Parser0, add_op(Parsed0, []))
+            case Op of
+                [_] ->
+                    NewParsed = [#variable{name = add_op('end', Parsed)}],
+                    {Rest0, Parser0, [Parsed0]} =
+                        variable(<<"[", Rest/binary>>, Parser, NewParsed),
+                    expression(Rest0, Parser0, add_op(Parsed0, []));
+                _ ->
+                    {PrevOp, [LastOp]} = lists:split(length(Op) - 1, Op),
+                    NewLastOp = [#variable{name = LastOp}],
+                    {Rest0, Parser0, Parsed0} =
+                        variable(<<"[", Rest/binary>>, Parser, NewLastOp),
+                    NewOp = [{op, PrevOp ++ Parsed0}|LastParsed],
+                    expression(Rest0, Parser0, NewOp)
+            end
     end;
 % NULL
 expression(<<N:8,U:8,L:8,L:8,SP:8,Rest/binary>>, Parser, Parsed)
@@ -321,7 +331,7 @@ expression(<<"#",Rest/binary>>, Parser, Parsed) ->
 expression(<<"/*",Rest/binary>>, Parser, Parsed) ->
     {Rest0, Parser0, _} = comment_block(Rest, Parser, Parsed),
     expression(Rest0, Parser0, Parsed);
-% FUNCTION CALL
+% FUNCTION CALL / PARENS
 expression(<<"(",Rest/binary>>, Parser, [{op, Op}|Parsed]) ->
     {Op1, Op2} = case length(Op) of
         0 ->
@@ -333,19 +343,21 @@ expression(<<"(",Rest/binary>>, Parser, [{op, Op}|Parsed]) ->
     end,
     case Op2 of
         [#variable{} = V] ->
+            % FUNCTION CALL
             Call = #call{name = V, line = V#variable.line},
             {Rest0, Parser0, [Function]} =
                 ephp_parser_func:function(Rest, inc_pos(Parser), [Call|Parsed]),
             NewOp = {op, Op1 ++ [Function]},
             expression(Rest0, copy_rowcol(Parser0, Parser), [NewOp|Parsed]);
         _ ->
+            % NORMAL PARENS
             exp_parens(Rest, inc_pos(Parser), [{op, Op}|Parsed])
     end;
 % PARENS
 expression(<<"(", Rest/binary>>, Parser, Parsed) ->
     % FIXME: this is inconsistent, sometimes is expecting to remove ")"
     %        and sometimes is not.
-    exp_parens(Rest, Parser, Parsed);
+    exp_parens(Rest, inc_pos(Parser), Parsed);
 % FINAL -arg-
 expression(<<",", _/binary>> = Rest, #parser{level = array} = Parser, Parsed) ->
     {Rest, Parser, add_op('end', Parsed)};
@@ -612,11 +624,11 @@ expression(<<"{", _/binary>>, Parser, _Parsed) ->
 expression(<<>>, Parser, _Parsed) ->
     throw_error(eparse, Parser, <<>>).
 
-exp_parens(Rest, #parser{level = L, col = C} = Parser, Parsed) when not is_number(L) ->
-    {Rest0, Parser0, Op} = expression(Rest, Parser#parser{level = 1, col = C + 1}, []),
+exp_parens(Rest, #parser{level = L} = Parser, Parsed) when not is_number(L) ->
+    {Rest0, Parser0, Op} = expression(Rest, Parser#parser{level = 1}, []),
     expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Op, Parsed));
-exp_parens(Rest, #parser{level = L, col = C} = Parser, Parsed) ->
-    {Rest0, Parser0, Op} = expression(Rest, Parser#parser{level = L + 1, col = C + 1}, []),
+exp_parens(Rest, #parser{level = L} = Parser, Parsed) ->
+    {Rest0, Parser0, Op} = expression(Rest, Parser#parser{level = L + 1}, []),
     expression(Rest0, copy_rowcol(Parser0, Parser), add_op(Op, Parsed)).
 
 -type associativity() :: no_assoc | left | right.
