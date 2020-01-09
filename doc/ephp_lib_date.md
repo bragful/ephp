@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### date/3 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+date(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### date/4 ###
 
 <pre><code>
-date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Timestamp::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+date(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Timestamp::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ date(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### date_default_timezone_get/2 ###
 
 <pre><code>
-date_default_timezone_get(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+date_default_timezone_get(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ date_default_timezone_get(Context::<a href="#type-context">context()</a>, Line::
 ### date_default_timezone_set/3 ###
 
 <pre><code>
-date_default_timezone_set(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, TZ::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+date_default_timezone_set(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, TZ::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ date_default_timezone_set(Context::<a href="#type-context">context()</a>, Line::
 ### gmdate/3 ###
 
 <pre><code>
-gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+gmdate(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### gmdate/4 ###
 
 <pre><code>
-gmdate(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Timestamp::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+gmdate(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Timestamp::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### microtime/2 ###
 
 <pre><code>
-microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; float() | binary()
+microtime(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; float() | binary()
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### microtime/3 ###
 
 <pre><code>
-microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, GetAsFloat::{<a href="#type-variable">variable()</a> | undefined, boolean()}) -&gt; float() | binary()
+microtime(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, GetAsFloat::{<a href="#type-variable">variable()</a> | undefined, boolean()}) -&gt; float() | binary()
 </code></pre>
 <br />
 
@@ -131,7 +131,7 @@ microtime(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### time/2 ###
 
 <pre><code>
-time(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; integer()
+time(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -140,7 +140,7 @@ time(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### timezone_abbreviations_list/2 ###
 
 <pre><code>
-timezone_abbreviations_list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+timezone_abbreviations_list(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 

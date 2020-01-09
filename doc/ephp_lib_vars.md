@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### empty/3 ###
 
 <pre><code>
-empty(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+empty(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ empty(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### gettype/3 ###
 
 <pre><code>
-gettype(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+gettype(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ gettype(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### isset/3 ###
 
 <pre><code>
-isset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{<a href="#type-variable">variable()</a>, <a href="#type-variable">variable()</a>}) -&gt; boolean()
+isset(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{<a href="#type-variable">variable()</a>, <a href="#type-variable">variable()</a>}) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ isset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### php_is_array/3 ###
 
 <pre><code>
-php_is_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_array(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ php_is_array(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### php_is_bool/3 ###
 
 <pre><code>
-php_is_bool(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_bool(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ php_is_bool(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### php_is_float/3 ###
 
 <pre><code>
-php_is_float(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_float(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ php_is_float(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### php_is_integer/3 ###
 
 <pre><code>
-php_is_integer(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_integer(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ php_is_integer(Context::<a href="#type-context">context()</a>, Line::<a href="#t
 ### php_is_null/3 ###
 
 <pre><code>
-php_is_null(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Var::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_null(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Var::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ php_is_null(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### php_is_numeric/3 ###
 
 <pre><code>
-php_is_numeric(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_numeric(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -131,7 +131,7 @@ php_is_numeric(Context::<a href="#type-context">context()</a>, Line::<a href="#t
 ### php_is_object/3 ###
 
 <pre><code>
-php_is_object(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_object(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -140,7 +140,7 @@ php_is_object(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 ### php_is_resource/3 ###
 
 <pre><code>
-php_is_resource(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_resource(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -149,7 +149,7 @@ php_is_resource(Context::<a href="#type-context">context()</a>, Line::<a href="#
 ### php_is_string/3 ###
 
 <pre><code>
-php_is_string(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+php_is_string(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -158,7 +158,7 @@ php_is_string(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 ### print_r/3 ###
 
 <pre><code>
-print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Vars::<a href="#type-var_value">var_value()</a>) -&gt; true | binary()
+print_r(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Vars::<a href="#type-var_value">var_value()</a>) -&gt; true | binary()
 </code></pre>
 <br />
 
@@ -167,7 +167,7 @@ print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### print_r/4 ###
 
 <pre><code>
-print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, Output::<a href="#type-var_value">var_value()</a>) -&gt; true | binary()
+print_r(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, Output::<a href="#type-var_value">var_value()</a>) -&gt; true | binary()
 </code></pre>
 <br />
 
@@ -176,7 +176,7 @@ print_r(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### unset/3 ###
 
 <pre><code>
-unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{<a href="#type-variable">variable()</a>, <a href="#type-variable">variable()</a>}) -&gt; undefined
+unset(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{<a href="#type-variable">variable()</a>, <a href="#type-variable">variable()</a>}) -&gt; undefined
 </code></pre>
 <br />
 
@@ -185,7 +185,7 @@ unset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### var_dump/3 ###
 
 <pre><code>
-var_dump(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>] | <a href="#type-var_value">var_value()</a>) -&gt; undefined
+var_dump(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>] | <a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 

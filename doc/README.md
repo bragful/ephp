@@ -47,7 +47,7 @@ And a post to know how to write a stand-alone server with Erlang, without write 
 
 ### <a name="Requirements">Requirements</a> ###
 
-ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are full compatible or recommended. See the list:
+ePHP requires to be run over an Erlang/OTP 19+, but not all the versions are full compatible or recommended. See the list:
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
@@ -66,11 +66,6 @@ ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are ful
 | 19.2 | :heavy_check_mark: | |
 | 19.1 | :heavy_check_mark: | |
 | 19.0 | :heavy_check_mark: | |
-| 18.3 | :heavy_check_mark: | Recommended if you use OTP 18 |
-| 18.2.1 | :heavy_check_mark: | |
-| 18.2 | :heavy_check_mark: | |
-| 18.1 | :heavy_check_mark: | |
-| 18.0 | :heavy_check_mark: | |
 
 
 ### <a name="Getting_Started">Getting Started</a> ###
@@ -127,6 +122,7 @@ ephp_context:register_func(Ctx, <<"time">>, ephp_lib_date, time).
 <tr><td><a href="ephp_func.md" class="module">ephp_func</a></td></tr>
 <tr><td><a href="ephp_include.md" class="module">ephp_include</a></td></tr>
 <tr><td><a href="ephp_interpr.md" class="module">ephp_interpr</a></td></tr>
+<tr><td><a href="ephp_lib.md" class="module">ephp_lib</a></td></tr>
 <tr><td><a href="ephp_lib_array.md" class="module">ephp_lib_array</a></td></tr>
 <tr><td><a href="ephp_lib_class.md" class="module">ephp_lib_class</a></td></tr>
 <tr><td><a href="ephp_lib_control.md" class="module">ephp_lib_control</a></td></tr>

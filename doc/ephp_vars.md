@@ -33,7 +33,7 @@
 ### destroy/2 ###
 
 <pre><code>
-destroy(Ctx::<a href="#type-context">context()</a>, VarsRef::<a href="ephp.md#type-vars_id">ephp:vars_id()</a>) -&gt; ok
+destroy(Ctx::<a href="ephp.md#type-context_id">ephp:context_id()</a>, VarsRef::<a href="ephp.md#type-vars_id">ephp:vars_id()</a>) -&gt; ok
 </code></pre>
 <br />
 

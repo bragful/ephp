@@ -39,7 +39,7 @@ get_funcs(Ref::reference()) -&gt; [<a href="#type-callable">callable()</a>]
 ### register_func/3 ###
 
 <pre><code>
-register_func(Ref::reference(), NS::<a href="#type-namespace">namespace()</a>, FuncName::<a href="#type-callable">callable()</a>) -&gt; ok
+register_func(Ref::reference(), NS::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, FuncName::<a href="#type-callable">callable()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -48,7 +48,7 @@ register_func(Ref::reference(), NS::<a href="#type-namespace">namespace()</a>, F
 ### shutdown/1 ###
 
 <pre><code>
-shutdown(Context::<a href="#type-context">context()</a>) -&gt; undefined
+shutdown(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -66,7 +66,7 @@ start_link() -&gt; {ok, reference()}
 ### unregister_func/3 ###
 
 <pre><code>
-unregister_func(Ref::reference(), NS::<a href="#type-namespace">namespace()</a>, FuncName::<a href="#type-callable">callable()</a>) -&gt; ok
+unregister_func(Ref::reference(), NS::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, FuncName::<a href="#type-callable">callable()</a>) -&gt; ok
 </code></pre>
 <br />
 

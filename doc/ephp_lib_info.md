@@ -4,6 +4,8 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
+
 <a name="index"></a>
 
 ## Function Index ##
@@ -21,7 +23,7 @@
 ### extension_loaded/3 ###
 
 <pre><code>
-extension_loaded(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Name::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+extension_loaded(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Name::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -30,7 +32,7 @@ extension_loaded(Context::<a href="#type-context">context()</a>, Line::<a href="
 ### get_include_path/2 ###
 
 <pre><code>
-get_include_path(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+get_include_path(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -39,7 +41,7 @@ get_include_path(Context::<a href="#type-context">context()</a>, Line::<a href="
 ### ini_get/3 ###
 
 <pre><code>
-ini_get(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+ini_get(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -48,7 +50,7 @@ ini_get(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### ini_set/4 ###
 
 <pre><code>
-ini_set(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+ini_set(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -57,7 +59,7 @@ ini_set(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -66,7 +68,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -75,7 +77,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -84,7 +86,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### memory_get_peak_usage/3 ###
 
 <pre><code>
-memory_get_peak_usage(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, RealUsage::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
+memory_get_peak_usage(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, RealUsage::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
 </code></pre>
 <br />
 
@@ -93,7 +95,7 @@ memory_get_peak_usage(Context::<a href="#type-context">context()</a>, Line::<a h
 ### memory_get_usage/3 ###
 
 <pre><code>
-memory_get_usage(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, RealUsage::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
+memory_get_usage(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, RealUsage::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
 </code></pre>
 <br />
 
@@ -102,7 +104,7 @@ memory_get_usage(Context::<a href="#type-context">context()</a>, Line::<a href="
 ### php_logo_guid/2 ###
 
 <pre><code>
-php_logo_guid(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+php_logo_guid(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -111,7 +113,7 @@ php_logo_guid(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 ### php_sapi_name/2 ###
 
 <pre><code>
-php_sapi_name(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+php_sapi_name(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -120,7 +122,7 @@ php_sapi_name(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 ### phpinfo/3 ###
 
 <pre><code>
-phpinfo(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+phpinfo(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -129,7 +131,7 @@ phpinfo(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### phpversion/2 ###
 
 <pre><code>
-phpversion(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+phpversion(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -138,7 +140,7 @@ phpversion(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### set_include_path/3 ###
 
 <pre><code>
-set_include_path(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+set_include_path(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -147,7 +149,7 @@ set_include_path(Context::<a href="#type-context">context()</a>, Line::<a href="
 ### version_compare/5 ###
 
 <pre><code>
-version_compare(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Vsn1::<a href="#type-var_value">var_value()</a>, Vsn2::<a href="#type-var_value">var_value()</a>, Op::<a href="#type-var_value">var_value()</a>) -&gt; boolean() | integer()
+version_compare(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Vsn1::<a href="#type-var_value">var_value()</a>, Vsn2::<a href="#type-var_value">var_value()</a>, Op::<a href="#type-var_value">var_value()</a>) -&gt; boolean() | integer()
 </code></pre>
 <br />
 

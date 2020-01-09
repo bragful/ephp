@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### base_convert/5 ###
 
 <pre><code>
-base_convert(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, From::<a href="#type-var_value">var_value()</a>, To::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+base_convert(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, From::<a href="#type-var_value">var_value()</a>, To::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ base_convert(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### bindec/3 ###
 
 <pre><code>
-bindec(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+bindec(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ bindec(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### php_abs/3 ###
 
 <pre><code>
-php_abs(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, NotANumber::number()) -&gt; number()
+php_abs(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, NotANumber::number()) -&gt; number()
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ php_abs(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_acos/3 ###
 
 <pre><code>
-php_acos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; <a href="#type-php_float">php_float()</a>
+php_acos(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; <a href="#type-php_float">php_float()</a>
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ php_acos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_acosh/3 ###
 
 <pre><code>
-php_acosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_acosh(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ php_acosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_asin/3 ###
 
 <pre><code>
-php_asin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_asin(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ php_asin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_asinh/3 ###
 
 <pre><code>
-php_asinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_asinh(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ php_asinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_atan/3 ###
 
 <pre><code>
-php_atan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_atan(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ php_atan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_atan2/4 ###
 
 <pre><code>
-php_atan2(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}, X4::{any(), number()}) -&gt; float()
+php_atan2(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}, X4::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -131,7 +131,7 @@ php_atan2(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_atanh/3 ###
 
 <pre><code>
-php_atanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_atanh(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -140,7 +140,7 @@ php_atanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_ceil/3 ###
 
 <pre><code>
-php_ceil(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+php_ceil(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -149,7 +149,7 @@ php_ceil(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_cos/3 ###
 
 <pre><code>
-php_cos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_cos(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -158,7 +158,7 @@ php_cos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_cosh/3 ###
 
 <pre><code>
-php_cosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_cosh(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -167,7 +167,7 @@ php_cosh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_exp/3 ###
 
 <pre><code>
-php_exp(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Arg::<a href="#type-var_value">var_value()</a>) -&gt; float()
+php_exp(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Arg::<a href="#type-var_value">var_value()</a>) -&gt; float()
 </code></pre>
 <br />
 
@@ -176,7 +176,7 @@ php_exp(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_floor/3 ###
 
 <pre><code>
-php_floor(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+php_floor(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -185,7 +185,7 @@ php_floor(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_log/4 ###
 
 <pre><code>
-php_log(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; float()
+php_log(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; float()
 </code></pre>
 <br />
 
@@ -194,7 +194,7 @@ php_log(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_max/4 ###
 
 <pre><code>
-php_max(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Num1::<a href="#type-var_value">var_value()</a>, Num2::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+php_max(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Num1::<a href="#type-var_value">var_value()</a>, Num2::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -203,7 +203,7 @@ php_max(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_min/4 ###
 
 <pre><code>
-php_min(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Num1::<a href="#type-var_value">var_value()</a>, Num2::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+php_min(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Num1::<a href="#type-var_value">var_value()</a>, Num2::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -212,7 +212,7 @@ php_min(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_pow/4 ###
 
 <pre><code>
-php_pow(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; float() | integer()
+php_pow(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; float() | integer()
 </code></pre>
 <br />
 
@@ -221,7 +221,7 @@ php_pow(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_round/3 ###
 
 <pre><code>
-php_round(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+php_round(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -230,7 +230,7 @@ php_round(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### php_sin/3 ###
 
 <pre><code>
-php_sin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_sin(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -239,7 +239,7 @@ php_sin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_sinh/3 ###
 
 <pre><code>
-php_sinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_sinh(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -248,7 +248,7 @@ php_sinh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_sqrt/3 ###
 
 <pre><code>
-php_sqrt(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; float()
+php_sqrt(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; float()
 </code></pre>
 <br />
 
@@ -257,7 +257,7 @@ php_sqrt(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### php_tan/3 ###
 
 <pre><code>
-php_tan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_tan(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -266,7 +266,7 @@ php_tan(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### php_tanh/3 ###
 
 <pre><code>
-php_tanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
+php_tanh(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::{any(), number()}) -&gt; float()
 </code></pre>
 <br />
 
@@ -275,7 +275,7 @@ php_tanh(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### pi/2 ###
 
 <pre><code>
-pi(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; float()
+pi(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; float()
 </code></pre>
 <br />
 

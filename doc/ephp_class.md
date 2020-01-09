@@ -126,7 +126,7 @@ destroy the classes handler.
 ### get/3 ###
 
 <pre><code>
-get(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, NS::<a href="#type-namespace">namespace()</a>, ClassName::<a href="#type-class_name">class_name()</a>) -&gt; <a href="#type-get_return">get_return()</a>
+get(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, NS::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, ClassName::<a href="#type-class_name">class_name()</a>) -&gt; <a href="#type-get_return">get_return()</a>
 </code></pre>
 <br />
 
@@ -137,7 +137,7 @@ retrieves a class registered given the class name.
 ### get/4 ###
 
 <pre><code>
-get(Context::<a href="#type-context">context()</a>, NS::<a href="#type-namespace">namespace()</a>, ClassName::<a href="#type-class_name">class_name()</a>, AutoLoad::boolean() | spl) -&gt; <a href="#type-get_return">get_return()</a>
+get(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, NS::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, ClassName::<a href="#type-class_name">class_name()</a>, AutoLoad::boolean() | spl) -&gt; <a href="#type-get_return">get_return()</a>
 </code></pre>
 <br />
 
@@ -208,7 +208,7 @@ retrieves a class registered given the class name.
 ### register_class/4 ###
 
 <pre><code>
-register_class(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, File::binary(), GlobalCtx::<a href="#type-context">context()</a>, Class::<a href="#type-class">class()</a>) -&gt; ok
+register_class(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, File::binary(), GlobalCtx::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Class::<a href="#type-class">class()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -260,7 +260,7 @@ the function is prepended instead of appended to the queue.
 ### set_alias/5 ###
 
 <pre><code>
-set_alias(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, NS::<a href="#type-namespace">namespace()</a>, ClassName::<a href="#type-class_name">class_name()</a>, NSAlias::<a href="#type-namespace">namespace()</a>, Alias::<a href="#type-class_name">class_name()</a>) -&gt; <a href="#type-alias_return">alias_return()</a>
+set_alias(Ref::<a href="ephp.md#type-classes_id">ephp:classes_id()</a>, NS::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, ClassName::<a href="#type-class_name">class_name()</a>, NSAlias::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, Alias::<a href="#type-class_name">class_name()</a>) -&gt; <a href="#type-alias_return">alias_return()</a>
 </code></pre>
 <br />
 

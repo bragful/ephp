@@ -133,7 +133,7 @@ ensure the cover information is in the process.
 ### store/3 ###
 
 <pre><code>
-store(Type::<a href="#type-statement_type">statement_type()</a>, FileOrContext::binary() | <a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a> | undefined) -&gt; ok
+store(Type::<a href="#type-statement_type">statement_type()</a>, FileOrContext::binary() | <a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a> | undefined) -&gt; ok
 </code></pre>
 <br />
 
@@ -144,7 +144,7 @@ store the information about the statement passed as a param.
 ### store/4 ###
 
 <pre><code>
-store(Cover::<a href="#type-is_cover">is_cover()</a>, Type::<a href="#type-statement_type">statement_type()</a>, FileOrContext::binary() | <a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a> | undefined) -&gt; ok
+store(Cover::<a href="#type-is_cover">is_cover()</a>, Type::<a href="#type-statement_type">statement_type()</a>, FileOrContext::binary() | <a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a> | undefined) -&gt; ok
 </code></pre>
 <br />
 

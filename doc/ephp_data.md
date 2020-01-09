@@ -88,7 +88,7 @@ increment_code(Code::binary()) -&gt; integer() | binary()
 ### instance_of/3 ###
 
 <pre><code>
-instance_of(Context::<a href="#type-context">context()</a>, Ephp_array::<a href="#type-mixed">mixed()</a> | <a href="#type-class">class()</a>, DataType::binary()) -&gt; boolean()
+instance_of(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Array::<a href="#type-mixed">mixed()</a> | <a href="#type-class">class()</a>, DataType::binary()) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -136,7 +136,7 @@ to_bin(A::<a href="#type-mixed">mixed()</a>) -&gt; binary()
 ### to_bin/3 ###
 
 <pre><code>
-to_bin(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-mixed">mixed()</a>) -&gt; binary()
+to_bin(Ctx::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-mixed">mixed()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -145,7 +145,7 @@ to_bin(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">li
 ### to_bool/1 ###
 
 <pre><code>
-to_bool(Value::undefined | boolean() | <a href="#type-ephp_array">ephp_array()</a> | integer() | float() | string() | binary()) -&gt; boolean()
+to_bool(Value::undefined | boolean() | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a> | integer() | float() | string() | binary()) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -172,7 +172,7 @@ to_float(I::<a href="#type-mixed">mixed()</a>) -&gt; float()
 ### to_float/3 ###
 
 <pre><code>
-to_float(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; float()
+to_float(Ctx::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; float()
 </code></pre>
 <br />
 
@@ -190,7 +190,7 @@ to_int(A::<a href="#type-mixed">mixed()</a>) -&gt; integer()
 ### to_int/3 ###
 
 <pre><code>
-to_int(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; integer()
+to_int(Ctx::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -208,7 +208,7 @@ to_number(I::<a href="#type-mixed">mixed()</a>) -&gt; float() | integer()
 ### to_number/3 ###
 
 <pre><code>
-to_number(Ctx::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; float() | integer()
+to_number(Ctx::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Obj_ref::<a href="#type-mixed">mixed()</a>) -&gt; float() | integer()
 </code></pre>
 <br />
 
@@ -229,7 +229,7 @@ normal Erlang behaviour to make tests reliable.
 ### zero_if_undef/1 ###
 
 <pre><code>
-zero_if_undef(Value::undefined | <a href="#type-ephp_array">ephp_array()</a> | integer() | float() | string() | binary()) -&gt; integer() | infinity | nan | float()
+zero_if_undef(Value::undefined | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a> | integer() | float() | string() | binary()) -&gt; integer() | infinity | nan | float()
 </code></pre>
 <br />
 

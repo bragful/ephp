@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### spl_autoload_call/3 ###
 
 <pre><code>
-spl_autoload_call(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+spl_autoload_call(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ spl_autoload_call(Context::<a href="#type-context">context()</a>, Line::<a href=
 ### spl_autoload_register/5 ###
 
 <pre><code>
-spl_autoload_register(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>, X5::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+spl_autoload_register(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>, X5::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ spl_autoload_register(Context::<a href="#type-context">context()</a>, Line::<a h
 ### spl_autoload_unregister/3 ###
 
 <pre><code>
-spl_autoload_unregister(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+spl_autoload_unregister(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 

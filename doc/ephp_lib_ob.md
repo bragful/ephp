@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### flush/2 ###
 
 <pre><code>
-flush(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
+flush(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ flush(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### ob_clean/2 ###
 
 <pre><code>
-ob_clean(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
+ob_clean(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ ob_clean(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### ob_get_contents/2 ###
 
 <pre><code>
-ob_get_contents(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+ob_get_contents(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ ob_get_contents(Context::<a href="#type-context">context()</a>, Line::<a href="#
 ### ob_get_length/2 ###
 
 <pre><code>
-ob_get_length(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; integer()
+ob_get_length(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ ob_get_length(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 ### ob_start/2 ###
 
 <pre><code>
-ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; boolean()
+ob_start(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### ob_start/3 ###
 
 <pre><code>
-ob_start(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Callback::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+ob_start(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Callback::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 

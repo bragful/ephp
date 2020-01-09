@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### call_user_func/3 ###
 
 <pre><code>
-call_user_func(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Args::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-mixed">mixed()</a>
+call_user_func(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Args::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ call_user_func(Context::<a href="#type-context">context()</a>, Line::<a href="#t
 ### call_user_func_array/4 ###
 
 <pre><code>
-call_user_func_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+call_user_func_array(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ call_user_func_array(Context::<a href="#type-context">context()</a>, Line::<a hr
 ### create_function/4 ###
 
 <pre><code>
-create_function(Context::<a href="#type-context">context()</a>, X2::<a href="#type-line">line()</a>, Args::<a href="#type-var_value">var_value()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-obj_ref">obj_ref()</a>
+create_function(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, X2::<a href="#type-line">line()</a>, Args::<a href="#type-var_value">var_value()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-obj_ref">obj_ref()</a>
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ create_function(Context::<a href="#type-context">context()</a>, X2::<a href="#ty
 ### func_num_args/2 ###
 
 <pre><code>
-func_num_args(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; non_neg_integer()
+func_num_args(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; non_neg_integer()
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ func_num_args(Context::<a href="#type-context">context()</a>, Line::<a href="#ty
 ### function_exists/3 ###
 
 <pre><code>
-function_exists(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, FuncName::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+function_exists(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, FuncName::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ get_classes() -&gt; [<a href="#type-class">class()</a>]
 ### get_defined_functions/2 ###
 
 <pre><code>
-get_defined_functions(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+get_defined_functions(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ get_defined_functions(Context::<a href="#type-context">context()</a>, Line::<a h
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### register_shutdown_function/3 ###
 
 <pre><code>
-register_shutdown_function(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, RawArgs::[<a href="#type-var_value">var_value()</a>]) -&gt; ok
+register_shutdown_function(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, RawArgs::[<a href="#type-var_value">var_value()</a>]) -&gt; ok
 </code></pre>
 <br />
 

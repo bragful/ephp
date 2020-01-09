@@ -2,6 +2,7 @@
 
 # Module ephp_array #
 * [Description](#description)
+* [Data Types](#types)
 * [Function Index](#index)
 * [Function Details](#functions)
 
@@ -24,6 +25,21 @@ An example for the use of this module:
        Array2 = ephp_array:store(auto, <<"bye!">>, Array1).
        ArrayN = ephp_array:from_list([1, 2, 3, 4, 5]).
 ```
+
+<a name="types"></a>
+
+## Data Types ##
+
+
+
+
+### <a name="type-ephp_array">ephp_array()</a> ###
+
+
+<pre><code>
+ephp_array() = #ephp_array{}
+</code></pre>
+
 <a name="index"></a>
 
 ## Function Index ##

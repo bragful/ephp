@@ -42,7 +42,7 @@ And a post to know how to write a stand-alone server with Erlang, without write 
 
 == Requirements ==
 
-ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are full compatible or recommended. See the list:
+ePHP requires to be run over an Erlang/OTP 19+, but not all the versions are full compatible or recommended. See the list:
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
@@ -61,11 +61,6 @@ ePHP requires to be run over an Erlang/OTP 18+, but not all the versions are ful
 | 19.2 | :heavy_check_mark: | |
 | 19.1 | :heavy_check_mark: | |
 | 19.0 | :heavy_check_mark: | |
-| 18.3 | :heavy_check_mark: | Recommended if you use OTP 18 |
-| 18.2.1 | :heavy_check_mark: | |
-| 18.2 | :heavy_check_mark: | |
-| 18.1 | :heavy_check_mark: | |
-| 18.0 | :heavy_check_mark: | |
 
 == Getting Started ==
 

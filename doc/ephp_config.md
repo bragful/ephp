@@ -24,7 +24,7 @@ config_key() = binary() | atom()
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_atom-1">get_atom/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_bool-1">get_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_bool-2">get_bool/2</a></td><td></td></tr><tr><td valign="top"><a href="#module_init-1">module_init/1</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_local-0">start_local/0</a></td><td></td></tr><tr><td valign="top"><a href="#stop_local-0">stop_local/0</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#get-1">get/1</a></td><td></td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td></td></tr><tr><td valign="top"><a href="#get_all-0">get_all/0</a></td><td></td></tr><tr><td valign="top"><a href="#get_atom-1">get_atom/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_bool-1">get_bool/1</a></td><td></td></tr><tr><td valign="top"><a href="#get_bool-2">get_bool/2</a></td><td></td></tr><tr><td valign="top"><a href="#module_init-1">module_init/1</a></td><td></td></tr><tr><td valign="top"><a href="#read_config-1">read_config/1</a></td><td></td></tr><tr><td valign="top"><a href="#set-2">set/2</a></td><td></td></tr><tr><td valign="top"><a href="#start_link-1">start_link/1</a></td><td></td></tr><tr><td valign="top"><a href="#start_local-0">start_local/0</a></td><td></td></tr><tr><td valign="top"><a href="#stop_local-0">stop_local/0</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -46,6 +46,15 @@ get(Key::<a href="#type-config_key">config_key()</a>) -&gt; <a href="#type-mixed
 
 <pre><code>
 get(Key::binary(), Default::undefined | <a href="#type-mixed">mixed()</a>) -&gt; undefined | <a href="#type-mixed">mixed()</a>
+</code></pre>
+<br />
+
+<a name="get_all-0"></a>
+
+### get_all/0 ###
+
+<pre><code>
+get_all() -&gt; [{<a href="#type-config_key">config_key()</a>, <a href="#type-mixed">mixed()</a>}]
 </code></pre>
 <br />
 

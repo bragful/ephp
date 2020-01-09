@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### constant/3 ###
 
 <pre><code>
-constant(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Name::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+constant(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Name::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ constant(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### define/4 ###
 
 <pre><code>
-define(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Constant::<a href="#type-var_value">var_value()</a>, Content::<a href="#type-var_value">var_value()</a>) -&gt; true
+define(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Constant::<a href="#type-var_value">var_value()</a>, Content::<a href="#type-var_value">var_value()</a>) -&gt; true
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ define(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### defined/3 ###
 
 <pre><code>
-defined(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+defined(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ defined(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### eval/3 ###
 
 <pre><code>
-eval(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+eval(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ eval(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### exit/3 ###
 
 <pre><code>
-exit(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Message::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+exit(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Message::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### pack/3 ###
 
 <pre><code>
-pack(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Args::[<a href="#type-var_value">var_value()</a>]) -&gt; binary()
+pack(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Args::[<a href="#type-var_value">var_value()</a>]) -&gt; binary()
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ pack(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### sleep/3 ###
 
 <pre><code>
-sleep(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Seconds::<a href="#type-var_value">var_value()</a>) -&gt; false | integer()
+sleep(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Seconds::<a href="#type-var_value">var_value()</a>) -&gt; false | integer()
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ sleep(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### uniqid/4 ###
 
 <pre><code>
-uniqid(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+uniqid(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -131,7 +131,7 @@ uniqid(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### unpack/4 ###
 
 <pre><code>
-unpack(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+unpack(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -140,7 +140,7 @@ unpack(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### usleep/3 ###
 
 <pre><code>
-usleep(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, MicroSeconds::<a href="#type-var_value">var_value()</a>) -&gt; false | integer()
+usleep(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, MicroSeconds::<a href="#type-var_value">var_value()</a>) -&gt; false | integer()
 </code></pre>
 <br />
 

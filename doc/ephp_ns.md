@@ -2,6 +2,7 @@
 
 # Module ephp_ns #
 * [Description](#description)
+* [Data Types](#types)
 * [Function Index](#index)
 * [Function Details](#functions)
 
@@ -12,7 +13,22 @@ This module stores handle the way to use namespaces.
 ## Description ##
 The namespaces
 are needed mainly during parsing (compilation-time) but dynamically
-it's sometimes needed as well.<a name="index"></a>
+it's sometimes needed as well.
+<a name="types"></a>
+
+## Data Types ##
+
+
+
+
+### <a name="type-namespace">namespace()</a> ###
+
+
+<pre><code>
+namespace() = [binary()]
+</code></pre>
+
+<a name="index"></a>
 
 ## Function Index ##
 

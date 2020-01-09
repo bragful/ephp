@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### class_alias/4 ###
 
 <pre><code>
-class_alias(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, ClassName::<a href="#type-var_value">var_value()</a>, ClassAlias::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+class_alias(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, ClassName::<a href="#type-var_value">var_value()</a>, ClassAlias::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ class_alias(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### class_exists/4 ###
 
 <pre><code>
-class_exists(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>, AutoLoad::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+class_exists(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>, AutoLoad::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ class_exists(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### get_class/3 ###
 
 <pre><code>
-get_class(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>) -&gt; any()
+get_class(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### interface_exists/4 ###
 
 <pre><code>
-interface_exists(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>, AutoLoad::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+interface_exists(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Class::<a href="#type-var_value">var_value()</a>, AutoLoad::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 

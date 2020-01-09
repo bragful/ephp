@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### debug_backtrace/4 ###
 
 <pre><code>
-debug_backtrace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+debug_backtrace(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ debug_backtrace(Context::<a href="#type-context">context()</a>, Line::<a href="#
 ### debug_print_backtrace/4 ###
 
 <pre><code>
-debug_print_backtrace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; undefined
+debug_print_backtrace(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ debug_print_backtrace(Context::<a href="#type-context">context()</a>, Line::<a h
 ### error_clear_last/2 ###
 
 <pre><code>
-error_clear_last(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
+error_clear_last(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; undefined
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ error_clear_last(Context::<a href="#type-context">context()</a>, Line::<a href="
 ### error_get_last/2 ###
 
 <pre><code>
-error_get_last(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a> | undefined
+error_get_last(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a> | undefined
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ error_get_last(Context::<a href="#type-context">context()</a>, Line::<a href="#t
 ### error_reporting/3 ###
 
 <pre><code>
-error_reporting(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+error_reporting(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ get_classes() -&gt; [<a href="#type-class">class()</a>]
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### restore_error_handler/2 ###
 
 <pre><code>
-restore_error_handler(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; true
+restore_error_handler(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; true
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ restore_error_handler(Context::<a href="#type-context">context()</a>, Line::<a h
 ### restore_exception_handler/2 ###
 
 <pre><code>
-restore_exception_handler(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; true
+restore_exception_handler(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; true
 </code></pre>
 <br />
 
@@ -122,7 +122,7 @@ restore_exception_handler(Context::<a href="#type-context">context()</a>, Line::
 ### set_error_handler/4 ###
 
 <pre><code>
-set_error_handler(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+set_error_handler(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -131,7 +131,7 @@ set_error_handler(Context::<a href="#type-context">context()</a>, Line::<a href=
 ### set_exception_handler/3 ###
 
 <pre><code>
-set_exception_handler(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-callable">callable()</a>
+set_exception_handler(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-callable">callable()</a>
 </code></pre>
 <br />
 
@@ -140,7 +140,7 @@ set_exception_handler(Context::<a href="#type-context">context()</a>, Line::<a h
 ### trigger_error/4 ###
 
 <pre><code>
-trigger_error(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, ErrStr::<a href="#type-var_value">var_value()</a>, ErrLevel::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_error.md#type-get_return_return">ephp_error:get_return_return()</a>
+trigger_error(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, ErrStr::<a href="#type-var_value">var_value()</a>, ErrLevel::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_error.md#type-get_return_return">ephp_error:get_return_return()</a>
 </code></pre>
 <br />
 

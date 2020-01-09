@@ -232,16 +232,15 @@ start() ->
     application:set_env(ephp, modules, ?MODULES),
     ok.
 
--ifndef(TEST).
 -type quit_return() :: no_return().
+-ifndef(TEST).
 -spec quit(non_neg_integer() | abort | [char()]) -> no_return().
 %% @hidden
 quit(Code) ->
     erlang:halt(Code).
 -else.
--type quit_return() :: integer().
--spec quit(non_neg_integer() | abort | [char()]) -> non_neg_integer() | abort | [char()].
 %% @hidden
+-spec quit(non_neg_integer() | abort | [char()]) -> non_neg_integer() | abort | [char()].
 quit(Code) ->
     Code.
 -endif.

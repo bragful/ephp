@@ -76,7 +76,7 @@ errors_id() = reference()
 
 
 <pre><code>
-eval_return() = {ok, Result::<a href="ephp_interpr.md#type-flow_status">ephp_interpr:flow_status()</a>} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="#type-error_level">error_level()</a>, Data::any()}
+eval_return() = {ok, Result::<a href="ephp_interpr.md#type-flow_status">ephp_interpr:flow_status()</a>} | {error, <a href="#type-reason">reason()</a>, <a href="#type-line">line()</a>, File::binary(), <a href="ephp_error.md#type-error_level">ephp_error:error_level()</a>, Data::any()}
 </code></pre>
 
 
@@ -122,6 +122,16 @@ output_id() = reference()
 
 
 
+### <a name="type-quit_return">quit_return()</a> ###
+
+
+<pre><code>
+quit_return() = no_return()
+</code></pre>
+
+
+
+
 ### <a name="type-shutdown_id">shutdown_id()</a> ###
 
 
@@ -136,7 +146,7 @@ shutdown_id() = reference()
 
 
 <pre><code>
-values() = integer() | binary() | float() | <a href="#type-ephp_array">ephp_array()</a>
+values() = integer() | binary() | float() | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 
 
@@ -156,7 +166,7 @@ vars_id() = reference()
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td>creates a new context using <code>-</code> as script name.</td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td>creates a new context passing <code>Filename</code> as param.</td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td>eval PHP code in a context passed as params.</td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td>adds the <code>Filename</code> to configure properly the <code>__FILE__</code> and <code>__DIR__</code>
 constants and evaluates the code for the third parameter.</td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td>called from script passing the name of the filename to be run or
-nothing to show the help message.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
+nothing to show the help message.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_superglobals-3">register_superglobals/3</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
 is set properly before use ephp.</td></tr><tr><td valign="top"><a href="#stop_cover-0">stop_cover/0</a></td><td>stops the cover system.</td></tr></table>
 
 
@@ -169,7 +179,7 @@ is set properly before use ephp.</td></tr><tr><td valign="top"><a href="#stop_co
 ### context_new/0 ###
 
 <pre><code>
-context_new() -&gt; {ok, <a href="#type-context">context()</a>}
+context_new() -&gt; {ok, <a href="#type-context_id">context_id()</a>}
 </code></pre>
 <br />
 
@@ -180,7 +190,7 @@ creates a new context using `-` as script name.
 ### context_new/1 ###
 
 <pre><code>
-context_new(Filename::binary()) -&gt; {ok, <a href="#type-context">context()</a>}
+context_new(Filename::binary()) -&gt; {ok, <a href="#type-context_id">context_id()</a>}
 </code></pre>
 <br />
 
@@ -191,7 +201,7 @@ creates a new context passing `Filename` as param.
 ### eval/2 ###
 
 <pre><code>
-eval(Context::<a href="#type-context">context()</a>, PHP::string() | binary()) -&gt; <a href="#type-eval_return">eval_return()</a>
+eval(Context::<a href="#type-context_id">context_id()</a>, PHP::string() | binary()) -&gt; <a href="#type-eval_return">eval_return()</a>
 </code></pre>
 <br />
 
@@ -202,7 +212,7 @@ eval PHP code in a context passed as params.
 ### eval/3 ###
 
 <pre><code>
-eval(Filename::binary(), Context::<a href="#type-context">context()</a>, PHP::string() | binary() | [term()]) -&gt; <a href="#type-eval_return">eval_return()</a>
+eval(Filename::binary(), Context::<a href="#type-context_id">context_id()</a>, PHP::string() | binary() | [term()]) -&gt; <a href="#type-eval_return">eval_return()</a>
 </code></pre>
 <br />
 
@@ -217,7 +227,7 @@ could contents a binary text with PHP code or a parsed PHP content.
 ### main/1 ###
 
 <pre><code>
-main(Args::[string()]) -&gt; integer()
+main(Args::[string()]) -&gt; <a href="#type-quit_return">quit_return()</a>
 </code></pre>
 <br />
 
@@ -229,7 +239,7 @@ nothing to show the help message.
 ### register_func/6 ###
 
 <pre><code>
-register_func(Ctx::<a href="#type-context">context()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean(), Args::<a href="ephp_func.md#type-validation_args">ephp_func:validation_args()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+register_func(Ctx::<a href="#type-context_id">context_id()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean(), Args::<a href="ephp_lib.md#type-validation_args">ephp_lib:validation_args()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 
@@ -245,7 +255,7 @@ the args could be sent one by one or as only one in an array.
 ### register_func/7 ###
 
 <pre><code>
-register_func(Ctx::<a href="#type-context">context()</a>, NS::<a href="#type-namespace">namespace()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean(), Args::<a href="ephp_func.md#type-validation_args">ephp_func:validation_args()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+register_func(Ctx::<a href="#type-context_id">context_id()</a>, NS::<a href="ephp_ns.md#type-namespace">ephp_ns:namespace()</a>, PHPName::binary(), Module::module(), Fun::atom(), PackArgs::boolean(), Args::<a href="ephp_lib.md#type-validation_args">ephp_lib:validation_args()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 
@@ -261,7 +271,7 @@ the args could be sent one by one or as only one in an array.
 ### register_module/2 ###
 
 <pre><code>
-register_module(Ctx::<a href="#type-context">context()</a>, Module::module()) -&gt; ok
+register_module(Ctx::<a href="#type-context_id">context_id()</a>, Module::module()) -&gt; ok
 </code></pre>
 <br />
 
@@ -274,7 +284,19 @@ __See also:__ [ephp_func](ephp_func.md).
 ### register_superglobals/2 ###
 
 <pre><code>
-register_superglobals(Ctx::<a href="#type-context">context()</a>, RawArgs::[string()]) -&gt; ok
+register_superglobals(Ctx::<a href="#type-context_id">context_id()</a>, RawArgs::[string()]) -&gt; ok
+</code></pre>
+<br />
+
+register the superglobals variables in the context passed as param.
+by default this function set the filename as "-".
+
+<a name="register_superglobals-3"></a>
+
+### register_superglobals/3 ###
+
+<pre><code>
+register_superglobals(Ctx::<a href="#type-context_id">context_id()</a>, Filename::string(), RawArgs::[string()]) -&gt; ok
 </code></pre>
 <br />
 
@@ -285,7 +307,7 @@ register the superglobals variables in the context passed as param.
 ### register_var/3 ###
 
 <pre><code>
-register_var(Ctx::<a href="#type-context">context()</a>, Var::binary(), Value::<a href="#type-values">values()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
+register_var(Ctx::<a href="#type-context_id">context_id()</a>, Var::binary(), Value::<a href="#type-values">values()</a>) -&gt; ok | {error, <a href="#type-reason">reason()</a>}
 </code></pre>
 <br />
 

@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### bin2hex/3 ###
 
 <pre><code>
-bin2hex(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+bin2hex(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ bin2hex(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### chr/3 ###
 
 <pre><code>
-chr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Integer::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+chr(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Integer::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -43,7 +43,7 @@ obtain the character giving the number as a param.
 ### count_chars/4 ###
 
 <pre><code>
-count_chars(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a> | binary()
+count_chars(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a> | binary()
 </code></pre>
 <br />
 
@@ -52,7 +52,7 @@ count_chars(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### explode/4 ###
 
 <pre><code>
-explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+explode(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -63,7 +63,7 @@ split the string in pieces in an array.
 ### explode/5 ###
 
 <pre><code>
-explode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+explode(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Delimiter::<a href="#type-var_value">var_value()</a>, String::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -85,7 +85,7 @@ handle error messages.
 ### hex2bin/3 ###
 
 <pre><code>
-hex2bin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+hex2bin(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -94,7 +94,7 @@ hex2bin(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### implode/3 ###
 
 <pre><code>
-implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+implode(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -105,7 +105,7 @@ join the array passed as a param.
 ### implode/4 ###
 
 <pre><code>
-implode(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Glue::<a href="#type-var_value">var_value()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+implode(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Glue::<a href="#type-var_value">var_value()</a>, Pieces::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -116,7 +116,7 @@ join the array with the glue passed as a param.
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -125,7 +125,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### lcfirst/3 ###
 
 <pre><code>
-lcfirst(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+lcfirst(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -134,7 +134,7 @@ lcfirst(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### ltrim/4 ###
 
 <pre><code>
-ltrim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, CharMask::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
+ltrim(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, CharMask::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
 </code></pre>
 <br />
 
@@ -143,7 +143,7 @@ ltrim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### nl2br/4 ###
 
 <pre><code>
-nl2br(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+nl2br(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -152,7 +152,7 @@ nl2br(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### ord/3 ###
 
 <pre><code>
-ord(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+ord(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -163,7 +163,7 @@ obtain the number of the character passed as a param.
 ### print/3 ###
 
 <pre><code>
-print(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; 1
+print(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; 1
 </code></pre>
 <br />
 
@@ -172,7 +172,7 @@ print(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### printf/3 ###
 
 <pre><code>
-printf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; pos_integer()
+printf(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; pos_integer()
 </code></pre>
 <br />
 
@@ -183,7 +183,7 @@ print using a format.
 ### rtrim/4 ###
 
 <pre><code>
-rtrim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, CharMask::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
+rtrim(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, CharMask::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
 </code></pre>
 <br />
 
@@ -192,7 +192,7 @@ rtrim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### sprintf/3 ###
 
 <pre><code>
-sprintf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; binary()
+sprintf(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Values::[<a href="#type-var_value">var_value()</a>]) -&gt; binary()
 </code></pre>
 <br />
 
@@ -203,7 +203,7 @@ generate a string using a format.
 ### str_repeat/4 ###
 
 <pre><code>
-str_repeat(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
+str_repeat(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
 </code></pre>
 <br />
 
@@ -212,7 +212,7 @@ str_repeat(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### str_replace/5 ###
 
 <pre><code>
-str_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Search::<a href="#type-var_value">var_value()</a>, Replace::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+str_replace(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Search::<a href="#type-var_value">var_value()</a>, Replace::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -221,7 +221,7 @@ str_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### str_replace/6 ###
 
 <pre><code>
-str_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Search::<a href="#type-var_value">var_value()</a>, Replace::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+str_replace(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Search::<a href="#type-var_value">var_value()</a>, Replace::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -230,7 +230,7 @@ str_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### str_shuffle/3 ###
 
 <pre><code>
-str_shuffle(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+str_shuffle(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -239,7 +239,7 @@ str_shuffle(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### str_split/3 ###
 
 <pre><code>
-str_split(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+str_split(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -248,7 +248,7 @@ str_split(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### str_split/4 ###
 
 <pre><code>
-str_split(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>, Size::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a> | undefined
+str_split(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>, Size::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a> | undefined
 </code></pre>
 <br />
 
@@ -257,7 +257,7 @@ str_split(Context::<a href="#type-context">context()</a>, Line::<a href="#type-l
 ### strlen/3 ###
 
 <pre><code>
-strlen(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+strlen(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, String::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -268,7 +268,7 @@ retrieve the lenght of the string.
 ### strpos/5 ###
 
 <pre><code>
-strpos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, HayStack::<a href="#type-var_value">var_value()</a>, Needle::<a href="#type-var_value">var_value()</a>, Offset::<a href="#type-var_value">var_value()</a>) -&gt; false | pos_integer() | undefined
+strpos(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, HayStack::<a href="#type-var_value">var_value()</a>, Needle::<a href="#type-var_value">var_value()</a>, Offset::<a href="#type-var_value">var_value()</a>) -&gt; false | pos_integer() | undefined
 </code></pre>
 <br />
 
@@ -277,7 +277,7 @@ strpos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### strrev/3 ###
 
 <pre><code>
-strrev(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+strrev(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -286,7 +286,7 @@ strrev(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### strrpos/5 ###
 
 <pre><code>
-strrpos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, HayStack::<a href="#type-var_value">var_value()</a>, Needle::<a href="#type-var_value">var_value()</a>, Offset::<a href="#type-var_value">var_value()</a>) -&gt; false | pos_integer() | undefined
+strrpos(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, HayStack::<a href="#type-var_value">var_value()</a>, Needle::<a href="#type-var_value">var_value()</a>, Offset::<a href="#type-var_value">var_value()</a>) -&gt; false | pos_integer() | undefined
 </code></pre>
 <br />
 
@@ -295,7 +295,7 @@ strrpos(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### strtolower/3 ###
 
 <pre><code>
-strtolower(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+strtolower(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -304,7 +304,7 @@ strtolower(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### strtoupper/3 ###
 
 <pre><code>
-strtoupper(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+strtoupper(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -313,7 +313,7 @@ strtoupper(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### substr/5 ###
 
 <pre><code>
-substr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>, X5::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+substr(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>, X5::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -322,7 +322,7 @@ substr(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line
 ### trim/4 ###
 
 <pre><code>
-trim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, CharMask::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
+trim(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, CharMask::<a href="#type-var_value">var_value()</a>) -&gt; binary() | undefined
 </code></pre>
 <br />
 
@@ -331,7 +331,7 @@ trim(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### ucfirst/3 ###
 
 <pre><code>
-ucfirst(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+ucfirst(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Text::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -340,7 +340,7 @@ ucfirst(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### ucwords/4 ###
 
 <pre><code>
-ucwords(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+ucwords(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, X3::<a href="#type-var_value">var_value()</a>, X4::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -349,7 +349,7 @@ ucwords(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### vprintf/4 ###
 
 <pre><code>
-vprintf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Values::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
+vprintf(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Values::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
 </code></pre>
 <br />
 
@@ -358,7 +358,7 @@ vprintf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### vsprintf/4 ###
 
 <pre><code>
-vsprintf(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Values::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+vsprintf(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Format::<a href="#type-var_value">var_value()</a>, Values::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 

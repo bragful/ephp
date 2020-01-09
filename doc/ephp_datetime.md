@@ -66,7 +66,7 @@ get_timestamp(TS::integer() | float()) -&gt; <a href="timer.md#type-timestamp">t
 ### get_tz/2 ###
 
 <pre><code>
-get_tz(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
+get_tz(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; binary()
 </code></pre>
 <br />
 

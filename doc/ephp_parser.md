@@ -152,7 +152,10 @@
 
 ### throw_error/3 ###
 
-`throw_error(Error, Parser, Data) -> any()`
+<pre><code>
+throw_error(Error::atom(), Parser::<a href="#type-parser">parser()</a>, Data::any()) -&gt; no_return()
+</code></pre>
+<br />
 
 <a name="unclosed_level-1"></a>
 

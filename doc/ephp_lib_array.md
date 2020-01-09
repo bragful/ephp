@@ -7,7 +7,7 @@
 
 Array related functions.
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="description"></a>
 
@@ -34,7 +34,7 @@ retrieving that element if it's exists, false otherwise.</td></tr></table>
 ### array_change_key_case/4 ###
 
 <pre><code>
-array_change_key_case(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, Flags::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+array_change_key_case(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, Flags::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -43,7 +43,7 @@ array_change_key_case(Context::<a href="#type-context">context()</a>, Line::<a h
 ### array_chunk/5 ###
 
 <pre><code>
-array_chunk(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, Size::<a href="#type-var_value">var_value()</a>, PreserveKeys::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+array_chunk(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, Size::<a href="#type-var_value">var_value()</a>, PreserveKeys::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -52,7 +52,7 @@ array_chunk(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### array_column/5 ###
 
 <pre><code>
-array_column(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, ColKey::<a href="#type-var_value">var_value()</a>, IdxKey::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+array_column(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, ColKey::<a href="#type-var_value">var_value()</a>, IdxKey::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -64,7 +64,7 @@ as a param. It let you to change the new key to retrieve the elements.
 ### array_keys/3 ###
 
 <pre><code>
-array_keys(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+array_keys(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -75,7 +75,7 @@ returns a new array with the keys.
 ### array_merge/3 ###
 
 <pre><code>
-array_merge(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Arrays::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+array_merge(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Arrays::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -84,7 +84,7 @@ array_merge(Context::<a href="#type-context">context()</a>, Line::<a href="#type
 ### array_pop/3 ###
 
 <pre><code>
-array_pop(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+array_pop(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -95,7 +95,7 @@ returns the last element of the array and removes it from the array.
 ### array_unique/4 ###
 
 <pre><code>
-array_unique(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, Flags::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-ephp_array">ephp_array()</a>
+array_unique(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, Flags::<a href="#type-var_value">var_value()</a>) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -104,7 +104,7 @@ array_unique(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### count/3 ###
 
 <pre><code>
-count(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; integer()
+count(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; integer()
 </code></pre>
 <br />
 
@@ -113,7 +113,7 @@ count(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line"
 ### current/3 ###
 
 <pre><code>
-current(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+current(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -124,7 +124,7 @@ retrieve the current element under the cursor for an array.
 ### in_array/5 ###
 
 <pre><code>
-in_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Key::<a href="#type-var_value">var_value()</a>, Array::<a href="#type-var_value">var_value()</a>, Strict::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+in_array(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Key::<a href="#type-var_value">var_value()</a>, Array::<a href="#type-var_value">var_value()</a>, Strict::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -133,7 +133,7 @@ in_array(Context::<a href="#type-context">context()</a>, Line::<a href="#type-li
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -142,7 +142,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -151,7 +151,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### key/3 ###
 
 <pre><code>
-key(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; undefined | <a href="#type-mixed">mixed()</a>
+key(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; undefined | <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -162,7 +162,7 @@ returns the key under the cursor or undefined if an error happens.
 ### ksort/4 ###
 
 <pre><code>
-ksort(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, SortType::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
+ksort(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>, SortType::<a href="#type-var_value">var_value()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
@@ -176,7 +176,7 @@ SORT_LOCALE_STRING, SORT_NATURAL, SORT_FLAG_CASE.
 ### list/3 ###
 
 <pre><code>
-list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Vars::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="#type-ephp_array">ephp_array()</a> | undefined
+list(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Vars::[<a href="#type-var_value">var_value()</a>]) -&gt; <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a> | undefined
 </code></pre>
 <br />
 
@@ -185,7 +185,7 @@ list(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">
 ### next/3 ###
 
 <pre><code>
-next(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-mixed">mixed()</a>
+next(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 
@@ -197,7 +197,7 @@ false otherwise.
 ### php_end/3 ###
 
 <pre><code>
-php_end(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+php_end(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -208,7 +208,7 @@ moves the array cursor to the last element and retrieves it.
 ### prev/3 ###
 
 <pre><code>
-prev(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+prev(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 
@@ -220,7 +220,7 @@ possible, false otherwise.
 ### reset/3 ###
 
 <pre><code>
-reset(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="#type-ephp_array">ephp_array()</a>
+reset(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Array::<a href="#type-var_value">var_value()</a>) -&gt; false | <a href="ephp_array.md#type-ephp_array">ephp_array:ephp_array()</a>
 </code></pre>
 <br />
 

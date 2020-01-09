@@ -66,7 +66,7 @@ flow_status() = <a href="#type-break">break()</a> | <a href="#type-continue">con
 ### process/2 ###
 
 <pre><code>
-process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>]) -&gt; {ok, binary() | <a href="#type-flow_return">flow_return()</a> | false}
+process(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>]) -&gt; {ok, binary() | <a href="#type-flow_return">flow_return()</a> | false}
 </code></pre>
 <br />
 
@@ -75,7 +75,7 @@ process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#t
 ### process/3 ###
 
 <pre><code>
-process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>], Cover::boolean()) -&gt; {ok, binary() | <a href="#type-flow_return">flow_return()</a> | false}
+process(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Statements::[<a href="#type-main_statement">main_statement()</a>], Cover::boolean()) -&gt; {ok, binary() | <a href="#type-flow_return">flow_return()</a> | false}
 </code></pre>
 <br />
 
@@ -84,7 +84,7 @@ process(Context::<a href="#type-context">context()</a>, Statements::[<a href="#t
 ### run/2 ###
 
 <pre><code>
-run(Context::<a href="#type-context">context()</a>, Statement::<a href="#type-main_statement">main_statement()</a>) -&gt; <a href="#type-flow_status">flow_status()</a>
+run(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Statement::<a href="#type-main_statement">main_statement()</a>) -&gt; <a href="#type-flow_status">flow_status()</a>
 </code></pre>
 <br />
 
@@ -93,7 +93,7 @@ run(Context::<a href="#type-context">context()</a>, Statement::<a href="#type-ma
 ### run/3 ###
 
 <pre><code>
-run(Context::<a href="#type-context">context()</a>, Print_text::<a href="#type-main_statement">main_statement()</a>, Cover::boolean()) -&gt; <a href="#type-flow_status">flow_status()</a>
+run(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Print_text::<a href="#type-main_statement">main_statement()</a>, Cover::boolean()) -&gt; <a href="#type-flow_status">flow_status()</a>
 </code></pre>
 <br />
 

@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -23,7 +23,7 @@ __Behaviours:__ [`ephp_func`](ephp_func.md).
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -32,7 +32,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### preg_match/7 ###
 
 <pre><code>
-preg_match(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pattern::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Matches::<a href="#type-var_value">var_value()</a>, Flags::<a href="#type-var_value">var_value()</a>, Offset::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
+preg_match(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Pattern::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Matches::<a href="#type-var_value">var_value()</a>, Flags::<a href="#type-var_value">var_value()</a>, Offset::<a href="#type-var_value">var_value()</a>) -&gt; pos_integer()
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ preg_match(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### preg_quote/4 ###
 
 <pre><code>
-preg_quote(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, Delim::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+preg_quote(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Str::<a href="#type-var_value">var_value()</a>, Delim::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ preg_quote(Context::<a href="#type-context">context()</a>, Line::<a href="#type-
 ### preg_replace/7 ###
 
 <pre><code>
-preg_replace(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, Pattern::<a href="#type-var_value">var_value()</a>, Replacement::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary()
+preg_replace(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Pattern::<a href="#type-var_value">var_value()</a>, Replacement::<a href="#type-var_value">var_value()</a>, Subject::<a href="#type-var_value">var_value()</a>, Limit::<a href="#type-var_value">var_value()</a>, Count::<a href="#type-var_value">var_value()</a>) -&gt; binary()
 </code></pre>
 <br />
 

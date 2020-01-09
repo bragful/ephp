@@ -69,7 +69,7 @@ increases the number of links for an object.
 ### clone/2 ###
 
 <pre><code>
-clone(Context::<a href="#type-context">context()</a>, Obj_ref::<a href="#type-obj_ref">obj_ref()</a>) -&gt; <a href="#type-obj_ref">obj_ref()</a>
+clone(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Obj_ref::<a href="#type-obj_ref">obj_ref()</a>) -&gt; <a href="#type-obj_ref">obj_ref()</a>
 </code></pre>
 <br />
 
@@ -81,7 +81,7 @@ function by the way.
 ### destroy/2 ###
 
 <pre><code>
-destroy(Context::<a href="#type-context">context()</a>, Ref::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>) -&gt; ok
+destroy(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Ref::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -158,7 +158,7 @@ retrieves the class name for a provided Object ID.
 ### get_context/1 ###
 
 <pre><code>
-get_context(Obj_ref::<a href="#type-obj_ref">obj_ref()</a>) -&gt; <a href="#type-context">context()</a>
+get_context(Obj_ref::<a href="#type-obj_ref">obj_ref()</a>) -&gt; <a href="ephp.md#type-context_id">ephp:context_id()</a>
 </code></pre>
 <br />
 
@@ -169,7 +169,7 @@ Equivalent to `get_context / 2`.
 ### get_context/2 ###
 
 <pre><code>
-get_context(Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, ObjectId::<a href="#type-object_id">object_id()</a>) -&gt; <a href="#type-context">context()</a>
+get_context(Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, ObjectId::<a href="#type-object_id">object_id()</a>) -&gt; <a href="ephp.md#type-context_id">ephp:context_id()</a>
 </code></pre>
 <br />
 
@@ -180,7 +180,7 @@ retrieves the object context for an provided Object ID.
 ### remove/2 ###
 
 <pre><code>
-remove(Context::<a href="#type-context">context()</a>, Obj_ref::<a href="#type-obj_ref">obj_ref()</a>) -&gt; ok
+remove(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Obj_ref::<a href="#type-obj_ref">obj_ref()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -191,7 +191,7 @@ Equivalent to `remove / 3`.
 ### remove/3 ###
 
 <pre><code>
-remove(Context::<a href="#type-context">context()</a>, Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, ObjectId::<a href="#type-object_id">object_id()</a>) -&gt; ok
+remove(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>, ObjectId::<a href="#type-object_id">object_id()</a>) -&gt; ok
 </code></pre>
 <br />
 
@@ -203,7 +203,7 @@ the object is removed.
 ### remove_all/2 ###
 
 <pre><code>
-remove_all(Context::<a href="#type-context">context()</a>, Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>) -&gt; ok
+remove_all(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Objects::<a href="ephp.md#type-objects_id">ephp:objects_id()</a>) -&gt; ok
 </code></pre>
 <br />
 

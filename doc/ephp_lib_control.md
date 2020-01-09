@@ -4,7 +4,7 @@
 * [Function Index](#index)
 * [Function Details](#functions)
 
-__Behaviours:__ [`ephp_func`](ephp_func.md).
+__Behaviours:__ [`ephp_lib`](ephp_lib.md).
 
 <a name="index"></a>
 
@@ -32,7 +32,7 @@ handle_error(Type::<a href="ephp_error.md#type-error_type">ephp_error:error_type
 ### include/3 ###
 
 <pre><code>
-include(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, InclFile::<a href="#type-var_value">var_value()</a>) -&gt; any()
+include(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, InclFile::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
@@ -41,7 +41,7 @@ include(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### include_once/3 ###
 
 <pre><code>
-include_once(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
+include_once(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
@@ -50,7 +50,7 @@ include_once(Context::<a href="#type-context">context()</a>, Line::<a href="#typ
 ### init_config/0 ###
 
 <pre><code>
-init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php_config_results()</a>
+init_config() -&gt; <a href="ephp_lib.md#type-php_config_results">ephp_lib:php_config_results()</a>
 </code></pre>
 <br />
 
@@ -59,7 +59,7 @@ init_config() -&gt; <a href="ephp_func.md#type-php_config_results">ephp_func:php
 ### init_const/0 ###
 
 <pre><code>
-init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_const_results()</a>
+init_const() -&gt; <a href="ephp_lib.md#type-php_const_results">ephp_lib:php_const_results()</a>
 </code></pre>
 <br />
 
@@ -68,7 +68,7 @@ init_const() -&gt; <a href="ephp_func.md#type-php_const_results">ephp_func:php_c
 ### init_func/0 ###
 
 <pre><code>
-init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php_function_results()</a>
+init_func() -&gt; <a href="ephp_lib.md#type-php_function_results">ephp_lib:php_function_results()</a>
 </code></pre>
 <br />
 
@@ -77,7 +77,7 @@ init_func() -&gt; <a href="ephp_func.md#type-php_function_results">ephp_func:php
 ### require/3 ###
 
 <pre><code>
-require(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
+require(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
@@ -86,7 +86,7 @@ require(Context::<a href="#type-context">context()</a>, Line::<a href="#type-lin
 ### require_once/3 ###
 
 <pre><code>
-require_once(Context::<a href="#type-context">context()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
+require_once(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, File::<a href="#type-var_value">var_value()</a>) -&gt; any()
 </code></pre>
 <br />
 
