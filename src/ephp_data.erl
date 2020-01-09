@@ -2,6 +2,7 @@
 -author('manuel@altenwald.com').
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 -export([
     gettype/1,
@@ -110,7 +111,7 @@ to_int(nan) -> ?PHP_INT_MIN;
 
 to_int(_) -> 0.
 
--spec to_int(context(), line(), mixed()) -> integer().
+-spec to_int(ephp:context_id(), line(), mixed()) -> integer().
 
 to_int(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),
@@ -150,7 +151,7 @@ to_float(nan) -> nan;
 
 to_float(undefined) -> 0.0.
 
--spec to_float(context(), line(), mixed()) -> float().
+-spec to_float(ephp:context_id(), line(), mixed()) -> float().
 
 to_float(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),
@@ -190,7 +191,7 @@ to_number(nan) -> nan;
 
 to_number(undefined) -> 0.
 
--spec to_number(context(), line(), mixed()) -> float() | integer().
+-spec to_number(ephp:context_id(), line(), mixed()) -> float() | integer().
 
 to_number(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),
@@ -236,7 +237,7 @@ to_bin(undefined) -> <<>>;
 
 to_bin(MemRef) when ?IS_MEM(MemRef) -> to_bin(ephp_mem:get(MemRef)).
 
--spec to_bin(context(), line(), mixed()) -> binary().
+-spec to_bin(ephp:context_id(), line(), mixed()) -> binary().
 
 to_bin(Ctx, Line, Array) when ?IS_ARRAY(Array) ->
     File = ephp_context:get_active_file(Ctx),
@@ -327,7 +328,7 @@ increment_code(Code) when is_binary(Code) ->
     end.
 
 -spec to_bool(Value :: undefined | boolean() |
-    ephp_array() | integer() | float() | string() | binary()) -> boolean().
+    ephp_array:ephp_array() | integer() | float() | string() | binary()) -> boolean().
 
 to_bool(false) -> false;
 
@@ -345,7 +346,7 @@ to_bool(_Other) -> true.
 
 
 -spec zero_if_undef(Value :: undefined |
-                    ephp_array() | integer() | float() | string() |
+                    ephp_array:ephp_array() | integer() | float() | string() |
                     binary()) -> integer() | infinity | nan | float().
 
 zero_if_undef(undefined) -> 0;
@@ -421,9 +422,9 @@ pow(N, M) when M > 0 ->
 pow(N, M) when M < 0 ->
     1 / pow(N, -M).
 
--spec instance_of(context(), mixed() | class(), DataType::binary()) -> boolean().
+-spec instance_of(ephp:context_id(), mixed() | class(), DataType::binary()) -> boolean().
 
-instance_of(_Context, #ephp_array{}, <<"array">>) ->
+instance_of(_Context, Array, <<"array">>) when ?IS_ARRAY(Array) ->
     true;
 instance_of(_Context, Boolean, <<"bool">>) when is_boolean(Boolean) ->
     true;

@@ -62,7 +62,7 @@ start_link() ->
     {ok, Ref}.
 
 
--spec destroy(context(), ephp:objects_id()) -> ok.
+-spec destroy(ephp:context_id(), ephp:objects_id()) -> ok.
 %% @doc Destroy the Objects storage.
 destroy(Context, Ref) ->
     remove_all(Context, Ref),
@@ -122,14 +122,14 @@ set_class(#obj_ref{pid = Objects, ref = ObjectId}, Class) ->
     ok.
 
 
--spec get_context(ephp:objects_id(), object_id()) -> context().
+-spec get_context(ephp:objects_id(), object_id()) -> ephp:context_id().
 %% @doc retrieves the object context for an provided Object ID.
 get_context(Objects, ObjectId) ->
     ObjectsData = erlang:get(Objects),
     (array:get(ObjectId, ObjectsData))#ephp_object.context.
 
 
--spec get_context(obj_ref()) -> context().
+-spec get_context(obj_ref()) -> ephp:context_id().
 %% @equiv get_context/2
 get_context(#obj_ref{pid = Objects, ref = ObjectId}) ->
     get_context(Objects, ObjectId).
@@ -177,7 +177,7 @@ add_link(#obj_ref{pid = Objects, ref = ObjectId}) ->
     add_link(Objects, ObjectId).
 
 
--spec remove_all(context(), ephp:objects_id()) -> ok.
+-spec remove_all(ephp:context_id(), ephp:objects_id()) -> ok.
 %% @doc removes all of the objects stored using objects_id.
 remove_all(Context, Objects) ->
     ObjectsData = erlang:get(Objects),
@@ -190,7 +190,7 @@ remove_all(Context, Objects) ->
     ok.
 
 
--spec remove(context(), ephp:objects_id(), object_id()) -> ok.
+-spec remove(ephp:context_id(), ephp:objects_id(), object_id()) -> ok.
 %% @doc decreases the number of links for an object. If arrives to zero,
 %%      the object is removed.
 %% @end
@@ -209,13 +209,13 @@ remove(Context, Objects, ObjectId) ->
     ok.
 
 
--spec remove(context(), obj_ref()) -> ok.
+-spec remove(ephp:context_id(), obj_ref()) -> ok.
 %% @equiv remove/3
 remove(Context, #obj_ref{pid = Objects, ref = ObjectId}) ->
     remove(Context, Objects, ObjectId).
 
 
--spec remove_complete(context(), ephp:objects_id(), object_id()) -> ok.
+-spec remove_complete(ephp:context_id(), ephp:objects_id(), object_id()) -> ok.
 %% @doc removes an object from the storage given the object or its ID.
 remove_complete(Context, Objects, ObjectId) ->
     ObjRef = #obj_ref{pid = Objects, ref = ObjectId},
@@ -236,7 +236,7 @@ remove_complete(Context, Objects, ObjectId) ->
     ok.
 
 
--spec clone(context(), obj_ref()) -> obj_ref().
+-spec clone(ephp:context_id(), obj_ref()) -> obj_ref().
 %% @doc clones an object generating a new one and executing its `__clone'
 %%      function by the way.
 %% @end

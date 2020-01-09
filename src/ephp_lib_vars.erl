@@ -26,6 +26,7 @@
 ]).
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 -define(SPACES, "    ").
 -define(SPACES_VD, "  ").
@@ -61,40 +62,40 @@ init_config() -> [].
 
 init_const() -> [].
 
--spec php_is_array(context(), line(), var_value()) -> boolean().
+-spec php_is_array(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_array(_Context, _Line, {_,Value}) -> ?IS_ARRAY(Value).
 
--spec php_is_bool(context(), line(), var_value()) -> boolean().
+-spec php_is_bool(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_bool(_Context, _Line, {_,Value}) -> erlang:is_boolean(Value).
 
--spec php_is_integer(context(), line(), var_value()) -> boolean().
+-spec php_is_integer(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_integer(_Context, _Line, {_,Value}) -> erlang:is_integer(Value).
 
--spec php_is_numeric(context(), line(), var_value()) -> boolean().
+-spec php_is_numeric(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_numeric(_Context, _Line, {_,Value}) -> erlang:is_number(Value).
 
--spec php_is_float(context(), line(), var_value()) -> boolean().
+-spec php_is_float(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_float(_Context, _Line, {_,Value}) -> erlang:is_float(Value).
 
--spec php_is_null(context(), line(), var_value()) -> boolean().
+-spec php_is_null(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_null(_Context, _Line, {_,undefined}) -> true;
 php_is_null(_Context, _Line, _Var) -> false.
 
--spec php_is_string(context(), line(), var_value()) -> boolean().
+-spec php_is_string(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_string(_Context, _Line, {_, Value}) -> erlang:is_binary(Value).
 
--spec php_is_object(context(), line(), var_value()) -> boolean().
+-spec php_is_object(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_object(_Context, _Line, {_, Value}) -> ?IS_OBJECT(Value).
 
--spec php_is_resource(context(), line(), var_value()) -> boolean().
+-spec php_is_resource(ephp:context_id(), line(), var_value()) -> boolean().
 php_is_resource(_Context, _Line, {_, Value}) -> ?IS_RESOURCE(Value).
 
--spec print_r(context(), line(), var_value()) -> true | binary().
+-spec print_r(ephp:context_id(), line(), var_value()) -> true | binary().
 
 print_r(Context, Line, Vars) ->
     print_r(Context, Line, Vars, {false,false}).
 
--spec var_dump(context(), line(), [var_value()] | var_value()) -> undefined.
+-spec var_dump(ephp:context_id(), line(), [var_value()] | var_value()) -> undefined.
 
 var_dump(Context, Line, Values) when is_list(Values) ->
     lists:foreach(fun(Value) ->
@@ -119,7 +120,7 @@ var_dump(Context, Line, {_, Value}) ->
     ephp_context:set_output(Context, Result),
     undefined.
 
--spec print_r(context(), line(), var_value(), Output :: var_value()) ->
+-spec print_r(ephp:context_id(), line(), var_value(), Output :: var_value()) ->
       true | binary().
 
 print_r(Context, Line, {_, ObjRef}, {_, true}) when ?IS_OBJECT(ObjRef) ->
@@ -173,17 +174,17 @@ print_r(Context, Line, {_,Value}, {_,false}) ->
     ephp_context:set_output(Context, ephp_data:to_bin(Context, Line, Value)),
     true.
 
--spec isset(context(), line(), {variable(), variable()}) -> boolean().
+-spec isset(ephp:context_id(), line(), {variable(), variable()}) -> boolean().
 
 isset(Context, _Line, {_, Var}) ->
     ephp_context:isset(Context, Var).
 
--spec empty(context(), line(), var_value()) -> boolean().
+-spec empty(ephp:context_id(), line(), var_value()) -> boolean().
 
 empty(Context, _Line, {_, Var}) ->
     ephp_context:empty(Context, Var).
 
--spec gettype(context(), line(), var_value()) -> binary().
+-spec gettype(ephp:context_id(), line(), var_value()) -> binary().
 
 gettype(_Context, _Line, {_,Value}) ->
     case ephp_data:gettype(Value) of
@@ -191,7 +192,7 @@ gettype(_Context, _Line, {_,Value}) ->
         Other -> Other
     end.
 
--spec unset(context(), line(), {variable(), variable()}) -> undefined.
+-spec unset(ephp:context_id(), line(), {variable(), variable()}) -> undefined.
 
 unset(Context, _Line, {#variable{}, #variable{} = Var}) ->
     ephp_context:del(Context, Var),
@@ -364,7 +365,9 @@ var_dump_fmt(Context, Line, Value, Spaces, RecCtl) when ?IS_ARRAY(Value) ->
                       Spaces/binary, V/binary>>
                 ];
             V when is_list(V) andalso ?IS_MEM(Val) ->
-                {#ephp_array{} = Data, 1} = ephp_mem:get_with_links(Val),
+                {Data, 1} = ephp_mem:get_with_links(Val),
+                %% FIXME: should we still use here the assert? better info?
+                true = ?IS_ARRAY(Data),
                 Prefix = <<Spaces/binary, "[", KeyBin/binary, "]=>\n">>,
                 var_dump_array(Prefix, Context, Line, Data, V, Spaces);
             V when is_list(V) andalso ?IS_ARRAY(Val) ->

@@ -18,6 +18,10 @@
     translate/3
 ]).
 
+-type namespace() :: [binary()].
+
+-export_type([namespace/0]).
+
 -spec normalize(namespace()) -> namespace().
 %% @doc normalize namespace removing initial empty (absolute) if any.
 normalize([<<>>|NS]) -> NS;

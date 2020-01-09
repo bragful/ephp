@@ -45,6 +45,7 @@
 ]).
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 -spec init_func() -> ephp_lib:php_function_results().
 
@@ -149,17 +150,17 @@ handle_error(_Type, _Level, _Data) ->
     ignore.
 
 
--spec strlen(context(), line(), String :: var_value()) -> integer().
+-spec strlen(ephp:context_id(), line(), String :: var_value()) -> integer().
 %% @doc retrieve the lenght of the string.
 strlen(_Context, _Line, {_,String}) when is_binary(String) ->
     byte_size(String).
 
--spec ord(context(), line(), String :: var_value()) -> integer().
+-spec ord(ephp:context_id(), line(), String :: var_value()) -> integer().
 %% @doc obtain the number of the character passed as a param.
 ord(_Context, _Line, {_,<<I:8/integer,_/binary>>}) ->
     I.
 
--spec chr(context(), line(), Integer :: var_value()) -> binary().
+-spec chr(ephp:context_id(), line(), Integer :: var_value()) -> binary().
 %% @doc obtain the character giving the number as a param.
 chr(_Context, _Line, {_,C}) when is_integer(C) ->
     <<C:8/integer>>;
@@ -167,7 +168,7 @@ chr(_Context, _Line, {_,C}) when is_integer(C) ->
 chr(_Context, _Line, _Var) ->
     undefined.
 
--spec implode(context(), line(),
+-spec implode(ephp:context_id(), line(),
     Glue :: var_value(), Pieces :: var_value()) -> binary().
 %% @doc join the array with the glue passed as a param.
 implode(Context, Line, {_, Glue} = VarGlue, _Pieces) when ?IS_ARRAY(Glue) ->
@@ -186,13 +187,13 @@ implode(Context, Line, {_, RawGlue}, {_, Pieces}) when ?IS_ARRAY(Pieces) ->
         [H|T] -> <<H/binary, (<< <<Glue/binary,X/binary>> || X <- T >>)/binary>>
     end.
 
--spec implode(context(), line(), Pieces :: var_value()) -> binary().
+-spec implode(ephp:context_id(), line(), Pieces :: var_value()) -> binary().
 %% @doc join the array passed as a param.
 implode(Context, Line, Pieces) ->
     implode(Context, Line, {undefined, <<>>}, Pieces).
 
--spec explode(context(), line(), Delimiter :: var_value(), String :: var_value())
-    -> ephp_array().
+-spec explode(ephp:context_id(), line(), Delimiter :: var_value(), String :: var_value())
+    -> ephp_array:ephp_array().
 %% @doc split the string in pieces in an array.
 explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     Pieces = binary:split(String, Delimiter, [global]),
@@ -201,10 +202,10 @@ explode(_Context, _Line, {_,Delimiter}, {_,String}) ->
     end, ephp_array:new(), Pieces).
 
 -spec explode(
-    context(), line(),
+    ephp:context_id(), line(),
     Delimiter :: var_value(),
     String :: var_value(),
-    Limit :: var_value()) -> ephp_array().
+    Limit :: var_value()) -> ephp_array:ephp_array().
 %% @doc split the string in pieces in an array with a limit.
 explode(Context, Line, _Delimiter, _String, {_,Limit})
         when not is_integer(Limit) ->
@@ -220,7 +221,7 @@ explode(_Context, _Line, _Delimiter, {_,String}, {_,0}) ->
 explode(_Context, _Line, {_,Delimiter}, {_,String}, {_,Limit}) ->
     split_limit(Delimiter, String, ephp_array:new(), Limit-1, 0).
 
--spec printf(context(), line(), [var_value()]) -> pos_integer().
+-spec printf(ephp:context_id(), line(), [var_value()]) -> pos_integer().
 %% @doc print using a format.
 printf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
@@ -233,7 +234,7 @@ printf(Context, _Line, [{_,Format}|Values]) ->
     ephp_context:set_output(Context, Text),
     byte_size(Text).
 
--spec sprintf(context(), line(), [var_value()]) -> binary().
+-spec sprintf(ephp:context_id(), line(), [var_value()]) -> binary().
 %% @doc generate a string using a format.
 sprintf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
@@ -244,7 +245,7 @@ sprintf(Context, Line, Values) when length(Values) < 2 ->
 sprintf(_Context, _Line, [{_,Format}|Values]) ->
     print_format(Format, Values).
 
--spec vprintf(context(), line(),
+-spec vprintf(ephp:context_id(), line(),
               Format :: var_value(),
               Values :: var_value()) -> pos_integer().
 
@@ -253,14 +254,14 @@ vprintf(Context, _Line, {_,Format}, {_,Values}) when ?IS_ARRAY(Values) ->
     ephp_context:set_output(Context, Text),
     byte_size(Text).
 
--spec vsprintf(context(), line(),
+-spec vsprintf(ephp:context_id(), line(),
                Format :: var_value(),
                Values :: var_value()) -> binary().
 
 vsprintf(_Context, _Line, {_,Format}, {_,Values}) when ?IS_ARRAY(Values) ->
     print_format(Format, ephp_array:to_list(Values)).
 
--spec str_replace(context(), line(),
+-spec str_replace(ephp:context_id(), line(),
                   Search :: var_value(), Replace :: var_value(),
                   Subject :: var_value()) -> binary().
 
@@ -282,7 +283,7 @@ str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject})
 str_replace(_Context, _Line, {_, Search}, {_, Replace}, {_, Subject}) ->
     binary:replace(Subject, Search, Replace, [global]).
 
--spec str_replace(context(), line(),
+-spec str_replace(ephp:context_id(), line(),
                   Search :: var_value(), Replace :: var_value(),
                   Subject :: var_value(), Count :: var_value()) -> binary().
 
@@ -291,17 +292,17 @@ str_replace(Context, _Line, {_, Search}, {_, Replace}, {_, Subject},
     ephp_context:set(Context, Count, length(binary:matches(Subject, Search))),
     binary:replace(Subject, Search, Replace, [global]).
 
--spec strtolower(context(), line(), Text :: var_value()) -> binary().
+-spec strtolower(ephp:context_id(), line(), Text :: var_value()) -> binary().
 
 strtolower(Context, Line, {_, Text}) ->
     ephp_string:to_lower(ephp_data:to_bin(Context, Line, Text)).
 
--spec strtoupper(context(), line(), Text :: var_value()) -> binary().
+-spec strtoupper(ephp:context_id(), line(), Text :: var_value()) -> binary().
 
 strtoupper(Context, Line, {_, Text}) ->
     ephp_string:to_upper(ephp_data:to_bin(Context, Line, Text)).
 
--spec ucfirst(context(), line(), Text :: var_value()) -> binary().
+-spec ucfirst(ephp:context_id(), line(), Text :: var_value()) -> binary().
 
 ucfirst(Context, Line, {_, Text}) ->
     case ephp_data:to_bin(Context, Line, Text) of
@@ -310,7 +311,7 @@ ucfirst(Context, Line, {_, Text}) ->
             <<(ephp_string:to_upper(First))/utf8, Tail/binary>>
     end.
 
--spec lcfirst(context(), line(), Text :: var_value()) -> binary().
+-spec lcfirst(ephp:context_id(), line(), Text :: var_value()) -> binary().
 
 lcfirst(Context, Line, {_, Text}) ->
     case ephp_data:to_bin(Context, Line, Text) of
@@ -319,7 +320,7 @@ lcfirst(Context, Line, {_, Text}) ->
             <<(ephp_string:to_lower(First))/utf8, Tail/binary>>
     end.
 
--spec str_shuffle(context(), line(), var_value()) -> binary().
+-spec str_shuffle(ephp:context_id(), line(), var_value()) -> binary().
 
 str_shuffle(Context, Line, {_, Text}) ->
     case ephp_data:to_bin(Context, Line, Text) of
@@ -330,20 +331,20 @@ str_shuffle(Context, Line, {_, Text}) ->
             << <<A/utf8>> || {_, A} <- Sorted >>
     end.
 
--spec ucwords(context(), line(), var_value(), var_value()) -> binary().
+-spec ucwords(ephp:context_id(), line(), var_value(), var_value()) -> binary().
 
 ucwords(Context, Line, {_, Text}, {_, Sep}) ->
     SepList = binary_to_list(Sep),
     ephp_string:capitalize(ephp_data:to_bin(Context, Line, Text), SepList).
 
--spec str_split(context(), line(), Text :: var_value()) -> ephp_array().
+-spec str_split(ephp:context_id(), line(), Text :: var_value()) -> ephp_array:ephp_array().
 
 str_split(Context, Line, Text) ->
     str_split(Context, Line, Text, {1, 1}).
 
--spec str_split(context(), line(),
+-spec str_split(ephp:context_id(), line(),
                 Text :: var_value(),
-                Size :: var_value()) -> ephp_array() | undefined.
+                Size :: var_value()) -> ephp_array:ephp_array() | undefined.
 
 str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
     File = ephp_context:get_active_file(Context),
@@ -355,7 +356,7 @@ str_split(Context, Line, _Text, {_, Size}) when not is_integer(Size) ->
 str_split(_Context, _Line, {_, Text}, {_, Size}) ->
     split_chars(Text, ephp_array:new(), 0, Size).
 
--spec print(context(), line(), [var_value()]) -> 1.
+-spec print(ephp:context_id(), line(), [var_value()]) -> 1.
 
 print(_Context, _Line, []) ->
     1;
@@ -368,7 +369,7 @@ print(Context, Line, [{_, Value}|Values]) ->
     ephp_context:set_output(Context, ValueStr),
     print(Context, Line, Values).
 
--spec strpos(context(), line(),
+-spec strpos(ephp:context_id(), line(),
              HayStack :: var_value(),
              Needle :: var_value(),
              Offset :: var_value()) -> false | pos_integer() | undefined.
@@ -388,7 +389,7 @@ strpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
             end
     end.
 
--spec strrpos(context(), line(),
+-spec strrpos(ephp:context_id(), line(),
               HayStack :: var_value(),
               Needle :: var_value(),
               Offset :: var_value()) -> false | pos_integer() | undefined.
@@ -430,38 +431,38 @@ strrpos(Context, Line, {_, HayStack}, {_, Needle}, {_, Offset}) ->
             end
     end.
 
--spec strrev(context(), line(), Str::var_value()) -> binary().
+-spec strrev(ephp:context_id(), line(), Str::var_value()) -> binary().
 
 strrev(_Context, _Line, {_, Str}) ->
     ephp_string:reverse(Str).
 
--spec rtrim(context(), line(), Str::var_value(), CharMask::var_value()) ->
+-spec rtrim(ephp:context_id(), line(), Str::var_value(), CharMask::var_value()) ->
       binary() | undefined.
 
 rtrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
     Chars = binary_to_list(ephp_string:expand_mask(CharMask)),
     ephp_string:rtrim(Str, Chars).
 
--spec ltrim(context(), line(), Str::var_value(), CharMask::var_value()) ->
+-spec ltrim(ephp:context_id(), line(), Str::var_value(), CharMask::var_value()) ->
       binary() | undefined.
 
 ltrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
     Chars = binary_to_list(ephp_string:expand_mask(CharMask)),
     ephp_string:ltrim(Str, Chars).
 
--spec trim(context(), line(), Str::var_value(), CharMask::var_value()) ->
+-spec trim(ephp:context_id(), line(), Str::var_value(), CharMask::var_value()) ->
       binary() | undefined.
 
 trim(_Context, _Line, {_, Str}, {_, CharMask}) ->
     Chars = binary_to_list(CharMask),
     ephp_string:trim(Str, Chars).
 
--spec bin2hex(context(), line(), var_value()) -> binary().
+-spec bin2hex(ephp:context_id(), line(), var_value()) -> binary().
 
 bin2hex(_Context, _Line, {_, Binary}) ->
     ephp_string:bin2hex(Binary).
 
--spec hex2bin(context(), line(), var_value()) -> binary().
+-spec hex2bin(ephp:context_id(), line(), var_value()) -> binary().
 
 hex2bin(Context, Line, {_, Hex}) when byte_size(Hex) rem 2 =/= 0 ->
     File = ephp_context:get_active_file(Context),
@@ -472,13 +473,13 @@ hex2bin(Context, Line, {_, Hex}) when byte_size(Hex) rem 2 =/= 0 ->
 hex2bin(_Context, _Line, {_, Hex}) ->
     ephp_string:hex2bin(Hex).
 
--spec substr(context(), line(), var_value(), var_value(), var_value()) ->
+-spec substr(ephp:context_id(), line(), var_value(), var_value(), var_value()) ->
       binary().
 
 substr(_Context, _Line, {_, String}, {_, Start}, {_, Len}) ->
     limit(offset(String, Start), Len).
 
--spec str_repeat(context(), line(), var_value(), var_value()) ->
+-spec str_repeat(ephp:context_id(), line(), var_value(), var_value()) ->
       binary() | undefined.
 
 str_repeat(Context, Line, {_, _String}, {_, Multiplier}) when Multiplier < 0 ->
@@ -490,7 +491,7 @@ str_repeat(Context, Line, {_, _String}, {_, Multiplier}) when Multiplier < 0 ->
 str_repeat(_Context, _Line, {_, String}, {_, Multiplier}) ->
     str_repeat(String, Multiplier, <<>>).
 
--spec count_chars(context(), line(), var_value(), var_value()) -> ephp_array() | binary().
+-spec count_chars(ephp:context_id(), line(), var_value(), var_value()) -> ephp_array:ephp_array() | binary().
 
 count_chars(_Context, _Line, {_, String}, {_, 1}) ->
     % same as 0 but only byte-values with a frequency greater than zero are listed.
@@ -516,7 +517,7 @@ count_chars(_Context, _Line, {_, String}, {_, _}) ->
         ephp_array:update_counter(I, 1, Array)
     end, FullArray, binary_to_list(String)).
 
--spec nl2br(context(), line(), var_value(), var_value()) -> binary().
+-spec nl2br(ephp:context_id(), line(), var_value(), var_value()) -> binary().
 
 nl2br(_Context, _Line, {_, String}, {_, Xhtml}) ->
     BR = case ephp_data:to_boolean(Xhtml) of

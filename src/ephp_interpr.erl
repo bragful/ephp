@@ -11,8 +11,9 @@
 -export_type([flow_status/0]).
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
--spec process(context(), Statements :: [main_statement()]) ->
+-spec process(ephp:context_id(), Statements :: [main_statement()]) ->
       {ok, binary() | flow_return() | false}.
 
 process(Context, Statements) ->
@@ -20,7 +21,7 @@ process(Context, Statements) ->
     process(Context, Statements, Cover).
 
 
--spec process(context(), Statements :: [main_statement()], Cover :: boolean()) ->
+-spec process(ephp:context_id(), Statements :: [main_statement()], Cover :: boolean()) ->
       {ok, binary() | flow_return() | false}.
 
 process(_Context, [], _Cover) ->
@@ -57,7 +58,7 @@ process(Context, Statements, true) ->
     end,
     {ok, Value}.
 
--spec check_exception(context(), obj_ref()) -> ok.
+-spec check_exception(ephp:context_id(), obj_ref()) -> ok.
 
 check_exception(Context, Exception) ->
     L = ephp_class_exception:exception_get_line(Context, Exception, undefined),
@@ -74,14 +75,14 @@ check_exception(Context, Exception) ->
 
 -type flow_status() :: break() | continue() | flow_return() | false.
 
--spec run(context(), main_statement()) -> flow_status().
+-spec run(ephp:context_id(), main_statement()) -> flow_status().
 
 run(Context, Statement) ->
     Cover = ephp_cover:get_config(),
     run(Context, Statement, Cover).
 
 
--spec run(context(), main_statement(), Cover :: boolean()) -> flow_status().
+-spec run(ephp:context_id(), main_statement(), Cover :: boolean()) -> flow_status().
 
 run(Context, #print_text{text=Text, line=Line}, Cover) ->
     ok = ephp_cover:store(Cover, print, Context, Line),
@@ -102,7 +103,7 @@ run(Context, #eval{statements=Statements, line=Line}, Cover) ->
                     run_depth(Context, Statement, State, Cover)
                 end, false, Statements).
 
--spec run_depth(context(), statement(), flow_status(),
+-spec run_depth(ephp:context_id(), statement(), flow_status(),
                 Cover :: boolean()) -> flow_status().
 
 run_depth(Context, #eval{} = Eval, false, Cover) ->
@@ -403,14 +404,14 @@ exit_cond({break, 0}) -> false;
 exit_cond({break, N}) -> {break, N-1};
 exit_cond(break) -> false.
 
--spec run_finally(context(), statements(), Cover :: boolean()) -> flow_status().
+-spec run_finally(ephp:context_id(), statements(), Cover :: boolean()) -> flow_status().
 
 run_finally(_Context, [], _Cover) ->
     false;
 run_finally(Context, Finally, Cover) ->
     run(Context, #eval{statements = Finally}, Cover).
 
--spec run_catch(context(), catch_block(), Exception :: obj_ref(),
+-spec run_catch(ephp:context_id(), catch_block(), Exception :: obj_ref(),
                 Finally :: statements(), Cover :: boolean()) -> throw |
                                                                 flow_status().
 
@@ -433,7 +434,7 @@ run_catch(Context,
 
 -spec run_loop(
     PrePost :: (pre | post),
-    Context :: context(),
+    Context :: ephp:context_id(),
     Cond :: condition(),
     Statements :: [statement()],
     Cover :: boolean()) -> flow_return().
@@ -464,7 +465,7 @@ run_loop(post, Context, Cond, Statements, Cover) ->
             exit_cond(Return)
     end.
 
--spec run_foreach(Context :: context(),
+-spec run_foreach(Context :: ephp:context_id(),
                   Key :: variable() | ref(),
                   Var :: variable() | ref(),
                   Elements :: variable() |
@@ -541,7 +542,7 @@ run_foreach(Context, Key, Var, {SupVar, [{KeyVal, VarVal}|Elements]},
 
 -type switch_flow() :: seek | run | exit.
 
--spec run_switch(context(), condition() | default, [switch_case()],
+-spec run_switch(ephp:context_id(), condition() | default, [switch_case()],
                  Cover :: boolean()) ->
       {switch_flow(), break() | return() | false}.
 

@@ -53,7 +53,7 @@ handle_error(einclude, _Level, {ReqFile, Func}) ->
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
--spec include(context(), line(), InclFile :: var_value()) -> any().
+-spec include(ephp:context_id(), line(), InclFile :: var_value()) -> any().
 
 include(Context, Line, {_Var, InclFile}) ->
     File = ephp_context:get_active_file(Context),
@@ -69,7 +69,7 @@ include(Context, Line, {_Var, InclFile}) ->
             include_file(Context, Code, InclFile)
     end.
 
--spec include_once(context(), line(), File :: var_value()) -> any().
+-spec include_once(ephp:context_id(), line(), File :: var_value()) -> any().
 
 include_once(Context, Line, {_Var, InclFile}) ->
     File = ephp_context:get_active_file(Context),
@@ -87,7 +87,7 @@ include_once(Context, Line, {_Var, InclFile}) ->
             include_file(Context, Code, InclFile)
     end.
 
--spec require(context(), line(), File :: var_value()) -> any().
+-spec require(ephp:context_id(), line(), File :: var_value()) -> any().
 
 require(Context, Line, {_Var, ReqFile}) ->
     File = ephp_context:get_active_file(Context),
@@ -101,7 +101,7 @@ require(Context, Line, {_Var, ReqFile}) ->
             include_file(Context, Code, ReqFile)
     end.
 
--spec require_once(context(), line(), File :: var_value()) -> any().
+-spec require_once(ephp:context_id(), line(), File :: var_value()) -> any().
 
 require_once(Context, Line, {_Var, ReqFile}) ->
     File = ephp_context:get_active_file(Context),

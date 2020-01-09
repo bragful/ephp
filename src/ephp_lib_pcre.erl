@@ -43,6 +43,11 @@ init_config() -> [
     {<<"pcre.recurssion_limit">>, 100000}
 ].
 
+-ifndef(PCRE_VERSION).
+%% keep it only for some editors (like VSCode)
+-define(PCRE_VERSION, "8.02 2010-03-19").
+-endif.
+
 -spec init_const() -> ephp_lib:php_const_results().
 
 init_const() ->
@@ -62,7 +67,7 @@ init_const() ->
         {<<"PCRE_VERSION">>, <<?PCRE_VERSION>>}
     ].
 
--spec preg_replace(context(), line(),
+-spec preg_replace(ephp:context_id(), line(),
                    Pattern :: var_value(),
                    Replacement :: var_value(),
                    Subject :: var_value(),
@@ -82,7 +87,7 @@ preg_replace(_Context, _Line, {_, Pattern}, {_, Replacement}, {_, Subject},
     iolist_to_binary(S).
 
 -spec preg_match(
-    context(), line(),
+    ephp:context_id(), line(),
     Pattern :: var_value(),
     Subject :: var_value(),
     Matches :: var_value(),
@@ -121,7 +126,7 @@ preg_match(Context, _Line, {_,Pattern}, {_,Subject}, {VarMatches,_},
     ephp_context:set(Context, VarMatches, ValMatches),
     ephp_array:size(ValMatches).
 
--spec preg_quote(context(), line(), Str::var_value(), Delim::var_value()) ->
+-spec preg_quote(ephp:context_id(), line(), Str::var_value(), Delim::var_value()) ->
       binary().
 
 preg_quote(_Context, _Line, {_, Str}, {_, DelimBin}) ->

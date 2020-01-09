@@ -33,7 +33,7 @@ init_const() -> [].
 handle_error(_Error, _Level, _Data) ->
     ignore.
 
--spec shell_exec(context(), line(), var_value()) -> binary().
+-spec shell_exec(ephp:context_id(), line(), var_value()) -> binary().
 
 shell_exec(_Context, _Line, {_, BaseCommand}) ->
     %% TODO: give more security to this and ensure it's not disabled

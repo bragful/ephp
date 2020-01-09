@@ -29,17 +29,18 @@
     get_level/1
 ]).
 
--callback set_output(context(), string()) -> ok.
+-callback set_output(ephp:context_id(), string()) -> ok.
 
 -include("ephp.hrl").
 
 -type error_format() :: text | html.
 
 -type error_type() :: atom().
+-type error_level() :: pos_integer().
 
 -type get_return_return() :: {ok, undefined} | {return, undefined}.
 
--export_type([get_return_return/0]).
+-export_type([get_return_return/0, error_level/0]).
 
 -record(state, {
     ref :: ephp:errors_id(),
@@ -49,7 +50,7 @@
     silent = false :: boolean(),
     level = ?E_ALL band (bnot ?E_STRICT) :: non_neg_integer(),
     modules = [] :: [module()],
-    last_error :: ephp_array() | undefined
+    last_error :: ephp_array:ephp_array() | undefined
 }).
 
 -spec start_link() -> {ok, ephp:errors_id()}.
@@ -65,7 +66,7 @@ destroy(ErrorsId) ->
     erlang:erase(ErrorsId),
     ok.
 
--spec add_message_handler(context(), module()) -> ok.
+-spec add_message_handler(ephp:context_id(), module()) -> ok.
 
 add_message_handler(Context, Module) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -73,7 +74,7 @@ add_message_handler(Context, Module) ->
     erlang:put(ErrorsId, State#state{modules = [Module|Modules]}),
     ok.
 
--spec set_exception_handler_func(context(), callable()) -> ok.
+-spec set_exception_handler_func(ephp:context_id(), callable()) -> ok.
 
 set_exception_handler_func(Context, Callable) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -81,13 +82,13 @@ set_exception_handler_func(Context, Callable) ->
     erlang:put(ErrorsId, State#state{exception_handler = Callable}),
     ok.
 
--spec get_exception_handler_func(context()) -> callable() | undefined.
+-spec get_exception_handler_func(ephp:context_id()) -> callable() | undefined.
 
 get_exception_handler_func(Context) ->
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
     ErrorState#state.exception_handler.
 
--spec remove_exception_handler_func(context()) -> ok.
+-spec remove_exception_handler_func(ephp:context_id()) -> ok.
 
 remove_exception_handler_func(Context) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -95,7 +96,7 @@ remove_exception_handler_func(Context) ->
     erlang:put(ErrorsId, State#state{exception_handler = undefined}),
     ok.
 
--spec set_error_handler_func(context(), callable(), errorlevel()) -> ok.
+-spec set_error_handler_func(ephp:context_id(), callable(), errorlevel()) -> ok.
 
 set_error_handler_func(Context, Callable, ErrorLevel) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -104,7 +105,7 @@ set_error_handler_func(Context, Callable, ErrorLevel) ->
     erlang:put(ErrorsId, State#state{error_handler = ErrorHandlers}),
     ok.
 
--spec get_error_handler_func(context()) -> {callable(), errorlevel()} | undefined.
+-spec get_error_handler_func(ephp:context_id()) -> {callable(), errorlevel()} | undefined.
 
 get_error_handler_func(Context) ->
     ErrorState = erlang:get(ephp_context:get_errors_id(Context)),
@@ -113,7 +114,7 @@ get_error_handler_func(Context) ->
         [ErrorHandler|_] -> ErrorHandler
     end.
 
--spec remove_error_handler_func(context()) -> ok.
+-spec remove_error_handler_func(ephp:context_id()) -> ok.
 
 remove_error_handler_func(Context) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -126,14 +127,14 @@ remove_error_handler_func(Context) ->
             ok
     end.
 
--spec get_last(context()) -> ephp_array() | undefined.
+-spec get_last(ephp:context_id()) -> ephp_array:ephp_array() | undefined.
 
 get_last(Context) ->
     ErrorsId = ephp_context:get_errors_id(Context),
     State = erlang:get(ErrorsId),
     State#state.last_error.
 
--spec clear_last(context()) -> ok.
+-spec clear_last(ephp:context_id()) -> ok.
 
 clear_last(Context) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -141,7 +142,7 @@ clear_last(Context) ->
     erlang:put(ErrorsId, State#state{last_error = undefined}),
     ok.
 
--spec error_reporting(context(), integer()) -> integer().
+-spec error_reporting(ephp:context_id(), integer()) -> integer().
 
 error_reporting(Context, Level) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -158,7 +159,7 @@ error_reporting(Context, Level) ->
 error({error, Type, Index, Level, Data}) ->
     throw({error, Type, Index, Level, Data}).
 
--spec handle_error(context(), {error, error_type(), line(), binary(),
+-spec handle_error(ephp:context_id(), {error, error_type(), line(), binary(),
                                error_level(), any()}) -> get_return_return().
 
 handle_error(Context, {error, euncaught, Index, File, Level,
@@ -234,7 +235,7 @@ handle_error(Context, {error, Type, Index, File, Level, Data}) ->
     end,
     get_return(Type).
 
--spec run(context(), #state{}, callable(), integer(), string(), binary(),
+-spec run(ephp:context_id(), #state{}, callable(), integer(), string(), binary(),
           line()) -> boolean().
 
 run(Context, State, ErrHandler, Level, ErrorText, File, Index) ->
@@ -252,12 +253,12 @@ run(Context, State, ErrHandler, Level, ErrorText, File, Index) ->
     end,
     Return.
 
--spec set_output(context(), binary()) -> ok.
+-spec set_output(ephp:context_id(), binary()) -> ok.
 
 set_output(Context, Text) ->
     ephp_context:set_output(Context, Text).
 
--spec set_output_handler(context(), module()) -> ok.
+-spec set_output_handler(ephp:context_id(), module()) -> ok.
 
 set_output_handler(Context, Module) ->
     ErrorsId = ephp_context:get_errors_id(Context),
@@ -456,7 +457,7 @@ get_message(eundefidx, {Idx}) ->
 get_message(Unknown, Data) ->
     io_lib:format("unknown ~p for ~p", [Unknown, Data]).
 
--spec trace_to_str(context(), pos_integer(), ephp_array()) -> iolist().
+-spec trace_to_str(ephp:context_id(), pos_integer(), ephp_array:ephp_array()) -> iolist().
 
 trace_to_str(Ctx, I, Array) ->
     {ok, FuncName} = ephp_array:find(<<"function">>, Array),

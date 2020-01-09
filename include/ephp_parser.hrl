@@ -129,7 +129,7 @@
     array_type = old :: old | php54,
     access :: undefined | access_types(),
     final = false :: boolean(),
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     %% can_be could have the following contents:
     %% - true: there is no namespace still set.
     %% - false: there is not possible to set a namespace.
@@ -138,10 +138,10 @@
     namespace_can_be = true :: boolean() |
                                only_block |
                                only_statement,
-    use_list = [] :: [{namespace(), namespace()}],
-    use_ns = [] :: namespace(),
-    use_func_list = [] :: [{function_name(), namespace()}],
-    use_const_list = [] :: [{binary(), namespace()}]
+    use_list = [] :: [{ephp_ns:namespace(), ephp_ns:namespace()}],
+    use_ns = [] :: ephp_ns:namespace(),
+    use_func_list = [] :: [{function_name(), ephp_ns:namespace()}],
+    use_const_list = [] :: [{binary(), ephp_ns:namespace()}]
 }).
 
 -type parser() :: #parser{}.

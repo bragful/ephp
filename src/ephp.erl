@@ -41,6 +41,26 @@
 -define(ERRORLEVEL_2, 2).
 -define(ERRORLEVEL_3, 3).
 
+% built-in modules
+-define(MODULES, [
+    ephp_lib_date,
+    ephp_lib_vars,
+    ephp_lib_math,
+    ephp_lib_misc,
+    ephp_lib_ob,
+    ephp_lib_control,
+    ephp_lib_array,
+    ephp_lib_string,
+    ephp_lib_file,
+    ephp_lib_func,
+    ephp_lib_info,
+    ephp_lib_class,
+    ephp_lib_error,
+    ephp_lib_pcre,
+    ephp_lib_spl,
+    ephp_lib_exec
+]).
+
 -export_type([
     context_id/0,
     vars_id/0,
@@ -66,13 +86,14 @@
 -type errors_id() :: reference().
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
--spec context_new() -> {ok, context()}.
+-spec context_new() -> {ok, context_id()}.
 %% @doc creates a new context using `-' as script name.
 context_new() ->
     context_new(<<"-">>).
 
--spec context_new(Filename :: binary()) -> {ok, context()}.
+-spec context_new(Filename :: binary()) -> {ok, context_id()}.
 %% @doc creates a new context passing `Filename' as param.
 context_new(Filename) ->
     Modules = application:get_env(ephp, modules, []),
@@ -83,9 +104,9 @@ context_new(Filename) ->
     ephp_context:set_active_file(Ctx, Filename),
     {ok, Ctx}.
 
--type values() :: integer() | binary() | float() | ephp_array().
+-type values() :: integer() | binary() | float() | ephp_array:ephp_array().
 
--spec register_var(Ctx :: context(), Var :: binary(), Value :: values()) ->
+-spec register_var(Ctx :: context_id(), Var :: binary(), Value :: values()) ->
     ok | {error, reason()}.
 %% @doc register a variable with a value in the context passed as param.
 register_var(Ctx, Var, Value) when
@@ -99,7 +120,7 @@ register_var(Ctx, Var, Value) when
 register_var(_Ctx, _Var, _Value) ->
     {error, badarg}.
 
--spec register_func(context(), namespace(),
+-spec register_func(context_id(), ephp_ns:namespace(),
                     PHPName :: binary(), module(), Fun :: atom(),
                     PackArgs :: boolean(),
                     ephp_lib:validation_args()
@@ -114,7 +135,7 @@ register_var(_Ctx, _Var, _Value) ->
 register_func(Ctx, NS, PHPName, Module, Fun, PackArgs, Args) ->
     ephp_context:register_func(Ctx, NS, PHPName, Module, Fun, PackArgs, Args).
 
--spec register_func(context(), PHPName :: binary(), module(), Fun :: atom(),
+-spec register_func(context_id(), PHPName :: binary(), module(), Fun :: atom(),
                     PackArgs :: boolean(),
                     ephp_lib:validation_args()
                    ) -> ok | {error, reason()}.
@@ -128,7 +149,7 @@ register_func(Ctx, NS, PHPName, Module, Fun, PackArgs, Args) ->
 register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
     ephp_context:register_func(Ctx, [], PHPName, Module, Fun, PackArgs, Args).
 
--spec register_module(context(), module()) -> ok.
+-spec register_module(context_id(), module()) -> ok.
 %% @doc register a module.
 %% @see ephp_func
 register_module(Ctx, Module) ->
@@ -136,14 +157,14 @@ register_module(Ctx, Module) ->
 
 -type eval_return() ::
       {ok, Result :: ephp_interpr:flow_status()} |
-      {error, reason(), line(), File::binary(), error_level(), Data::any()}.
+      {error, reason(), line(), File::binary(), ephp_error:error_level(), Data::any()}.
 
--spec eval(context(), PHP :: string() | binary()) -> eval_return().
+-spec eval(context_id(), PHP :: string() | binary()) -> eval_return().
 %% @doc eval PHP code in a context passed as params.
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
--spec eval(Filename :: binary(), context(),
+-spec eval(Filename :: binary(), context_id(),
            PHP :: string() | binary() | [term()]) -> eval_return().
 %% @equiv eval/2
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
@@ -355,7 +376,7 @@ maybe_badmatch(Fun, File) ->
             ?ERRORLEVEL_1
     end.
 
--spec output_and_close(context()) -> ok.
+-spec output_and_close(context_id()) -> ok.
 %% @hidden
 output_and_close(Ctx) ->
     Result = ephp_context:get_output(Ctx),
@@ -410,7 +431,7 @@ stop_cover() ->
     end.
 
 
--spec register_superglobals(context(), [string()]) -> ok.
+-spec register_superglobals(context_id(), [string()]) -> ok.
 %% @doc register the superglobals variables in the context passed as param.
 %%      by default this function set the filename as "-".
 %% @end
@@ -418,7 +439,7 @@ register_superglobals(Ctx, RawArgs) ->
     register_superglobals(Ctx, "-", RawArgs).
 
 
--spec register_superglobals(context(), string(), [string()]) -> ok.
+-spec register_superglobals(context_id(), string(), [string()]) -> ok.
 %% @doc register the superglobals variables in the context passed as param.
 register_superglobals(Ctx, Filename, RawArgs) ->
     Args = [ ephp_data:to_bin(RawArg) || RawArg <- RawArgs ],

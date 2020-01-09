@@ -43,14 +43,14 @@ init_config() -> [
 
 init_const() -> [].
 
--spec flush(context(), line()) -> undefined.
+-spec flush(ephp:context_id(), line()) -> undefined.
 
 flush(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:flush(Output),
     undefined.
 
--spec ob_start(context(), line()) -> boolean().
+-spec ob_start(ephp:context_id(), line()) -> boolean().
 
 ob_start(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
@@ -59,7 +59,7 @@ ob_start(Context, _Line) ->
     ephp_output:set_output_handler(Output, undefined),
     true.
 
--spec ob_start(context(), line(), Callback :: var_value()) -> boolean().
+-spec ob_start(ephp:context_id(), line(), Callback :: var_value()) -> boolean().
 
 ob_start(Context, Line, {_, Callback}) when is_binary(Callback) ->
     Output = ephp_context:get_output_handler(Context),
@@ -75,19 +75,19 @@ ob_start(Context, Line, {_, Callback}) when is_binary(Callback) ->
     ephp_output:set_output_handler(Output, PHPFunc),
     true.
 
--spec ob_get_contents(context(), line()) -> binary().
+-spec ob_get_contents(ephp:context_id(), line()) -> binary().
 
 ob_get_contents(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:get(Output).
 
--spec ob_get_length(context(), line()) -> integer().
+-spec ob_get_length(ephp:context_id(), line()) -> integer().
 
 ob_get_length(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),
     ephp_output:size(Output).
 
--spec ob_clean(context(), line()) -> undefined.
+-spec ob_clean(ephp:context_id(), line()) -> undefined.
 
 ob_clean(Context, _Line) ->
     Output = ephp_context:get_output_handler(Context),

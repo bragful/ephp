@@ -2,6 +2,7 @@
 -author('manuel@altenwald.com').
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 -record(state, {
     ref :: ephp:context_id() | undefined,
@@ -19,12 +20,12 @@
 
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
-    active_fun_ns = [] :: namespace(),
+    active_fun_ns = [] :: ephp_ns:namespace(),
     active_fun_args = 0 :: non_neg_integer(),
     active_class = <<>> :: class_name(),
-    active_class_ns = [] :: namespace(),
+    active_class_ns = [] :: ephp_ns:namespace(),
     active_real_class = <<>> :: class_name(),
-    active_real_class_ns = [] :: namespace()
+    active_real_class_ns = [] :: ephp_ns:namespace()
 }).
 
 %% ------------------------------------------------------------------
@@ -2005,7 +2006,7 @@ resolve_op(<<"&">>, OpRes1, OpRes2, _Index, _State) ->
 resolve_op(instanceof, OpRes1, OpRes2, _Index, _State) ->
     ephp_object:get_class_name(OpRes1) =:= ephp_object:get_class_name(OpRes2).
 
--spec load_state(context()) -> #state{}.
+-spec load_state(ephp:context_id()) -> #state{}.
 
 load_state(Context) ->
     erlang:get(Context).

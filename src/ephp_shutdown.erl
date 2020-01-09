@@ -34,13 +34,13 @@ destroy(Ref) ->
     erlang:erase(Ref),
     ok.
 
--spec register_func(reference(), namespace(), callable()) -> ok.
+-spec register_func(reference(), ephp_ns:namespace(), callable()) -> ok.
 
 register_func(Ref, NS, FuncName) ->
     erlang:put(Ref, erlang:get(Ref) ++ [{NS, FuncName}]),
     ok.
 
--spec unregister_func(reference(), namespace(), callable()) -> ok.
+-spec unregister_func(reference(), ephp_ns:namespace(), callable()) -> ok.
 
 unregister_func(Ref, NS, FuncName) ->
     erlang:put(Ref, erlang:get(Ref) -- [{NS, FuncName}]),
@@ -51,7 +51,7 @@ unregister_func(Ref, NS, FuncName) ->
 get_funcs(Ref) ->
     erlang:get(Ref).
 
--spec shutdown(context()) -> undefined.
+-spec shutdown(ephp:context_id()) -> undefined.
 
 shutdown(Context) ->
     Line = {{line,0}, {column,0}},

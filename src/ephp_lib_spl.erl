@@ -32,7 +32,7 @@ init_config() -> [].
 
 init_const() -> [].
 
--spec spl_autoload_call(context(), line(), var_value()) -> undefined.
+-spec spl_autoload_call(ephp:context_id(), line(), var_value()) -> undefined.
 
 spl_autoload_call(Context, Line, {_, RawClassName}) ->
     {ClassNS, ClassName} = ephp_ns:parse(RawClassName),
@@ -60,7 +60,7 @@ spl_autoload_call(Context, Line, {_, RawClassName}) ->
             ephp_error:error({error, euncaught, Line, ?E_ERROR, Data})
     end.
 
--spec spl_autoload_register(context(), line(), var_value(), var_value(),
+-spec spl_autoload_register(ephp:context_id(), line(), var_value(), var_value(),
                             var_value()) -> boolean().
 
 spl_autoload_register(Context, _Line,
@@ -70,7 +70,7 @@ spl_autoload_register(Context, _Line,
     ephp_class:register_loader(Classes, Function, Prepend),
     true.
 
--spec spl_autoload_unregister(context(), line(), var_value()) -> boolean().
+-spec spl_autoload_unregister(ephp:context_id(), line(), var_value()) -> boolean().
 
 spl_autoload_unregister(Context, _Line, {_, Function}) ->
     Classes = ephp_context:get_classes(Context),

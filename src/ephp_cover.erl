@@ -91,7 +91,7 @@ init_file(true, Filename, Compiled) ->
 
 -spec store(is_cover(),
             statement_type(),
-            FileOrContext :: binary() | context(),
+            FileOrContext :: binary() | ephp:context_id(),
             line() | undefined) -> ok.
 %% @doc store the information about the statement passed as a param. Calls to
 %%      store/3 only if is_cover() (first param) is true.
@@ -102,7 +102,7 @@ store(true = _Cover, Type, FileOrContext, Line) ->
     store(Type, FileOrContext, Line).
 
 -spec store(statement_type(),
-            FileOrContext :: binary() | context(),
+            FileOrContext :: binary() | ephp:context_id(),
             line() | undefined) -> ok.
 %% @doc store the information about the statement passed as a param.
 store(_Type, _File, undefined) -> ok;

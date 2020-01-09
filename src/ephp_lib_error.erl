@@ -83,13 +83,13 @@ init_const() -> [
 get_classes() ->
     ephp_class_exception:get_classes().
 
--spec debug_backtrace(context(), line(), var_value(), var_value()) ->
-      ephp_array().
+-spec debug_backtrace(ephp:context_id(), line(), var_value(), var_value()) ->
+      ephp_array:ephp_array().
 
 debug_backtrace(_Context, _Line, {_, _Flags}, {_, _Limit}) ->
     ephp_stack:get_array(1).
 
--spec debug_print_backtrace(context(), line(),
+-spec debug_print_backtrace(ephp:context_id(), line(),
                             var_value(), var_value()) -> undefined.
 
 debug_print_backtrace(Context, _Line, {_, IncludeArgs}, {_, Limit}) ->
@@ -103,7 +103,7 @@ debug_print_backtrace(Context, _Line, {_, IncludeArgs}, {_, Limit}) ->
     end, undefined, Backtrace),
     undefined.
 
--spec trace_to_str(pos_integer(), ephp_array(), context(), pos_integer()) ->
+-spec trace_to_str(pos_integer(), ephp_array:ephp_array(), ephp:context_id(), pos_integer()) ->
       iolist().
 
 trace_to_str(I, Array, Ctx, IncludeArgs) ->
@@ -125,12 +125,12 @@ trace_to_str(I, Array, Ctx, IncludeArgs) ->
     io_lib:format(
         "#~p  ~s(~s) called at [~s:~p]~n", [I, FuncName, Args, File, Line]).
 
--spec error_reporting(context(), line(), var_value()) -> integer().
+-spec error_reporting(ephp:context_id(), line(), var_value()) -> integer().
 
 error_reporting(Context, _Line, {_, ErrorLevel}) when is_integer(ErrorLevel) ->
     ephp_error:error_reporting(Context, ErrorLevel).
 
--spec set_error_handler(context(), line(), var_value(), var_value()) -> mixed().
+-spec set_error_handler(ephp:context_id(), line(), var_value(), var_value()) -> mixed().
 
 set_error_handler(Context, _Line, {_, #function{} = ErrorHandler}, {_, ErrorLevel}) ->
     case ephp_error:get_error_handler_func(Context) of
@@ -163,13 +163,13 @@ set_error_handler(Context, Line, {_, ErrorHandler}, {_, ErrorLevel}) ->
             undefined
     end.
 
--spec restore_error_handler(context(), line()) -> true.
+-spec restore_error_handler(ephp:context_id(), line()) -> true.
 
 restore_error_handler(Context, _Line) ->
     ephp_error:remove_error_handler_func(Context),
     true.
 
--spec set_exception_handler(context(), line(), var_value()) -> callable().
+-spec set_exception_handler(ephp:context_id(), line(), var_value()) -> callable().
 
 set_exception_handler(Context, Line, {_, ExceptionHandler}) ->
     %% FIXME: ExceptionHandler maybe could be a callable instead...
@@ -187,24 +187,24 @@ set_exception_handler(Context, Line, {_, ExceptionHandler}) ->
             undefined
     end.
 
--spec restore_exception_handler(context(), line()) -> true.
+-spec restore_exception_handler(ephp:context_id(), line()) -> true.
 
 restore_exception_handler(Context, _Line) ->
     ephp_error:remove_exception_handler_func(Context),
     true.
 
--spec error_get_last(context(), line()) -> ephp_array() | undefined.
+-spec error_get_last(ephp:context_id(), line()) -> ephp_array:ephp_array() | undefined.
 
 error_get_last(Context, _Line) ->
     ephp_error:get_last(Context).
 
--spec error_clear_last(context(), line()) -> undefined.
+-spec error_clear_last(ephp:context_id(), line()) -> undefined.
 
 error_clear_last(Context, _Line) ->
     ephp_error:clear_last(Context),
     undefined.
 
--spec trigger_error(context(), line(), ErrStr :: var_value(),
+-spec trigger_error(ephp:context_id(), line(), ErrStr :: var_value(),
                     ErrLevel :: var_value()) -> ephp_error:get_return_return().
 
 trigger_error(Context, Line, _ErrStr, {_, ErrLevel})

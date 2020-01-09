@@ -45,7 +45,7 @@ get_tz_version() ->
         error:{badmatch, []} -> get_tz_version(undefined)
     end.
 
--spec get_tz(context(), line()) -> binary().
+-spec get_tz(ephp:context_id(), line()) -> binary().
 
 get_tz(Context, Line) ->
     case ephp_config:get(<<"date.timezone">>) of

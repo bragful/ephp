@@ -153,12 +153,12 @@ handle_error(enamespacemix, _Level, undefined) ->
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
--spec get_class(context(), line(), Class :: var_value()) -> any().
+-spec get_class(ephp:context_id(), line(), Class :: var_value()) -> any().
 
 get_class(_Context, _Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
     ephp_object:get_class_name(Objects, ObjectId).
 
--spec class_alias(context(), line(),
+-spec class_alias(ephp:context_id(), line(),
                   ClassName :: var_value(),
                   ClassAlias :: var_value()) -> boolean().
 
@@ -188,7 +188,7 @@ class_alias(Context, Line, {_, Name}, {_, Alias}) ->
             false
     end.
 
--spec class_exists(context(), line(), Class :: var_value(),
+-spec class_exists(ephp:context_id(), line(), Class :: var_value(),
                    AutoLoad :: var_value()) -> boolean().
 
 class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
@@ -200,7 +200,7 @@ class_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->
             false
     end.
 
--spec interface_exists(context(), line(), Class :: var_value(),
+-spec interface_exists(ephp:context_id(), line(), Class :: var_value(),
                        AutoLoad :: var_value()) -> boolean().
 
 interface_exists(Context, _Line, {_, Class}, {_, AutoLoad}) ->

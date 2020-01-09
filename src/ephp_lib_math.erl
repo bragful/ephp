@@ -37,6 +37,7 @@
 ]).
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 -define(M_PI, 3.14159265358979323846).
 -define(M_E, 2.7182818284590452354).
@@ -124,33 +125,33 @@ init_const() -> [
     {<<"PHP_INT_MAX">>, ?PHP_INT_MAX}
 ].
 
--spec php_ceil(context(), line(), var_value()) -> integer().
+-spec php_ceil(ephp:context_id(), line(), var_value()) -> integer().
 
 php_ceil(_Context, _Line, {_, Value}) when is_number(Value) ->
     ephp_data:ceiling(Value);
 php_ceil(_Context, _Line, {_, Value}) ->
     ephp_data:ceiling(ephp_data:bin_to_number(Value)).
 
--spec php_floor(context(), line(), var_value()) -> integer().
+-spec php_floor(ephp:context_id(), line(), var_value()) -> integer().
 
 php_floor(_Context, _Line, {_, Value}) when is_number(Value) ->
     ephp_data:flooring(Value);
 php_floor(_Context, _Line, {_, Value}) ->
     ephp_data:flooring(ephp_data:bin_to_number(Value)).
 
--spec php_round(context(), line(), var_value()) -> integer().
+-spec php_round(ephp:context_id(), line(), var_value()) -> integer().
 
 php_round(_Context, _Line, {_, Value}) when is_number(Value) ->
     round(Value);
 php_round(_Context, _Line, {_, Value}) ->
     round(ephp_data:bin_to_number(Value)).
 
--spec php_sqrt(context(), line(), var_value()) -> float().
+-spec php_sqrt(ephp:context_id(), line(), var_value()) -> float().
 
 php_sqrt(_Context, _Line, {_, Value}) ->
     math:sqrt(float(Value)).
 
--spec php_abs(context(), line(), number()) -> number().
+-spec php_abs(ephp:context_id(), line(), number()) -> number().
 
 php_abs(_Context, _Line, {_, Number}) when is_number(Number)  ->
     abs(Number);
@@ -161,7 +162,7 @@ php_abs(_Context, _Line, {_, String}) when is_binary(String) ->
 php_abs(_Context, _Line, _NotANumber) ->
     false.
 
--spec php_acos(context(), line(), {any(), number()}) -> php_float().
+-spec php_acos(ephp:context_id(), line(), {any(), number()}) -> php_float().
 
 php_acos(_Context, _Line, {_, Number}) ->
     try
@@ -170,33 +171,33 @@ php_acos(_Context, _Line, {_, Number}) ->
         error:badarith -> nan
     end.
 
--spec php_acosh(context(), line(), {any(), number()}) -> float().
+-spec php_acosh(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_acosh(_Context, _Line, {_Var, Number}) ->
     math:acosh(Number).
 
--spec php_asin(context(), line(), {any(), number()}) -> float().
+-spec php_asin(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_asin(_Context, _Line, {_, Number}) ->
     math:asin(Number).
 
--spec php_asinh(context(), line(), {any(), number()}) -> float().
+-spec php_asinh(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_asinh(_Context, _Line, {_, Number}) ->
     math:asinh(Number).
 
--spec php_atan(context(), line(), {any(), number()}) -> float().
+-spec php_atan(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_atan(_Context, _Line, {_, Number}) ->
     math:atan(Number).
 
--spec php_atanh(context(), line(), {any(), number()}) -> float().
+-spec php_atanh(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_atanh(_Context, _Line, {_, Number}) ->
     % math:atanh(Number); % FIXME: the implementation is not reliable
     1 / 2 * math:log((1 + Number) / (1 - Number)).
 
--spec php_atan2(context(), line(), {any(), number()}, {any(), number()}) -> float().
+-spec php_atan2(ephp:context_id(), line(), {any(), number()}, {any(), number()}) -> float().
 
 php_atan2(_Context, _Line, {_, Number1}, {_, Number2}) ->
     math:atan2(Number1, Number2).
@@ -210,7 +211,7 @@ filter_bin(<<A:8,Rest/binary>>, B) when A =:= $0 orelse A =:= $1 ->
 filter_bin(<<_/utf8,Rest/binary>>, B) ->
     filter_bin(Rest, B).
 
--spec bindec(context(), line(), var_value()) -> integer().
+-spec bindec(ephp:context_id(), line(), var_value()) -> integer().
 
 bindec(_Context, _Line, {_, String}) when is_binary(String) ->
     Filtered = filter_bin(String, <<"0">>),
@@ -232,37 +233,37 @@ bindec(_Context, Line, {_, #obj_ref{pid = Objects, ref = ObjectId}}) ->
 bindec(Context, Line, {Var, Other}) ->
     bindec(Context, Line, {Var, ephp_data:to_bin(Other)}).
 
--spec php_cos(context(), line(), {any(), number()}) -> float().
+-spec php_cos(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_cos(_Context, _Line, {_, Number}) ->
     math:cos(Number).
 
--spec php_cosh(context(), line(), {any(), number()}) -> float().
+-spec php_cosh(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_cosh(_Context, _Line, {_Var, Number}) ->
     math:cosh(Number).
 
--spec php_sin(context(), line(), {any(), number()}) -> float().
+-spec php_sin(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_sin(_Context, _Line, {_, Number}) ->
     math:sin(Number).
 
--spec php_sinh(context(), line(), {any(), number()}) -> float().
+-spec php_sinh(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_sinh(_Context, _Line, {_, Number}) ->
     math:sinh(Number).
 
--spec php_tan(context(), line(), {any(), number()}) -> float().
+-spec php_tan(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_tan(_Context, _Line, {_, Number}) ->
     math:tan(Number).
 
--spec php_tanh(context(), line(), {any(), number()}) -> float().
+-spec php_tanh(ephp:context_id(), line(), {any(), number()}) -> float().
 
 php_tanh(_Context, _Line, {_, Number}) ->
     math:tanh(Number).
 
--spec get_pow_value(context(), line(), mixed()) -> number().
+-spec get_pow_value(ephp:context_id(), line(), mixed()) -> number().
 
 get_pow_value(Context, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),
@@ -275,7 +276,7 @@ get_pow_value(Context, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
 get_pow_value(_Context, _Line, N) ->
     ephp_data:bin_to_number(ephp_data:to_bin(N)).
 
--spec php_pow(context(), line(), var_value(), var_value()) ->
+-spec php_pow(ephp:context_id(), line(), var_value(), var_value()) ->
     float() | integer().
 
 php_pow(Context, Line, {_, Base}, {_, Power}) ->
@@ -283,7 +284,7 @@ php_pow(Context, Line, {_, Base}, {_, Power}) ->
     P = get_pow_value(Context, Line, Power),
     math:pow(B, P).
 
--spec php_log(context(), line(), var_value(), var_value()) -> float().
+-spec php_log(ephp:context_id(), line(), var_value(), var_value()) -> float().
 
 php_log(_Context, _Line, {_, X}, {_, X}) ->
     1.0;
@@ -332,7 +333,7 @@ filter_base(<<A:8,Rest/binary>>, Base, Filtered) ->
         false -> filter_base(Rest, Base, Filtered)
     end.
 
--spec base_convert(context(), line(), var_value(), var_value(), var_value()) ->
+-spec base_convert(ephp:context_id(), line(), var_value(), var_value(), var_value()) ->
     binary().
 
 base_convert(Context, Line, _, {_,From}, _) when not is_integer(From) ->
@@ -372,12 +373,12 @@ base_convert(_Context, Line, {_, #obj_ref{pid = Objects, ref = ObjectId}},
 base_convert(Context, Line, {Var, Other}, From, To) ->
     base_convert(Context, Line, {Var, ephp_data:to_bin(Other)}, From, To).
 
--spec pi(context(), line()) -> float().
+-spec pi(ephp:context_id(), line()) -> float().
 
 pi(Context, Line) ->
     ephp_context:get_const(Context, <<"M_PI">>, Line).
 
--spec php_min(context(), line(), Num1 :: var_value(), Num2 :: var_value()) ->
+-spec php_min(ephp:context_id(), line(), Num1 :: var_value(), Num2 :: var_value()) ->
       integer().
 
 php_min(_Context, _Line, {_, Num1}, {_, Num2}) ->
@@ -385,7 +386,7 @@ php_min(_Context, _Line, {_, Num1}, {_, Num2}) ->
        true -> Num2
    end.
 
--spec php_max(context(), line(), Num1 :: var_value(), Num2 :: var_value()) ->
+-spec php_max(ephp:context_id(), line(), Num1 :: var_value(), Num2 :: var_value()) ->
       integer().
 
 php_max(_Context, _Line, {_, Num1}, {_, Num2}) ->
@@ -393,7 +394,7 @@ php_max(_Context, _Line, {_, Num1}, {_, Num2}) ->
        true -> Num2
    end.
 
--spec php_exp(context(), line(), Arg :: var_value()) -> float().
+-spec php_exp(ephp:context_id(), line(), Arg :: var_value()) -> float().
 
 php_exp(_Context, _Line, {_, Arg}) ->
     math:exp(Arg).

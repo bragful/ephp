@@ -21,7 +21,6 @@
 
 -define(FUNC_ANON_NAME, <<"{closure}">>).
 
--define(IS_ARRAY(A), is_record(A, ephp_array)).
 -define(IS_OBJECT(O), is_record(O, obj_ref)).
 -define(IS_FUNCTION(F), is_record(F, function)).
 -define(IS_MEM(M), is_record(M, mem_ref)).
@@ -34,26 +33,6 @@
 
 -define(PHP_INF, infinity).
 -define(PHP_NAN, nan).
-
-% built-in modules
--define(MODULES, [
-    ephp_lib_date,
-    ephp_lib_vars,
-    ephp_lib_math,
-    ephp_lib_misc,
-    ephp_lib_ob,
-    ephp_lib_control,
-    ephp_lib_array,
-    ephp_lib_string,
-    ephp_lib_file,
-    ephp_lib_func,
-    ephp_lib_info,
-    ephp_lib_class,
-    ephp_lib_error,
-    ephp_lib_pcre,
-    ephp_lib_spl,
-    ephp_lib_exec
-]).
 
 -define(E_ERROR, 1).
 -define(E_WARNING, 2).
@@ -87,20 +66,9 @@
 -define(SORT_LOCALE_STRING, 5).
 -define(SORT_FLAG_CASE, 8).
 
--type error_level() :: pos_integer().
-
 -type date() :: calendar:date().
 
 -type file_name() :: binary().
-
--record(ephp_array, {
-    size = 0 :: non_neg_integer(),
-    values = [] :: [{mixed(), mixed()}],
-    last_num_index = 0 :: non_neg_integer(),
-    cursor = 1 :: pos_integer() | false
-}).
-
--type ephp_array() :: #ephp_array{}.
 
 -record(int, {
     int :: integer(),
@@ -116,12 +84,10 @@
 -type php_integer() :: integer() | #int{}.
 
 -type mixed() ::
-    php_integer() | php_float() | binary() | boolean() | ephp_array() |
+    php_integer() | php_float() | binary() | boolean() | ephp_array:ephp_array() |
     obj_ref() | mem_ref() | var_ref() | undefined | resource().
 
 -type var_value() :: {variable() | constant() | text() | text_to_process() | mixed(), mixed()}.
-
--type context() :: reference().
 
 -type statement() :: expression() | blocks().
 -type statements() :: [statement()].
@@ -285,7 +251,7 @@
 
 -record(constant, {
     name :: binary(),
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     type = normal :: constant_types(),
     value :: expression(),
     class :: class_name() | undefined | variable(),
@@ -300,12 +266,12 @@
 -type variable_types() :: normal | array | object | class | static.
 -type data_type() :: binary() | undefined.
 
--type private_var() :: {private, binary(), namespace(), class_name()}.
+-type private_var() :: {private, binary(), ephp_ns:namespace(), class_name()}.
 
 -record(variable, {
     type = normal :: variable_types(),
     class :: class_name() | undefined,
-    class_ns = [] :: namespace(),
+    class_ns = [] :: ephp_ns:namespace(),
     name :: auto | binary() | private_var() | expression(),
     idx = [] :: [array_index() | object_index() | class_index()],
     default_value = undefined :: mixed(),
@@ -342,12 +308,11 @@
 
 -type call_types() :: normal | class | object.
 -type class_name() :: binary().
--type namespace() :: [binary()].
 
 -record(call, {
     type = normal :: call_types(),
     class :: undefined | class_name(),
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     name :: obj_ref() | callable() | st_function() | variable(),
     args = [] :: [expression()] | undefined,
     line :: line()
@@ -359,7 +324,7 @@
 
 -record(function, {
     name :: function_name() | undefined,
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     args = [] :: [variable()],
     use = [] :: [variable()],
     code = [] :: statements(),
@@ -369,7 +334,7 @@
 
 -type st_function() :: #function{}.
 
--type callable() :: function_name() | ephp_array() | st_function().
+-type callable() :: function_name() | ephp_array:ephp_array() | st_function().
 
 -record(stack_trace, {
     function :: binary(),
@@ -402,7 +367,7 @@
 }).
 
 -record(var_ref, {
-    pid :: context() | undefined,
+    pid :: ephp:context_id() | undefined,
     ref :: #variable{} | global | undefined
 }).
 
@@ -453,7 +418,7 @@
     final = false :: boolean(),
     %% FIXME: maybe it should be forced to be always present:
     class_name :: class_name() | undefined,
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     line :: line()
 }).
 
@@ -472,7 +437,7 @@
     static = [] :: static(),
     final = false :: boolean(),
     class_name :: class_name() | undefined,
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     line :: line()
 }).
 
@@ -481,26 +446,26 @@
 
 -record(class, {
     name :: class_name() | undefined,
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     type = normal :: class_type(),
     final = false :: boolean(),
     parents = [] :: [class_name()],
     extends :: class_name() | undefined,
-    extends_ns = [] :: namespace(),
-    implements = [] :: [{namespace(), class_name()}],
+    extends_ns = [] :: ephp_ns:namespace(),
+    implements = [] :: [{ephp_ns:namespace(), class_name()}],
     constants = [] :: [class_const()],
     attrs = [] :: [class_attr()],
     methods = [] :: [class_method()],
     file :: binary() | undefined,
     line :: line() | undefined,
-    static_context :: context() | undefined
+    static_context :: ephp:context_id() | undefined
 }).
 
 -type class() :: #class{}.
 
 -record(instance, {
     name :: class_name() | undefined,
-    namespace = [] :: namespace(),
+    namespace = [] :: ephp_ns:namespace(),
     args :: [variable()] | undefined,
     line :: line()
 }).
@@ -526,7 +491,7 @@
     id :: pos_integer() | undefined,
     class :: class(),
     instance :: instance() | undefined,
-    context :: context(),
+    context :: ephp:context_id(),
     objects :: ephp:objects_id() | undefined,   %% TODO: check if objects is really needed
     links = 1 :: pos_integer()
 }).

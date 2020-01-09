@@ -19,6 +19,7 @@
 
 -include("ephp.hrl").
 -include("ephp_parser.hrl").
+-include("ephp_array.hrl").
 
 -spec init_func() -> ephp_lib:php_function_results().
 
@@ -45,19 +46,19 @@ init_const() -> [].
 get_classes() ->
     ephp_class_closure:get_classes().
 
--spec register_shutdown_function(context(), line(), [var_value()]) -> ok.
+-spec register_shutdown_function(ephp:context_id(), line(), [var_value()]) -> ok.
 
 register_shutdown_function(Context, _Line, [{_,Callback}|_RawArgs]) ->
     %% TODO: add params to call the functions.
     ephp_context:register_shutdown_func(Context, Callback),
     ok.
 
--spec func_num_args(context(), line()) -> non_neg_integer().
+-spec func_num_args(ephp:context_id(), line()) -> non_neg_integer().
 
 func_num_args(Context, _Line) ->
     ephp_context:get_active_function_arity(Context).
 
--spec get_defined_functions(context(), line()) -> ephp_array().
+-spec get_defined_functions(ephp:context_id(), line()) -> ephp_array:ephp_array().
 
 get_defined_functions(Context, _Line) ->
     Append = fun({Func,Type}, {I,Dict}) ->
@@ -73,18 +74,18 @@ get_defined_functions(Context, _Line) ->
     {_,FuncList} = lists:foldl(Append, {0,BaseDict}, Functions),
     FuncList.
 
--spec function_exists(context(), line(), FuncName :: var_value()) -> boolean().
+-spec function_exists(ephp:context_id(), line(), FuncName :: var_value()) -> boolean().
 
 function_exists(Context, _Line, {_,FuncName}) ->
     %% TODO split NS from FuncName
     ephp_context:get_function(Context, FuncName) =/= error.
 
--spec call_user_func_array(context(), line(), var_value(), var_value()) -> mixed().
+-spec call_user_func_array(ephp:context_id(), line(), var_value(), var_value()) -> mixed().
 
 call_user_func_array(Context, Line, {_, FuncName}, {_, Args}) ->
     call(Context, Line, FuncName, ephp_array:values(Args)).
 
--spec call_user_func(context(), line(), [var_value()]) -> mixed().
+-spec call_user_func(ephp:context_id(), line(), [var_value()]) -> mixed().
 
 call_user_func(Context, Line, [{_, FuncName}|Args]) when is_binary(FuncName)
                                                   orelse ?IS_ARRAY(FuncName)
@@ -97,7 +98,7 @@ call_user_func(Context, Line, _Args) ->
     ephp_error:handle_error(Context, Error),
     false.
 
--spec create_function(context(), line(), Args :: var_value(),
+-spec create_function(ephp:context_id(), line(), Args :: var_value(),
                       Code :: var_value()) -> obj_ref().
 
 create_function(Context, {{line, Line}, _}, {_, Args}, {_, Code}) ->

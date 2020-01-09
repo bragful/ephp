@@ -84,7 +84,7 @@ handle_error(_Type, _Level, _Data) ->
     ignore.
 
 
--spec eval(context(), line(), Code :: var_value()) -> mixed().
+-spec eval(ephp:context_id(), line(), Code :: var_value()) -> mixed().
 
 eval(Context, _Line, {_, Code}) ->
     {ok, SubCtx} = ephp_context:generate_subcontext(Context),
@@ -97,7 +97,7 @@ eval(Context, _Line, {_, Code}) ->
         {error, eparse, _ErrorLine, _File, _ErrorLevel, _Data} -> undefined
     end.
 
--spec constant(context(), line(), Name :: var_value()) -> mixed().
+-spec constant(ephp:context_id(), line(), Name :: var_value()) -> mixed().
 
 constant(Context, Line, {_, ConstantName}) ->
     {NS, ClassName, ConstName} = ephp_const:get_ns(ConstantName),
@@ -112,7 +112,7 @@ constant(Context, Line, {_, ConstantName}) ->
     end.
 
 
--spec uniqid(context(), line(), var_value(), var_value()) -> binary().
+-spec uniqid(ephp:context_id(), line(), var_value(), var_value()) -> binary().
 
 uniqid(_Context, _Line, {_, Prefix}, {_, Extended}) ->
     {M, S, U} = ephp_datetime:timestamp(),
@@ -125,7 +125,7 @@ uniqid(_Context, _Line, {_, Prefix}, {_, Extended}) ->
     <<Prefix/binary, Str/binary, Rand/binary>>.
 
 
--spec define(context(), line(),
+-spec define(ephp:context_id(), line(),
              Constant :: var_value(),
              Content :: var_value()) -> true.
 
@@ -139,7 +139,7 @@ define(Context, _Line, {#constant{name = Constant}, _},
     true.
 
 
--spec defined(context(), line(), var_value()) -> boolean().
+-spec defined(ephp:context_id(), line(), var_value()) -> boolean().
 
 defined(Context, _Line, {_, ConstantName}) ->
     case ephp_context:get_const(Context, ConstantName, false) of
@@ -148,7 +148,7 @@ defined(Context, _Line, {_, ConstantName}) ->
     end.
 
 
--spec sleep(context(), line(), Seconds :: var_value()) -> false | integer().
+-spec sleep(ephp:context_id(), line(), Seconds :: var_value()) -> false | integer().
 
 sleep(_Context, _Line, {_, Seconds}) when is_number(Seconds) ->
     timer:sleep(trunc(Seconds) * 1000),
@@ -162,7 +162,7 @@ sleep(Context, Line, {_, Val}) ->
     false.
 
 
--spec usleep(context(), line(), MicroSeconds :: var_value()) ->
+-spec usleep(ephp:context_id(), line(), MicroSeconds :: var_value()) ->
     false | integer().
 
 usleep(_Context, _Line, {_, MicroSeconds}) when is_number(MicroSeconds) ->
@@ -177,7 +177,7 @@ usleep(Context, Line, {_, Val}) ->
     false.
 
 
--spec exit(context(), line(), Message :: var_value()) ->
+-spec exit(ephp:context_id(), line(), Message :: var_value()) ->
     undefined.
 
 exit(_Context, _Line, {_, Value}) when is_integer(Value)
@@ -189,14 +189,14 @@ exit(Context, _Line, {_, Value}) ->
     throw(die).
 
 
--spec pack(context(), line(), [var_value()]) -> binary().
+-spec pack(ephp:context_id(), line(), [var_value()]) -> binary().
 
 pack(Context, Line, [{_, Format}|Args]) ->
     do_pack(Context, Line, ephp_data:to_bin(Format),
             [ A || {_, A} <- Args ], <<>>).
 
 
--spec unpack(context(), line(), var_value(), var_value()) -> ephp_array().
+-spec unpack(ephp:context_id(), line(), var_value(), var_value()) -> ephp_array:ephp_array().
 
 unpack(Context, Line, {_, Format}, {_, Binary}) ->
     do_unpack(Context, Line,

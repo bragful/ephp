@@ -100,7 +100,7 @@ init_const() -> [
     {<<"INFO_ALL">>, ?INFO_ALL}
 ].
 
--spec phpinfo(context(), line(), var_value()) -> undefined.
+-spec phpinfo(ephp:context_id(), line(), var_value()) -> undefined.
 
 phpinfo(Context, Line, {_, Flags}) ->
     case php_sapi_name(Context, Line) of
@@ -108,47 +108,47 @@ phpinfo(Context, Line, {_, Flags}) ->
         _ -> process_phpinfo("html", Context, Flags)
     end.
 
--spec phpversion(context(), line()) -> binary().
+-spec phpversion(ephp:context_id(), line()) -> binary().
 
 phpversion(_Context, _Line) ->
     ?PHP_VERSION.
 
--spec php_sapi_name(context(), line()) -> binary().
+-spec php_sapi_name(ephp:context_id(), line()) -> binary().
 
 php_sapi_name(_Context, _Line) ->
     ephp_config:get(sapi_type, <<"cli">>).
 
--spec php_logo_guid(context(), line()) -> binary().
+-spec php_logo_guid(ephp:context_id(), line()) -> binary().
 
 php_logo_guid(_Context, _Line) ->
     Content = get_file("bragful_logo.png"),
     Base64Content = base64:encode(Content),
     <<"data:image/png;base64,", Base64Content/binary>>.
 
--spec ini_get(context(), line(), var_value()) -> mixed().
+-spec ini_get(ephp:context_id(), line(), var_value()) -> mixed().
 
 ini_get(_Context, _Line, {_,Key}) ->
     ephp_config:get(Key).
 
--spec ini_set(context(), line(), var_value(), var_value()) -> binary().
+-spec ini_set(ephp:context_id(), line(), var_value(), var_value()) -> binary().
 
 ini_set(_Context, _Line, {_,Key}, {_,Value}) ->
     PrevVal = ephp_config:get(Key),
     ephp_config:set(Key, Value),
     PrevVal.
 
--spec set_include_path(context(), line(), var_value()) -> binary().
+-spec set_include_path(ephp:context_id(), line(), var_value()) -> binary().
 
 set_include_path(_Context, _Line, {_,NewPath}) ->
     ephp_config:set(<<"include_path">>, NewPath),
     NewPath.
 
--spec get_include_path(context(), line()) -> binary().
+-spec get_include_path(ephp:context_id(), line()) -> binary().
 
 get_include_path(_Context, _Line) ->
     ephp_config:get(<<"include_path">>).
 
--spec version_compare(context(), line(),
+-spec version_compare(ephp:context_id(), line(),
                       Vsn1::var_value(),
                       Vsn2::var_value(),
                       Op::var_value()) -> boolean() | integer().
@@ -175,7 +175,7 @@ version_compare(_Context, _Line, {_, Vsn1}, {_, Vsn2}, {_, Op}) ->
         _ -> false
     end.
 
--spec extension_loaded(context(), line(), Name :: var_value()) -> boolean().
+-spec extension_loaded(ephp:context_id(), line(), Name :: var_value()) -> boolean().
 
 extension_loaded(_Context, _Line, {_, ModuleName}) ->
     Modules = lists:map(fun(M) ->
@@ -186,7 +186,7 @@ extension_loaded(_Context, _Line, {_, ModuleName}) ->
     end, ephp_config:get(modules, [])),
     lists:member(ModuleName, Modules).
 
--spec memory_get_usage(context(), line(), RealUsage :: var_value()) ->
+-spec memory_get_usage(ephp:context_id(), line(), RealUsage :: var_value()) ->
       pos_integer().
 
 memory_get_usage(_Context, _Line, {_, false}) ->
@@ -194,7 +194,7 @@ memory_get_usage(_Context, _Line, {_, false}) ->
 memory_get_usage(_Context, _Line, {_, true}) ->
     recon_alloc:memory(allocated, current).
 
--spec memory_get_peak_usage(context(), line(), RealUsage :: var_value()) ->
+-spec memory_get_peak_usage(ephp:context_id(), line(), RealUsage :: var_value()) ->
       pos_integer().
 
 memory_get_peak_usage(_Context, _Line, {_, false}) ->

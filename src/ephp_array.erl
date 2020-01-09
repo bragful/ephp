@@ -40,6 +40,11 @@
     update_counter/3
 ]).
 
+-include("ephp_array.hrl").
+
+-type ephp_array() :: #ephp_array{}.
+
+-export_type([ephp_array/0]).
 
 -spec new() -> ephp_array().
 %% @doc creates an empty PHP Array structure.

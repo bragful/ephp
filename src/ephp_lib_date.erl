@@ -60,12 +60,12 @@ handle_error(enotimezone, _Level, {Function}) ->
 handle_error(_Type, _Level, _Args) ->
     ignore.
 
--spec time(context(), line()) -> integer().
+-spec time(ephp:context_id(), line()) -> integer().
 
 time(_Context, _Line) ->
     ephp_datetime:posix_time().
 
--spec microtime(context(), line(), GetAsFloat :: {variable() | undefined, boolean()}) ->
+-spec microtime(ephp:context_id(), line(), GetAsFloat :: {variable() | undefined, boolean()}) ->
     float() | binary().
 
 microtime(_Context, _Line, {_, true}) ->
@@ -79,19 +79,19 @@ microtime(_Context, _Line, {_, false}) ->
 microtime(Context, Line, {Var, Val}) ->
     microtime(Context, Line, {Var, ephp_data:to_boolean(Val)}).
 
--spec microtime(context(), line()) -> float() | binary().
+-spec microtime(ephp:context_id(), line()) -> float() | binary().
 
 microtime(Context, Line) ->
     microtime(Context, Line, {undefined, false}).
 
--spec date(context(), line(), Format :: var_value()) -> binary().
+-spec date(ephp:context_id(), line(), Format :: var_value()) -> binary().
 
 date(Context, Line, Format) ->
     {MS, S, US} = ephp_datetime:timestamp(),
     date(Context, Line, Format,
          {undefined, (MS * 1000000) + S + trunc(US / 1000000)}).
 
--spec date(context(), line(), Format :: var_value(),
+-spec date(ephp:context_id(), line(), Format :: var_value(),
            Timestamp :: var_value()) -> binary().
 
 date(Context, Line, {_,Format}, {_,Timestamp}) ->
@@ -100,7 +100,7 @@ date(Context, Line, {_,Format}, {_,Timestamp}) ->
     Date = ephp_datetime:to_zone({M,S,U}, TZ),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
--spec gmdate(context(), line(), Format :: var_value()) -> binary().
+-spec gmdate(ephp:context_id(), line(), Format :: var_value()) -> binary().
 
 gmdate(Context, Line, {_, Format}) ->
     {MS,S,US} = ephp_datetime:timestamp(),
@@ -108,7 +108,7 @@ gmdate(Context, Line, {_, Format}) ->
            {undefined, Format},
            {undefined, (MS * 1000000) + S + trunc(US / 1000000)}).
 
--spec gmdate(context(), line(),
+-spec gmdate(ephp:context_id(), line(),
              Format :: var_value(),
              Timestamp :: var_value()) -> binary().
 
@@ -118,12 +118,12 @@ gmdate(_Context, _Line, {_, Format}, {_, Timestamp}) ->
     Date = calendar:now_to_universal_time({M, S, U}),
     date_format(Format, <<>>, {Timestamp, Date, TZ}).
 
--spec date_default_timezone_get(context(), line()) -> binary().
+-spec date_default_timezone_get(ephp:context_id(), line()) -> binary().
 
 date_default_timezone_get(Context, Line) ->
     ephp_datetime:get_tz(Context, Line).
 
--spec date_default_timezone_set(context(), line(),
+-spec date_default_timezone_set(ephp:context_id(), line(),
                                 TZ :: var_value()) -> undefined.
 
 date_default_timezone_set(Context, Line, {_, TZ}) ->
@@ -138,7 +138,7 @@ date_default_timezone_set(Context, Line, {_, TZ}) ->
             undefined
     end.
 
--spec timezone_abbreviations_list(context(), line()) -> ephp_array().
+-spec timezone_abbreviations_list(ephp:context_id(), line()) -> ephp_array:ephp_array().
 
 timezone_abbreviations_list(_Context, _Line) ->
     lists:foldl(fun(Abbr, Array) ->

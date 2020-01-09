@@ -23,7 +23,7 @@
 -type php_function() :: atom().
 -type php_function_opts() :: [php_function_opt()].
 -type php_function_opt() :: pack_args |
-                            {namespace, namespace()} |
+                            {namespace, ephp_ns:namespace()} |
                             {alias, php_function_alias()} |
                             php_function_args().
 
@@ -83,7 +83,7 @@
     register/2
 ]).
 
--spec register(context(), module()) -> ok.
+-spec register(ephp:context_id(), module()) -> ok.
 %% @doc register a module.
 %% @see ephp_func
 register(Ctx, Module) ->

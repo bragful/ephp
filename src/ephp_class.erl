@@ -84,7 +84,8 @@ destroy(Classes) ->
 
 -type get_return() :: {ok, class()} | {error, enoexist}.
 
--spec get(context(), namespace(), class_name(), AutoLoad::boolean() | spl) -> get_return().
+-spec get(ephp:context_id(), ephp_ns:namespace(), class_name(),
+          AutoLoad::boolean() | spl) -> get_return().
 %% @doc retrieves a class registered given the class name.
 get(Context, NS, ClassName, false) when is_list(NS) ->
     Classes = ephp_context:get_classes(Context),
@@ -122,8 +123,8 @@ get(Context, NS, ClassName, true) when is_list(NS) ->
 -type loader() :: binary().
 -type loaders() :: [loader()].
 
--spec get(context(), ephp:classes_id(), namespace(), class_name(), loaders()) ->
-      get_return().
+-spec get(ephp:context_id(), ephp:classes_id(), ephp_ns:namespace(), class_name(),
+          loaders()) -> get_return().
 %% @hidden
 get(_Context, Classes, NS, ClassName, []) ->
     get(Classes, NS, ClassName);
@@ -141,7 +142,7 @@ get(Context, Classes, NS, ClassName, [Loader|Loaders]) ->
     end.
 
 
--spec get(ephp:classes_id(), namespace(), class_name()) -> get_return().
+-spec get(ephp:classes_id(), ephp_ns:namespace(), class_name()) -> get_return().
 %% @doc retrieves a class registered given the class name.
 get(Ref, NS, ClassName) ->
     #class_state{classes = Classes} = erlang:get(Ref),
@@ -154,9 +155,9 @@ get(Ref, NS, ClassName) ->
             {error, enoexist}
     end.
 
--type alias_class() :: {alias, namespace(), class_name()}.
+-type alias_class() :: {alias, ephp_ns:namespace(), class_name()}.
 
--spec set(ephp:classes_id(), namespace(), class_name(), class() | alias_class()) -> ok.
+-spec set(ephp:classes_id(), ephp_ns:namespace(), class_name(), class() | alias_class()) -> ok.
 %% @doc adds a class using the class name inside of the handler.
 set(Ref, NS, ClassName, #class{namespace = NS} = Class) ->
     #class_state{classes = Classes} = State = erlang:get(Ref),
@@ -172,8 +173,8 @@ set(Ref, NS, ClassName, {alias, _NSAlias, _ClassAlias} = Alias) ->
 
 -type alias_return() :: ok | {error, enoexist | eredefined}.
 
--spec set_alias(ephp:classes_id(), namespace(), class_name(),
-                NSAlias :: namespace(), Alias :: class_name()) -> alias_return().
+-spec set_alias(ephp:classes_id(), ephp_ns:namespace(), class_name(),
+                NSAlias :: ephp_ns:namespace(), Alias :: class_name()) -> alias_return().
 %% @doc set a name as alias of a class name.
 set_alias(Ref, NS, ClassName, NSAlias, AliasName) ->
     case get(Ref, NS, ClassName) of
@@ -223,7 +224,7 @@ unregister_loader(Ref, Loader) ->
     end.
 
 
--spec register_class(ephp:classes_id(), File :: binary(), context(),
+-spec register_class(ephp:classes_id(), File :: binary(), ephp:context_id(),
                      class()) -> ok.
 %% @doc register a class inside of the classes handler.
 register_class(Ref, File, GlobalCtx,
@@ -310,7 +311,7 @@ check_access_level([#class_attr{access = Access, name = Name} = CA1|Rest]) ->
     end.
 
 
--spec get_methods(ephp:classes_id(), namespace(), class_name() | undefined) ->
+-spec get_methods(ephp:classes_id(), ephp_ns:namespace(), class_name() | undefined) ->
       [class_method()].
 %% @doc retrieve all of the methods given a class name.
 get_methods(_Classes, _NS, undefined) ->
@@ -343,7 +344,7 @@ attrs_set_class_name(Name, Attrs) ->
     [ A#class_attr{class_name = Name} || A <- Attrs ].
 
 
--spec tr_consts([class_const()], context()) -> [{binary(), mixed()}].
+-spec tr_consts([class_const()], ephp:context_id()) -> [{binary(), mixed()}].
 %% @doc solve the constants values.
 tr_consts(Consts, Context) ->
     lists:map(fun(#class_const{name = N, value = V}) ->
@@ -352,7 +353,7 @@ tr_consts(Consts, Context) ->
     end, Consts).
 
 
--spec extract_parents(ephp:classes_id(), namespace(), class() | class_name() | undefined) ->
+-spec extract_parents(ephp:classes_id(), ephp_ns:namespace(), class() | class_name() | undefined) ->
       [class_name()].
 %% @doc retrieve a list with all of the parent class records.
 extract_parents(_Ref, _NS, undefined) ->
@@ -422,7 +423,7 @@ extract_methods(Name, Index, [Method|Methods], MethodsDict) ->
 arg_to_text(#variable{name = Name}) -> <<"$", Name/binary>>.
 
 
--spec check_dup([{namespace(), class_name()}]) -> ok | {namespace(), class_name()}.
+-spec check_dup([{ephp_ns:namespace(), class_name()}]) -> ok | {ephp_ns:namespace(), class_name()}.
 %% @hidden
 check_dup([]) -> ok;
 check_dup([_Interface]) -> ok;
@@ -464,7 +465,7 @@ check_methods([{ClassName,Method}|Methods], ClassMethods, Error) ->
 -type check_final_methods_return() :: ok |
                                       {error, {class_name(), method_name()}}.
 
--spec check_final_methods(ephp:classes_id(), [class_method()], namespace(), class_name()) ->
+-spec check_final_methods(ephp:classes_id(), [class_method()], ephp_ns:namespace(), class_name()) ->
       check_final_methods_return().
 %% @doc hidden
 check_final_methods(_Ref, [], _ExtendsNS, _Extends) ->

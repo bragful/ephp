@@ -2,6 +2,7 @@
 -author('manuel@altenwald.com').
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -127,7 +128,7 @@ zip_args(VarsSrc, VarsDst, ValArgs, FuncArgs, FunctName, Line, Context) ->
     end, {1, ValArgs}, FuncArgs),
     ok.
 
--spec destroy(context(), ephp:vars_id()) -> ok.
+-spec destroy(ephp:context_id(), ephp:vars_id()) -> ok.
 
 destroy(Ctx, VarsRef) ->
     Vars = erlang:get(VarsRef),
@@ -528,7 +529,7 @@ run_method_set(Context, ObjRef, Idx, Value) ->
     ephp_context:call_method(Context, ObjRef, Call).
 
 
--spec change(variable(), remove | mixed(), ephp:variables_id(), context()) ->
+-spec change(variable(), remove | mixed(), ephp:variables_id(), ephp:context_id()) ->
       ephp:variables_id().
 %% @private
 %% @doc change the value of a variable. This is used only internally.

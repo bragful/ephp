@@ -30,6 +30,7 @@
 ]).
 
 -include("ephp.hrl").
+-include("ephp_array.hrl").
 
 -define(CASE_LOWER, 0).
 -define(CASE_UPPER, 1).
@@ -92,14 +93,14 @@ handle_error(_Type, _Level, _Data) ->
     ignore.
 
 -spec in_array(
-    context(), line(),
+    ephp:context_id(), line(),
     Key :: var_value(), Array :: var_value(), Strict :: var_value()
 ) -> boolean().
 
 in_array(_Context, _Line, {_,Value}, {_,Array}, {_,Strict}) ->
     member(Value, Array, ephp_data:to_bool(Strict)).
 
--spec count(context(), line(), Array :: var_value()) -> integer().
+-spec count(ephp:context_id(), line(), Array :: var_value()) -> integer().
 
 count(_Context, _Line, {_,Array}) when ?IS_ARRAY(Array) ->
     ephp_array:size(Array);
@@ -107,14 +108,14 @@ count(_Context, _Line, {_,Array}) when ?IS_ARRAY(Array) ->
 count(_Context, _Line, _Var) ->
     1.
 
--spec array_merge(context(), line(), Arrays :: [var_value()]) -> ephp_array().
+-spec array_merge(ephp:context_id(), line(), Arrays :: [var_value()]) -> ephp_array:ephp_array().
 
 array_merge(Context, Line, Args) ->
     array_merge(Context, Line, 1, Args).
 
--spec list(context(), line(), Vars :: [var_value()]) -> ephp_array() | undefined.
+-spec list(ephp:context_id(), line(), Vars :: [var_value()]) -> ephp_array:ephp_array() | undefined.
 
-list(Context, Line, [{#ephp_array{}=Array, undefined}|Getters]) ->
+list(Context, Line, [{Array, undefined}|Getters]) when ?IS_ARRAY(Array) ->
     lists:foldl(fun
         ({[], _}, I) ->
             I + 1;
@@ -138,15 +139,15 @@ list(Context, _Line, [{Binary, undefined}|Getters]) when is_binary(Binary) ->
                   end, Getters),
     undefined.
 
--spec array_unique(context(), line(), Array :: var_value(),
-                   Flags :: var_value()) -> ephp_array().
+-spec array_unique(ephp:context_id(), line(), Array :: var_value(),
+                   Flags :: var_value()) -> ephp_array:ephp_array().
 
 array_unique(_Context, _Line, {_, Array}, {_, Flags}) ->
     %% TODO error when Flags is not a SORT_* valid value
     ephp_array:from_list(unique(ephp_array:to_list(Array), [], Flags)).
 
--spec array_change_key_case(context(), line(), Array :: var_value(),
-                            Flags :: var_value()) -> ephp_array().
+-spec array_change_key_case(ephp:context_id(), line(), Array :: var_value(),
+                            Flags :: var_value()) -> ephp_array:ephp_array().
 
 array_change_key_case(_Context, _Line, {_, Array}, {_, Flags}) ->
     ephp_array:map(fun(K, V) ->
@@ -156,8 +157,8 @@ array_change_key_case(_Context, _Line, {_, Array}, {_, Flags}) ->
         end
     end, Array).
 
--spec array_chunk(context(), line(), Array :: var_value(), Size :: var_value(),
-                  PreserveKeys :: var_value())  -> ephp_array().
+-spec array_chunk(ephp:context_id(), line(), Array :: var_value(), Size :: var_value(),
+                  PreserveKeys :: var_value())  -> ephp_array:ephp_array().
 
 array_chunk(_Context, _Line, {_, Array}, {_, Size}, {_, PreserveKeys}) ->
     case ephp_array:size(Array) > Size of
@@ -168,8 +169,8 @@ array_chunk(_Context, _Line, {_, Array}, {_, Size}, {_, PreserveKeys}) ->
                                        Size, PreserveKeys))
     end.
 
--spec array_column(context(), line(), var_value(), var_value(), var_value()) ->
-      false | ephp_array().
+-spec array_column(ephp:context_id(), line(), var_value(), var_value(), var_value()) ->
+      false | ephp_array:ephp_array().
 %% @doc in an array of arrays it retries the subelements with the key passed
 %%      as a param. It let you to change the new key to retrieve the elements.
 %% @end
@@ -207,7 +208,7 @@ array_column(_Context, _Line, {_, Array}, {_, ColKey}, {_, IdxKey}) ->
     end, ephp_array:new(), Array).
 
 
--spec reset(context(), line(), Array::var_value()) -> false | ephp_array().
+-spec reset(ephp:context_id(), line(), Array::var_value()) -> false | ephp_array:ephp_array().
 %% @doc resets the cursor for an array moving it to the first element and
 %%      retrieving that element if it's exists, false otherwise.
 %% @end
@@ -221,7 +222,7 @@ reset(Context, _Line, {Var, Array}) ->
     end.
 
 
--spec current(context(), line(), Array::var_value()) -> false | ephp_array().
+-spec current(ephp:context_id(), line(), Array::var_value()) -> false | ephp_array:ephp_array().
 %% @doc retrieve the current element under the cursor for an array.
 current(_Context, _Line, {_, Array}) ->
     case ephp_array:current(Array) of
@@ -230,7 +231,7 @@ current(_Context, _Line, {_, Array}) ->
     end.
 
 
--spec php_end(context(), line(), Array::var_value()) -> false | ephp_array().
+-spec php_end(ephp:context_id(), line(), Array::var_value()) -> false | ephp_array:ephp_array().
 %% @doc moves the array cursor to the last element and retrieves it.
 php_end(Context, _Line, {Var, Array}) ->
     case ephp_array:last(Array) of
@@ -242,7 +243,7 @@ php_end(Context, _Line, {Var, Array}) ->
     end.
 
 
--spec prev(context(), line(), Array::var_value()) -> false | ephp_array().
+-spec prev(ephp:context_id(), line(), Array::var_value()) -> false | ephp_array:ephp_array().
 %% @doc moves the cursor to the previous element and retrieves it if it's
 %%      possible, false otherwise.
 %% @end
@@ -259,7 +260,7 @@ prev(Context, _Line, {Var, Array}) ->
     end.
 
 
--spec next(context(), line(), Array::var_value()) -> false | mixed().
+-spec next(ephp:context_id(), line(), Array::var_value()) -> false | mixed().
 %% @doc moves the cursor to the next element and retrieves it if it's possible,
 %%      false otherwise.
 %% @end
@@ -276,7 +277,7 @@ next(Context, _Line, {Var, Array}) ->
     end.
 
 
--spec key(context(), line(), Array::var_value()) -> undefined | mixed().
+-spec key(ephp:context_id(), line(), Array::var_value()) -> undefined | mixed().
 %% @doc returns the key under the cursor or undefined if an error happens.
 key(_Context, _Line, {_, Array}) ->
     case ephp_array:current(Array) of
@@ -285,7 +286,7 @@ key(_Context, _Line, {_, Array}) ->
     end.
 
 
--spec ksort(context(), line(), Array::var_value(), SortType::var_value()) -> boolean().
+-spec ksort(ephp:context_id(), line(), Array::var_value(), SortType::var_value()) -> boolean().
 %% @doc order the array based on the keys modifying the original. The function
 %%      returns true if the ordering was ok, otherwise false. We can use different
 %%      sort types: SORT_REGULAR (default), SORT_NUMERIC, SORT_STRING,
@@ -295,13 +296,13 @@ ksort(Context, _Line, {ArrayVar, Array}, {_, SortType}) ->
     true.
 
 
--spec array_keys(context(), line(), Array::var_value()) -> ephp_array().
+-spec array_keys(ephp:context_id(), line(), Array::var_value()) -> ephp_array:ephp_array().
 %% @doc returns a new array with the keys.
 array_keys(_Context, _Line, {_, Array}) ->
     ephp_array:keys(Array).
 
 
--spec array_pop(context(), line(), Array::var_value()) -> ephp_array().
+-spec array_pop(ephp:context_id(), line(), Array::var_value()) -> ephp_array:ephp_array().
 %% @doc returns the last element of the array and removes it from the array.
 array_pop(Context, _Line, {VarArray, Array}) ->
     {Head, TailArray} = ephp_array:pop(Array),
@@ -362,8 +363,8 @@ member(Value, Dict, false) ->
         ephp_data:is_equal(Member, Value)
     end, List).
 
--spec array_merge(context(), line(), pos_integer(), Arrays :: [var_value()]) ->
-    ephp_array().
+-spec array_merge(ephp:context_id(), line(), pos_integer(), Arrays :: [var_value()]) ->
+    ephp_array:ephp_array().
 
 array_merge(Context, Line, 1, [{_,Array}|_]) when not ?IS_ARRAY(Array) ->
     Data = {<<"array_merge">>, 1},
