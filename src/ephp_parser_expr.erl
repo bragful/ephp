@@ -359,9 +359,11 @@ expression(<<"(", Rest/binary>>, Parser, Parsed) ->
     %        and sometimes is not.
     exp_parens(Rest, inc_pos(Parser), Parsed);
 % FINAL -arg-
-expression(<<",", _/binary>> = Rest, #parser{level = array} = Parser, Parsed) ->
-    {Rest, Parser, add_op('end', Parsed)};
-expression(<<",", _/binary>> = Rest, #parser{level = array_curly} = Parser, Parsed) ->
+expression(<<",", _/binary>> = Rest, #parser{level = Level, access = Access} = Parser, Parsed)
+        when Level =:= array orelse Level =:= array_curly orelse
+             (Level =:= normal andalso (Access =:= public orelse
+                                        Access =:= protected orelse
+                                        Access =:= private)) ->
     {Rest, Parser, add_op('end', Parsed)};
 expression(<<A:8,_/binary>> = Rest, #parser{level = arg} = Parser, [{op,_}, #if_block{}|_])
         when A =:= $, orelse A =:= $) ->

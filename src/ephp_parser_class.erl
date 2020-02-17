@@ -209,7 +209,12 @@ st_class_content(<<"$",_/binary>> = Rest,
                         namespace = Class#class.namespace}
     end,
     NewClass = Class#class{attrs = Attrs ++ [Attr]},
-    st_class_content(Rest0, normal_public_level(Parser0), NewClass);
+    case remove_spaces(Rest0, Parser0) of
+        {<<",", Rest1/binary>>, Parser1} ->
+            st_class_content(Rest1, Parser1, NewClass);
+        {Rest1, Parser1} ->
+            st_class_content(Rest1, normal_public_level(Parser1), NewClass)
+    end;
 st_class_content(<<"$", _/binary>> = _Rest, Parser, _Class) ->
     ephp_parser:throw_error(eparse, Parser, {<<"`\"function (T_FUNCTION)\"'">>});
 st_class_content(<<F:8,U:8,N:8,C:8,T:8,I:8,O:8,N:8,SP:8,Rest/binary>>,

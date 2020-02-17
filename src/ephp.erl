@@ -172,13 +172,14 @@ eval(Context, PHP) ->
 %%      could contents a binary text with PHP code or a parsed PHP content.
 %% @end
 eval(Filename, Context, PHP) when is_binary(PHP) ->
-    case catch ephp_parser:parse(Filename, PHP) of
-        {error, ErrorName, Line, ErrorLevel, Data} ->
+    try
+        Compiled = ephp_parser:parse(Filename, PHP),
+        eval(Filename, Context, Compiled)
+    catch
+        throw:{error, ErrorName, Line, ErrorLevel, Data} ->
             ephp_error:handle_error(Context, {error, ErrorName, Line,
                 Filename, ErrorLevel, Data}),
-            {error, ErrorName, Line, Filename, ErrorLevel, Data};
-        Compiled ->
-            eval(Filename, Context, Compiled)
+            {error, ErrorName, Line, Filename, ErrorLevel, Data}
     end;
 
 eval(Filename, Context, Compiled) ->

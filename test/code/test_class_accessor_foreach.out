@@ -1,3 +1,16 @@
+static =>
 0 => 1
 1 => 2
 2 => 3
+---------
+dynamic =>
+0 -> 1
+1 -> 2
+2 -> 3
+3 -> 4
+4 -> 5
+----------
+
+Notice: Undefined variable: b in {{CWD}}/test/code/test_class_accessor_foreach.php on line 24
+
+Warning: Invalid argument supplied for foreach() in {{CWD}}/test/code/test_class_accessor_foreach.php on line 24

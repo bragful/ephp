@@ -1,14 +1,26 @@
-_SERVER => array(1) {
+_SERVER => array(4) {
   [0]=>
   string(31) "test/code/test_superglobals.php"
+  [1]=>
+  string(1) "a"
+  [2]=>
+  string(1) "b"
+  [3]=>
+  string(1) "c"
 }
 
 Notice: Undefined variable: PHP_SELF in {{CWD}}/test/code/test_superglobals.php on line 15
 PHP_SELF => 
 GLOBALS => array(0) {
 }
-_SERVER[argv] => array(1) {
+_SERVER[argv] => array(4) {
   [0]=>
   string(31) "test/code/test_superglobals.php"
+  [1]=>
+  string(1) "a"
+  [2]=>
+  string(1) "b"
+  [3]=>
+  string(1) "c"
 }
 PHP_SELF => test/code/test_superglobals.php

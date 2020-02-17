@@ -1,0 +1,11 @@
+int(4)
+array(4) {
+  [0]=>
+  string(28) "test/code/test_argc_argv.php"
+  [1]=>
+  string(1) "a"
+  [2]=>
+  string(1) "b"
+  [3]=>
+  string(1) "c"
+}
