@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2019 Altenwald Solutions, S.L.
+Copyright (c) 2013-2020 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
