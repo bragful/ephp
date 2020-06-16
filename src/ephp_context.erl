@@ -21,7 +21,7 @@
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
     active_fun_ns = [] :: ephp_ns:namespace(),
-    active_fun_args = 0 :: non_neg_integer(),
+    active_fun_args = [] :: [expression()],
     active_class = <<>> :: class_name(),
     active_class_ns = [] :: ephp_ns:namespace(),
     active_real_class = <<>> :: class_name(),
@@ -76,6 +76,7 @@
     get_active_function/1,
     get_active_function_ns/1,
     get_active_function_arity/1,
+    get_active_function_arg/2,
 
     set_errors_id/2,
     get_errors_id/1,
@@ -299,7 +300,22 @@ get_active_function_ns(Context) ->
 
 get_active_function_arity(Context) ->
     #state{active_fun_args = ActiveFunArgs} = load_state(Context),
-    ActiveFunArgs.
+    length(ActiveFunArgs).
+
+get_active_function_arg(Context, Pos) when is_integer(Pos) andalso Pos >= 0 ->
+    #state{active_fun_args = ActiveFunArgs} = State = load_state(Context),
+    case length(ActiveFunArgs) of
+        0 -> undefined;
+        Size when Pos < Size ->
+            case lists:nth(Pos + 1, ActiveFunArgs) of
+                {undefined, {_, Value}} -> Value;
+                {Var, _} ->
+                    {Value, NewState} = resolve(Var, State),
+                    save_state(NewState),
+                    Value
+            end;
+        _ -> undefined
+    end.
 
 get_errors_id(Context) ->
     #state{errors = Errors} = load_state(Context),
@@ -830,11 +846,7 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
     {ok, FuncVars} = ephp_vars:start_link(),
-    {ok, SubContext} = start_mirror(NState#state{
-        vars = FuncVars,
-        global = Ref,
-        active_fun = ?FUNC_ANON_NAME,
-        active_fun_args = length(RawArgs)}),
+    ActiveArgs = resolve_active_args(Args, FuncArgs),
     ephp_vars:zip_args(Vars, FuncVars, Args, FuncArgs, ?FUNC_ANON_NAME, Line, Ref),
     lists:foreach(fun
         ({#variable{} = K, V}) ->
@@ -851,6 +863,11 @@ resolve(#call{name = #function{args = RawFuncArgs, code = Code, use = Use},
             VarRef
     end, FuncArgs),
     ephp_stack:push(File, Line, ?FUNC_ANON_NAME, Refs, Class, undefined),
+    {ok, SubContext} = start_mirror(NState#state{
+        vars = FuncVars,
+        global = Ref,
+        active_fun = ?FUNC_ANON_NAME,
+        active_fun_args = ActiveArgs}),
     Value = case ephp_interpr:run(SubContext, #eval{statements=Code}) of
         {return, V} -> V;
         _ -> undefined
@@ -1201,16 +1218,9 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
     end,
     {Args, NStatePrev} = resolve_args(RawArgs, State),
     {FuncArgs, NState} = resolve_func_args(RawFuncArgs, NStatePrev),
+    ActiveArgs = resolve_active_args(Args, FuncArgs),
     save_state(NState),
     {ok, NewVars} = ephp_vars:start_link(),
-    SArgs = length(Args),
-    {ok, SubContext} = start_mirror(NState#state{vars = NewVars,
-                                                 global = GlobalRef,
-                                                 active_file = AFile,
-                                                 active_fun = Fun,
-                                                 active_class = <<>>,
-                                                 active_real_class = <<>>,
-                                                 active_fun_args = SArgs}),
     ephp_vars:zip_args(Vars, NewVars, Args, FuncArgs, Fun, Index, Ref),
     register_superglobals(GlobalRef, NewVars),
     FullFunName = ephp_ns:to_bin(Call#call.namespace, Fun),
@@ -1223,6 +1233,13 @@ resolve_function(#call{name = Fun, args = RawArgs, line = Index} = Call,
                             VarRef
                       end, FuncArgs),
     ephp_stack:push(File, Index, Fun, Refs, undefined, undefined),
+    {ok, SubContext} = start_mirror(NState#state{vars = NewVars,
+                                                 global = GlobalRef,
+                                                 active_file = AFile,
+                                                 active_fun = Fun,
+                                                 active_class = <<>>,
+                                                 active_real_class = <<>>,
+                                                 active_fun_args = ActiveArgs}),
     Value = case ephp_interpr:run(SubContext, #eval{statements = Code}) of
         {return, V} -> V;
         _ -> undefined
@@ -1290,6 +1307,17 @@ resolve_idx(RawIdx, State) ->
         end,
         {Indexes ++ [A], NewState}
     end, {[], State}, RawIdx).
+
+resolve_active_args(Args, FuncArgs) ->
+    resolve_active_args(Args, FuncArgs, []).
+
+resolve_active_args([], [], Result) -> lists:reverse(Result);
+resolve_active_args([], [#variable{default_value = Value} = Var|FuncArgs], Result) ->
+    resolve_active_args([], FuncArgs, [{Var, Value}|Result]);
+resolve_active_args([Value|Args], [], Result) ->
+    resolve_active_args(Args, [], [{undefined, Value}|Result]);
+resolve_active_args([Value|Args], [Var|FuncArgs], Result) ->
+    resolve_active_args(Args, FuncArgs, [{Var, Value}|Result]).
 
 resolve_args(undefined, State) ->
     {[], State};
@@ -1559,17 +1587,9 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
         class -> undefined;
         object -> Object
     end,
+    ActiveArgs = resolve_active_args(Args, MethodArgs),
     ephp_vars:zip_args(Vars, MethodVars, Args, MethodArgs, MethodName,
                         Call#call.line, Ref),
-    {ok, SubContext} = start_mirror(State#state{
-        vars = MethodVars,
-        global = Ref,
-        active_file = Class#class.file,
-        active_fun = MethodName,
-        active_fun_args = length(Args),
-        active_real_class = Class#class.name,
-        active_class = ClassMethod#class_method.class_name,
-        active_class_ns = ClassMethod#class_method.namespace}),
     register_superglobals(Ref, MethodVars),
     OldMethodName = get_const(Ref, <<"__METHOD__">>, Call#call.line),
     FullClassName = ephp_ns:to_bin(Class#class.namespace,
@@ -1593,6 +1613,15 @@ run_method(#class_method{code_type = php} = ClassMethod, Class, Object,
     ephp_stack:push(State#state.active_file, Call#call.line,
                     MethodName, Refs, Class#class.name, RealObject),
     Code = ClassMethod#class_method.code,
+    {ok, SubContext} = start_mirror(State#state{
+        vars = MethodVars,
+        global = Ref,
+        active_file = Class#class.file,
+        active_fun = MethodName,
+        active_fun_args = ActiveArgs,
+        active_real_class = Class#class.name,
+        active_class = ClassMethod#class_method.class_name,
+        active_class_ns = ClassMethod#class_method.namespace}),
     Value = case ephp_interpr:run(SubContext, #eval{statements = Code}) of
         {return, V} -> V;
         _ -> undefined

@@ -12,6 +12,7 @@
     get_defined_functions/2,
     function_exists/3,
     func_num_args/2,
+    func_get_arg/3,
     call_user_func/3,
     call_user_func_array/4,
     create_function/4
@@ -28,6 +29,7 @@ init_func() -> [
     get_defined_functions,
     function_exists,
     func_num_args,
+    {func_get_arg, [{args, [integer]}]},
     {call_user_func, [pack_args]},
     {call_user_func_array, [callable, array]},
     {create_function, [{args, [string, string]}]}
@@ -48,7 +50,7 @@ get_classes() ->
 
 -spec register_shutdown_function(ephp:context_id(), line(), [var_value()]) -> ok.
 
-register_shutdown_function(Context, _Line, [{_,Callback}|_RawArgs]) ->
+register_shutdown_function(Context, _Line, [{_, Callback} | _RawArgs]) ->
     %% TODO: add params to call the functions.
     ephp_context:register_shutdown_func(Context, Callback),
     ok.
@@ -57,6 +59,11 @@ register_shutdown_function(Context, _Line, [{_,Callback}|_RawArgs]) ->
 
 func_num_args(Context, _Line) ->
     ephp_context:get_active_function_arity(Context).
+
+-spec func_get_arg(ephp:context_id(), line(), Pos :: non_neg_integer()) -> mixed().
+
+func_get_arg(Context, _Line, {_, Pos}) ->
+    ephp_context:get_active_function_arg(Context, Pos).
 
 -spec get_defined_functions(ephp:context_id(), line()) -> ephp_array:ephp_array().
 
