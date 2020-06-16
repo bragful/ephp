@@ -67,7 +67,7 @@ func_num_args(Context, _Line) ->
 func_get_args(Context, _Line) ->
     ephp_context:get_active_function_args(Context).
 
--spec func_get_arg(ephp:context_id(), line(), Pos :: non_neg_integer()) -> mixed().
+-spec func_get_arg(ephp:context_id(), line(), Pos :: var_value()) -> mixed().
 
 func_get_arg(Context, _Line, {_, Pos}) ->
     ephp_context:get_active_function_arg(Context, Pos).

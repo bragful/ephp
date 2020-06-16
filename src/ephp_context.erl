@@ -21,7 +21,7 @@
     active_file = <<>> :: file_name(),
     active_fun = <<>> :: function_name(),
     active_fun_ns = [] :: ephp_ns:namespace(),
-    active_fun_args = [] :: [expression()],
+    active_fun_args = [] :: [{variable() | var_ref() | undefined, {expression(), mixed()}}],
     active_class = <<>> :: class_name(),
     active_class_ns = [] :: ephp_ns:namespace(),
     active_real_class = <<>> :: class_name(),
