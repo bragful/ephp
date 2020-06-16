@@ -19,12 +19,14 @@ otp_release:
 - 21.3
 - 22.0
 - 22.1
+- 22.2
+- 22.3
 # using this last one with dialyzer (see below)
-#- 22.2
+#- 23.0
 jobs:
   include:
     - language: erlang
-      otp_release: 22.2
+      otp_release: 23.0
       script: "make compile test check"
 notifications:
   slack:

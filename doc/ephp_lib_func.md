@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_lib`](ephp_lib.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#call_user_func-3">call_user_func/3</a></td><td></td></tr><tr><td valign="top"><a href="#call_user_func_array-4">call_user_func_array/4</a></td><td></td></tr><tr><td valign="top"><a href="#create_function-4">create_function/4</a></td><td></td></tr><tr><td valign="top"><a href="#func_num_args-2">func_num_args/2</a></td><td></td></tr><tr><td valign="top"><a href="#function_exists-3">function_exists/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_classes-0">get_classes/0</a></td><td></td></tr><tr><td valign="top"><a href="#get_defined_functions-2">get_defined_functions/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#register_shutdown_function-3">register_shutdown_function/3</a></td><td></td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#call_user_func-3">call_user_func/3</a></td><td></td></tr><tr><td valign="top"><a href="#call_user_func_array-4">call_user_func_array/4</a></td><td></td></tr><tr><td valign="top"><a href="#create_function-4">create_function/4</a></td><td></td></tr><tr><td valign="top"><a href="#func_get_arg-3">func_get_arg/3</a></td><td></td></tr><tr><td valign="top"><a href="#func_get_args-2">func_get_args/2</a></td><td></td></tr><tr><td valign="top"><a href="#func_num_args-2">func_num_args/2</a></td><td></td></tr><tr><td valign="top"><a href="#function_exists-3">function_exists/3</a></td><td></td></tr><tr><td valign="top"><a href="#get_classes-0">get_classes/0</a></td><td></td></tr><tr><td valign="top"><a href="#get_defined_functions-2">get_defined_functions/2</a></td><td></td></tr><tr><td valign="top"><a href="#init_config-0">init_config/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_const-0">init_const/0</a></td><td></td></tr><tr><td valign="top"><a href="#init_func-0">init_func/0</a></td><td></td></tr><tr><td valign="top"><a href="#register_shutdown_function-3">register_shutdown_function/3</a></td><td></td></tr></table>
 
 
 <a name="functions"></a>
@@ -42,6 +42,24 @@ call_user_func_array(Context::<a href="ephp.md#type-context_id">ephp:context_id(
 
 <pre><code>
 create_function(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, X2::<a href="#type-line">line()</a>, Args::<a href="#type-var_value">var_value()</a>, Code::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-obj_ref">obj_ref()</a>
+</code></pre>
+<br />
+
+<a name="func_get_arg-3"></a>
+
+### func_get_arg/3 ###
+
+<pre><code>
+func_get_arg(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>, Pos::<a href="#type-var_value">var_value()</a>) -&gt; <a href="#type-mixed">mixed()</a>
+</code></pre>
+<br />
+
+<a name="func_get_args-2"></a>
+
+### func_get_args/2 ###
+
+<pre><code>
+func_get_args(Context::<a href="ephp.md#type-context_id">ephp:context_id()</a>, Line::<a href="#type-line">line()</a>) -&gt; <a href="#type-mixed">mixed()</a>
 </code></pre>
 <br />
 

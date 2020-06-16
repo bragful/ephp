@@ -51,7 +51,9 @@ ePHP requires to be run over an Erlang/OTP 19+, but not all the versions are ful
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 22.2 | :heavy_check_mark: | Recommended if you use OTP 22 |
+| 23.0 | :heavy_check_mark: | |
+| 22.3 | :heavy_check_mark: | Recommended if you use OTP 22 |
+| 22.2 | :heavy_check_mark: | |
 | 22.1 | :heavy_check_mark: | |
 | 22.0 | :heavy_check_mark: | |
 | 21.3 | :heavy_check_mark: | Recommended if you use OTP 21 |
