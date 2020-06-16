@@ -13,6 +13,7 @@
     function_exists/3,
     func_num_args/2,
     func_get_arg/3,
+    func_get_args/2,
     call_user_func/3,
     call_user_func_array/4,
     create_function/4
@@ -29,6 +30,7 @@ init_func() -> [
     get_defined_functions,
     function_exists,
     func_num_args,
+    func_get_args,
     {func_get_arg, [{args, [integer]}]},
     {call_user_func, [pack_args]},
     {call_user_func_array, [callable, array]},
@@ -59,6 +61,11 @@ register_shutdown_function(Context, _Line, [{_, Callback} | _RawArgs]) ->
 
 func_num_args(Context, _Line) ->
     ephp_context:get_active_function_arity(Context).
+
+-spec func_get_args(ephp:context_id(), line()) -> mixed().
+
+func_get_args(Context, _Line) ->
+    ephp_context:get_active_function_args(Context).
 
 -spec func_get_arg(ephp:context_id(), line(), Pos :: non_neg_integer()) -> mixed().
 

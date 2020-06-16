@@ -76,6 +76,7 @@
     get_active_function/1,
     get_active_function_ns/1,
     get_active_function_arity/1,
+    get_active_function_args/1,
     get_active_function_arg/2,
 
     set_errors_id/2,
@@ -301,6 +302,18 @@ get_active_function_ns(Context) ->
 get_active_function_arity(Context) ->
     #state{active_fun_args = ActiveFunArgs} = load_state(Context),
     length(ActiveFunArgs).
+
+get_active_function_args(Context) ->
+    #state{active_fun_args = ActiveFunArgs} = State = load_state(Context),
+    {Res, NewState} = lists:foldl(fun
+        ({undefined, {_, Value}}, {Acc, S}) ->
+            {[Value|Acc], S};
+        ({Var, _}, {Acc, S}) ->
+            {Value, NewState} = resolve(Var, S),
+            {[Value|Acc], NewState}
+    end, {[], State}, ActiveFunArgs),
+    save_state(NewState),
+    ephp_array:from_list(lists:reverse(Res)).
 
 get_active_function_arg(Context, Pos) when is_integer(Pos) andalso Pos >= 0 ->
     #state{active_fun_args = ActiveFunArgs} = State = load_state(Context),
