@@ -38,6 +38,7 @@
     rtrim/4,
     ltrim/4,
     trim/4,
+    md5/3,
     substr/5,
     str_repeat/4,
     count_chars/4,
@@ -106,6 +107,9 @@ init_func() -> [
     ]},
     {trim, [
         {args, {1, 2, undefined, [string, {string, <<32,9,10,13,0,11>>}]}}
+    ]},
+    {md5, [
+        {args, {1, 1, undefined, [string]}}
     ]},
     {bin2hex, [
         {args, {1, 1, undefined, [string]}}
@@ -456,6 +460,11 @@ ltrim(_Context, _Line, {_, Str}, {_, CharMask}) ->
 trim(_Context, _Line, {_, Str}, {_, CharMask}) ->
     Chars = binary_to_list(CharMask),
     ephp_string:trim(Str, Chars).
+
+-spec md5(ephp:context_id(), line(), var_value()) -> binary().
+
+md5(_Context, _Line, {_, Binary}) ->
+    ephp_string:bin2hex(erlang:md5(Binary)).
 
 -spec bin2hex(ephp:context_id(), line(), var_value()) -> binary().
 
