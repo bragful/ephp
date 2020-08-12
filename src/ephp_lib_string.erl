@@ -40,6 +40,7 @@
     trim/4,
     md5/4,
     substr/5,
+    str_pad/6,
     str_repeat/4,
     count_chars/4,
     nl2br/4
@@ -47,6 +48,10 @@
 
 -include("ephp.hrl").
 -include("ephp_array.hrl").
+
+-define(STR_PAD_LEFT, 0).
+-define(STR_PAD_RIGHT, 1).
+-define(STR_PAD_BOTH, 2).
 
 -spec init_func() -> ephp_lib:php_function_results().
 
@@ -120,6 +125,9 @@ init_func() -> [
     {substr, [
         {args, {2, 3, undefined, [string, integer, {integer, eol}]}}
     ]},
+    {str_pad, [
+        {args, {2, 4, undefined, [string, integer, {string, <<" ">>}, {integer, ?STR_PAD_RIGHT}]}}
+    ]},
     {str_repeat, [
         {args, [string, integer]}
     ]},
@@ -137,7 +145,11 @@ init_config() -> [].
 
 -spec init_const() -> ephp_lib:php_const_results().
 %% @private
-init_const() -> [].
+init_const() -> [
+    {<<"STR_PAD_LEFT">>, ?STR_PAD_LEFT},
+    {<<"STR_PAD_RIGHT">>, ?STR_PAD_RIGHT},
+    {<<"STR_PAD_BOTH">>, ?STR_PAD_BOTH}
+].
 
 -spec handle_error(ephp_error:error_type(), ephp_error:error_level(),
                    Args::term()) -> string() | ignore.
@@ -491,6 +503,16 @@ hex2bin(_Context, _Line, {_, Hex}) ->
 substr(_Context, _Line, {_, String}, {_, Start}, {_, Len}) ->
     limit(offset(String, Start), Len).
 
+-spec str_pad(ephp:context_id(), line(), var_value(), var_value(), var_value(), var_value()) -> binary().
+
+str_pad(_Context, _Line, {_, Input}, {_, PadLen}, {_, PadStr}, {_, PadType}) ->
+    case {byte_size(Input) > PadLen, PadType} of
+        {true, _} -> Input;
+        {false, ?STR_PAD_BOTH} -> ephp_string:pad(Input, PadLen, PadStr);
+        {false, ?STR_PAD_LEFT} -> ephp_string:lpad(Input, PadLen, PadStr);
+        {false, ?STR_PAD_RIGHT} -> ephp_string:rpad(Input, PadLen, PadStr)
+    end.
+
 -spec str_repeat(ephp:context_id(), line(), var_value(), var_value()) ->
       binary() | undefined.
 
@@ -501,7 +523,7 @@ str_repeat(Context, Line, {_, _String}, {_, Multiplier}) when Multiplier < 0 ->
     undefined;
 
 str_repeat(_Context, _Line, {_, String}, {_, Multiplier}) ->
-    str_repeat(String, Multiplier, <<>>).
+    ephp_string:repeat(Multiplier, String).
 
 -spec count_chars(ephp:context_id(), line(), var_value(), var_value()) -> ephp_array:ephp_array() | binary().
 
@@ -542,13 +564,6 @@ nl2br(_Context, _Line, {_, String}, {_, Xhtml}) ->
 %% ----------------------------------------------------------------------------
 %% Internal functions
 %% ----------------------------------------------------------------------------
-
-str_repeat(_String, 0, _) ->
-    <<>>;
-str_repeat(String, 1, Result) ->
-    <<String/binary, Result/binary>>;
-str_repeat(String, N, Result) ->
-    str_repeat(String, N-1, <<String/binary, Result/binary>>).
 
 offset(String, Start) when Start =:= 0 ->
     String;

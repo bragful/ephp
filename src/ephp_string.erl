@@ -13,6 +13,9 @@
     trim/2,
     rtrim/2,
     ltrim/2,
+    lpad/3,
+    rpad/3,
+    pad/3,
     join/2,
     vsn_cmp/2,
     spaces/1,
@@ -99,6 +102,48 @@ expand_mask(Mask) ->
             Mask
     end.
 
+-spec pad(binary(), integer(), binary() | undefined) -> binary();
+         (undefined, integer(), binary() | undefined) -> undefined.
+
+pad(undefined, _Size, _PadStr) -> undefined;
+pad(Bin, _Size, undefined) -> Bin;
+
+pad(Bin, Size, _PadStr) when byte_size(Bin) >= Size -> Bin;
+
+pad(Bin, Size, PadStr) ->
+    MissingLen = Size - byte_size(Bin),
+    SizeLeft = ephp_data:flooring(MissingLen / 2),
+    NewBin = rpad(Bin, Size - SizeLeft, PadStr),
+    lpad(NewBin, Size, PadStr).
+
+-spec lpad(binary(), integer(), binary() | undefined) -> binary();
+          (undefined, integer(), binary() | undefined) -> undefined.
+
+lpad(undefined, _PadLen, _PadStr) -> undefined;
+lpad(Input, _PadLen, undefined) -> Input;
+
+lpad(Input, PadLen, _PadStr) when byte_size(Input) >= PadLen -> Input;
+
+lpad(Input, PadLen, PadStr) ->
+    MissingLen = PadLen - byte_size(Input),
+    Times = ephp_data:ceiling(MissingLen / byte_size(PadStr)),
+    <<Str:MissingLen/binary, _/binary>> = repeat(Times, PadStr),
+    <<Str/binary, Input/binary>>.
+
+-spec rpad(binary(), integer(), binary() | undefined) -> binary();
+          (undefined, integer(), binary() | undefined) -> undefined.
+
+rpad(undefined, _PadLen, _PadStr) -> undefined;
+rpad(Input, _PadLen, undefined) -> Input;
+
+rpad(Input, PadLen, _PadStr) when byte_size(Input) >= PadLen -> Input;
+
+rpad(Input, PadLen, PadStr) ->
+    MissingLen = PadLen - byte_size(Input),
+    Times = ephp_data:ceiling(MissingLen / byte_size(PadStr)),
+    <<Str:MissingLen/binary, _/binary>> = repeat(Times, PadStr),
+    <<Input/binary, Str/binary>>.
+
 -spec trim(binary()) -> binary();
           (undefined) -> undefined.
 
@@ -183,17 +228,23 @@ vsn_cmp([A|ARest], [A|BRest]) -> vsn_cmp(ARest, BRest).
 spaces(Num) ->
     repeat(Num, 32).
 
--spec repeat(pos_integer(), byte()) -> binary().
+-spec repeat(pos_integer(), byte() | binary()) -> binary().
 %% @doc repeat the byte passed as param as many times as the number passed as param.
-repeat(Num, Byte) ->
-    repeat(Num, Byte, <<>>).
+repeat(Num, Byte) when is_integer(Byte) ->
+    repeat(Num, Byte, <<>>);
 
--spec repeat(pos_integer(), byte(), binary()) -> binary().
+repeat(Num, Bin) when is_binary(Bin) ->
+    repeat(Num, Bin, <<>>).
+
+-spec repeat(pos_integer(), byte() | binary(), binary()) -> binary().
 %% @doc repeat internal function.
 %% @see repeat/2
 %% @private
-repeat(0, _Byte, Binary) -> Binary;
-repeat(N, Byte, Binary) -> repeat(N-1, Byte, <<Binary/binary, Byte:8>>).
+repeat(0, _ByteOrBin, Binary) -> Binary;
+repeat(N, Byte, Binary) when is_integer(Byte)  ->
+    repeat(N-1, Byte, <<Binary/binary, Byte:8>>);
+repeat(N, Bin, Binary) when is_binary(Bin) ->
+    repeat(N-1, Bin, <<Binary/binary, Bin/binary>>).
 
 -spec reverse(binary()) -> binary().
 %% @doc get the reverse of a string passed as param.
