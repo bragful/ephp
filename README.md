@@ -2,7 +2,7 @@
 
 # ePHP #
 
-Copyright (c) 2013-2020 Altenwald Solutions, S.L.
+Copyright (c) 2013-2021 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
 
@@ -51,6 +51,8 @@ ePHP requires to be run over an Erlang/OTP 19+, but not all the versions are ful
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
+| 23.2 | :heavy_check_mark: | Recommended if you use OTP 23 |
+| 23.1 | :heavy_check_mark: | |
 | 23.0 | :heavy_check_mark: | |
 | 22.3 | :heavy_check_mark: | Recommended if you use OTP 22 |
 | 22.2 | :heavy_check_mark: | |
