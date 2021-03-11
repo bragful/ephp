@@ -9,7 +9,7 @@
 -export([init_func/0, init_config/0, init_const/0, handle_error/3, in_array/5, count/3,
          array_merge/3, list/3, array_unique/4, array_change_key_case/4, array_chunk/5,
          array_column/5, array_pop/3, reset/3, current/3, php_end/3, prev/3, next/3, key/3,
-         ksort/4, array_keys/3]).
+         ksort/4, array_keys/3, array_count_values/3]).
 
 -include("ephp.hrl").
 -include("ephp_array.hrl").
@@ -38,7 +38,8 @@ init_func() ->
      {key, [{args, {1, 1, undefined, [array]}}]},
      {ksort, [{args, {1, 2, false, [array, {integer, ?SORT_REGULAR}]}}]},
      {array_keys, [array]},
-     {array_pop, [array]}].
+     {array_pop, [array]},
+     {array_count_values, [{args, {1, 1, undefined, [array]}}]}].
 
 -spec init_config() -> ephp_lib:php_config_results().
 init_config() ->
@@ -59,6 +60,8 @@ init_const() ->
 %% @private
 handle_error(enooffset, _Level, {Offset}) ->
     io_lib:format("Undefined offset: ~p", [Offset]);
+handle_error(ecountvalues, _Level, _Extra) ->
+    "array_count_values(): Can only count STRING and INTEGER values!";
 handle_error(_Type, _Level, _Data) ->
     ignore.
 
@@ -299,6 +302,27 @@ array_pop(Context, _Line, {VarArray, Array}) ->
     {Head, TailArray} = ephp_array:pop(Array),
     ephp_context:set(Context, VarArray, TailArray),
     Head.
+
+array_count_values(Context, Line, {_, Values}) ->
+    Result = ephp_array:fold(fun(_Key, Value, Acc) ->
+        if
+            is_integer(Value) orelse is_binary(Value) ->
+                maps:put(Value, maps:get(Value, Acc, 0) + 1, Acc);
+            true ->
+                File = ephp_context:get_active_file(Context),
+                Error =
+                    {error,
+                    ecountvalues,
+                    Line,
+                    File,
+                    ?E_WARNING,
+                    undefined},
+                ephp_error:handle_error(Context, Error),
+                Acc
+        end
+    end, #{}, Values),
+    ephp_array:from_map(Result).
+
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

@@ -19,7 +19,7 @@
 
 -export([new/0, size/1, find/2, find/3, store/3, erase/2, map/2, fold/3, from_list/1,
          to_list/1, first/1, last/1, next/1, prev/1, current/1, cursor/2, ksort/2, keys/1,
-         values/1, pop/1, update_counter/3]).
+         values/1, pop/1, update_counter/3, from_map/1]).
 
 -include("ephp_array.hrl").
 
@@ -129,6 +129,11 @@ from_list(List) when is_list(List) ->
                 end,
                 #ephp_array{},
                 List).
+
+-spec from_map(map()) -> ephp_array().
+%% @doc transform the map passed as param in a PHP Array.
+from_map(Map) when is_map(Map) ->
+    from_list(maps:to_list(Map)).
 
 -spec to_list(ephp_array()) -> [{mixed(), mixed()}].
 %% @doc transform a PHP Array to a property list.
