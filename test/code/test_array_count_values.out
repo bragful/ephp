@@ -1,0 +1,8 @@
+
+Warning: array_count_values(): Can only count STRING and INTEGER values! in {{CWD}}/test/code/test_array_count_values.php on line 3
+Array
+(
+    [1] => 2
+    [hello] => 3
+    [world] => 1
+)
