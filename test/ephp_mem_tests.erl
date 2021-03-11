@@ -1,8 +1,11 @@
 -module(ephp_mem_tests).
+
 -author('manuel@altenwald.com').
+
 -compile([warnings_as_errors]).
 
 -include_lib("eunit/include/eunit.hrl").
+
 -include("ephp.hrl").
 
 set_get_and_remove_test() ->

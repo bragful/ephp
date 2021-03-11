@@ -1,4 +1,5 @@
 -module(ephp_const).
+
 -author('manuel@altenwald.com').
 
 -include("ephp.hrl").
@@ -7,43 +8,23 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([
-    start_link/0,
-    is_defined/4,
-    get/4,
-    get/5,
-    get/6,
-    get_ns/1,
-    set/3,
-    set/4,
-    set/5,
-    set_bulk/2,
-    set_bulk/3,
-    set_bulk/4,
-    destroy/1,
-    special_consts/0
-]).
+-export([start_link/0, is_defined/4, get/4, get/5, get/6, get_ns/1, set/3, set/4, set/5,
+         set_bulk/2, set_bulk/3, set_bulk/4, destroy/1, special_consts/0]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
-special_consts() -> [
-    <<"__CLASS__">>,
-    <<"__METHOD__">>,
-    <<"__FUNCTION__">>,
-    <<"__NAMESPACE__">>
-].
+special_consts() ->
+    [<<"__CLASS__">>, <<"__METHOD__">>, <<"__FUNCTION__">>, <<"__NAMESPACE__">>].
 
 start_link() ->
     Ref = make_ref(),
-    Init = [ {{[], undefined, N}, <<>>} || N <- special_consts() ],
-    Consts = lists:foldl(fun({K, V}, C) ->
-        dict:store(K, V, C)
-    end, dict:new(), Init),
+    Init = [{{[], undefined, N}, <<>>} || N <- special_consts()],
+    Consts = lists:foldl(fun({K, V}, C) -> dict:store(K, V, C) end, dict:new(), Init),
     erlang:put(Ref, Consts),
     Modules = ephp_config:get(modules, []),
-    [ set_bulk(Ref, Module:init_const()) || Module <- Modules ],
+    [set_bulk(Ref, Module:init_const()) || Module <- Modules],
     {ok, Ref}.
 
 is_defined(Ref, NS, ClassName, Name) ->
@@ -64,7 +45,7 @@ get(Ref, NS, ClassName, Name, Line, Context) ->
         error when Line =/= false andalso ClassName =:= undefined ->
             File = ephp_context:get_active_file(Context),
             ephp_error:handle_error(Context,
-                {error, eundefconst, Line, File, ?E_NOTICE, {NS, Name}}),
+                                    {error, eundefconst, Line, File, ?E_NOTICE, {NS, Name}}),
             Name;
         error when Line =/= false ->
             ephp_error:error({error, enoconst, Line, ?E_ERROR, {NS, Name}});
@@ -91,9 +72,12 @@ set_bulk(Ref, ClassName, Values) ->
     set_bulk(Ref, [], ClassName, Values).
 
 set_bulk(Ref, NameSpace, ClassName, Values) ->
-    erlang:put(Ref, lists:foldl(fun({Name, Value}, Const) ->
-        dict:store({NameSpace, ClassName, Name}, Value, Const)
-    end, erlang:get(Ref), Values)).
+    erlang:put(Ref,
+               lists:foldl(fun({Name, Value}, Const) ->
+                              dict:store({NameSpace, ClassName, Name}, Value, Const)
+                           end,
+                           erlang:get(Ref),
+                           Values)).
 
 set(Ref, Name, Value) ->
     set(Ref, undefined, Name, Value).

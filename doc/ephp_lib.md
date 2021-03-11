@@ -22,6 +22,7 @@
 config_param() = <a href="#type-mixed">mixed()</a>
 </code></pre>
 
+init_const
 
 
 
@@ -42,6 +43,7 @@ config_section() = binary()
 const_name() = binary()
 </code></pre>
 
+init_func
 
 
 

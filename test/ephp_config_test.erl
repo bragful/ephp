@@ -1,8 +1,11 @@
 -module(ephp_config_test).
+
 -author('manuel@altenwald.com').
+
 -compile([warnings_as_errors]).
 
 -include_lib("eunit/include/eunit.hrl").
+
 -include("ephp.hrl").
 
 config_wrong_file_test() ->

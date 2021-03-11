@@ -1,10 +1,13 @@
 -module(ephp_request_test).
+
 -author('manuel@altenwald.com').
+
 -compile([warnings_as_errors]).
 
 -define(CODE_PATH, "test/requests/").
 
 -include_lib("eunit/include/eunit.hrl").
+
 -include("ephp.hrl").
 
 ephp_eval(Ctx, Content) ->
@@ -39,35 +42,42 @@ eval(Filename) ->
 
 % OTP_RELEASE was included in OTP 21
 -ifndef(OTP_RELEASE).
+
 test_code(File) ->
-    {File, ?_assert(begin
-        try
-            run_test_code(File)
-        catch Type:Reason ->
-            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
-                [File, Type, Reason, erlang:get_stacktrace()]),
-            false
-        end
-    end)}.
+    {File,
+     ?_assert(begin
+                  try
+                      run_test_code(File)
+                  catch
+                      Type:Reason ->
+                          ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
+                                    [File, Type, Reason, erlang:get_stacktrace()]),
+                          false
+                  end
+              end)}.
+
 -else.
+
 test_code(File) ->
-    {File, ?_assert(begin
-        try
-            run_test_code(File)
-        catch Type:Reason:Stacktrace ->
-            ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
-                [File, Type, Reason, Stacktrace]),
-            false
-        end
-    end)}.
+    {File,
+     ?_assert(begin
+                  try
+                      run_test_code(File)
+                  catch
+                      Type:Reason:Stacktrace ->
+                          ?debugFmt("~n\t*** ERROR in ~s.php why: ~p; reason: ~p~n~p~n",
+                                    [File, Type, Reason, Stacktrace]),
+                          false
+                  end
+              end)}.
+
 -endif.
 
 run_test_code(File) ->
     {ok, OutCode} = eval(?CODE_PATH ++ File ++ ".php"),
     {ok, OutFileRaw} = file:read_file(?CODE_PATH ++ File ++ ".out"),
     {ok, CWD} = file:get_cwd(),
-    OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>,
-        list_to_binary(CWD), [global]),
+    OutFile = binary:replace(OutFileRaw, <<"{{CWD}}">>, list_to_binary(CWD), [global]),
     ?assertEqual(OutFile, iolist_to_binary(OutCode)),
     true.
 
@@ -77,6 +87,7 @@ code_to_test_() ->
     true = ets:insert(php_session, {<<"_REQUEST">>, ReqArray}),
     ephp:start(),
     {ok, Files} = file:list_dir(?CODE_PATH),
-    Codes = [ filename:rootname(File) || File <- lists:sort(Files),
-        filename:extension(File) =:= ".out" ],
+    Codes =
+        [filename:rootname(File)
+         || File <- lists:sort(Files), filename:extension(File) =:= ".out"],
     lists:map(fun(X) -> test_code(X) end, Codes).

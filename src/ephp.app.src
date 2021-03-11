@@ -1,20 +1,11 @@
-{application, ephp, [
-    {description, "Erlang PHP Interpreter"},
-    {vsn, git},
-    {registered, []},
-    {applications, [
-        kernel,
-        stdlib,
-        getopt,
-        ezic,
-        zucchini,
-        unistring
-    ]},
-    {env, []},
-    {licenses, ["LGPL 2.1"]},
-    {links, [
-        {"Github", "https://github.com/bragful/ephp"}
-    ]},
-    {exclude_files, []},
-    {include_files, []}
-]}.
+{application,
+ ephp,
+ [{description, "Erlang PHP Interpreter"},
+  {vsn, git},
+  {registered, []},
+  {applications, [kernel, stdlib, getopt, ezic, zucchini, unistring]},
+  {env, []},
+  {licenses, ["LGPL 2.1"]},
+  {links, [{"Github", "https://github.com/bragful/ephp"}]},
+  {exclude_files, []},
+  {include_files, []}]}.
