@@ -1,18 +1,13 @@
 %% Author: Manuel Rubio <manuel@altenwald.com>
 
--define(IS_SPACE(X), erlang:'or'(X =:= 32, erlang:'or'(X =:= $\t, X =:= $\r))).
+-define(IS_SPACE(X), (X =:= 32 orelse X =:= $\t orelse X =:= $\r)).
 -define(IS_NEWLINE(X), X =:= $\n).
--define(IS_NUMBER(X), erlang:'and'(X >= $0, X =< $9)).
--define(IS_ALPHA(X),
-        erlang:'or'(
-            erlang:'and'(X >= $A, X =< $Z), erlang:'and'(X >= $a, X =< $z))).
--define(IS_ALPHANUM(X), erlang:'or'(?IS_NUMBER(X), ?IS_ALPHA(X))).
--define(IS_HEX(X),
-        erlang:'or'(?IS_NUMBER(X),
-                    erlang:'or'(
-                        erlang:'and'(X >= $A, X =< $F), erlang:'and'(X >= $a, X =< $f)))).
--define(IS_OCT(X), erlang:'and'(X >= $0, X =< $7)).
--define(OR(I, X, Y), erlang:'or'(I =:= X, I =:= Y)).
+-define(IS_NUMBER(X), (X >= $0 andalso X =< $9)).
+-define(IS_ALPHA(X), ((X >= $A andalso X =< $Z) orelse (X >= $a andalso X =< $z))).
+-define(IS_ALPHANUM(X), (?IS_NUMBER(X) orelse ?IS_ALPHA(X))).
+-define(IS_HEX(X), (?IS_NUMBER(X) orelse (X >= $A andalso X =< $F) orelse (X >= $a andalso X =< $f))).
+-define(IS_OCT(X), (X >= $0 andalso X =< $7)).
+-define(OR(I, X, Y), (I =:= X orelse I =:= Y)).
 -define(IS_OP1_ARITH(X),
         X =:= <<"*">>
         orelse X =:= <<"/">>
