@@ -19,7 +19,7 @@
 
 -export([context_new/0, context_new/1, register_var/3, register_func/6, register_func/7,
          register_module/2, eval/2, eval/3, start/0, main/1, register_superglobals/2,
-         register_superglobals/3]).
+         register_superglobals/3, get_var/2, get_var/3, naive_eval/3]).
 
               %% for escriptize
 
@@ -141,6 +141,16 @@ register_func(Ctx, PHPName, Module, Fun, PackArgs, Args) ->
 register_module(Ctx, Module) ->
     ephp_lib:register(Ctx, Module).
 
+-spec get_var(context_id(), binary()) -> mixed().
+%% @doc get variable from context.
+get_var(Context, VarName) ->
+    get_var(Context, VarName, []).
+
+-spec get_var(context_id(), binary(), [array_index() | object_index() | class_index()]) -> mixed.
+%% @doc get variable from context giving also the indexes.
+get_var(Context, VarName, Idx) ->
+    ephp_context:get(Context, #variable{name = VarName, idx = Idx}).
+
 -type eval_return() ::
     {ok, Result :: ephp_interpr:flow_status()} |
     {error, reason(), line(), File :: binary(), ephp_error:error_level(), Data :: any()}.
@@ -182,6 +192,36 @@ eval(Filename, Context, Compiled) ->
             maybe_die(fun() -> ephp_error:handle_error(Context, Error) end),
             maybe_die(fun() -> ephp_shutdown:shutdown(Context) end),
             Error
+    end.
+
+-spec naive_eval(Filename :: binary(), context_id(), PHP :: string() | binary() | [term()]) ->
+              eval_return().
+%% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
+%%      constants and evaluates the code for the third parameter. This parameter
+%%      could contents a binary text with PHP code or a parsed PHP content.
+%%      In difference with `eval/3` it's not shutting down so makes possible to have
+%%      access to the information inside of the context after running a piece of code.
+%%      **CAUTION**: keep in mind it could leak your memory if you are not shutting down.
+%%      Also, it's not using cover.
+%% @end
+naive_eval(Filename, Context, PHP) when is_binary(PHP) ->
+    try
+        Compiled = ephp_parser:parse(Filename, PHP),
+        naive_eval(Filename, Context, Compiled)
+    catch
+        {error, ErrorName, Line, ErrorLevel, Data} ->
+            ephp_error:handle_error(Context, {error, ErrorName, Line, Filename, ErrorLevel, Data}),
+            {error, ErrorName, Line, Filename, ErrorLevel, Data}
+    end;
+naive_eval(_Filename, Context, Compiled) ->
+    case catch ephp_interpr:process(Context, Compiled, false) of
+        {ok, _} = OkTuple ->
+            OkTuple;
+        die ->
+            {ok, undefined};
+        {error, Reason, Index, Level, Data} ->
+            File = ephp_context:get_active_file(Context),
+            {error, Reason, Index, File, Level, Data}
     end.
 
 maybe_die(Fun) ->

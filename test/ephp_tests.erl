@@ -54,6 +54,14 @@ register_var_test() ->
     ?assertEqual({error, badarg}, ephp:register_var(Ctx, <<"a">>, {})),
     ok.
 
+get_var_test() ->
+    {ok, Ctx} = ephp:context_new(),
+    Filename = <<"dummy.php">>,
+    ?assertEqual({ok, false}, ephp:naive_eval(Filename, Ctx, <<"<? $a = 21; $b[10][\"a\"] = 100;">>)),
+    ?assertEqual(21, ephp:get_var(Ctx, <<"a">>)),
+    ?assertEqual(100, ephp:get_var(Ctx, <<"b">>, [10, <<"a">>])),
+    ok.
+
 run_empty_php_test() ->
     {ok, Ctx} = ephp:context_new(),
     ?assertEqual({ok, false}, ephp:eval(Ctx, <<>>)),
