@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: erlang:23.0
+      image: erlang:24.0
     
     steps:
     - uses: actions/checkout@v2

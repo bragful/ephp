@@ -18,6 +18,9 @@ In the same way, you can use for server PHP pages in an easy way.
 
 The port is not 100% complete, please refer to [compatibility table](doc/COMPATIBILITY.md).
 
+<strong>IMPORTANT</strong>
+ the generation of the documentation is made using `edown` which isn't compatible with OTP 23 and OTP 24 at the moment. If you need to generate the documentation, install an OTP 22 and run `make doc` removing the `_build` directory if you compiled previously with a more recent OTP version.
+
 
 ### <a name="Donation">Donation</a> ###
 
@@ -51,7 +54,9 @@ ePHP requires to be run over an Erlang/OTP 19+, but not all the versions are ful
 
 | Erlang Version | Support | Notes |
 |:---|:---:|:---|
-| 23.2 | :heavy_check_mark: | Recommended if you use OTP 23 |
+| 24.0 | :heavy_check_mark: | Recommended if you use OTP 24 |
+| 23.3 | :heavy_check_mark: | Recommended if you use OTP 23 |
+| 23.2 | :heavy_check_mark: | |
 | 23.1 | :heavy_check_mark: | |
 | 23.0 | :heavy_check_mark: | |
 | 22.3 | :heavy_check_mark: | Recommended if you use OTP 22 |

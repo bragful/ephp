@@ -165,8 +165,9 @@ vars_id() = reference()
 
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#context_new-0">context_new/0</a></td><td>creates a new context using <code>-</code> as script name.</td></tr><tr><td valign="top"><a href="#context_new-1">context_new/1</a></td><td>creates a new context passing <code>Filename</code> as param.</td></tr><tr><td valign="top"><a href="#eval-2">eval/2</a></td><td>eval PHP code in a context passed as params.</td></tr><tr><td valign="top"><a href="#eval-3">eval/3</a></td><td>adds the <code>Filename</code> to configure properly the <code>__FILE__</code> and <code>__DIR__</code>
-constants and evaluates the code for the third parameter.</td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td>called from script passing the name of the filename to be run or
-nothing to show the help message.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_superglobals-3">register_superglobals/3</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
+constants and evaluates the code for the third parameter.</td></tr><tr><td valign="top"><a href="#get_var-2">get_var/2</a></td><td>get variable from context.</td></tr><tr><td valign="top"><a href="#get_var-3">get_var/3</a></td><td>get variable from context giving also the indexes.</td></tr><tr><td valign="top"><a href="#main-1">main/1</a></td><td>called from script passing the name of the filename to be run or
+nothing to show the help message.</td></tr><tr><td valign="top"><a href="#naive_eval-3">naive_eval/3</a></td><td>adds the <code>Filename</code> to configure properly the <code>__FILE__</code> and <code>__DIR__</code>
+constants and evaluates the code for the third parameter.</td></tr><tr><td valign="top"><a href="#register_func-6">register_func/6</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_func-7">register_func/7</a></td><td>register function in a context passed as a param.</td></tr><tr><td valign="top"><a href="#register_module-2">register_module/2</a></td><td>register a module.</td></tr><tr><td valign="top"><a href="#register_superglobals-2">register_superglobals/2</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_superglobals-3">register_superglobals/3</a></td><td>register the superglobals variables in the context passed as param.</td></tr><tr><td valign="top"><a href="#register_var-3">register_var/3</a></td><td>register a variable with a value in the context passed as param.</td></tr><tr><td valign="top"><a href="#start-0">start/0</a></td><td>function to ensure all of the applications and the base configuration
 is set properly before use ephp.</td></tr><tr><td valign="top"><a href="#stop_cover-0">stop_cover/0</a></td><td>stops the cover system.</td></tr></table>
 
 
@@ -222,6 +223,28 @@ adds the `Filename` to configure properly the `__FILE__` and `__DIR__`
 constants and evaluates the code for the third parameter. This parameter
 could contents a binary text with PHP code or a parsed PHP content.
 
+<a name="get_var-2"></a>
+
+### get_var/2 ###
+
+<pre><code>
+get_var(Context::<a href="#type-context_id">context_id()</a>, VarName::binary()) -&gt; <a href="#type-mixed">mixed()</a>
+</code></pre>
+<br />
+
+get variable from context.
+
+<a name="get_var-3"></a>
+
+### get_var/3 ###
+
+<pre><code>
+get_var(Context::<a href="#type-context_id">context_id()</a>, VarName::binary(), Idx::[<a href="#type-array_index">array_index()</a> | <a href="#type-object_index">object_index()</a> | <a href="#type-class_index">class_index()</a>]) -&gt; mixed
+</code></pre>
+<br />
+
+get variable from context giving also the indexes.
+
 <a name="main-1"></a>
 
 ### main/1 ###
@@ -233,6 +256,23 @@ main(Args::[string()]) -&gt; <a href="#type-quit_return">quit_return()</a>
 
 called from script passing the name of the filename to be run or
 nothing to show the help message.
+
+<a name="naive_eval-3"></a>
+
+### naive_eval/3 ###
+
+<pre><code>
+naive_eval(Filename::binary(), Context::<a href="#type-context_id">context_id()</a>, PHP::string() | binary() | [term()]) -&gt; <a href="#type-eval_return">eval_return()</a>
+</code></pre>
+<br />
+
+adds the `Filename` to configure properly the `__FILE__` and `__DIR__`
+constants and evaluates the code for the third parameter. This parameter
+could contents a binary text with PHP code or a parsed PHP content.
+In difference with `eval/3` it`s not shutting down so makes possible to have
+access to the information inside of the context after running a piece of code.
+**CAUTION**: keep in mind it could leak your memory if you are not shutting down.
+Also, it's not using cover.
 
 <a name="register_func-6"></a>
 
