@@ -8,13 +8,16 @@
          rtrim/2, ltrim/2, lpad/3, rpad/3, pad/3, join/2, vsn_cmp/2, spaces/1, repeat/2, reverse/1,
          hex2bin/1, ihex2bin/1, bin2hex/1, ibin2hex/1]).
 
--spec to_lower(integer() | binary() | undefined) -> binary() | undefined.
+-spec to_lower(integer()) -> integer();
+              (binary()) -> binary();
+              (undefined) -> undefined.
 to_lower(undefined) ->
     undefined;
 to_lower(Text) ->
     unistring:to_lower(Text).
 
--spec to_upper(integer() | binary()) -> binary();
+-spec to_upper(integer()) -> integer();
+              (binary()) -> binary();
               (undefined) -> undefined.
 to_upper(undefined) ->
     undefined;

@@ -146,7 +146,7 @@ register_module(Ctx, Module) ->
 get_var(Context, VarName) ->
     get_var(Context, VarName, []).
 
--spec get_var(context_id(), binary(), [array_index() | object_index() | class_index()]) -> mixed.
+-spec get_var(context_id(), binary(), [array_index() | object_index() | class_index()]) -> mixed().
 %% @doc get variable from context giving also the indexes.
 get_var(Context, VarName, Idx) ->
     ephp_context:get(Context, #variable{name = VarName, idx = Idx}).
