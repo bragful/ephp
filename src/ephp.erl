@@ -418,16 +418,12 @@ output_and_close(Ctx) ->
 -ifdef(PROFILING).
 
 -spec start_profiling() -> ok.
-%% @doc starts the profiling functions to gather information using eprof.
 start_profiling() ->
     eprof:start(),
     eprof:start_profiling([self()]),
     ok.
 
 -spec stop_profiling() -> ok.
-%% @doc stops the profiling system and send the analysis to the standard
-%%      output.
-%% @end
 stop_profiling() ->
     eprof:stop_profiling(),
     eprof:analyze(total),
@@ -436,12 +432,10 @@ stop_profiling() ->
 -else.
 
 -spec start_profiling() -> ok.
-%% @hidden
 start_profiling() ->
     ok.
 
 -spec stop_profiling() -> ok.
-%% @hidden
 stop_profiling() ->
     ok.
 
