@@ -65,7 +65,7 @@ uri() = binary()
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>close a stream given the schema and the resource previously opened.</td></tr><tr><td valign="top"><a href="#file_exists-1">file_exists/1</a></td><td>returns true if the URI exists, otherwise false.</td></tr><tr><td valign="top"><a href="#get_initial_path-0">get_initial_path/0</a></td><td>get the initial PATH for this process.</td></tr><tr><td valign="top"><a href="#get_res_id-1">get_res_id/1</a></td><td>obtains the resource ID given a resource as param.</td></tr><tr><td valign="top"><a href="#is_dir-1">is_dir/1</a></td><td>returns true if the URL is a directory, otherwise false.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#is_readable-1">is_readable/1</a></td><td>returns true if the URL is readable/accesible, otherwise false.</td></tr><tr><td valign="top"><a href="#list_streams-0">list_streams/0</a></td><td>get a list of streams loaded in binary format.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>open a stream given the URI and options.</td></tr><tr><td valign="top"><a href="#parse_uri-1">parse_uri/1</a></td><td>parse the URI to separate in stream and the rest of the URI.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor for the stream to the specified location.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>request a read to the stream implementation.</td></tr><tr><td valign="top"><a href="#read_file-1">read_file/1</a></td><td>read the whole content via URI and return it.</td></tr><tr><td valign="top"><a href="#set_initial_path-1">set_initial_path/1</a></td><td>set the initial PATH for this process.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>initilize the stream subsystem.</td></tr><tr><td valign="top"><a href="#wildcard-1">wildcard/1</a></td><td>returns the list of URIs for a given pattern or an empty list.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>request a write to the stream implementation.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>close a stream given the schema and the resource previously opened.</td></tr><tr><td valign="top"><a href="#file_exists-1">file_exists/1</a></td><td>returns true if the URI exists, otherwise false.</td></tr><tr><td valign="top"><a href="#get_initial_path-0">get_initial_path/0</a></td><td>get the initial PATH for this process.</td></tr><tr><td valign="top"><a href="#get_res_id-1">get_res_id/1</a></td><td>obtains the resource ID given a resource as param.</td></tr><tr><td valign="top"><a href="#is_dir-1">is_dir/1</a></td><td>returns true if the URL is a directory, otherwise false.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#is_readable-1">is_readable/1</a></td><td>returns true if the URL is readable/accessible, otherwise false.</td></tr><tr><td valign="top"><a href="#list_streams-0">list_streams/0</a></td><td>get a list of streams loaded in binary format.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>open a stream given the URI and options.</td></tr><tr><td valign="top"><a href="#parse_uri-1">parse_uri/1</a></td><td>parse the URI to separate in stream and the rest of the URI.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor for the stream to the specified location.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>request a read to the stream implementation.</td></tr><tr><td valign="top"><a href="#read_file-1">read_file/1</a></td><td>read the whole content via URI and return it.</td></tr><tr><td valign="top"><a href="#set_initial_path-1">set_initial_path/1</a></td><td>set the initial PATH for this process.</td></tr><tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td>initialize the stream subsystem.</td></tr><tr><td valign="top"><a href="#wildcard-1">wildcard/1</a></td><td>returns the list of URIs for a given pattern or an empty list.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>request a write to the stream implementation.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -147,7 +147,7 @@ is_readable(URL::<a href="#type-uri">uri()</a>) -&gt; boolean()
 </code></pre>
 <br />
 
-returns true if the URL is readable/accesible, otherwise false.
+returns true if the URL is readable/accessible, otherwise false.
 
 <a name="list_streams-0"></a>
 
@@ -235,7 +235,7 @@ start_link() -&gt; ok
 </code></pre>
 <br />
 
-initilize the stream subsystem.
+initialize the stream subsystem.
 
 <a name="wildcard-1"></a>
 

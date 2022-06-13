@@ -11,7 +11,7 @@ __Behaviours:__ [`ephp_stream`](ephp_stream.md).
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>closes a file.</td></tr><tr><td valign="top"><a href="#file_exists-1">file_exists/1</a></td><td>returns true if the URI exists, otherwise false.</td></tr><tr><td valign="top"><a href="#is_dir-1">is_dir/1</a></td><td>returns true if the URL is a directory, otherwise false.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#is_readable-1">is_readable/1</a></td><td>returns true if the URL is readable/accesible, otherwise false.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>opens a file in the filesystem.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor to the specified position inside of the file.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>reads data from the file.</td></tr><tr><td valign="top"><a href="#read_file-1">read_file/1</a></td><td>read the whole file from filesystem.</td></tr><tr><td valign="top"><a href="#wildcard-1">wildcard/1</a></td><td>returns the list of URIs for a given pattern or an empty list.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>writes data to a file.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#close-1">close/1</a></td><td>closes a file.</td></tr><tr><td valign="top"><a href="#file_exists-1">file_exists/1</a></td><td>returns true if the URI exists, otherwise false.</td></tr><tr><td valign="top"><a href="#is_dir-1">is_dir/1</a></td><td>returns true if the URL is a directory, otherwise false.</td></tr><tr><td valign="top"><a href="#is_eof-1">is_eof/1</a></td><td>returns true if EOF is achieved by the file cursor or false otherwise.</td></tr><tr><td valign="top"><a href="#is_readable-1">is_readable/1</a></td><td>returns true if the URL is readable/accessible, otherwise false.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>opens a file in the filesystem.</td></tr><tr><td valign="top"><a href="#position-2">position/2</a></td><td>moves the cursor to the specified position inside of the file.</td></tr><tr><td valign="top"><a href="#read-2">read/2</a></td><td>reads data from the file.</td></tr><tr><td valign="top"><a href="#read_file-1">read_file/1</a></td><td>read the whole file from filesystem.</td></tr><tr><td valign="top"><a href="#wildcard-1">wildcard/1</a></td><td>returns the list of URIs for a given pattern or an empty list.</td></tr><tr><td valign="top"><a href="#write-3">write/3</a></td><td>writes data to a file.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -71,7 +71,7 @@ is_readable(URL::<a href="ephp_stream.md#type-uri">ephp_stream:uri()</a>) -&gt; 
 </code></pre>
 <br />
 
-returns true if the URL is readable/accesible, otherwise false.
+returns true if the URL is readable/accessible, otherwise false.
 
 <a name="open-2"></a>
 

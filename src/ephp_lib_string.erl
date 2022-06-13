@@ -90,7 +90,7 @@ handle_error(_Type, _Level, _Data) ->
     ignore.
 
 -spec strlen(ephp:context_id(), line(), String :: var_value()) -> integer().
-%% @doc retrieve the lenght of the string.
+%% @doc retrieve the length of the string.
 strlen(_Context, _Line, {_, String}) when is_binary(String) ->
     byte_size(String).
 
