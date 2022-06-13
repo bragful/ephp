@@ -86,7 +86,7 @@ get_mod_and_url(URL) ->
     end.
 
 -spec start_link() -> ok.
-%% @doc initilize the stream subsystem.
+%% @doc initialize the stream subsystem.
 start_link() ->
     erlang:put(resource_next_id, 1),
     ok.
@@ -182,7 +182,7 @@ is_dir(URL) ->
     end.
 
 -spec is_readable(uri()) -> boolean().
-%% @doc returns true if the URL is readable/accesible, otherwise false.
+%% @doc returns true if the URL is readable/accessible, otherwise false.
 is_readable(URL) ->
     {StreamMod, URIorURL} = get_mod_and_url(URL),
     case erlang:function_exported(StreamMod, is_readable, 1) of

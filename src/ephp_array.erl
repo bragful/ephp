@@ -91,7 +91,7 @@ erase(Key, #ephp_array{values = Values} = Array) ->
     Array#ephp_array{values = NewValues, size = length(NewValues)}.
 
 -spec map(function(), ephp_array()) -> ephp_array().
-%% @doc performs a map action on all of the elemnts in the array.
+%% @doc performs a map action on all of the elements in the array.
 map(Fun, #ephp_array{values = Values} = Array) ->
     NewValues = lists:map(fun({K, V}) -> Fun(K, V) end, Values),
     Array#ephp_array{values = NewValues}.
@@ -227,7 +227,7 @@ values(#ephp_array{values = Values}) ->
     [V || {_, V} <- Values].
 
 -spec pop(ephp_array()) -> {mixed(), ephp_array()}.
-%% @doc returns a tuple with the value poped from the array (last element) and
+%% @doc returns a tuple with the value popped from the array (last element) and
 %%      the rest of the array.
 pop(#ephp_array{size = 0} = Array) ->
     {undefined, Array};

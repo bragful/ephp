@@ -277,7 +277,7 @@ register_class(Ref,
 
 -spec check_access_level([class_attr()]) ->
                             ok | {error, {class_name(), binary(), access_types(), class_name()}}.
-%% @doc check the access level for the overrided attributes.
+%% @doc check the access level for the overridden attributes.
 check_access_level([]) ->
     ok;
 check_access_level([#class_attr{access = Access, name = Name} = CA1 | Rest]) ->

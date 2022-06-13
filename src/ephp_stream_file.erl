@@ -79,7 +79,7 @@ is_dir(URL) ->
     filelib:is_dir(FullURL).
 
 -spec is_readable(ephp_stream:uri()) -> boolean().
-%% @doc returns true if the URL is readable/accesible, otherwise false.
+%% @doc returns true if the URL is readable/accessible, otherwise false.
 is_readable(URL) ->
     FullURL = filename:join([ephp_stream:get_initial_path(), URL]),
     case file:read_file_info(FullURL) of
