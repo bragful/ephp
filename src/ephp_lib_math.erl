@@ -142,7 +142,6 @@ php_atan(_Context, _Line, {_, Number}) ->
 
 -spec php_atanh(ephp:context_id(), line(), {any(), number()}) -> float().
 php_atanh(_Context, _Line, {_, Number}) ->
-    % math:atanh(Number); % FIXME: the implementation is not reliable
     1 / 2 * math:log((1 + Number) / (1 - Number)).
 
 -spec php_atan2(ephp:context_id(), line(), {any(), number()}, {any(), number()}) ->
