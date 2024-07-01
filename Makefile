@@ -1,7 +1,7 @@
 all: ephp
 
 doc:
-	./rebar3 as doc edown
+	./rebar3 as doc do ex_doc
 
 clean-devel: clean
 	-rm -rf _build

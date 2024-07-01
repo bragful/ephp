@@ -11,3 +11,4 @@ php.ini
 erl_crash.dump
 rebar3.crashdump
 .DS_Store
+doc/
