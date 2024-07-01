@@ -248,7 +248,7 @@ to_bin(_Context, _Line, Val) ->
 -spec to_boolean(mixed()) -> boolean().
 to_boolean(0) ->
     false;
-to_boolean(0.0) ->
+to_boolean(N) when N == +0.00 orelse N == -0.00 ->
     false;
 to_boolean(N) when is_number(N) ->
     true;
