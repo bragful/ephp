@@ -5,7 +5,7 @@
   {registered, []},
   {applications, [kernel, stdlib, getopt, ezic, zucchini, unistring]},
   {env, []},
-  {licenses, ["LGPL 2.1"]},
+  {licenses, ["LGPL-2.1-only"]},
   {links, [{"Github", "https://github.com/bragful/ephp"}]},
   {exclude_files, []},
   {include_files, []}]}.
