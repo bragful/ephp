@@ -17,7 +17,7 @@
 -type error_level() :: pos_integer().
 -type get_return_return() :: {ok, undefined} | {return, undefined}.
 
--export_type([get_return_return/0, error_level/0]).
+-export_type([get_return_return/0, error_level/0, error_type/0]).
 
 -record(state,
         {ref :: ephp:errors_id(),

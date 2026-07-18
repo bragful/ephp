@@ -117,7 +117,7 @@ set(Key, Value) ->
     end,
     ok.
 
--spec read_config(file_name()) -> proplists:proplists().
+-spec read_config(file_name()) -> {ok, proplists:proplist()} | {error, enoent}.
 read_config(File) ->
     case zucchini:parse_file(File) of
         {ok, Content} ->

@@ -87,7 +87,7 @@ get_class(Objects, ObjectId) ->
     ObjectsData = erlang:get(Objects),
     (array:get(ObjectId, ObjectsData))#ephp_object.class.
 
--spec set_class(ephp:obj_ref(), class()) -> ok.
+-spec set_class(obj_ref(), class()) -> ok.
 %% @doc set a class for an existent object.
 set_class(#obj_ref{pid = Objects, ref = ObjectId}, Class) ->
     ObjectsData = erlang:get(Objects),

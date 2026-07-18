@@ -8,6 +8,9 @@
          get_timestamp/1, get_month/1, get_weekday/1, posix_time/0, posix_time_ms/0, timestamp/0,
          is_dst/2, to_zone/2, get_datetime/1, to_bmt/1, get_tz_time/3]).
 
+-type month() :: 1..12.
+-type daynum() :: 1..7.
+
 get_tz_version(Name) when Name =:= "rebar3" orelse Name =:= undefined ->
     Filename = "tzdata/version",
     FullFilename =
@@ -56,14 +59,14 @@ set_tz(TZ) ->
             false
     end.
 
--spec get_timestamp(TS :: integer() | float()) -> timer:timestamp().
+-spec get_timestamp(TS :: integer() | float()) -> erlang:timestamp().
 get_timestamp(Timestamp) ->
     M = trunc(Timestamp) div 1000000,
     S = trunc(Timestamp) rem 1000000,
     U = trunc(Timestamp * 1000000) rem 1000000,
     {M, S, U}.
 
--spec get_abbr_month(calendar:month()) -> binary().
+-spec get_abbr_month(month()) -> binary().
 get_abbr_month(1) ->
     <<"Jan">>;
 get_abbr_month(2) ->
@@ -89,7 +92,7 @@ get_abbr_month(11) ->
 get_abbr_month(12) ->
     <<"Dec">>.
 
--spec get_month(calendar:month()) -> binary().
+-spec get_month(month()) -> binary().
 get_month(1) ->
     <<"January">>;
 get_month(2) ->
@@ -115,7 +118,7 @@ get_month(11) ->
 get_month(12) ->
     <<"December">>.
 
--spec get_abbr_weekday(calendar:daynum()) -> binary().
+-spec get_abbr_weekday(daynum()) -> binary().
 get_abbr_weekday(1) ->
     <<"Mon">>;
 get_abbr_weekday(2) ->
@@ -131,7 +134,7 @@ get_abbr_weekday(6) ->
 get_abbr_weekday(7) ->
     <<"Sun">>.
 
--spec get_weekday(calendar:daynum()) -> binary().
+-spec get_weekday(daynum()) -> binary().
 get_weekday(1) ->
     <<"Monday">>;
 get_weekday(2) ->
@@ -157,7 +160,7 @@ posix_time_ms() ->
     {MS, S, MiS} = timestamp(),
     (MS * 1000000 + S) * 1000 + MiS div 1000.
 
--spec timestamp() -> os:timestamp().
+-spec timestamp() -> erlang:timestamp().
 -ifndef(TEST).
 
 %% @doc Show timestamp. This function makes possible to overload the normal

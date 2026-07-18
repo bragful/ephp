@@ -606,8 +606,11 @@ run_method_set(Context, ObjRef, Idx, Value) ->
               type = object},
     ephp_context:call_method(Context, ObjRef, Call).
 
--spec change(variable(), remove | mixed(), ephp:variables_id(), ephp:context_id()) ->
-                ephp:variables_id().
+-spec change(variable(),
+             remove | mixed(),
+             ephp_array:ephp_array(),
+             ephp:context_id()) ->
+                ephp_array:ephp_array().
 %% @private
 %% @doc change the value of a variable. This is used only internally.
 change(#variable{name = Root, idx = []} = _Var, remove, Vars, Context) ->

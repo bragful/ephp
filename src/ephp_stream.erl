@@ -16,7 +16,7 @@
 -type options() :: [option()].
 -type stream() :: binary(). %% file, http, ftp, ...
 
--export_type([uri/0, option/0, options/0, stream/0]).
+-export_type([uri/0, option/0, options/0, stream/0, pattern/0]).
 
 -type stream_resource() :: any().
 

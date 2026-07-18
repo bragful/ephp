@@ -96,7 +96,8 @@
     instance() |
     clone() |
     cast() |
-    call().
+    call() |
+    php_array().
 -type reason() :: atom() | string().
 -type line() :: {{line, non_neg_integer()}, {column, non_neg_integer()}} | undefined.
 
