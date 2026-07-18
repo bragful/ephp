@@ -1,0 +1,27 @@
+== CASO 1: copia de array por asignacion ==
+construct(caso1)
+hello from caso1
+-- fin caso 1 (no debe haber destruct antes de esta linea)
+
+== CASO 2: paso de array como argumento por valor ==
+construct(caso2)
+hello from caso2 (dentro de la funcion)
+hello from caso2
+-- fin caso 2
+
+== CASO 3: return de array con objetos ==
+construct(caso3)
+hello from caso3
+-- fin caso 3
+
+== CASO 4: reutilizacion de slot (corrupcion silenciosa) ==
+construct(caso4)
+hello from caso4
+-- fin caso 4
+
+== FINAL: aqui es donde deben aparecer TODOS los destruct ==
+destruct(caso1)
+destruct(caso2)
+destruct(caso3)
+destruct(caso4)
+destruct(impostor)

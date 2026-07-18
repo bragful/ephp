@@ -234,7 +234,9 @@ clone(Context, #obj_ref{pid = Objects, ref = _ObjectId} = ObjRef) ->
     NewObjRef.
 
 -spec search_empty(array:array()) -> object_id().
-%% @doc search an empty slot and returns the Object ID.
+%% @doc search an empty slot and returns the Object ID. Note that IDs are
+%%      reused on purpose: PHP reuses object IDs and var_dump prints them.
+%% @end
 search_empty(Objects) ->
     search_empty(1, Objects).
 

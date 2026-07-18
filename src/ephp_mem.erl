@@ -124,17 +124,8 @@ add(Data) ->
 
 -spec search_empty(array:array()) -> mem_ref().
 %% @hidden
-%% @doc search for a free index inside of the storage.
+%% @doc returns the next free index. Indexes are never reused so a dangling
+%%      mem_ref throws segmentation_fault instead of aliasing newer data.
+%% @end
 search_empty(Mem) ->
-    search_empty(1, Mem).
-
--spec search_empty(I :: pos_integer(), array:array()) -> mem_ref().
-%% @hidden
-%% @doc search for a free index inside of the storage. Recursive function.
-search_empty(I, Mem) ->
-    case array:get(I, Mem) of
-        free ->
-            #mem_ref{mem_id = I};
-        _ ->
-            search_empty(I + 1, Mem)
-    end.
+    #mem_ref{mem_id = erlang:max(1, array:size(Mem))}.

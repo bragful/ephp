@@ -10,7 +10,7 @@
 %% ------------------------------------------------------------------
 
 -export([start_link/0, clone/1, variable/2, get/3, set/4, set_bulk/3, isset/3, empty/3,
-         ref/5, del/3, zip_args/7, destroy/2, destroy_data/2]).
+         ref/5, del/3, zip_args/7, destroy/2, destroy_data/2, add_link_data/1]).
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -150,6 +150,20 @@ destroy_data(Context, Vars) when ?IS_ARRAY(Vars) ->
                     end,
                     undefined,
                     Vars),
+    ok.
+
+%% @doc mirror of destroy_data/2: increases the links of every object or
+%%      memory reference nested inside the given data. It's used every time
+%%      a value is copied into a new holder (variable, argument or return).
+%% @end
+add_link_data(ObjRef) when ?IS_OBJECT(ObjRef) ->
+    ephp_object:add_link(ObjRef);
+add_link_data(MemRef) when ?IS_MEM(MemRef) ->
+    ephp_mem:add_link(MemRef);
+add_link_data(Vars) when ?IS_ARRAY(Vars) ->
+    ephp_array:fold(fun(_K, V, _) -> add_link_data(V) end, undefined, Vars),
+    ok;
+add_link_data(_) ->
     ok.
 
 %% ------------------------------------------------------------------
@@ -609,22 +623,10 @@ change(#variable{name = Root, idx = []} = _Var, remove, Vars, Context) ->
     end,
     ephp_array:erase(Root, Vars);
 change(#variable{name = auto, idx = []} = _Var, Value, Vars, _Context) ->
-    if ?IS_OBJECT(Value) ->
-           ephp_object:add_link(Value);
-       ?IS_MEM(Value) ->
-           ephp_mem:add_link(Value);
-       true ->
-           ok
-    end,
+    add_link_data(Value),
     ephp_array:store(auto, Value, Vars);
 change(#variable{name = Root, idx = []} = _Var, Value, Vars, Context) ->
-    if ?IS_OBJECT(Value) ->
-           ephp_object:add_link(Value);
-       ?IS_MEM(Value) ->
-           ephp_mem:add_link(Value);
-       true ->
-           ok
-    end,
+    add_link_data(Value),
     case ephp_array:find(Root, Vars) of
         {ok, #var_ref{ref = global}} ->
             ephp_array:store(Root, Value, Vars);

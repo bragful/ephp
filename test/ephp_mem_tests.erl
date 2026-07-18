@@ -29,8 +29,11 @@ add_test() ->
     ?assertEqual(#mem_ref{mem_id = 4}, ephp_mem:add(400)),
     ?assertEqual(ok, ephp_mem:remove(#mem_ref{mem_id = 2})),
     ?assertEqual(ok, ephp_mem:remove(#mem_ref{mem_id = 4})),
-    ?assertEqual(#mem_ref{mem_id = 2}, ephp_mem:add(20)),
-    ?assertEqual(#mem_ref{mem_id = 4}, ephp_mem:add(40)),
+    %% freed ids are never reused, so a dangling mem_ref throws
+    %% segmentation_fault instead of aliasing new data silently
+    ?assertEqual(#mem_ref{mem_id = 5}, ephp_mem:add(20)),
+    ?assertEqual(#mem_ref{mem_id = 6}, ephp_mem:add(40)),
+    ?assertException(throw, segmentation_fault, ephp_mem:get(#mem_ref{mem_id = 2})),
     ok = ephp_mem:stop(),
     ?assertException(error, badarg, ephp_mem:get(#mem_ref{mem_id = 1})),
     ok.

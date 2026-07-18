@@ -485,6 +485,10 @@ resolve(#assign{variable = #variable{type = normal} = Var, expression = Expr},
                 ephp_object:remove(Ref, Value);
             #call{} when ?IS_MEM(Value) ->
                 ephp_mem:remove(Value);
+            #call{} when ?IS_ARRAY(Value) ->
+                ephp_vars:destroy_data(Ref, Value);
+            #array{} when ?IS_ARRAY(Value) ->
+                ephp_vars:destroy_data(Ref, Value);
             _ ->
                 ok
         end,
@@ -1205,6 +1209,7 @@ resolve_function(#call{name = Fun,
            true ->
                erlang:apply(M, F, [Ref, Index | Args])
         end,
+    protect_ret(Value),
     destroy_args(NState, Args),
     {Value, (load_state(Ref))#state{ref = Ref}};
 resolve_function(#call{name = Fun,
@@ -1239,6 +1244,7 @@ resolve_function(#call{name = Fun,
                    true ->
                        erlang:apply(M, F, [Ref, Index | Args])
                 end,
+            protect_ret(Value),
             ephp_stack:pop(),
             destroy_args(NState, Args),
             {Value, (load_state(Ref))#state{ref = Ref}}
@@ -1792,6 +1798,7 @@ run_method(#class_method{code_type = builtin} = ClassMethod,
         {FArgs, FState} when ClassMethod#class_method.validation_args =:= no_resolve ->
             save_state(FState),
             Value = erlang:apply(M, F, [Ref, RegInstance, Index, FArgs]),
+            protect_ret(Value),
             {Value, (load_state(Ref))#state{ref = Ref}};
         {FArgs, FState} ->
             FMArgs = zip_args(FArgs, MethodArgs),
@@ -1802,12 +1809,21 @@ run_method(#class_method{code_type = builtin} = ClassMethod,
                    true ->
                        erlang:apply(M, F, [Ref, RegInstance, Index | FMArgs])
                 end,
+            protect_ret(Value),
             destroy_args(State, FMArgs),
             {Value, (load_state(Ref))#state{ref = Ref}}
     catch
         {return, Value} ->
             {Value, State}
     end.
+
+%% built-in functions return arrays without the link over their nested
+%% objects that ephp_interpr adds on user-function returns; add it here so
+%% the compensation done on #assign works the same for both kinds of call.
+protect_ret(Value) when ?IS_ARRAY(Value) ->
+    ephp_vars:add_link_data(Value);
+protect_ret(_Value) ->
+    ok.
 
 destroy_args(_State, []) ->
     ok;

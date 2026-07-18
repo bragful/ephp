@@ -267,13 +267,7 @@ run_depth(Context, #throw{value = Value, line = Line}, false, Cover) ->
 run_depth(Context, #return{value = Value, line = Line}, false, Cover) ->
     ok = ephp_cover:store(Cover, return, Context, Line),
     RealValue = ephp_context:solve(Context, Value),
-    if ?IS_OBJECT(RealValue) ->
-           ephp_object:add_link(RealValue);
-       ?IS_MEM(RealValue) ->
-           ephp_mem:add_link(RealValue);
-       true ->
-           ok
-    end,
+    ephp_vars:add_link_data(RealValue),
     {return, RealValue};
 run_depth(_Context, {return, Value}, false, _Cover) ->
     {return, Value};
