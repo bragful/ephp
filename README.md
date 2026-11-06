@@ -89,6 +89,6 @@ Every release of `ephp` packages a pre-built `.pplt` (Prisma Persistent Lookup T
 
 ePHP is licensed under the [Apache License, Version 2.0](LICENSE).
 
-Copyright (c) 2013-2026 Altenwald Solutions, S.L.
+Copyright (c) 2013-2026 Altenwald
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).
