@@ -155,12 +155,12 @@ get_var(Context, VarName, Idx) ->
     {ok, Result :: ephp_interpr:flow_status()} |
     {error, reason(), line(), File :: binary(), ephp_error:error_level(), Data :: any()}.
 
--spec eval(context_id(), PHP :: binary() | [ephp_interpr:main_statement()]) -> eval_return().
+-spec eval(context_id(), PHP :: binary() | [main_statement()]) -> eval_return().
 %% @doc eval PHP code in a context passed as params.
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
--spec eval(Filename :: binary(), context_id(), PHP :: binary() | [ephp_interpr:main_statement()]) ->
+-spec eval(Filename :: binary(), context_id(), PHP :: binary() | [main_statement()]) ->
               eval_return().
 %% @equiv eval/2
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
@@ -195,7 +195,7 @@ eval(Filename, Context, Compiled) when is_list(Compiled) ->
             Error
     end.
 
--spec naive_eval(Filename :: binary(), context_id(), PHP :: binary() | [ephp_interpr:main_statement()]) ->
+-spec naive_eval(Filename :: binary(), context_id(), PHP :: binary() | [main_statement()]) ->
               eval_return().
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
 %%      constants and evaluates the code for the third parameter. This parameter
