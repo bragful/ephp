@@ -179,14 +179,15 @@ eval(Filename, Context, PHP) when is_binary(PHP) ->
 eval(Filename, Context, Compiled) ->
     Cover = ephp_cover:get_config(),
     ok = ephp_cover:init_file(Cover, Filename, Compiled),
-    case catch ephp_interpr:process(Context, Compiled, Cover) of
+    try ephp_interpr:process(Context, Compiled, Cover) of
         {ok, Return} ->
             maybe_die(fun() -> ephp_shutdown:shutdown(Context) end),
-            {ok, Return};
-        die ->
+            {ok, Return}
+    catch
+        throw:die ->
             maybe_die(fun() -> ephp_shutdown:shutdown(Context) end),
             {ok, undefined};
-        {error, Reason, Index, Level, Data} ->
+        throw:{error, Reason, Index, Level, Data} ->
             File = ephp_context:get_active_file(Context),
             Error = {error, Reason, Index, File, Level, Data},
             maybe_die(fun() -> ephp_error:handle_error(Context, Error) end),
@@ -214,12 +215,13 @@ naive_eval(Filename, Context, PHP) when is_binary(PHP) ->
             {error, ErrorName, Line, Filename, ErrorLevel, Data}
     end;
 naive_eval(_Filename, Context, Compiled) ->
-    case catch ephp_interpr:process(Context, Compiled, false) of
+    try ephp_interpr:process(Context, Compiled, false) of
         {ok, _} = OkTuple ->
-            OkTuple;
-        die ->
+            OkTuple
+    catch
+        throw:die ->
             {ok, undefined};
-        {error, Reason, Index, Level, Data} ->
+        throw:{error, Reason, Index, Level, Data} ->
             File = ephp_context:get_active_file(Context),
             {error, Reason, Index, File, Level, Data}
     end.
@@ -232,16 +234,20 @@ maybe_die(Fun) ->
             ok
     end.
 
--spec opt_spec_list() -> [getopt:option_spec()].
+-spec cli_spec() -> argparse:command().
 %% @hidden
-opt_spec_list() ->
-    [{help, $h, "help", undefined, "This help information."},
-     {dir, $d, "dir", string, "Check directory for missing implemented PHP functions."},
-     {check, $l, undefined, string, "Check PHP code syntax for specific PHP file."},
-     {parse, $p, undefined, string, "Show parsing PHP code for specific PHP file."},
-     {info, $i, "info", undefined, "Show PHP info."},
-     {run, $r, undefined, string, "Run PHP code."},
-     {file, undefined, undefined, string, "PHP code to be run."}].
+cli_spec() ->
+    #{
+        arguments => [
+            #{name => help, short => $h, long => "-help", type => boolean, help => "This help information."},
+            #{name => dir, short => $d, long => "-dir", type => string, help => "Check directory for missing implemented PHP functions."},
+            #{name => check, short => $l, type => string, help => "Check PHP code syntax for specific PHP file."},
+            #{name => parse, short => $p, type => string, help => "Show parsing PHP code for specific PHP file."},
+            #{name => info, short => $i, long => "-info", type => boolean, help => "Show PHP info."},
+            #{name => run, short => $r, type => string, help => "Run PHP code."},
+            #{name => file, type => string, required => false, help => "PHP code to be run."}
+        ]
+    }.
 
 -spec start() -> ok.
 %% @doc function to ensure all of the applications and the base configuration
@@ -251,7 +257,6 @@ start() ->
     application:start(ezic),
     application:start(zucchini),
     application:start(ephp),
-    application:start(getopt),
     application:set_env(ephp, modules, ?MODULES),
     ok.
 
@@ -283,7 +288,7 @@ usage() ->
             error:{badarg, []} ->
                 "ephp"
         end,
-    getopt:usage(opt_spec_list(), ScriptName),
+    io:format("~s~n", [argparse:help(cli_spec(), #{progname => ScriptName})]),
     ok.
 
 -spec main(Args :: [string()]) -> quit_return().
@@ -291,17 +296,17 @@ usage() ->
 %%      nothing to show the help message.
 %% @end
 main(Args) ->
-    case getopt:parse(opt_spec_list(), Args) of
-        {ok, {Opts, _OtherArgs}} when Opts =/= [] ->
+    case argparse:parse(Args, cli_spec()) of
+        {ok, Opts, _Path, _Cmd} when map_size(Opts) > 0 ->
             quit(main(Opts, Args));
         _Else ->
             usage(),
             quit(?ERRORLEVEL_1)
     end.
 
--spec main(Opts :: [getopt:option()], Args :: [string()]) -> integer().
+-spec main(Opts :: #{atom() => term()}, Args :: [string()]) -> integer().
 %% @hidden
-main([{dir, Dir} | _], _RawArgs) ->
+main(#{dir := Dir}, _RawArgs) ->
     start(),
     {Funcs, TotalOk, Total} = parse_subdirs(Dir),
     {ok, Context} = context_new(),
@@ -327,20 +332,20 @@ main([{dir, Dir} | _], _RawArgs) ->
                Total,
                ephp_data:ceiling(TotalOk * 100 / Total)]),
     ?ERRORLEVEL_OK;
-main([{check, File} | _], _RawArgs) ->
+main(#{check := File}, _RawArgs) ->
     maybe_badmatch(fun() ->
                       ephp_parser:file(File),
                       io:format("No syntax errors detected in: ~s~n", [File]),
                       ?ERRORLEVEL_OK
                    end,
                    File);
-main([{parse, File} | _], _RawArgs) ->
+main(#{parse := File}, _RawArgs) ->
     maybe_badmatch(fun() ->
                       io:format("parsing =>~n~p~n---~n", [ephp_parser:file(File)]),
                       ?ERRORLEVEL_OK
                    end,
                    File);
-main([info | _], _RawArgs) ->
+main(#{info := true}, _RawArgs) ->
     start(),
     Content = <<"<?php phpinfo();">>,
     ephp_config:start_link(?PHP_INI_FILE),
@@ -349,7 +354,7 @@ main([info | _], _RawArgs) ->
     {ok, _} = eval(<<"-">>, Ctx, Content),
     output_and_close(Ctx),
     ?ERRORLEVEL_OK;
-main([{run, Code} | _], _RawArgs) ->
+main(#{run := Code}, _RawArgs) ->
     start(),
     Content = list_to_binary("<?php " ++ Code),
     ephp_config:start_link(?PHP_INI_FILE),
@@ -362,10 +367,10 @@ main([{run, Code} | _], _RawArgs) ->
         {error, _Reason, _Index, _File, _Level, _Data} ->
             ?ERRORLEVEL_1
     end;
-main([help | _], _) ->
+main(#{help := true}, _) ->
     usage(),
     ?ERRORLEVEL_OK;
-main([{file, Filename} | _], RawArgs) ->
+main(#{file := Filename}, RawArgs) ->
     start(),
     case file:read_file(Filename) of
         {ok, Content} ->

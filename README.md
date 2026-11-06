@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/bragful/ephp/actions/workflows/erlang.yml/badge.svg)](https://github.com/bragful/ephp/actions/workflows/erlang.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/bragful/ephp.svg)](https://codecov.io/gh/bragful/ephp)
-[![License: LGPL 2.1](https://img.shields.io/github/license/bragful/ephp.svg)](https://raw.githubusercontent.com/bragful/ephp/master/COPYING)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://raw.githubusercontent.com/bragful/ephp/master/LICENSE)
 [![Hex](https://img.shields.io/hexpm/v/ephp.svg)](https://hex.pm/packages/ephp)
 
 PHP Interpreter pure 100% Erlang. This interpreter was made for enhance and give flexibility to projects that requires an interface for plugins or addons without new compilations.
@@ -11,11 +11,6 @@ In the same way, you can use for server PHP pages in an easy way.
 
 The port is not 100% complete, please refer to [compatibility table](http://github.com/bragful/ephp/blob/master/doc/COMPATIBILITY.md).
 
-> ### IMPORTANT {: .warning}
->
-> The generation of the documentation is made using `edown` which isn't compatible with OTP 23 and OTP 24 at the moment. If you need to generate the documentation, install an OTP 22 and run `make doc` removing the `_build` directory if you compiled previously with a more recent OTP version.
-
-
 ### Who's using it?
 
 At the moment, this project has been tested using Kazoo and connected to FreeSwitch for writing small VoIP controlling apps.
@@ -23,8 +18,6 @@ At the moment, this project has been tested using Kazoo and connected to FreeSwi
 In addition, it was tested using XMPP in the Snatch Project (deprecated).
 
 You can find [here](https://github.com/bragful/ephp_template) an implementation for Phoenix Framework to use PHP instead of EEx for some pages.
-
-And as embedded project, it's planned to be included in [Conta](https://github.com/altenwald/conta).
 
 If you are using **ePHP** and you are proud about you created, please let me know for extending the list.
 
@@ -56,43 +49,7 @@ And a post to know how to write a stand-alone server with Erlang, without write 
 
 ### Requirements
 
-ePHP requires to be run over an Erlang/OTP 19+, but not all the versions are full compatible or recommended. See the list:
-
-| Erlang Version | Support | Notes |
-|:---|:---:|:---|
-| 27.0 | ✓ | Recommended if you use OTP 27 |
-| 26.2 | 𐄂 | fails compiling parser |
-| 26.1 | 𐄂 | fails compiling parser |
-| 26.0 | ✓ | Recommended if you use OTP 26 |
-| 25.3 | ✓ | Recommended if you use OTP 25 |
-| 25.2 | ✓ | |
-| 25.1 | ✓ | |
-| 25.0 | ✓ | |
-| 24.3 | ✓ | Recommended if you use OTP 24 |
-| 24.2 | ✓ | |
-| 24.1 | ✓ | |
-| 24.0 | ✓ | |
-| 23.3 | ✓ | Recommended if you use OTP 23 |
-| 23.2 | ✓ | |
-| 23.1 | ✓ | |
-| 23.0 | ✓ | |
-| 22.3 | ✓ | Recommended if you use OTP 22 |
-| 22.2 | ✓ | |
-| 22.1 | ✓ | |
-| 22.0 | ✓ | |
-| 21.3 | ✓ | Recommended if you use OTP 21 |
-| 21.2 | ✓ | |
-| 21.1 | ✓ | |
-| 21.0 | ✓ | |
-| 20.3 | 𐄂 | fails in math lib |
-| 20.2 | ✓ | Recommended if you use OTP 20 |
-| 20.1 | ✓ | |
-| 20.0 | ✓ | |
-| 19.3 | ✓ | Recommended if you use OTP 19 |
-| 19.2 | ✓ | |
-| 19.1 | ✓ | |
-| 19.0 | ✓ | |
-
+ePHP requires to be run over an Erlang/OTP 26+.
 
 ### Getting Started
 
@@ -116,12 +73,10 @@ The result stored in `Text` should be:
 Result for $a = 115
 ```
 
-### Controversial License
+### License
 
-Yes, looks like not so many people like GPL lincenses and they didn't realised that LGPL 1.2 is very light license in comparison. I mean, I'm the author and it's not my aim to sue to the people for using this software. LGPL is only requesting feedback in case you change and improve the library, that's all. In addition, if you are using it for a project and you have a credits section, it could be great to be included.
+ePHP is licensed under the [Apache License, Version 2.0](LICENSE).
 
-It's NOT required your project will be LGPL or even open source. I think it's the most important part.
-
-Copyright (c) 2013-2024 Altenwald
+Copyright (c) 2013-2026 Altenwald Solutions, S.L.
 
 __Authors:__ "Manuel Rubio" ([`manuel@altenwald.com`](mailto:manuel@altenwald.com)).

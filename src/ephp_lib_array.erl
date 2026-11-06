@@ -129,12 +129,13 @@ array_unique(_Context, _Line, {_, Array}, {_, Flags}) ->
                             Flags :: var_value()) ->
                                ephp_array:ephp_array().
 array_change_key_case(_Context, _Line, {_, Array}, {_, Flags}) ->
-    ephp_array:map(fun(K, V) ->
-                      if Flags >= 1 ->
-                             {ephp_string:to_upper(K), V};
-                         true ->
-                             {ephp_string:to_lower(K), V}
-                      end
+    ephp_array:map(fun
+                      (K, V) when is_binary(K) andalso Flags >= 1 ->
+                          {ephp_string:to_upper(K), V};
+                      (K, V) when is_binary(K) ->
+                          {ephp_string:to_lower(K), V};
+                      (K, V) ->
+                          {K, V}
                    end,
                    Array).
 

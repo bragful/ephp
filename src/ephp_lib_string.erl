@@ -247,7 +247,7 @@ ucfirst(Context, Line, {_, Text}) ->
         <<>> ->
             <<>>;
         <<First/utf8, Tail/binary>> ->
-            <<(ephp_string:to_upper(First))/utf8, Tail/binary>>
+            <<(ephp_string:to_upper(<<First/utf8>>))/binary, Tail/binary>>
     end.
 
 -spec lcfirst(ephp:context_id(), line(), Text :: var_value()) -> binary().
@@ -256,7 +256,7 @@ lcfirst(Context, Line, {_, Text}) ->
         <<>> ->
             <<>>;
         <<First/utf8, Tail/binary>> ->
-            <<(ephp_string:to_lower(First))/utf8, Tail/binary>>
+            <<(ephp_string:to_lower(<<First/utf8>>))/binary, Tail/binary>>
     end.
 
 -spec str_shuffle(ephp:context_id(), line(), var_value()) -> binary().

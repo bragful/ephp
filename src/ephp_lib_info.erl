@@ -167,16 +167,50 @@ extension_loaded(_Context, _Line, {_, ModuleName}) ->
 -spec memory_get_usage(ephp:context_id(), line(), RealUsage :: var_value()) ->
                           pos_integer().
 memory_get_usage(_Context, _Line, {_, false}) ->
-    recon_alloc:memory(used, current);
+    recon_alloc_memory(used, current);
 memory_get_usage(_Context, _Line, {_, true}) ->
-    recon_alloc:memory(allocated, current).
+    recon_alloc_memory(allocated, current).
 
 -spec memory_get_peak_usage(ephp:context_id(), line(), RealUsage :: var_value()) ->
                                pos_integer().
 memory_get_peak_usage(_Context, _Line, {_, false}) ->
-    recon_alloc:memory(used, max);
+    recon_alloc_memory(used, max);
 memory_get_peak_usage(_Context, _Line, {_, true}) ->
-    recon_alloc:memory(allocated, max).
+    recon_alloc_memory(allocated, max).
+
+recon_alloc_memory(Type, When) ->
+    Pos = case When of
+        current -> 2;
+        max -> 4
+    end,
+    Allocators = erlang:system_info(alloc_util_allocators),
+    lists:sum([
+        container_size(SubProps, Type, Pos)
+        || A <- Allocators,
+           Allocs <- [erlang:system_info({allocator, A})],
+           is_list(Allocs),
+           {instance, _, Props} <- Allocs,
+           CarrierType <- [sbcs, mbcs],
+           SubProps <- [proplists:get_value(CarrierType, Props, [])]
+    ]).
+
+container_size(Props, used, Pos) ->
+    case proplists:get_value(blocks, Props) of
+        BlkList when is_list(BlkList) ->
+            lists:sum([
+                case lists:keyfind(size, 1, Info) of
+                    Tup when is_tuple(Tup), tuple_size(Tup) >= Pos -> element(Pos, Tup);
+                    _ -> 0
+                end
+                || {_, Info} <- BlkList
+            ]);
+        _ -> 0
+    end;
+container_size(Props, allocated, Pos) ->
+    case lists:keyfind(carriers_size, 1, Props) of
+        Tup when is_tuple(Tup), tuple_size(Tup) >= Pos -> element(Pos, Tup);
+        _ -> 0
+    end.
 
 %% ----------------------------------------------------------------------------
 %% Internal functions

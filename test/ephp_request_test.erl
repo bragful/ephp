@@ -82,7 +82,7 @@ run_test_code(File) ->
     true.
 
 code_to_test_() ->
-    catch ets:new(php_session, [named_table]),
+    try ets:new(php_session, [named_table]) catch _:_ -> ok end,
     ReqArray = ephp_array:new(),
     true = ets:insert(php_session, {<<"_REQUEST">>, ReqArray}),
     ephp:start(),

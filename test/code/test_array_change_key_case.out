@@ -18,6 +18,11 @@ Array
     [FIRST] => 10
     [SECOND] => 20
 )
+Array
+(
+    [97] => ninety-seven
+    [ÑANDÚ] => 1
+)
 
-Warning: array_change_key_case() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_change_key_case.php on line 11
+Warning: array_change_key_case() expects parameter 1 to be array, string given in {{CWD}}/test/code/test_array_change_key_case.php on line 12
 NULL

@@ -36,7 +36,7 @@ php_endtag_optional_test_() ->
                                        expression = #int{int = 5}}]}],
                    ?PARSE("<?php $a = 5;")),
      ?_assertMatch({error, eparse, {{line, 1}, {column, 6}}, ?E_PARSE, <<"...">>},
-                   catch ?PARSE("<?=5 ")),
+                   try ?PARSE("<?=5 ") catch E -> E end),
      ?_assertMatch([#print_text{text = <<"5 Resultado">>}], ?PARSE("<?=5?> Resultado"))].
 
 literal_test_() ->

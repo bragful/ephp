@@ -8,27 +8,25 @@
          rtrim/2, ltrim/2, lpad/3, rpad/3, pad/3, join/2, vsn_cmp/2, spaces/1, repeat/2, reverse/1,
          hex2bin/1, ihex2bin/1, bin2hex/1, ibin2hex/1]).
 
--spec to_lower(integer()) -> integer();
-              (binary()) -> binary();
+-spec to_lower(binary()) -> binary();
               (undefined) -> undefined.
 to_lower(undefined) ->
     undefined;
-to_lower(Text) ->
-    unistring:to_lower(Text).
+to_lower(Text) when is_binary(Text) ->
+    unicode:characters_to_binary(string:lowercase(Text)).
 
--spec to_upper(integer()) -> integer();
-              (binary()) -> binary();
+-spec to_upper(binary()) -> binary();
               (undefined) -> undefined.
 to_upper(undefined) ->
     undefined;
-to_upper(Text) ->
-    unistring:to_upper(Text).
+to_upper(Text) when is_binary(Text) ->
+    unicode:characters_to_binary(string:uppercase(Text)).
 
 -spec capitalize(binary(), [byte()]) -> binary().
 capitalize(<<>>, _Sep) ->
     <<>>;
 capitalize(<<A/utf8, Rest/binary>>, Sep) ->
-    Text = <<(unistring:to_upper(<<A/utf8>>))/binary, Rest/binary>>,
+    Text = <<(to_upper(<<A/utf8>>))/binary, Rest/binary>>,
     capitalize(Text, <<>>, Sep).
 
 capitalize(<<>>, Result, _Sep) ->
@@ -41,7 +39,7 @@ capitalize(<<A/utf8, Rest/binary>>, Result, Sep) ->
                 true ->
                     capitalize(Rest, <<Result/binary, A/utf8>>, Sep);
                 false ->
-                    Cap = unistring:to_upper(<<B/utf8>>),
+                    Cap = to_upper(<<B/utf8>>),
                     NewResult = <<Result/binary, A/utf8, Cap/binary>>,
                     capitalize(NewRest, NewResult, Sep)
             end;

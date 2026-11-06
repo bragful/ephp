@@ -35,3 +35,10 @@ $bar = lcfirst($bar);             // hELLO WORLD!
 var_dump($bar);
 $bar = lcfirst(strtoupper($bar)); // hELLO WORLD!
 var_dump($bar);
+
+$uni = 'ñandú ágil';
+var_dump(strtoupper($uni));
+var_dump(strtolower('ÑANDÚ ÁGIL'));
+var_dump(ucfirst($uni));
+var_dump(lcfirst('ÑANDÚ ÁGIL'));
+var_dump(ucwords($uni));

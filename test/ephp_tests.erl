@@ -66,3 +66,18 @@ run_empty_php_test() ->
     {ok, Ctx} = ephp:context_new(),
     ?assertEqual({ok, false}, ephp:eval(Ctx, <<>>)),
     ok.
+
+string_unicode_case_test() ->
+    ?assertEqual(undefined, ephp_string:to_lower(undefined)),
+    ?assertEqual(undefined, ephp_string:to_upper(undefined)),
+    ?assertEqual(<<"hola ñandú áéíóú"/utf8>>,
+                 ephp_string:to_lower(<<"HOLA ÑANDÚ ÁÉÍÓÚ"/utf8>>)),
+    ?assertEqual(<<"HOLA ÑANDÚ ÁÉÍÓÚ"/utf8>>,
+                 ephp_string:to_upper(<<"hola ñandú áéíóú"/utf8>>)),
+    ?assertEqual(<<"привет мир"/utf8>>,
+                 ephp_string:to_lower(<<"ПРИВЕТ МИР"/utf8>>)),
+    ?assertEqual(<<"ПРИВЕТ МИР"/utf8>>,
+                 ephp_string:to_upper(<<"привет мир"/utf8>>)),
+    ?assertEqual(<<"Ñandú|Ágil"/utf8>>,
+                 ephp_string:capitalize(<<"ñandú|ágil"/utf8>>, [$|])),
+    ok.

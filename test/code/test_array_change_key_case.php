@@ -8,5 +8,6 @@ print_r(array_change_key_case($input_array, CASE_LOWER));
 $input_array = array("fIrSt" => 10, "sEcOnD" => 20);
 print_r(array_change_key_case($input_array));
 print_r(array_change_key_case($input_array, 100));
+print_r(array_change_key_case(array(97 => "ninety-seven", "ñandú" => 1), CASE_UPPER));
 var_dump(array_change_key_case("hello!"));
 

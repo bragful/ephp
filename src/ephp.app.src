@@ -3,9 +3,9 @@
  [{description, "Erlang PHP Interpreter"},
   {vsn, git},
   {registered, []},
-  {applications, [kernel, stdlib, getopt, ezic, zucchini, unistring]},
+  {applications, [kernel, stdlib, ezic, zucchini]},
   {env, []},
-  {licenses, ["LGPL-2.1-only"]},
+  {licenses, ["Apache-2.0"]},
   {links, [{"Github", "https://github.com/bragful/ephp"}]},
   {exclude_files, []},
   {include_files, []}]}.
