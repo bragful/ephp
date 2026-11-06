@@ -40,7 +40,7 @@ unregister_func(Ref, NS, FuncName) ->
 get_funcs(Ref) ->
     erlang:get(Ref).
 
--spec shutdown(ephp:context_id()) -> undefined.
+-spec shutdown(ephp:context_id()) -> ok | undefined.
 shutdown(Context) ->
     Line = {{line, 0}, {column, 0}},
     Result =

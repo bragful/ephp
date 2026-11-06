@@ -120,9 +120,9 @@ error_reporting(Context, Level) ->
     erlang:put(ErrorsId, State#state{level = Level}),
     State#state.level.
 
--type throw_error() :: atom() | {error, error_type(), line(), error_level(), any()}.
+-type throw_error() :: {error, error_type(), line(), error_level(), any()}.
 
--spec error(throw_error()) -> ok.
+-spec error(throw_error()) -> no_return().
 error({error, Type, Index, Level, Data}) ->
     throw({error, Type, Index, Level, Data}).
 
@@ -261,7 +261,7 @@ run_quiet(Errors, Fun) ->
 -spec get_message([module()],
                   error_format(),
                   error_type(),
-                  line(),
+                  non_neg_integer() | undefined,
                   binary(),
                   errorlevel(),
                   term()) ->

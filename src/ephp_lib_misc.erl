@@ -11,13 +11,13 @@
 
 -spec init_func() -> ephp_lib:php_function_results().
 init_func() ->
-    [{eval, [string]},
-     {constant, [string]},
+    [{eval, [{args, [string]}]},
+     {constant, [{args, [string]}]},
      {uniqid, [{args, {0, 2, undefined, [{string, <<>>}, {boolean, false}]}}]},
-     {define, [string, mixed]},
-     {defined, [string]},
-     {sleep, [integer]},
-     {usleep, [integer]},
+     {define, [{args, [string, mixed]}]},
+     {defined, [{args, [string]}]},
+     {sleep, [{args, [integer]}]},
+     {usleep, [{args, [integer]}]},
      {exit, [{args, {0, 1, undefined, [{mixed, undefined}]}}, {alias, <<"die">>}]},
      {exit, [{args, {0, 1, undefined, [{mixed, undefined}]}}]},
      {pack, [pack_args]},
@@ -134,7 +134,7 @@ usleep(Context, Line, {_, Val}) ->
     ephp_error:handle_error(Context, {error, ewrongarg, Line, File, ?E_WARNING, Data}),
     false.
 
--spec exit(ephp:context_id(), line(), Message :: var_value()) -> undefined.
+-spec exit(ephp:context_id(), line(), Message :: var_value()) -> no_return().
 exit(_Context, _Line, {_, Value}) when is_integer(Value) orelse Value =:= undefined ->
     throw(die);
 exit(Context, _Line, {_, Value}) ->

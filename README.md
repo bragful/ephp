@@ -56,7 +56,7 @@ ePHP requires to be run over an Erlang/OTP 26+.
 A simple way to use, is include in your project `rebar.config` the following dependency line:
 
 ```erlang
-    {ephp, "0.2.7"}
+    {ephp, "~> 0.3.3"}
 ```
 
 And use the following code in your project:
@@ -72,6 +72,18 @@ The result stored in `Text` should be:
 ```
 Result for $a = 115
 ```
+
+### Type Checking with Prisma
+
+Starting with version `0.3.3`, `ephp` is continuously verified with [Prisma](https://github.com/altenwald/prisma). Prisma helped uncover and fix over 50 real specification discrepancies and runtime contract mismatches that traditional Dialyzer missed:
+- Corrected return types in `preg_match/7` (non-negative integer instead of `pos_integer()`, as PHP returns `0` on no match).
+- Hardened exponentiation (`**`) and `pow/2` arithmetic to properly handle float edge cases (`infinity`, `nan`).
+- Fixed error propagation in `feof/3` and callback registrations across library modules.
+- Streamlined parser expression evaluation and type signatures.
+
+#### Shipped Pre-Built PPLT
+
+Every release of `ephp` packages a pre-built `.pplt` (Prisma Persistent Lookup Table) file (`ephp_*.pplt`). When your application depends on `ephp` and runs `rebar3 prisma`, Prisma loads this pre-computed contract cache instantly—providing sub-millisecond type verification of downstream calls without re-analyzing the 49 modules of the interpreter.
 
 ### License
 

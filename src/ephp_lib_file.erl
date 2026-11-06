@@ -241,7 +241,10 @@ fseek(_Context, _Line, {_, Resource}, {_, Offset}, {_, Whence}) ->
 -spec feof(ephp:context_id(), line(), Resource :: var_value()) -> boolean().
 %% @doc returns true or false depending if EOF is achieved or not.
 feof(_Context, _Line, {_, Resource}) ->
-    ephp_stream:is_eof(Resource).
+    case ephp_stream:is_eof(Resource) of
+        true -> true;
+        _ -> false
+    end.
 
 -spec glob(ephp:context_id(), line(), Pattern :: var_value(), Flags :: var_value()) ->
               ephp_array:ephp_array().

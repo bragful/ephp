@@ -8,4 +8,4 @@
   {licenses, ["Apache-2.0"]},
   {links, [{"Github", "https://github.com/bragful/ephp"}]},
   {exclude_files, []},
-  {include_files, []}]}.
+  {include_files, ["ephp_*.pplt"]}]}.

@@ -107,7 +107,7 @@ php_round(_Context, _Line, {_, Value}) ->
 php_sqrt(_Context, _Line, {_, Value}) ->
     math:sqrt(float(Value)).
 
--spec php_abs(ephp:context_id(), line(), number()) -> number().
+-spec php_abs(ephp:context_id(), line(), var_value()) -> number() | false.
 php_abs(_Context, _Line, {_, Number}) when is_number(Number) ->
     abs(Number);
 php_abs(_Context, _Line, {_, String}) when is_binary(String) ->

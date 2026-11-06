@@ -99,7 +99,7 @@ strlen(_Context, _Line, {_, String}) when is_binary(String) ->
 ord(_Context, _Line, {_, <<I:8/integer, _/binary>>}) ->
     I.
 
--spec chr(ephp:context_id(), line(), Integer :: var_value()) -> binary().
+-spec chr(ephp:context_id(), line(), Integer :: var_value()) -> binary() | undefined.
 %% @doc obtain the character giving the number as a param.
 chr(_Context, _Line, {_, C}) when is_integer(C) ->
     <<C:8/integer>>;
@@ -163,7 +163,7 @@ explode(_Context, _Line, _Delimiter, {_, String}, {_, 0}) ->
 explode(_Context, _Line, {_, Delimiter}, {_, String}, {_, Limit}) ->
     split_limit(Delimiter, String, ephp_array:new(), Limit - 1, 0).
 
--spec printf(ephp:context_id(), line(), [var_value()]) -> pos_integer().
+-spec printf(ephp:context_id(), line(), [var_value()]) -> non_neg_integer() | undefined.
 %% @doc print using a format.
 printf(Context, Line, Values) when length(Values) < 2 ->
     File = ephp_context:get_active_file(Context),
@@ -186,7 +186,7 @@ sprintf(_Context, _Line, [{_, Format} | Values]) ->
     print_format(Format, Values).
 
 -spec vprintf(ephp:context_id(), line(), Format :: var_value(), Values :: var_value()) ->
-                 pos_integer().
+                 non_neg_integer().
 vprintf(Context, _Line, {_, Format}, {_, Values}) when ?IS_ARRAY(Values) ->
     Text = print_format(Format, ephp_array:to_list(Values)),
     ephp_context:set_output(Context, Text),
@@ -425,7 +425,7 @@ substr(_Context, _Line, {_, String}, {_, Start}, {_, Len}) ->
               var_value(),
               var_value(),
               var_value()) ->
-                 binary().
+                 binary() | undefined.
 str_pad(_Context, _Line, {_, Input}, {_, PadLen}, {_, PadStr}, {_, PadType}) ->
     case {byte_size(Input) > PadLen, PadType} of
         {true, _} ->

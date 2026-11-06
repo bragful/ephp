@@ -43,13 +43,13 @@ is_equal(A, B) ->
             A == B;
         false ->
             case {At, Bt} of
-                {<<"integer">>, <<"string">>} ->
+                {<<"integer">>, <<"string">>} when is_binary(B) ->
                     A == bin_to_number(B);
-                {<<"string">>, <<"integer">>} ->
+                {<<"string">>, <<"integer">>} when is_binary(A) ->
                     bin_to_number(A) == B;
-                {<<"float">>, <<"string">>} ->
+                {<<"float">>, <<"string">>} when is_binary(B) ->
                     A == bin_to_number(B);
-                {<<"string">>, <<"float">>} ->
+                {<<"string">>, <<"float">>} when is_binary(A) ->
                     bin_to_number(A) == B;
                 {<<"boolean">>, _} ->
                     A == to_bool(B);
@@ -86,7 +86,10 @@ bin_to_number(Bin) when is_binary(Bin) ->
 
 -spec to_int(A :: mixed()) -> integer().
 to_int(A) when is_binary(A) ->
-    bin_to_number(A);
+    case bin_to_number(A) of
+        I when is_integer(I) -> I;
+        F when is_float(F) -> flooring(F)
+    end;
 to_int(A) when is_integer(A) ->
     A;
 to_int(A) when is_float(A) ->
@@ -118,7 +121,7 @@ to_int(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
 to_int(_Ctx, _Line, Val) ->
     to_int(Val).
 
--spec to_float(mixed()) -> float().
+-spec to_float(mixed()) -> float() | infinity | nan.
 to_float(I) when is_integer(I) ->
     erlang:float(I);
 to_float(T) when is_binary(T) ->
@@ -144,7 +147,7 @@ to_float(nan) ->
 to_float(undefined) ->
     0.0.
 
--spec to_float(ephp:context_id(), line(), mixed()) -> float().
+-spec to_float(ephp:context_id(), line(), mixed()) -> float() | infinity | nan.
 to_float(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),
     File = ephp_context:get_active_file(Ctx),
@@ -154,7 +157,7 @@ to_float(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
 to_float(_Context, _Line, Value) ->
     to_float(Value).
 
--spec to_number(mixed()) -> float() | integer().
+-spec to_number(mixed()) -> float() | integer() | infinity | nan.
 to_number(I) when is_integer(I) ->
     I;
 to_number(T) when is_binary(T) ->
@@ -179,7 +182,7 @@ to_number(nan) ->
 to_number(undefined) ->
     0.
 
--spec to_number(ephp:context_id(), line(), mixed()) -> float() | integer().
+-spec to_number(ephp:context_id(), line(), mixed()) -> float() | integer() | infinity | nan.
 to_number(Ctx, Line, #obj_ref{pid = Objects, ref = ObjectId}) ->
     ClassName = ephp_object:get_class_name(Objects, ObjectId),
     File = ephp_context:get_active_file(Ctx),
@@ -303,15 +306,7 @@ increment_code(Code) when is_binary(Code) ->
            <<H/binary, T:8/integer>>
     end.
 
--spec to_bool(Value ::
-                  undefined |
-                  boolean() |
-                  ephp_array:ephp_array() |
-                  integer() |
-                  float() |
-                  string() |
-                  binary()) ->
-                 boolean().
+-spec to_bool(Value :: term()) -> boolean().
 to_bool(false) ->
     false;
 to_bool(undefined) ->
@@ -416,9 +411,17 @@ urand() ->
 
 -endif.
 
--spec pow(number(), number()) -> number().
+-spec pow(number() | infinity | nan, number() | infinity | nan) -> number() | infinity | nan.
 %% @doc calculates the power of a number letting to be that number in integer format
 %%      if that's a positive number or it's powered by 0.
+pow(nan, _) ->
+    nan;
+pow(_, nan) ->
+    nan;
+pow(infinity, _) ->
+    infinity;
+pow(_, infinity) ->
+    infinity;
 pow(_, 0) ->
     1;
 pow(N, M) when M > 0 ->

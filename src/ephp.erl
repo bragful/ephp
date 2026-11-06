@@ -155,12 +155,12 @@ get_var(Context, VarName, Idx) ->
     {ok, Result :: ephp_interpr:flow_status()} |
     {error, reason(), line(), File :: binary(), ephp_error:error_level(), Data :: any()}.
 
--spec eval(context_id(), PHP :: string() | binary()) -> eval_return().
+-spec eval(context_id(), PHP :: binary() | [ephp_interpr:main_statement()]) -> eval_return().
 %% @doc eval PHP code in a context passed as params.
 eval(Context, PHP) ->
     eval(<<"-">>, Context, PHP).
 
--spec eval(Filename :: binary(), context_id(), PHP :: string() | binary() | [term()]) ->
+-spec eval(Filename :: binary(), context_id(), PHP :: binary() | [ephp_interpr:main_statement()]) ->
               eval_return().
 %% @equiv eval/2
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
@@ -176,7 +176,7 @@ eval(Filename, Context, PHP) when is_binary(PHP) ->
             ephp_error:handle_error(Context, {error, ErrorName, Line, Filename, ErrorLevel, Data}),
             {error, ErrorName, Line, Filename, ErrorLevel, Data}
     end;
-eval(Filename, Context, Compiled) ->
+eval(Filename, Context, Compiled) when is_list(Compiled) ->
     Cover = ephp_cover:get_config(),
     ok = ephp_cover:init_file(Cover, Filename, Compiled),
     try ephp_interpr:process(Context, Compiled, Cover) of
@@ -195,7 +195,7 @@ eval(Filename, Context, Compiled) ->
             Error
     end.
 
--spec naive_eval(Filename :: binary(), context_id(), PHP :: string() | binary() | [term()]) ->
+-spec naive_eval(Filename :: binary(), context_id(), PHP :: binary() | [ephp_interpr:main_statement()]) ->
               eval_return().
 %% @doc adds the `Filename' to configure properly the `__FILE__' and `__DIR__'
 %%      constants and evaluates the code for the third parameter. This parameter
@@ -214,7 +214,7 @@ naive_eval(Filename, Context, PHP) when is_binary(PHP) ->
             ephp_error:handle_error(Context, {error, ErrorName, Line, Filename, ErrorLevel, Data}),
             {error, ErrorName, Line, Filename, ErrorLevel, Data}
     end;
-naive_eval(_Filename, Context, Compiled) ->
+naive_eval(_Filename, Context, Compiled) when is_list(Compiled) ->
     try ephp_interpr:process(Context, Compiled, false) of
         {ok, _} = OkTuple ->
             OkTuple
@@ -492,7 +492,7 @@ register_superglobals(Ctx, Filename, RawArgs) ->
                            {<<"_ENV">>, ArrayNew}]),
     ok.
 
--spec get_use_funcs([tuple()], [binary()]) -> [binary()].
+-spec get_use_funcs([term()], [binary()]) -> [binary()].
 %% @doc get the name of the functions used in the code (no methods).
 get_use_funcs([#call{type = normal, name = Name} = Tuple | Tuples], R)
     when is_binary(Name) ->
@@ -509,9 +509,10 @@ get_use_funcs([_Other | Rest], R) ->
 get_use_funcs([], R) ->
     ordsets:from_list(R).
 
--spec get_defined_funcs([tuple()], [binary()]) -> [binary()].
+-spec get_defined_funcs([term()], [binary()]) -> [binary()].
 %% @doc get the name of the functions used in the code (no methods).
-get_defined_funcs([#function{name = Name} = Tuple | Tuples], R) ->
+get_defined_funcs([#function{name = Name} = Tuple | Tuples], R)
+    when is_binary(Name) ->
     get_defined_funcs(erlang:tuple_to_list(Tuple), [])
     ++ get_defined_funcs(Tuples, [ephp_string:to_lower(Name) | R]);
 get_defined_funcs([Tuple | Tuples], R) when is_tuple(Tuple) ->
@@ -523,7 +524,7 @@ get_defined_funcs([_Other | Rest], R) ->
 get_defined_funcs([], R) ->
     ordsets:from_list(R).
 
--spec parse_subdirs(string()) -> {[binary()], pos_integer(), pos_integer()}.
+-spec parse_subdirs(string()) -> {[binary()], non_neg_integer(), non_neg_integer()}.
 %% @doc given a directory it retrieves the functions in use for all of the
 %%      files of that directory, the number of files ok (parsing correctly)
 %%      and the number of files in the directory (with the php extension).

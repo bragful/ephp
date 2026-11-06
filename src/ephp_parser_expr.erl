@@ -218,7 +218,7 @@ array_def(Rest, Parser, Args) when Rest =/= <<>> ->
             array_def(Rest0, inc_pos(Parser0), Args ++ [NewArg])
     end.
 
--spec expression(Text :: binary(), parser(), [expression()]) ->
+-spec expression(Text :: binary(), parser(), [expression() | {op, [term()]}]) ->
                     {binary(), parser(), [expression()] | expression()}.
 % CONSTANT / FUNCTION when -> is used
 expression(<<A:8, _/binary>> = Rest, Parser, [{op, [_, {<<"->">>, _, _}]} | _] = Parsed)

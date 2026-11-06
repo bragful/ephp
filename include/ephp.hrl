@@ -73,6 +73,7 @@
     php_integer() |
     php_float() |
     binary() |
+    string() |
     boolean() |
     ephp_array:ephp_array() |
     obj_ref() |

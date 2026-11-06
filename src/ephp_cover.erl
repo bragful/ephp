@@ -50,7 +50,7 @@
     print | eval | assign | if_block | switch | switch_case | for | foreach | while |
     {call, binary()} | pre_incr | post_incr | pre_decr | post_decr | {op, Type :: atom()} |
     class | function | global | return | int | float | text | object | define | constant |
-    switch_default.
+    switch_default | interface | throw | new | try_catch | variable.
 
 -spec start_link() -> ok.
 %% @doc ensure the cover information is in the process.
@@ -209,7 +209,7 @@ process([Data | Rest], N) when is_list(Data) ->
 process([_ | Data], N) ->
     process(Data, N).
 
--spec dump(Files :: [binary()], Output :: iolist()) -> iolist().
+-spec dump(Files :: [{binary(), cover_dict()}], Output :: iolist()) -> iolist().
 %% @hidden
 dump([], Classes) ->
     lists:reverse(Classes);

@@ -1599,7 +1599,7 @@ remove_spaces(Rest, Parser) ->
 get_print({Type, Value, _}, Parser) when Type =:= int; Type =:= float; Type =:= text ->
     add_line(#print_text{text = ephp_data:to_bin(Value)}, Parser);
 get_print(Value, Parser) when is_atom(Value) ->
-    add_line(#print_text{text = ephp_data:to_bin(Value)}, Parser);
+    add_line(#print_text{text = atom_to_binary(Value, utf8)}, Parser);
 get_print(Expr, Parser) ->
     add_line(#print{expression = Expr}, Parser).
 
@@ -1615,4 +1615,6 @@ throw_error(Error, Parser, Data) when is_binary(Data) ->
     LimitedData = <<Output:Size/binary, "...">>,
     throw_error(Error, Parser, ?E_PARSE, LimitedData);
 throw_error(Error, Parser, Data) when is_tuple(Data) ->
-    throw_error(Error, Parser, ?E_PARSE, Data).
+    throw_error(Error, Parser, ?E_PARSE, Data);
+throw_error(Error, Parser, Data) when is_atom(Data) ->
+    throw_error(Error, Parser, ?E_PARSE, atom_to_binary(Data, utf8)).

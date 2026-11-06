@@ -22,7 +22,7 @@ init_func() ->
      func_get_args,
      {func_get_arg, [{args, [integer]}]},
      {call_user_func, [pack_args]},
-     {call_user_func_array, [callable, array]},
+     {call_user_func_array, [{args, [callable, array]}]},
      {create_function, [{args, [string, string]}]}].
 
 -spec init_config() -> ephp_lib:php_config_results().

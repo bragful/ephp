@@ -142,7 +142,7 @@ module_init(Module) ->
 %% Internal functions
 %% ----------------------------------------------------------------------------
 
--spec add_module(binary()) -> ok.
+-spec add_module(binary()) -> ok | {error, duplicated}.
 add_module(Extension) ->
     Module =
         case binary:split(Extension, <<".">>) of

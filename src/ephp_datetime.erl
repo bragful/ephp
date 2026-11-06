@@ -185,7 +185,7 @@ normalize_tz("UTC") ->
 normalize_tz("GMT") ->
     "Etc/GMT";
 %% TODO: normalize more timezones and throw error...
-normalize_tz(Zone) ->
+normalize_tz(Zone) when is_list(Zone) ->
     Zone.
 
 -spec is_dst(calendar:datetime(), string() | binary()) -> boolean().

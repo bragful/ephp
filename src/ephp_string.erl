@@ -13,14 +13,20 @@
 to_lower(undefined) ->
     undefined;
 to_lower(Text) when is_binary(Text) ->
-    unicode:characters_to_binary(string:lowercase(Text)).
+    case unicode:characters_to_binary(string:lowercase(Text)) of
+        Lower when is_binary(Lower) -> Lower;
+        _ -> Text
+    end.
 
 -spec to_upper(binary()) -> binary();
               (undefined) -> undefined.
 to_upper(undefined) ->
     undefined;
 to_upper(Text) when is_binary(Text) ->
-    unicode:characters_to_binary(string:uppercase(Text)).
+    case unicode:characters_to_binary(string:uppercase(Text)) of
+        Upper when is_binary(Upper) -> Upper;
+        _ -> Text
+    end.
 
 -spec capitalize(binary(), [byte()]) -> binary().
 capitalize(<<>>, _Sep) ->
@@ -98,7 +104,7 @@ pad(Bin, _Size, undefined) ->
     Bin;
 pad(Bin, Size, _PadStr) when byte_size(Bin) >= Size ->
     Bin;
-pad(Bin, Size, PadStr) ->
+pad(Bin, Size, PadStr) when is_binary(Bin) ->
     MissingLen = Size - byte_size(Bin),
     SizeLeft = ephp_data:flooring(MissingLen / 2),
     NewBin = rpad(Bin, Size - SizeLeft, PadStr),
@@ -211,27 +217,27 @@ vsn_cmp([A | _], [B | _]) when A < B ->
 vsn_cmp([A | ARest], [A | BRest]) ->
     vsn_cmp(ARest, BRest).
 
--spec spaces(pos_integer()) -> binary().
+-spec spaces(non_neg_integer()) -> binary().
 %% @doc generate as many spaces as the number passed as param.
 spaces(Num) ->
     repeat(Num, 32).
 
--spec repeat(pos_integer(), byte() | binary()) -> binary().
+-spec repeat(non_neg_integer(), byte() | binary()) -> binary().
 %% @doc repeat the byte passed as param as many times as the number passed as param.
 repeat(Num, Byte) when is_integer(Byte) ->
     repeat(Num, Byte, <<>>);
 repeat(Num, Bin) when is_binary(Bin) ->
     repeat(Num, Bin, <<>>).
 
--spec repeat(pos_integer(), byte() | binary(), binary()) -> binary().
+-spec repeat(non_neg_integer(), byte() | binary(), binary()) -> binary().
 %% @doc repeat internal function.
 %% @see repeat/2
 %% @private
 repeat(0, _ByteOrBin, Binary) ->
     Binary;
-repeat(N, Byte, Binary) when is_integer(Byte) ->
+repeat(N, Byte, Binary) when is_integer(Byte), N > 0 ->
     repeat(N - 1, Byte, <<Binary/binary, Byte:8>>);
-repeat(N, Bin, Binary) when is_binary(Bin) ->
+repeat(N, Bin, Binary) when is_binary(Bin), N > 0 ->
     repeat(N - 1, Bin, <<Binary/binary, Bin/binary>>).
 
 -spec reverse(binary()) -> binary().
@@ -268,10 +274,10 @@ hex2bin(<<>>) ->
 -spec bin2hex(binary()) -> binary().
 %% @doc transform a binary string in its hexadecimal representation.
 bin2hex(Bin) when is_binary(Bin) ->
-    to_lower(<< <<(integer_to_binary(X, 16))/binary>> || <<X:4/integer>> <= Bin >>).
+    string:lowercase(<< <<(integer_to_binary(X, 16))/binary>> || <<X:4/integer>> <= Bin >>).
 
 -spec ibin2hex(binary()) -> binary().
 %% @doc transform a binary string in its hexadecimal representation.
 ibin2hex(Bin) when is_binary(Bin) ->
-    to_lower(<< <<(integer_to_binary(Y, 16))/binary, (integer_to_binary(X, 16))/binary>>
-                || <<X:4/integer, Y:4/integer>> <= Bin >>).
+    string:lowercase(<< <<(integer_to_binary(Y, 16))/binary, (integer_to_binary(X, 16))/binary>>
+                        || <<X:4/integer, Y:4/integer>> <= Bin >>).

@@ -555,7 +555,7 @@ instance(_Ref, LocalCtx, GlobalCtx, ClassNS, ClassName, Line) ->
             RegClass = #ephp_object{class = Class, context = Ctx},
             Objects = ephp_context:get_objects(LocalCtx),
             ObjectId = ephp_object:add(Objects, RegClass),
-            initialize(Ctx, Class#class.name, Class),
+            initialize(Ctx, Class),
             #obj_ref{pid = Objects, ref = ObjectId};
         {error, enoexist} ->
             ephp_error:error({error, eundefclass, Line, ?E_ERROR, {ClassNS, ClassName}})
@@ -576,7 +576,7 @@ initialize_class(#class{static_context = Ctx, attrs = Attrs}) ->
                     Attrs),
     ephp_context:set_bulk(Ctx, lists:reverse(Bulk)).
 
-initialize(Ctx, _ClassName, #class{attrs = Attrs}) ->
+initialize(Ctx, #class{attrs = Attrs}) ->
     Bulk =
         lists:foldl(fun (#class_attr{type = normal,
                                      access = private,

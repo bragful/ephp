@@ -11,7 +11,7 @@
 -type config_section() :: binary().
 -type config_param() :: mixed().
 % init_const
--type php_const_results() :: [{const_name(), number() | binary()}].
+-type php_const_results() :: [{const_name(), mixed()}].
 -type const_name() :: binary().
 % init_func
 -type php_function_results() :: [php_function_defs()].
@@ -20,6 +20,7 @@
 -type php_function_opts() :: [php_function_opt()].
 -type php_function_opt() ::
     pack_args |
+    {pack_args, boolean()} |
     {namespace, ephp_ns:namespace()} |
     {alias, php_function_alias()} |
     php_function_args().
@@ -29,7 +30,9 @@
 -type error_return_value() :: mixed().
 -type min_args() :: non_neg_integer().
 -type max_args() :: non_neg_integer().
--type type_arg() :: mixed | string | integer | array | object | resource | raw | type_ref.
+-type type_arg() ::
+    mixed | string | integer | array | object | resource | raw | type_ref |
+    boolean | path | callable | double.
 -type validation_arg() :: {type_arg(), default_value()} | type_arg().
 -type validation_args() ::
     {min_args(), max_args(), error_return_value(), [validation_arg()]} |

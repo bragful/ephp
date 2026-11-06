@@ -220,6 +220,7 @@ get_function(Context, NS, FuncName) ->
     #state{funcs = Funcs} = load_state(Context),
     ephp_func:get(Funcs, NS, FuncName).
 
+-spec is_defined_function(ephp:context_id(), any()) -> boolean().
 is_defined_function(Context, FuncName) ->
     #state{funcs = Funcs} = load_state(Context),
     ephp_func:is_defined(Funcs, FuncName).

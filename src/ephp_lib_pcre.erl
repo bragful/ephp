@@ -83,7 +83,7 @@ preg_replace(_Context,
                  Matches :: var_value(),
                  Flags :: var_value(),
                  Offset :: var_value()) ->
-                    pos_integer().
+                    non_neg_integer().
 preg_match(_Context,
            _Line,
            {_, Pattern},

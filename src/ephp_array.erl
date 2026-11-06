@@ -192,7 +192,7 @@ current(#ephp_array{cursor = Cursor, values = Values}) ->
 cursor(#ephp_array{} = Array, Cursor) ->
     Array#ephp_array{cursor = Cursor}.
 
--spec ksort(ephp_array(), Flags :: pos_integer()) -> ephp_array().
+-spec ksort(ephp_array(), Flags :: non_neg_integer()) -> ephp_array().
 %% @doc sort an array based on incoming flags (as a second param).
 ksort(#ephp_array{values = Values} = Array, ?SORT_REGULAR) ->
     Array#ephp_array{values = lists:keysort(1, Values)};
